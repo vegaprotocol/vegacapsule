@@ -13,3 +13,9 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+
+# TODO remove later
+testnet
+dockerisedvega.sh
+Makefile
+zero-genesis.json
