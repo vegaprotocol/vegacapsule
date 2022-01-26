@@ -6,9 +6,12 @@ job "smartcontracts" {
   datacenters = ["dc1"]
   type = "batch"
   group "smartcontracts" {
-      network {
-        port "smart_contracts_port" { static = 80 }
-        }
+  network {
+    port "smartcontracts_port" {
+      static = 80
+      to     = 8080
+    }
+  }
     count = 1
     task "vegacapsule-smartcontracts" {
       driver = "docker"
@@ -18,9 +21,7 @@ job "smartcontracts" {
         image = "ghcr.io/vegaprotocol/devops-infra/smartcontracts:docker"
         entrypoint = ["/app/run"]
         volumes = ["${local.path}:/mnt"]
-        ports = [
-          "smart_contracts_port",
-        ]
+        ports = ["smartcontracts_port"]
       }
       env {
         GANACHE_HOSTNAME = "127.0.0.1"
