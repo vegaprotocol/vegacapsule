@@ -101,7 +101,7 @@ func generateTendermintConfig(
 		tct.NodeNumber = i
 		err := t.Execute(buff, tct)
 		if err != nil {
-			panic(err)
+			return fmt.Errorf("failed to execute template", err)
 		}
 
 		if err := viper.MergeConfig(buff); err != nil {

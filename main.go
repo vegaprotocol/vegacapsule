@@ -100,17 +100,25 @@ func contextParser() {
 func main() {
 	outputDir := "./testnet"
 	vegaDir := path.Join(outputDir, "vega")
-	// generateEthereumKeys(3)
-	generateVegaConfig(vegaDir)
 
-	return
 	prefix := "st-local"
 	nodeDirPrefix := "node"
 	tendermintNodePrefix := "tendermint-node"
 	vegaNodePrefix := "vega-node"
+	dataNodePrefix := "data-node"
+	nodeMode := "validator"
+	vegaBinaryPath := "/Users/karelmoravec/go/bin/vega"
+
+	if err := generateVegaConfig(vegaBinaryPath, vegaDir, prefix, nodeDirPrefix, tendermintNodePrefix, vegaNodePrefix, dataNodePrefix, nodeMode, defaultVegaOverride); err != nil {
+		panic(err)
+	}
+
+	return
+
 	nValidators := 2
 	nNonValidators := 1
 	tendermintDir := path.Join(outputDir, "tendermint")
+	// generateEthereumKeys(3)
 
 	if err := generateTendermintConfig(tendermintDir, prefix, nodeDirPrefix, tendermintNodePrefix, vegaNodePrefix, defaultTendermintOverride, nValidators, nNonValidators); err != nil {
 		panic(err)
