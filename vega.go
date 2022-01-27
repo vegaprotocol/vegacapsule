@@ -8,7 +8,6 @@ import (
 	"log"
 	"os"
 	"path"
-	"path/filepath"
 
 	"github.com/zannen/toml"
 
@@ -64,7 +63,6 @@ var defaultVegaOverride = `
 
 // copied from Vega core
 func initVegaConfig(modeS, dir, pass string) (*VegaConfig, error) {
-	fmt.Println("init vega: ", pass)
 	mode, err := encoding.NodeModeFromString(modeS)
 	if err != nil {
 		return nil, err
@@ -146,69 +144,70 @@ func overrideVegaConfig(
 	return nil
 }
 
-type walletOutput struct {
-	Name     string "json`name`"
-	Version  int    "json`version`"
-	FilePath string "json`filePath`"
+type generateNodeWalletOutput struct {
+	Mnemonic         string `json:"mnemonic,omitempty"`
+	RegistryFilePath string `json:"registryFilePath"`
+	WalletFilePath   string `json:"walletFilePath"`
 }
 
-type importVegaWalletOutput struct {
-	Wallet walletOutput "json`wallet`"
-}
+type walletChainType string
 
-func importVegaWallet(
-	vegaBinaryPath string,
-	homePath string,
-	mnemonicFile string,
-	walletPhraseFile string,
-) (*importVegaWalletOutput, error) {
-	args := []string{
-		"wallet",
-		"--output", "json",
-		"--no-version-check",
-		"import",
-		"--home", homePath,
-		"--recovery-phrase-file", mnemonicFile,
-		"--passphrase-file", walletPhraseFile,
-		"--wallet", "wallet_from_mnemonic",
-	}
+const (
+	NodeWalletChainTypeVega     walletChainType = "vega"
+	NodeWalletChainTypeEthereum walletChainType = "ethereum"
+)
 
-	log.Printf("Importing wallet: %v", args)
-
-	wo := &importVegaWalletOutput{}
-	if err := executeBinary(vegaBinaryPath, args, wo); err != nil {
-		return nil, err
-	}
-
-	return wo, nil
-}
-
-type importVegaNodeWalletOutput struct {
-	RegistryFilePath string "json`registryFilePath`"
-	WalletFilePath   string "json`walletFilePath`"
-}
-
-func importVegaNodeWallet(
+func generateNodeWallet(
 	vegaBinaryPath string,
 	homePath string,
 	nodeWalletPhraseFile string,
 	walletPhraseFile string,
-	walletPath string,
-) (*importVegaNodeWalletOutput, error) {
+	walletType walletChainType,
+) (*generateNodeWalletOutput, error) {
+	args := []string{
+		"nodewallet",
+		"--home", homePath,
+		"--passphrase-file", nodeWalletPhraseFile,
+		"generate",
+		"--output", "json",
+		"--chain", string(walletType),
+		"--wallet-passphrase-file", walletPhraseFile,
+	}
+
+	log.Printf("Generating node %q wallet with: %v", walletType, args)
+
+	out := &generateNodeWalletOutput{}
+	if err := executeBinary(vegaBinaryPath, args, out); err != nil {
+		return nil, err
+	}
+
+	return out, nil
+}
+
+type importNodeWalletOutput struct {
+	RegistryFilePath string `json:"registryFilePath"`
+	TendermintPubkey string `json:"tendermintPubkey"`
+}
+
+func generateTendermintNodeWallet(
+	vegaBinaryPath string,
+	homePath string,
+	nodeWalletPhraseFile string,
+	tendermintHomePath string,
+) (*importNodeWalletOutput, error) {
 	args := []string{
 		"nodewallet",
 		"--home", homePath,
 		"--passphrase-file", nodeWalletPhraseFile,
 		"import",
 		"--output", "json",
-		"--chain", "vega",
-		"--wallet-passphrase-file", walletPhraseFile,
-		"--wallet-path", walletPath,
+		"--chain", "tendermint",
+		"--tendermint-home", tendermintHomePath,
 	}
 
-	log.Printf("Importing node wallet: %v", args)
+	log.Printf("Generating tenderming wallet: %v", args)
 
-	nwo := &importVegaNodeWalletOutput{}
+	nwo := &importNodeWalletOutput{}
 	if err := executeBinary(vegaBinaryPath, args, nwo); err != nil {
 		return nil, err
 	}
@@ -216,9 +215,41 @@ func importVegaNodeWallet(
 	return nwo, nil
 }
 
+func updateGenesisFile(
+	vegaBinaryPath string,
+	vegaHomePath string,
+	nodeWalletPhraseFile string,
+	tendermintHomePath string,
+) (*importNodeWalletOutput, error) {
+	args := []string{
+		"genesis",
+		"--home", vegaHomePath,
+		"--passphrase-file", nodeWalletPhraseFile,
+		"update",
+		"--tm-home", tendermintHomePath,
+	}
+
+	log.Printf("Updating genesis file: %v", args)
+
+	nwo := &importNodeWalletOutput{}
+	if err := executeBinary(vegaBinaryPath, args, nwo); err != nil {
+		return nil, err
+	}
+
+	return nwo, nil
+}
+
+type vegaNode struct {
+	NodeMode         string
+	VegaWallet       *generateNodeWalletOutput
+	EthereumWallet   *generateNodeWalletOutput
+	TendermintWallet *importNodeWalletOutput
+}
+
 func initateVegaNode(
 	vegaBinaryPath string,
 	vegaDir string,
+	tendermintDir string,
 	prefix string,
 	nodeDirPrefix string,
 	tendermintNodePrefix string,
@@ -226,11 +257,10 @@ func initateVegaNode(
 	dataNodePrefix string,
 	configOverride string,
 	nodeMode string,
-	ethKey keyPair,
-	mnemonic walletMnemonic,
 	id int,
 ) error {
 	nodeDir := path.Join(vegaDir, fmt.Sprintf("node%d", id))
+	tendermintNodeDir := path.Join(tendermintDir, fmt.Sprintf("node%d", id))
 
 	if err := os.MkdirAll(nodeDir, os.ModePerm); err != nil {
 		return err
@@ -239,7 +269,7 @@ func initateVegaNode(
 	// TODO These vars should come from config or be generated somehow....
 	nodeWalletPass := "n0d3w4ll3t-p4ssphr4e3"
 	vegaWalletPass := "w4ll3t-p4ssphr4e3"
-	// chainEthereumWalletPass := "ch41nw4ll3t-3th3r3um-p4ssphr4e3"
+	ethereumWalletPass := "ch41nw4ll3t-3th3r3um-p4ssphr4e3"
 
 	vegaConfigs, err := initVegaConfig(nodeMode, nodeDir, nodeWalletPass)
 	if err != nil {
@@ -262,13 +292,9 @@ func initateVegaNode(
 
 	// TODO this condition should really come from config...
 	if nodeMode == "validator" {
-		mnemonicFilePath := path.Join(nodeDir, "mnemonic.txt")
 		walletPassFilePath := path.Join(nodeDir, "vega-wallet-pass.txt")
 		nodeWalletPassFilePath := path.Join(nodeDir, "node-vega-wallet-pass.txt")
-
-		if err := ioutil.WriteFile(mnemonicFilePath, []byte(mnemonic.Mnemonic), 0644); err != nil {
-			return fmt.Errorf("failed to write mnemonic to file: %w", err)
-		}
+		ethereumPassFilePath := path.Join(nodeDir, "ethereum-vega-wallet-pass.txt")
 
 		if err := ioutil.WriteFile(walletPassFilePath, []byte(vegaWalletPass), 0644); err != nil {
 			return fmt.Errorf("failed to write wallet passphrase to file: %w", err)
@@ -278,25 +304,37 @@ func initateVegaNode(
 			return fmt.Errorf("failed to write node wallet passphrase to file: %w", err)
 		}
 
-		wo, err := importVegaWallet(vegaBinaryPath, nodeDir, mnemonicFilePath, walletPassFilePath)
-		if err != nil {
-			return fmt.Errorf("failed import vega wallet: %w", err)
+		if err := ioutil.WriteFile(ethereumPassFilePath, []byte(ethereumWalletPass), 0644); err != nil {
+			return fmt.Errorf("failed to write ethereum wallet passphrase to file: %w", err)
 		}
 
-		// we need absolute vega wallet path to import it to node wallet
-		absoluteWalletPath, err := filepath.Abs(wo.Wallet.FilePath)
+		vegaOut, err := generateNodeWallet(vegaBinaryPath, nodeDir, nodeWalletPassFilePath, walletPassFilePath, NodeWalletChainTypeVega)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to generate vega wallet: %w", err)
 		}
 
-		nwo, err := importVegaNodeWallet(vegaBinaryPath, nodeDir, nodeWalletPassFilePath, walletPassFilePath, absoluteWalletPath)
-		if err != nil {
-			return fmt.Errorf("failed import vega node wallet: %w", err)
-		}
-		fmt.Println(nwo)
+		log.Printf("node wallet out: %#v", vegaOut)
 
-		// TODO import ethereum wallet here.. implement the geth in Go: "github.com/ethereum/go-ethereum/accounts/keystore"
-		// generateEthereumWallet()
+		ethOut, err := generateNodeWallet(vegaBinaryPath, nodeDir, nodeWalletPassFilePath, ethereumPassFilePath, NodeWalletChainTypeEthereum)
+		if err != nil {
+			return fmt.Errorf("failed to generate vega wallet: %w", err)
+		}
+
+		log.Printf("ethereum wallet out: %#v", ethOut)
+
+		genTmtOut, err := generateTendermintNodeWallet(vegaBinaryPath, nodeDir, nodeWalletPassFilePath, tendermintNodeDir)
+		if err != nil {
+			return fmt.Errorf("failed to generate tenderming wallet: %w", err)
+		}
+
+		log.Printf("tendermint wallet out: %#v", genTmtOut)
+
+		// _, err = updateGenesisFile(vegaBinaryPath, nodeDir, nodeWalletPassFilePath, tendermintNodeDir)
+		// if err != nil {
+		// 	return fmt.Errorf("failed to update genesis file: %w", err)
+		// }
+
+		// log.Printf("updated genesis file wallet out: %#v", genTmtOut)
 	}
 
 	log.Printf("vega config initialised for node id %d, paths: %#v", id, vegaConfigs.Loader.ConfigFilePath())
@@ -307,6 +345,7 @@ func initateVegaNode(
 func generateVegaConfig(
 	vegaBinaryPath string,
 	vegaDir string,
+	tendermintDir string,
 	prefix string,
 	nodeDirPrefix string,
 	tendermintNodePrefix string,
@@ -315,19 +354,10 @@ func generateVegaConfig(
 	nodeMode string,
 	configOverride string,
 ) error {
-	ethKeys, err := generateEthereumKeys(1)
-	if err != nil {
-		return err
-	}
-
-	mnemonics, err := generateWalletMnemonics(1, "DV")
-	if err != nil {
-		return err
-	}
-
 	return initateVegaNode(
 		vegaBinaryPath,
 		vegaDir,
+		tendermintDir,
 		prefix,
 		nodeDirPrefix,
 		tendermintNodePrefix,
@@ -335,8 +365,6 @@ func generateVegaConfig(
 		dataNodePrefix,
 		configOverride,
 		nodeMode,
-		ethKeys.Keys[0],
-		mnemonics[0],
 		0,
 	)
 

@@ -15,6 +15,8 @@ import (
 	"github.com/tyler-smith/go-bip39"
 )
 
+// TODO this files will probably not be needed
+
 const vegaNodeEthereumMnemonic = "sentence find kit hood will omit awake prize leave bid nation crawl"
 
 func generateEthereumWallet(walletPath string, privateKeyHex string, passphrase string) error {

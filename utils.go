@@ -18,6 +18,8 @@ func executeBinary(binaryPath string, args []string, v interface{}) error {
 		return fmt.Errorf("%s: %s", stErr.String(), err.Error())
 	}
 
+	fmt.Println("executeBinary: ", stdOut.String())
+
 	if err := json.Unmarshal(stdOut.Bytes(), v); err != nil {
 		// TODO Maybe failback to text parsing instead??
 		return err

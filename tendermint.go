@@ -101,7 +101,7 @@ func generateTendermintConfig(
 		tct.NodeNumber = i
 		err := t.Execute(buff, tct)
 		if err != nil {
-			return fmt.Errorf("failed to execute template", err)
+			return fmt.Errorf("failed to execute template: %w", err)
 		}
 
 		if err := viper.MergeConfig(buff); err != nil {
@@ -115,11 +115,7 @@ func generateTendermintConfig(
 		}
 
 		config.SetRoot(nodeDir)
-		cfg.WriteConfigFile(nodeDir, config)
-
-		// if err := ; err != nil {
-		// 	return fmt.Errorf("failed to write config file %q: %w", configFile, err)
-		// }
+		cfg.WriteConfigFile(configFile, config)
 	}
 
 	return nil
