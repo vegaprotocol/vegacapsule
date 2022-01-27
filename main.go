@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/hcl/v2/gohcl"
 	"github.com/hashicorp/hcl/v2/hclparse"
 	"github.com/hashicorp/hcl/v2/hclsimple"
+	"github.com/hashicorp/nomad/api"
 	"github.com/zclconf/go-cty/cty"
 )
 
@@ -99,6 +100,15 @@ func contextParser() {
 
 func main() {
 	outputDir := "./testnet"
+	vegaDir := path.Join(outputDir, "vega")
+
+	nomadClient, err := api.NewClient(&api.Config{})
+	if err != nil {
+		log.Fatalf("nomad client error: %s", err)
+	}
+
+	registerJobs(nomadClient, "./jobs")
+	//deregisterJobs(nomadClient)
 	prefix := "st-local"
 	nodeDirPrefix := "node"
 	tendermintNodePrefix := "tendermint-node"
