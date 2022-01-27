@@ -11,10 +11,12 @@ require (
 	github.com/hashicorp/hcl/v2 v2.11.1
 	github.com/hashicorp/nomad v1.2.4
 	github.com/hashicorp/nomad/api v0.0.0-20211119141705-873b0969e01e
+	github.com/imdario/mergo v0.3.11
 	github.com/miguelmota/go-ethereum-hdwallet v0.1.1
 	github.com/spf13/viper v1.9.0
 	github.com/tendermint/tendermint v0.34.14
 	github.com/tyler-smith/go-bip39 v1.1.0
+	github.com/zannen/toml v0.3.2
 	github.com/zclconf/go-cty v1.8.0
 )
 
@@ -104,7 +106,6 @@ require (
 	github.com/tklauser/go-sysconf v0.3.6 // indirect
 	github.com/tklauser/numcpus v0.2.2 // indirect
 	github.com/vegaprotocol/go-slip10 v0.1.0 // indirect
-	github.com/zannen/toml v0.3.2 // indirect
 	go.etcd.io/bbolt v1.3.5 // indirect
 	go.nanomsg.org/mangos/v3 v3.2.1 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
