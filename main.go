@@ -108,6 +108,7 @@ func main() {
 	}
 
 	registerJobs(nomadClient, "./jobs")
+	ganacheCheck()
 	//deregisterJobs(nomadClient)
 	prefix := "st-local"
 	nodeDirPrefix := "node"
