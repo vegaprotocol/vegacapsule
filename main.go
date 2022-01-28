@@ -99,8 +99,6 @@ func contextParser() {
 
 func main() {
 	outputDir := "./testnet"
-	vegaDir := path.Join(outputDir, "vega")
-
 	prefix := "st-local"
 	nodeDirPrefix := "node"
 	tendermintNodePrefix := "tendermint-node"
@@ -108,7 +106,9 @@ func main() {
 	dataNodePrefix := "data-node"
 	nodeMode := "validator"
 	vegaBinaryPath := "/Users/karelmoravec/go/bin/vega"
+	vegaDir := path.Join(outputDir, "vega")
 	tendermintDir := path.Join(outputDir, "tendermint")
+	// walletDir :=
 
 	nValidators := 2
 	nNonValidators := 1
@@ -117,7 +117,7 @@ func main() {
 		panic(err)
 	}
 
-	if err := generateVegaConfig(vegaBinaryPath, vegaDir, tendermintDir, prefix, nodeDirPrefix, tendermintNodePrefix, vegaNodePrefix, dataNodePrefix, nodeMode, defaultVegaOverride); err != nil {
+	if err := generateVegaConfig(vegaBinaryPath, vegaDir, tendermintDir, prefix, nodeDirPrefix, tendermintNodePrefix, vegaNodePrefix, dataNodePrefix, nodeMode, defaultVegaOverride, defaultGenesisOverride); err != nil {
 		panic(err)
 	}
 }

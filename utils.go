@@ -7,7 +7,7 @@ import (
 	"os/exec"
 )
 
-func executeBinary(binaryPath string, args []string, v interface{}) error {
+func executeBinary(binaryPath string, args []string, v interface{}) ([]byte, error) {
 	command := exec.Command(binaryPath, args...)
 
 	var stdOut, stErr bytes.Buffer
@@ -15,15 +15,17 @@ func executeBinary(binaryPath string, args []string, v interface{}) error {
 	command.Stderr = &stErr
 
 	if err := command.Run(); err != nil {
-		return fmt.Errorf("%s: %s", stErr.String(), err.Error())
+		return nil, fmt.Errorf("%s: %s", stErr.String(), err.Error())
 	}
 
-	fmt.Println("executeBinary: ", stdOut.String())
+	if v == nil {
+		return stdOut.Bytes(), nil
+	}
 
 	if err := json.Unmarshal(stdOut.Bytes(), v); err != nil {
 		// TODO Maybe failback to text parsing instead??
-		return err
+		return nil, err
 	}
 
-	return nil
+	return nil, nil
 }
