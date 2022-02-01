@@ -22,18 +22,20 @@ type TendermingTemplateContext struct {
 	NodeNumber           int
 }
 
+// proxy-app = "tcp://{{.Prefix}}-{{.VegaNodePrefix}}{{.NodeNumber}}:26658"
+
 var defaultTendermintOverride = `
 log_level = "error"
 
-proxy-app = "tcp://{{.Prefix}}-{{.VegaNodePrefix}}{{.NodeNumber}}:26658"
+proxy-app = "tcp://127.0.0.1:266{{.NodeNumber}}8"
 moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
 
 [rpc]
-laddr = "tcp://0.0.0.0:26657"
+laddr = "tcp://0.0.0.0:266{{.NodeNumber}}7"
 unsafe = true
 
 [p2p]
-laddr = "tcp://0.0.0.0:26656"
+laddr = "tcp://0.0.0.0:266{{.NodeNumber}}6"
 addr-book-strict = true
 max-packet-msg-payload-size = 4096
 pex = false

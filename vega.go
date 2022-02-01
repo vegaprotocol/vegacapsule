@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"io/ioutil"
 	"log"
 	"os"
 	"path"
+	"text/template"
 
 	"github.com/zannen/toml"
 
@@ -17,10 +17,7 @@ import (
 	"code.vegaprotocol.io/shared/paths"
 	"code.vegaprotocol.io/vega/config"
 	"code.vegaprotocol.io/vega/config/encoding"
-	"code.vegaprotocol.io/vega/genesis"
 	"code.vegaprotocol.io/vega/nodewallets"
-	vgtm "code.vegaprotocol.io/vega/tendermint"
-	tmtypes "github.com/tendermint/tendermint/types"
 )
 
 type VegaConfig struct {
@@ -38,10 +35,12 @@ type VegaTemplateContext struct {
 	NodeNumber           int
 }
 
+// ClientAddr = "tcp://{{.Prefix}}-{{.TendermintNodePrefix}}{{.NodeNumber}}:26657"
+
 var defaultVegaOverride = `
 [Blockchain]
     [Blockchain.Tendermint]
-        ClientAddr = "tcp://{{.Prefix}}-{{.TendermintNodePrefix}}{{.NodeNumber}}:26657"
+        ClientAddr = "tcp://127.0.0.1:266{{.NodeNumber}}7"
         ServerAddr = "0.0.0.0"
 
 [EvtForward]
@@ -56,7 +55,7 @@ var defaultVegaOverride = `
     [Processor.Ratelimit]
         Requests = 10000
         PerNBlocks = 1
-{{if eq .Type "validator"}}
+{{if eq .Type "full"}}
 [Broker]
     [Broker.Socket]
         Address = "{{.Prefix}}-{{.DataNodePrefix}}{{.NodeNumber}}"
@@ -249,11 +248,15 @@ func updateGenesis(
 }
 
 type vegaNode struct {
-	NodeMode         string
-	VegaWallet       *generateNodeWalletOutput
-	EthereumWallet   *generateNodeWalletOutput
-	TendermintWallet *importNodeWalletOutput
-	Genesis          *updateGenesisOutput
+	NodeMode               string
+	NodeHome               string
+	WalletPassFilePath     string
+	NodeWalletPassFilePath string
+	EthereumPassFilePath   string
+	VegaWallet             *generateNodeWalletOutput
+	EthereumWallet         *generateNodeWalletOutput
+	TendermintWallet       *importNodeWalletOutput
+	Genesis                *updateGenesisOutput
 }
 
 func initateVegaNode(
@@ -292,7 +295,7 @@ func initateVegaNode(
 		VegaNodePrefix:       vegaNodePrefix,
 		DataNodePrefix:       dataNodePrefix,
 		Type:                 nodeMode,
-		ETHEndpoint:          "tcp://rubbish.com",
+		ETHEndpoint:          "http://192.168.1.102:8545/", // TODO this should come from config...
 		NodeNumber:           id,
 	}
 
@@ -347,11 +350,15 @@ func initateVegaNode(
 		log.Println("updated genesis")
 
 		return &vegaNode{
-			NodeMode:         nodeMode,
-			VegaWallet:       vegaOut,
-			EthereumWallet:   ethOut,
-			TendermintWallet: tmtOut,
-			Genesis:          genesisOut,
+			NodeMode:               nodeMode,
+			NodeHome:               nodeDir,
+			WalletPassFilePath:     walletPassFilePath,
+			NodeWalletPassFilePath: nodeWalletPassFilePath,
+			EthereumPassFilePath:   ethereumPassFilePath,
+			VegaWallet:             vegaOut,
+			EthereumWallet:         ethOut,
+			TendermintWallet:       tmtOut,
+			Genesis:                genesisOut,
 		}, nil
 	}
 
@@ -373,10 +380,9 @@ func generateVegaConfig(
 	dataNodePrefix string,
 	nodeMode string,
 	configOverride string,
-	genesisOverride string,
-) error {
-	var genDoc *tmtypes.GenesisDoc
-	var genState *genesis.GenesisState
+	genesisOverrideStr string,
+) ([]*vegaNode, error) {
+	var nodes []*vegaNode
 
 	for i := 0; i < 2; i++ {
 		node, err := initateVegaNode(
@@ -393,61 +399,13 @@ func generateVegaConfig(
 			i,
 		)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
-		fmt.Printf("received iniated vega node: %#v \n", node)
+		fmt.Printf("initiated vega node: %#v \n", node)
 
-		// TODO clean this up
-		if node.Genesis != nil {
-			doc, state, err := genesis.GenesisFromJSON(node.Genesis.RawOutput)
-			if err != nil {
-				return fmt.Errorf("failed to get genesis from JSON: %w", err)
-			}
-
-			if genState == nil {
-				genState = state
-				genDoc = doc
-				continue
-			}
-
-			// Add validators to shared state
-			for _, v := range state.Validators {
-				genState.Validators[v.TmPubKey] = v
-			}
-		}
+		nodes = append(nodes, node)
 	}
 
-	// TODO clean up this genesis merging mess...
-	if err := vgtm.AddAppStateToGenesis(genDoc, genState); err != nil {
-		return err
-	}
-
-	genDocBytes, err := json.Marshal(genDoc)
-	if err != nil {
-		return err
-	}
-
-	b, err := mergeJSON(genDocBytes, []byte(genesisOverride))
-	if err != nil {
-		return fmt.Errorf("failed to override genesis json: %w", err)
-	}
-
-	for i := 0; i < 2; i++ {
-		genesisFilePath := path.Join(tendermintDir, fmt.Sprintf("node%d", i), "config", "genesis.json")
-
-		// HERE
-		if err := ioutil.WriteFile(genesisFilePath, []byte(b), 0644); err != nil {
-			return fmt.Errorf("failed to save genesis file: %w", err)
-		}
-	}
-
-	// b, err := json.Marshal(out)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	// fmt.Println(string(b))
-
-	return nil
+	return nodes, nil
 }

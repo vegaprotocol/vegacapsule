@@ -3,5 +3,8 @@ plugin "docker" {
     volumes {
       enabled = true
     }
+    auth {
+      helper = "osxkeychain"
+    }
   }
 }

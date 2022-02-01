@@ -1,50 +1,99 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
-	"os"
-	"path/filepath"
+	"net/http"
+	"strings"
+	"time"
 
 	"github.com/hashicorp/nomad/api"
-	"github.com/hashicorp/nomad/jobspec"
 )
 
-func registerJobs(client *api.Client, dir string) error {
+const Running = "running"
 
-	files, err := os.ReadDir(dir)
-	path, _ := filepath.Abs(dir)
-
-	if err != nil {
-		log.Fatal(err)
-		return err
-	}
-
-	for _, file := range files {
-		p := filepath.Join(path, file.Name())
-
-		j, err := jobspec.ParseFile(p)
-		if err != nil {
-			fmt.Println(err)
-			return err
-		}
-		client.Jobs().Register(j, &api.WriteOptions{})
-	}
-	return nil
+type NomadRunner struct {
+	NomadClient *api.Client
 }
 
-func deregisterJobs(client *api.Client) error {
-	jobs, _, err := client.Jobs().List(nil)
+func NewNomadRunner(config *api.Config) (*NomadRunner, error) {
+	nomadConfig := api.DefaultConfig()
+	if config != nil {
+		nomadConfig.Address = config.Address
+		nomadConfig.TLSConfig = config.TLSConfig
+	}
+
+	cl, err := api.NewClient(nomadConfig)
 	if err != nil {
-		log.Fatalf("[ERR] nomad: failed listing jobs: %v", err)
-		return err
+		log.Fatalf("Error creating client %+v", err)
+		return nil, err
 	}
-	fmt.Println(jobs)
-	for _, job := range jobs {
-		if _, _, err := client.Jobs().Deregister(job.ID, true, nil); err != nil {
-			log.Fatalf("[ERR] nomad: failed deregistering job: %v", err)
-			return err
+
+	return &NomadRunner{NomadClient: cl}, nil
+}
+
+func (n *NomadRunner) Run(job *api.Job) (bool, error) {
+	jobs := n.NomadClient.Jobs()
+
+	info, _, err := jobs.Info(*job.ID, &api.QueryOptions{})
+	if err != nil {
+		//NOTE: Handle 404 status code
+		log.Printf("Error getting job info: %+v", err)
+	} else if *info.Status == Running {
+		return true, nil
+	}
+
+	resp, _, err := jobs.Register(job, nil)
+	if err != nil {
+		log.Fatalf("error registering jobs: %+v", err)
+	}
+	log.Printf("Success Reponse: %+v", resp)
+
+	return false, nil
+}
+
+func (n *NomadRunner) Stop(job *api.Job, purge bool) (bool, error) {
+	jobs := n.NomadClient.Jobs()
+
+	jId, _, err := jobs.Deregister(*job.ID, purge, &api.WriteOptions{})
+	if err != nil {
+		log.Printf("error stopping the job: %+v", err)
+		return false, err
+	}
+
+	log.Printf("Stopped Job: %+v - %+v", *job.Name, jId)
+	return true, nil
+}
+
+func ganacheCheck(timeout time.Duration) error {
+	for start := time.Now(); time.Since(start) < timeout; {
+		time.Sleep(1 * time.Second)
+		postBody, _ := json.Marshal(map[string]string{
+			"method": "web3_clientVersion",
+		})
+		responseBody := bytes.NewBuffer(postBody)
+		resp, err := http.Post("http://127.0.0.1:8545/", "application/json", responseBody)
+		if err != nil {
+			log.Println("ganache not yet ready", err)
+			continue
 		}
+		defer resp.Body.Close()
+
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+
+		if strings.Contains(string(body), "EthereumJS") {
+			log.Println("ganache is ready")
+			return nil
+		}
+		continue
 	}
-	return nil
+
+	return fmt.Errorf("ganache container has timed out")
 }

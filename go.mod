@@ -8,7 +8,6 @@ require (
 	github.com/btcsuite/btcd v0.22.0-beta
 	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
 	github.com/ethereum/go-ethereum v1.10.15
-	github.com/hashicorp/hcl/v2 v2.11.1
 	github.com/hashicorp/nomad v1.2.4
 	github.com/hashicorp/nomad/api v0.0.0-20211119141705-873b0969e01e
 	github.com/imdario/mergo v0.3.11
