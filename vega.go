@@ -240,8 +240,8 @@ func updateGenesis(
 }
 
 type vegaNode struct {
-	NodeMode               string
-	NodeHome               nodeMode
+	NodeMode               nodeMode
+	NodeHome               string
 	WalletPassFilePath     string
 	NodeWalletPassFilePath string
 	EthereumPassFilePath   string
@@ -350,8 +350,8 @@ func initateVegaNode(
 		log.Printf("updated genesis file: %q\n", tendermintNode.GenesisPath)
 
 		return &vegaNode{
-			NodeMode:               nodeDir,
-			NodeHome:               nodeMode,
+			NodeMode:               nodeMode,
+			NodeHome:               nodeDir,
 			WalletPassFilePath:     walletPassFilePath,
 			NodeWalletPassFilePath: nodeWalletPassFilePath,
 			EthereumPassFilePath:   ethereumPassFilePath,
@@ -365,8 +365,8 @@ func initateVegaNode(
 	log.Printf("vega config initialized for node id %d, paths: %#v", id, initOut.ConfigFilePath)
 
 	return &vegaNode{
-		NodeMode: nodeDir,
-		NodeHome: nodeMode,
+		NodeMode: nodeMode,
+		NodeHome: nodeDir,
 	}, nil
 }
 

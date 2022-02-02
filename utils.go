@@ -4,9 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"os"
 	"os/exec"
-	"path"
 )
 
 func executeBinary(binaryPath string, args []string, v interface{}) ([]byte, error) {
@@ -30,13 +28,4 @@ func executeBinary(binaryPath string, args []string, v interface{}) ([]byte, err
 	}
 
 	return nil, nil
-}
-
-func createSmartContractsDir(OutputDir string, smartContractsDir string) error {
-	scd := path.Join(OutputDir, smartContractsDir)
-
-	if err := os.MkdirAll(scd, os.ModePerm); err != nil {
-		return err
-	}
-	return nil
 }
