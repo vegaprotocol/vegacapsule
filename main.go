@@ -1,8 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"path"
+	"path/filepath"
+
+	"github.com/hashicorp/nomad/api"
 )
 
 var (
@@ -92,21 +96,12 @@ var (
 const defaultGanacheMnemonic = "cherry manage trip absorb logic half number test shed logic purpose rifle"
 
 func main() {
-
-	nomadRunner, err := NewNomadRunner(nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// ganacheCheck()
-	//deregisterJobs(nomadClient)
 	outputDir := "./testnet"
 	prefix := "st-local"
 	nodeDirPrefix := "node"
 	tendermintNodePrefix := "tendermint-node"
 	vegaNodePrefix := "vega-node"
 	dataNodePrefix := "data-node"
-	nodeMode := "validator"
 	vegaBinaryPath := "/Users/karelmoravec/go/bin/vega"
 	vegaDir := path.Join(outputDir, "vega")
 	tendermintDir := path.Join(outputDir, "tendermint")
@@ -116,28 +111,104 @@ func main() {
 	nValidators := 2
 	nNonValidators := 0
 
-	if err := generateTendermintConfig(tendermintDir, prefix, nodeDirPrefix, tendermintNodePrefix, vegaNodePrefix, defaultTendermintOverride, nValidators, nNonValidators); err != nil {
+	tendermintNodes, err := generateTendermintConfigs(tendermintDir, prefix, nodeDirPrefix, tendermintNodePrefix, vegaNodePrefix, defaultTendermintOverride, nValidators, nNonValidators)
+	if err != nil {
 		panic(err)
 	}
 
-	nodes, err := generateVegaConfig(vegaBinaryPath, vegaDir, tendermintDir, prefix, nodeDirPrefix, tendermintNodePrefix, vegaNodePrefix, dataNodePrefix, nodeMode, defaultVegaOverride, defaultGenesisOverride)
+	vegaNodes, err := generateVegaConfig(vegaBinaryPath, vegaDir, prefix, tendermintNodes, nodeDirPrefix, tendermintNodePrefix, vegaNodePrefix, dataNodePrefix, defaultVegaOverride, defaultGenesisTemplate)
 	if err != nil {
 		panic(err)
 	}
 
 	tmplCtx, err := NewGenesisTemplateContext(chainID, networkID, []byte(defaultSmartContractsAddresses))
 	if err != nil {
-		log.Fatalf("failed create genesis template context: %w", err)
+		log.Fatalf("failed create genesis template context: %s", err)
 	}
 
 	genGenerator, err := NewGenesisGenerator(defaultGenesisTemplate, tmplCtx)
 	if err != nil {
-		log.Fatalf("failed to crate new genesis generator: %w", err)
+		log.Fatalf("failed to crate new genesis generator: %s", err)
 	}
 
-	if err := genGenerator.Generate(tendermintDir, nodes); err != nil {
-		log.Fatalf("failed to generate genesis: %w", err)
+	if err := genGenerator.Generate(tendermintDir, vegaNodes); err != nil {
+		log.Fatalf("failed to generate genesis: %s", err)
 	}
 
-	// nomadRunner.Run(job *api.Job)
+	nomadRunner, err := NewNomadRunner(nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	vegaDirAbs, err := filepath.Abs(vegaDir)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	tendermintDirAbs, err := filepath.Abs(tendermintDir)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	tasks := []*api.Task{}
+
+	for i := 0; i < nValidators+nNonValidators; i++ {
+		tasks = append(tasks,
+			&api.Task{
+				Name:   fmt.Sprintf("vega-node-%d", i),
+				Driver: "raw_exec",
+				Config: map[string]interface{}{
+					"command": vegaBinaryPath,
+					"args": []string{
+						"node",
+						"--home", fmt.Sprintf("%s/node%d", vegaDirAbs, i),
+						"--nodewallet-passphrase-file", fmt.Sprintf("%s/node%d/node-vega-wallet-pass.txt", vegaDirAbs, i),
+					},
+				},
+				Resources: &api.Resources{
+					CPU:      intPoint(500),
+					MemoryMB: intPoint(256),
+				},
+			},
+			&api.Task{
+				Name:   fmt.Sprintf("tendermint-node-%d", i),
+				Driver: "raw_exec",
+				Config: map[string]interface{}{
+					"command": vegaBinaryPath,
+					"args": []string{
+						"tm",
+						"node",
+						"--home", fmt.Sprintf("%s/node%d", tendermintDirAbs, i),
+					},
+				},
+				Resources: &api.Resources{
+					CPU:      intPoint(500),
+					MemoryMB: intPoint(256),
+				},
+			},
+		)
+	}
+
+	j := &api.Job{
+		ID:          strPoint("test-vega-network-1"),
+		Datacenters: []string{"dc1"},
+		TaskGroups: []*api.TaskGroup{
+			{
+				Name:  strPoint("vega"),
+				Tasks: tasks,
+			},
+		},
+	}
+
+	if _, err := nomadRunner.Run(j); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func strPoint(s string) *string {
+	return &s
+}
+
+func intPoint(i int) *int {
+	return &i
 }

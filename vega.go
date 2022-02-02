@@ -16,14 +16,7 @@ import (
 
 	"code.vegaprotocol.io/shared/paths"
 	"code.vegaprotocol.io/vega/config"
-	"code.vegaprotocol.io/vega/config/encoding"
-	"code.vegaprotocol.io/vega/nodewallets"
 )
-
-type VegaConfig struct {
-	Loader                   *config.Loader
-	NodeWalletConfigFilePath string
-}
 
 type VegaTemplateContext struct {
 	Prefix               string
@@ -38,10 +31,18 @@ type VegaTemplateContext struct {
 // ClientAddr = "tcp://{{.Prefix}}-{{.TendermintNodePrefix}}{{.NodeNumber}}:26657"
 
 var defaultVegaOverride = `
+[API]
+	Port = 30{{.NodeNumber}}2
+	[API.REST]
+   		Port = 30{{.NodeNumber}}3
+
 [Blockchain]
     [Blockchain.Tendermint]
         ClientAddr = "tcp://127.0.0.1:266{{.NodeNumber}}7"
         ServerAddr = "0.0.0.0"
+		ServerPort = 266{{.NodeNumber}}8
+	[Blockchain.Null]
+		Port = 31{{.NodeNumber}}1
 
 [EvtForward]
     Level = "Info"
@@ -64,54 +65,45 @@ var defaultVegaOverride = `
 {{end}}
 `
 
-// copied from Vega core
-func initVegaConfig(modeS, dir, pass string) (*VegaConfig, error) {
-	mode, err := encoding.NodeModeFromString(modeS)
-	if err != nil {
+type nodeMode string
+
+const (
+	NodeModeValidator nodeMode = "validator"
+	NodeModeFull      nodeMode = "full"
+)
+
+type initateNodeOutput struct {
+	ConfigFilePath           string `json:"configFilePath"`
+	NodeWalletConfigFilePath string `json:"nodeWalletConfigFilePath"`
+}
+
+func initiateNode(
+	vegaBinaryPath string,
+	homePath string,
+	nodeWalletPhraseFile string,
+	nodeMode nodeMode,
+) (*initateNodeOutput, error) {
+	args := []string{
+		"init",
+		"--home", homePath,
+		"--nodewallet-passphrase-file", nodeWalletPhraseFile,
+		"--output", "json",
+		string(nodeMode),
+	}
+
+	log.Printf("Initiating node %q wallet with: %v", nodeMode, args)
+
+	out := &initateNodeOutput{}
+	if _, err := executeBinary(vegaBinaryPath, args, out); err != nil {
 		return nil, err
 	}
 
-	vegaPaths := paths.New(dir)
-
-	// a nodewallet will be required only for a validator node
-	var nwRegistry *nodewallets.RegistryLoader
-	if mode == encoding.NodeModeValidator {
-		nwRegistry, err = nodewallets.NewRegistryLoader(vegaPaths, pass)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	cfgLoader, err := config.InitialiseLoader(vegaPaths)
-	if err != nil {
-		return nil, fmt.Errorf("couldn't initialise configuration loader: %w", err)
-	}
-
-	configExists, err := cfgLoader.ConfigExists()
-	if err != nil {
-		return nil, fmt.Errorf("couldn't verify configuration presence: %w", err)
-	}
-
-	if configExists {
-		cfgLoader.Remove()
-	}
-
-	cfg := config.NewDefaultConfig()
-	cfg.NodeMode = mode
-
-	if err := cfgLoader.Save(&cfg); err != nil {
-		return nil, fmt.Errorf("couldn't save configuration file: %w", err)
-	}
-
-	return &VegaConfig{
-		Loader:                   cfgLoader,
-		NodeWalletConfigFilePath: nwRegistry.RegistryFilePath(),
-	}, nil
+	return out, nil
 }
 
 func overrideVegaConfig(
 	tmplCtx VegaTemplateContext,
-	loader *config.Loader,
+	configFilePath string,
 	configOverride string,
 ) error {
 	t, err := template.New("config.toml").Parse(configOverride)
@@ -125,23 +117,23 @@ func overrideVegaConfig(
 		return fmt.Errorf("failed to execute template: %w", err)
 	}
 
-	cfg := config.Config{}
+	overrideConfig := config.Config{}
 
-	if _, err := toml.DecodeReader(buff, &cfg); err != nil {
+	if _, err := toml.DecodeReader(buff, &overrideConfig); err != nil {
 		return fmt.Errorf("failed decode override config: %w", err)
 	}
 
-	vegaConfig, err := loader.Get()
-	if err != nil {
-		return fmt.Errorf("failed to get generated config: %w", err)
+	vegaConfig := config.NewDefaultConfig()
+	if err := paths.ReadStructuredFile(configFilePath, &vegaConfig); err != nil {
+		return fmt.Errorf("failed to read configuration file at %s: %w", configFilePath, err)
 	}
 
-	if err := mergo.Merge(&cfg, vegaConfig); err != nil {
+	if err := mergo.Merge(&overrideConfig, vegaConfig); err != nil {
 		return fmt.Errorf("failed to merge configs: %w", err)
 	}
 
-	if err := loader.Save(&cfg); err != nil {
-		return fmt.Errorf("failed to save config: %w", err)
+	if err := paths.WriteStructuredFile(configFilePath, overrideConfig); err != nil {
+		return fmt.Errorf("failed to write configuration file at %s: %w", configFilePath, err)
 	}
 
 	return nil
@@ -249,7 +241,7 @@ func updateGenesis(
 
 type vegaNode struct {
 	NodeMode               string
-	NodeHome               string
+	NodeHome               nodeMode
 	WalletPassFilePath     string
 	NodeWalletPassFilePath string
 	EthereumPassFilePath   string
@@ -262,18 +254,16 @@ type vegaNode struct {
 func initateVegaNode(
 	vegaBinaryPath string,
 	vegaDir string,
-	tendermintDir string,
+	tendermintNode tendermintNode,
 	prefix string,
 	nodeDirPrefix string,
 	tendermintNodePrefix string,
 	vegaNodePrefix string,
 	dataNodePrefix string,
 	configOverride string,
-	nodeMode string,
 	id int,
 ) (*vegaNode, error) {
 	nodeDir := path.Join(vegaDir, fmt.Sprintf("node%d", id))
-	tendermintNodeDir := path.Join(tendermintDir, fmt.Sprintf("node%d", id))
 
 	if err := os.MkdirAll(nodeDir, os.ModePerm); err != nil {
 		return nil, err
@@ -284,9 +274,19 @@ func initateVegaNode(
 	vegaWalletPass := "w4ll3t-p4ssphr4e3"
 	ethereumWalletPass := "ch41nw4ll3t-3th3r3um-p4ssphr4e3"
 
-	vegaConfigs, err := initVegaConfig(nodeMode, nodeDir, nodeWalletPass)
+	nodeWalletPassFilePath := path.Join(nodeDir, "node-vega-wallet-pass.txt")
+	if err := ioutil.WriteFile(nodeWalletPassFilePath, []byte(nodeWalletPass), 0644); err != nil {
+		return nil, fmt.Errorf("failed to write node wallet passphrase to file: %w", err)
+	}
+
+	nodeMode := NodeModeFull
+	if tendermintNode.IsValidator {
+		nodeMode = NodeModeValidator
+	}
+
+	initOut, err := initiateNode(vegaBinaryPath, nodeDir, nodeWalletPassFilePath, nodeMode)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to initate vega node: %w", err)
 	}
 
 	tmplCtx := VegaTemplateContext{
@@ -294,17 +294,17 @@ func initateVegaNode(
 		TendermintNodePrefix: tendermintNodePrefix,
 		VegaNodePrefix:       vegaNodePrefix,
 		DataNodePrefix:       dataNodePrefix,
-		Type:                 nodeMode,
+		Type:                 string(nodeMode),
 		ETHEndpoint:          "http://192.168.1.102:8545/", // TODO this should come from config...
 		NodeNumber:           id,
 	}
 
-	if err := overrideVegaConfig(tmplCtx, vegaConfigs.Loader, configOverride); err != nil {
+	if err := overrideVegaConfig(tmplCtx, initOut.ConfigFilePath, configOverride); err != nil {
 		return nil, fmt.Errorf("failed to override Vega config: %w", err)
 	}
 
 	// TODO this condition should really come from config...
-	if nodeMode == "validator" {
+	if tendermintNode.IsValidator {
 		walletPassFilePath := path.Join(nodeDir, "vega-wallet-pass.txt")
 		nodeWalletPassFilePath := path.Join(nodeDir, "node-vega-wallet-pass.txt")
 		ethereumPassFilePath := path.Join(nodeDir, "ethereum-vega-wallet-pass.txt")
@@ -335,23 +335,23 @@ func initateVegaNode(
 
 		log.Printf("ethereum wallet out: %#v", ethOut)
 
-		tmtOut, err := generateTendermintNodeWallet(vegaBinaryPath, nodeDir, nodeWalletPassFilePath, tendermintNodeDir)
+		tmtOut, err := generateTendermintNodeWallet(vegaBinaryPath, nodeDir, nodeWalletPassFilePath, tendermintNode.Home)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate tenderming wallet: %w", err)
 		}
 
 		log.Printf("tendermint wallet out: %#v", tmtOut)
 
-		genesisOut, err := updateGenesis(vegaBinaryPath, nodeDir, nodeWalletPassFilePath, tendermintNodeDir)
+		genesisOut, err := updateGenesis(vegaBinaryPath, nodeDir, nodeWalletPassFilePath, tendermintNode.Home)
 		if err != nil {
 			return nil, fmt.Errorf("failed to update genesis file: %w", err)
 		}
 
-		log.Println("updated genesis")
+		log.Printf("updated genesis file: %q\n", tendermintNode.GenesisPath)
 
 		return &vegaNode{
-			NodeMode:               nodeMode,
-			NodeHome:               nodeDir,
+			NodeMode:               nodeDir,
+			NodeHome:               nodeMode,
 			WalletPassFilePath:     walletPassFilePath,
 			NodeWalletPassFilePath: nodeWalletPassFilePath,
 			EthereumPassFilePath:   ethereumPassFilePath,
@@ -362,40 +362,39 @@ func initateVegaNode(
 		}, nil
 	}
 
-	log.Printf("vega config initialised for node id %d, paths: %#v", id, vegaConfigs.Loader.ConfigFilePath())
+	log.Printf("vega config initialized for node id %d, paths: %#v", id, initOut.ConfigFilePath)
 
 	return &vegaNode{
-		NodeMode: nodeMode,
+		NodeMode: nodeDir,
+		NodeHome: nodeMode,
 	}, nil
 }
 
 func generateVegaConfig(
 	vegaBinaryPath string,
 	vegaDir string,
-	tendermintDir string,
 	prefix string,
+	tendermintNodes []tendermintNode,
 	nodeDirPrefix string,
 	tendermintNodePrefix string,
 	vegaNodePrefix string,
 	dataNodePrefix string,
-	nodeMode string,
 	configOverride string,
 	genesisOverrideStr string,
 ) ([]*vegaNode, error) {
 	var nodes []*vegaNode
 
-	for i := 0; i < 2; i++ {
+	for i, tn := range tendermintNodes {
 		node, err := initateVegaNode(
 			vegaBinaryPath,
 			vegaDir,
-			tendermintDir,
+			tn,
 			prefix,
 			nodeDirPrefix,
 			tendermintNodePrefix,
 			vegaNodePrefix,
 			dataNodePrefix,
 			configOverride,
-			nodeMode,
 			i,
 		)
 		if err != nil {

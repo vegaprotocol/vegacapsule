@@ -3,7 +3,7 @@ wallet_path = "./wallet"
 
 network "testnet" {
 
-  service "eeth" {
+  service "ganache" {
     port = "sd"
     config = "{{}}{{}}"
   }
@@ -21,13 +21,11 @@ network "testnet" {
     }
 
     vega {
-      
       configPlugins = [
         marketUserWillsPlugin,
         marketUserKarelsPlugin
         marketUserKarelsPlugin
       ]
-
     }
 
     port = "sd"
