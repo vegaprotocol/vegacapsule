@@ -1,3 +1,12 @@
+package main
+
+import (
+	"fmt"
+	"log"
+	"testing"
+)
+
+var testConfig = `
 output_dir             = "/Users/karelmoravec/vega/vegacomposer/testnet"
 prefix                 = "st-local"
 node_dir_prefix        = "node"
@@ -303,4 +312,37 @@ skip_timeout_commit = false
 	    EOH
     }
   }
+}
+`
+
+func TestParseConfig(t *testing.T) {
+	c, err := ParseConfig([]byte(testConfig))
+	if err != nil {
+		t.Error(err)
+	}
+
+	var nValidators, nNonValidators int
+	for _, n := range c.Network.Nodes {
+		switch nodeMode(n.Mode) {
+		case NodeModeValidator:
+			nValidators += n.Count
+		case NodeModeFull:
+			nNonValidators += n.Count
+		default:
+			log.Fatalf("unknown node mode: %s", n.Mode)
+		}
+	}
+
+	fmt.Printf("generating init testnet: nValidators: %d, nNonValidators: %d\n\n", nValidators, nNonValidators)
+	fmt.Printf("genesis: %s\n", c.Network.GenesisTemplate)
+
+	for _, n := range c.Network.Nodes {
+		for i := 0; i < n.Count; i++ {
+			fmt.Println("")
+			fmt.Printf("rewriting Vega config for number %d, %s \n", i, n.Templates.Vega)
+			fmt.Printf("rewriting Tendermint config for number %d, %s \n", i, n.Templates.Tendermint)
+		}
+	}
+
+	fmt.Println("done...")
 }

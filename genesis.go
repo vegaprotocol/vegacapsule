@@ -31,7 +31,7 @@ func NewGenesisTemplateContext(chainID, networkID string, addressesJSON []byte) 
 	addrs := map[string]SmartContract{}
 
 	if err := json.Unmarshal(addressesJSON, &addrs); err != nil {
-		return nil, fmt.Errorf("could not parse json smart contract addresses", addressesJSON)
+		return nil, fmt.Errorf("could not parse json smart contract addresses: %s", addressesJSON)
 	}
 
 	return &GenesisTemplateContext{

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"log"
 	"os"
 	"path"
@@ -23,67 +25,77 @@ var (
 // TODO should come from config
 const defaultGanacheMnemonic = "cherry manage trip absorb logic half number test shed logic purpose rifle"
 
-func start() {
-	log.Println("starting network")
+var (
+	outputDir            = "/Users/karelmoravec/vega/vegacomposer/testnet"
+	prefix               = "st-local"
+	nodeDirPrefix        = "node"
+	tendermintNodePrefix = "tendermint-node"
+	vegaNodePrefix       = "vega-node"
+	dataNodePrefix       = "data-node"
+	vegaBinaryPath       = "/Users/karelmoravec/go/bin/vega"
+	chainID              = "1440"
+	networkID            = "1441"
+	nValidators          = 2
+	nNonValidators       = 0
+)
 
-	outputDir := "./testnet"
-	prefix := "st-local"
-	nodeDirPrefix := "node"
-	tendermintNodePrefix := "tendermint-node"
-	vegaNodePrefix := "vega-node"
-	dataNodePrefix := "data-node"
-	vegaBinaryPath := "/Users/karelmoravec/go/bin/vega"
+func start(configFilePath string) error {
+	config, err := ParseConfigFile(configFilePath)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("---- config:", config)
+	return nil
+	log.Println("starting network")
 
 	vegaDir, err := filepath.Abs(path.Join(outputDir, "vega"))
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	tendermintDir, err := filepath.Abs(path.Join(outputDir, "tendermint"))
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
-
-	chainID := "1440"
-	networkID := "1441"
-
-	nValidators := 2
-	nNonValidators := 0
 
 	tendermintNodes, err := generateTendermintConfigs(tendermintDir, prefix, nodeDirPrefix, tendermintNodePrefix, vegaNodePrefix, defaultTendermintOverride, nValidators, nNonValidators)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	vegaNodes, err := generateVegaConfig(vegaBinaryPath, vegaDir, prefix, tendermintNodes, nodeDirPrefix, tendermintNodePrefix, vegaNodePrefix, dataNodePrefix, defaultVegaOverride, defaultGenesisTemplate)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	tmplCtx, err := NewGenesisTemplateContext(chainID, networkID, []byte(defaultSmartContractsAddresses))
 	if err != nil {
-		log.Fatalf("failed create genesis template context: %s", err)
+		return fmt.Errorf("failed create genesis template context: %s", err)
 	}
 
 	genGenerator, err := NewGenesisGenerator(defaultGenesisTemplate, tmplCtx)
 	if err != nil {
-		log.Fatalf("failed to crate new genesis generator: %s", err)
+		return fmt.Errorf("failed to crate new genesis generator: %s", err)
 	}
 
 	if err := genGenerator.Generate(tendermintDir, vegaNodes); err != nil {
-		log.Fatalf("failed to generate genesis: %s", err)
+		return fmt.Errorf("failed to generate genesis: %s", err)
 	}
 
 	nomadRunner, err := NewNomadRunner(nil)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	runner := NewRunner(nomadRunner)
 
 	if err := runner.StartRawNetwork(vegaBinaryPath, tendermintNodes, vegaNodes); err != nil {
-		log.Fatalf("failed to start nomad network: %s", err)
+		return fmt.Errorf("failed to start nomad network: %s", err)
 	}
+
+	log.Println("starting network success")
+	return nil
 }
 
 func stop() {
@@ -98,21 +110,43 @@ func stop() {
 	if err := runner.StopRawNetwork(); err != nil {
 		log.Fatalf("failed to start nomad network: %s", err)
 	}
+	log.Println("stopping network success")
+}
+
+func destroy() {
+	log.Println("destroying network")
+	stop()
+
+	if err := os.RemoveAll(outputDir); err != nil {
+		log.Fatalf("failed to destroy network: %s", err)
+	}
+	log.Println("destroying network success")
 }
 
 func main() {
 	if len(os.Args) < 2 {
-		log.Println("missing command")
+		fmt.Println("expected 'start'|'stop'|'destroy' subcommands")
 		os.Exit(1)
 	}
+
+	startCmd := flag.NewFlagSet("start", flag.ExitOnError)
+	configFilePath := startCmd.String("config-path", "", "enable")
+
 	arg := os.Args[1]
 	switch arg {
 	case "start":
-		start()
+		if err := startCmd.Parse(os.Args[2:]); err != nil {
+			log.Fatal(err)
+		}
+		if err := start(*configFilePath); err != nil {
+			log.Fatal(err)
+		}
 	case "stop":
 		stop()
+	case "destroy":
+		destroy()
 	default:
-		log.Printf("unknown command %s", arg)
+		log.Printf("unknown subcommand %s: expected 'start'|'stop'|'destroy' subcommands", arg)
 		os.Exit(1)
 	}
 
