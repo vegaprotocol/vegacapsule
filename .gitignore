@@ -19,3 +19,4 @@ testnet
 dockerisedvega.sh
 Makefile
 zero-genesis.json
+capsule

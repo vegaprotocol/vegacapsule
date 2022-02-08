@@ -13,6 +13,19 @@ import (
 	"github.com/hashicorp/nomad/api"
 )
 
+var (
+	dockerGanacheImage        = "trufflesuite/ganache-cli:v6.12.2"
+	dockerCipipelineImage     = "ghcr.io/vegaprotocol/devops-infra/cipipeline:latest"
+	dockerEefImage            = "vegaprotocol/ethereum-event-forwarder:$eef_version"
+	dockerPytoolsImage        = "ghcr.io/vegaprotocol/devops-infra/pytools:docker"
+	dockerSmartcontractsImage = "ghcr.io/vegaprotocol/devops-infra/smartcontracts:docker"
+	dockerVegaImage           = "ghcr.io/vegaprotocol/vega/vega:$vega_version"
+	dockerVegawalletImage     = "vegaprotocol/vegawallet:$vegawallet_version"
+	dockerDatanodeImage       = "ghcr.io/vegaprotocol/data-node/data-node:$datanode_version"
+	dockerVegatoolsImage      = "vegaprotocol/vegatools:$vegatools_version"
+	dockerClefImage           = "ghcr.io/vegaprotocol/devops-infra/clef:latest"
+)
+
 type Runner struct {
 	nomad              *NomadRunner
 	ganacheJobName     string
@@ -58,7 +71,7 @@ func ganacheCheck(url string, timeout time.Duration) error {
 	return fmt.Errorf("ganache container has timed out")
 }
 
-func (r *Runner) startGanache() error {
+func (r *Runner) startGanache(url string) error {
 	j := &api.Job{
 		ID:          strPoint(r.ganacheJobName),
 		Datacenters: []string{"dc1"},
@@ -104,56 +117,58 @@ func (r *Runner) startGanache() error {
 		return fmt.Errorf("failed to run nomad ganache job: %w", err)
 	}
 
-	if err := ganacheCheck("http://192.168.1.102:8545", time.Second*15); err != nil {
+	if err := ganacheCheck(url, time.Minute*3); err != nil {
 		return fmt.Errorf("failed to start ganache container: %w", err)
 	}
 
 	return nil
 }
 
-func (r *Runner) StartRawNetwork(vegaBinaryPath string, tendermintNodes []tendermintNode, vegaNodes []*vegaNode) error {
-	if err := r.startGanache(); err != nil {
+// TODO remove this
+type tendermintNode struct {
+	Home string
+}
+
+func (r *Runner) StartRawNetwork(conf *Config, nodeSets []nodeSet) error {
+	if err := r.startGanache(conf.Network.EthereumEndpoint); err != nil {
 		return err
 	}
 
-	tasks := make([]*api.Task, 0, len(tendermintNodes)+len(vegaNodes))
+	tasks := make([]*api.Task, 0, len(nodeSets))
 
-	for i, tm := range tendermintNodes {
+	for i, ns := range nodeSets {
 		tasks = append(tasks, &api.Task{
 			Name:   fmt.Sprintf("tendermint-%d", i),
 			Driver: "raw_exec",
 			Config: map[string]interface{}{
-				"command": vegaBinaryPath,
+				"command": conf.VegaBinary,
 				"args": []string{
 					"tm",
 					"node",
-					"--home", tm.Home,
+					"--home", ns.Tendermint.HomeDir,
 				},
 			},
 			Resources: &api.Resources{
 				CPU:      intPoint(500),
 				MemoryMB: intPoint(256),
 			},
-		})
-	}
-
-	for i, vn := range vegaNodes {
-		tasks = append(tasks, &api.Task{
-			Name:   fmt.Sprintf("vega-%s-%d", vn.NodeMode, i),
-			Driver: "raw_exec",
-			Config: map[string]interface{}{
-				"command": vegaBinaryPath,
-				"args": []string{
-					"node",
-					"--home", string(vn.NodeHome),
-					"--nodewallet-passphrase-file", vn.NodeWalletPassFilePath,
+		},
+			&api.Task{
+				Name:   fmt.Sprintf("vega-%s-%d", ns.Mode, i),
+				Driver: "raw_exec",
+				Config: map[string]interface{}{
+					"command": conf.VegaBinary,
+					"args": []string{
+						"node",
+						"--home", ns.Vega.HomeDir,
+						"--nodewallet-passphrase-file", ns.Vega.NodeWalletPassFilePath,
+					},
 				},
-			},
-			Resources: &api.Resources{
-				CPU:      intPoint(500),
-				MemoryMB: intPoint(256),
-			},
-		})
+				Resources: &api.Resources{
+					CPU:      intPoint(500),
+					MemoryMB: intPoint(256),
+				},
+			})
 	}
 
 	j := &api.Job{

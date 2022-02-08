@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"path"
 	"strings"
 	"text/template"
 
@@ -15,6 +14,10 @@ import (
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmtypes "github.com/tendermint/tendermint/types"
 )
+
+type updateGenesisOutput struct {
+	RawOutput json.RawMessage
+}
 
 type SmartContract struct {
 	Ethereum string `json:"Ethereum"`
@@ -68,19 +71,26 @@ func (gc GenesisTemplateContext) GetVegaContractID(contract string) string {
 }
 
 type GenesisGenerator struct {
+	vegaBinary  string
 	template    *template.Template
 	templateCtx *GenesisTemplateContext
 }
 
-func NewGenesisGenerator(genTemplate string, templateCtx *GenesisTemplateContext) (*GenesisGenerator, error) {
-	tpl, err := template.New("genesis.json").Parse(genTemplate)
+func NewGenesisGenerator(conf *Config) (*GenesisGenerator, error) {
+	tpl, err := template.New("genesis.json").Parse(conf.Network.GenesisTemplate)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse genesis override: %w", err)
 	}
 
+	templateContext, err := NewGenesisTemplateContext(conf.Network.ChainID, conf.Network.NetworkID, []byte(defaultSmartContractsAddresses))
+	if err != nil {
+		return nil, err
+	}
+
 	return &GenesisGenerator{
+		vegaBinary:  conf.VegaBinary,
 		template:    tpl,
-		templateCtx: templateCtx,
+		templateCtx: templateContext,
 	}, nil
 }
 
@@ -100,7 +110,27 @@ func (g *GenesisGenerator) executeTemplate() ([]byte, error) {
 	return buff.Bytes(), nil
 }
 
-func (g *GenesisGenerator) Generate(tendermintDir string, nodes []*vegaNode) error {
+func (g *GenesisGenerator) updateGenesis(vegaHomePath, tendermintHomePath, nodeWalletPhraseFile string) (*updateGenesisOutput, error) {
+	args := []string{
+		"genesis",
+		"--home", vegaHomePath,
+		"--passphrase-file", nodeWalletPhraseFile,
+		"update",
+		"--tm-home", tendermintHomePath,
+		"--dry-run",
+	}
+
+	log.Printf("Updating genesis: %v", args)
+
+	rawOut, err := executeBinary(g.vegaBinary, args, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return &updateGenesisOutput{RawOutput: rawOut}, nil
+}
+
+func (g *GenesisGenerator) Generate(nodeSets []nodeSet) error {
 	templatedOverride, err := g.executeTemplate()
 	if err != nil {
 		return err
@@ -108,23 +138,21 @@ func (g *GenesisGenerator) Generate(tendermintDir string, nodes []*vegaNode) err
 
 	var genDoc *tmtypes.GenesisDoc
 	var genState *genesis.GenesisState
-	var nValidators int
 
-	for _, node := range nodes {
-		if node.Genesis == nil {
-			continue
+	for _, ns := range nodeSets {
+		updatedGenesis, err := g.updateGenesis(ns.Vega.HomeDir, ns.Tendermint.HomeDir, ns.Vega.NodeWalletPassFilePath)
+		if err != nil {
+			return fmt.Errorf("failed to update genesis for %q from %q: %w", ns.Tendermint.HomeDir, ns.Vega.HomeDir, err)
 		}
 
-		doc, state, err := genesis.GenesisFromJSON(node.Genesis.RawOutput)
+		doc, state, err := genesis.GenesisFromJSON(updatedGenesis.RawOutput)
 		if err != nil {
 			return fmt.Errorf("failed to get genesis from JSON: %w", err)
 		}
 
-		nValidators++
-
-		if genState == nil {
-			genState = state
+		if genDoc == nil {
 			genDoc = doc
+			genState = state
 			continue
 		}
 
@@ -135,7 +163,7 @@ func (g *GenesisGenerator) Generate(tendermintDir string, nodes []*vegaNode) err
 	}
 
 	// Nothing to do, we can stop here
-	if nValidators == 0 {
+	if genDoc == nil {
 		return nil
 	}
 
@@ -159,10 +187,8 @@ func (g *GenesisGenerator) Generate(tendermintDir string, nodes []*vegaNode) err
 		return fmt.Errorf("failed to get merged config from json: %w", err)
 	}
 
-	for i := 0; i < nValidators; i++ {
-		genesisFilePath := path.Join(tendermintDir, fmt.Sprintf("node%d", i), "config", "genesis.json")
-
-		if err := mergedGenDoc.SaveAs(genesisFilePath); err != nil {
+	for _, ns := range nodeSets {
+		if err := mergedGenDoc.SaveAs(ns.Tendermint.GenesisFilePath); err != nil {
 			return fmt.Errorf("failed to save genesis file: %w", err)
 		}
 	}

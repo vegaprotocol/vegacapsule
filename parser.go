@@ -2,8 +2,12 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"path/filepath"
 
+	"github.com/hashicorp/hcl/v2/gohcl"
 	"github.com/hashicorp/hcl/v2/hclsimple"
+	"github.com/hashicorp/hcl/v2/hclwrite"
 )
 
 type Config struct {
@@ -18,17 +22,22 @@ type Config struct {
 }
 
 type NetworkConfig struct {
-	Name            string       `hcl:"name,label"`
-	GenesisTemplate string       `hcl:"genesis_template"`
-	ChainID         string       `hcl:"chain_id"`
-	NetworkID       string       `hcl:"network_id"`
-	Nodes           []NodeConfig `hcl:"node_set,block"`
+	Name             string       `hcl:"name,label"`
+	GenesisTemplate  string       `hcl:"genesis_template"`
+	ChainID          string       `hcl:"chain_id"`
+	NetworkID        string       `hcl:"network_id"`
+	EthereumEndpoint string       `hcl:"ethereum_endpoint"`
+	Nodes            []NodeConfig `hcl:"node_set,block"`
 }
 
 type NodeConfig struct {
-	Name      string         `hcl:"name,label"`
-	Mode      string         `hcl:"mode"`
-	Count     int            `hcl:"count"`
+	Name               string `hcl:"name,label"`
+	Mode               string `hcl:"mode"`
+	Count              int    `hcl:"count"`
+	NodeWalletPass     string `hcl:"node_wallet_pass"`
+	EthereumWalletPass string `hcl:"ethereum_wallet_pass"`
+	VegaWalletPass     string `hcl:"vega_wallet_pass"`
+
 	Templates TemplateConfig `hcl:"config_templates,block"`
 }
 
@@ -36,6 +45,12 @@ type TemplateConfig struct {
 	Vega       string `hcl:"vega"`
 	Tendermint string `hcl:"tendermint"`
 	DataNode   string `hcl:"tendermint"`
+}
+
+func (c *Config) Persist() error {
+	f := hclwrite.NewEmptyFile()
+	gohcl.EncodeIntoBody(*c, f.Body())
+	return ioutil.WriteFile(filepath.Join(c.OutputDir, "config.hcl"), f.Bytes(), 0644)
 }
 
 func ParseConfig(conf []byte) (*Config, error) {

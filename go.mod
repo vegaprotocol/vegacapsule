@@ -1,4 +1,4 @@
-module code.vegaprotocol.io/scheduler
+module code.vegaprotocol.io/vegacapsule
 
 go 1.17
 

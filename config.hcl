@@ -1,14 +1,16 @@
-output_dir             = "/Users/karelmoravec/vega/vegacomposer/testnet"
+output_dir             = "/Users/karelmoravec/vega/vegacapsule/testnet"
 prefix                 = "st-local"
 node_dir_prefix        = "node"
-tendermint_node_prefix = "tendermint-node"
-vega_node_prefix       = "vega-node"
-data_node_prefix       = "data-node"
+tendermint_node_prefix = "tendermint"
+vega_node_prefix       = "vega"
+data_node_prefix       = "data"
 vega_binary_path       = "/Users/karelmoravec/go/bin/vega"
 
 network "testnet" {
-  chain_id               = "1440"
-  network_id             = "1441"
+  chain_id          = "1440"
+  network_id        = "1441"
+  ethereum_endpoint = "http://192.168.1.102:8545/"
+
   genesis_template = <<EOH
 {
 	"app_state": {
@@ -241,6 +243,10 @@ network "testnet" {
   node_set "validators" {
     count = 2
     mode = "validator"
+	node_wallet_pass = "n0d3w4ll3t-p4ssphr4e3"
+	vega_wallet_pass = "w4ll3t-p4ssphr4e3"
+	ethereum_wallet_pass = "ch41nw4ll3t-3th3r3um-p4ssphr4e3"
+
     config_templates {
       vega = <<EOH
 [API]
@@ -268,13 +274,69 @@ network "testnet" {
 	[Processor.Ratelimit]
 		Requests = 10000
 		PerNBlocks = 1
-{{if eq .Type "full"}}
-[Broker]
-	[Broker.Socket]
-		Address = "{{.Prefix}}-{{.DataNodePrefix}}{{.NodeNumber}}"
-		Port = 3005
-		Enabled = true
-{{end}}
+      EOH
+      tendermint = <<EOH
+log_level = "debug"
+
+proxy_app = "tcp://127.0.0.1:266{{.NodeNumber}}8"
+moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
+
+[rpc]
+laddr = "tcp://0.0.0.0:266{{.NodeNumber}}7"
+unsafe = true
+
+[p2p]
+laddr = "tcp://0.0.0.0:266{{.NodeNumber}}6"
+addr_book_strict = true
+max_packet_msg_payload_size = 4096
+pex = false
+allow_duplicate_ip = false
+persistent_peers = "{{range $i, $v := .NodeIDs}}{{if ne $i 0}},{{end}}{{$v}}@127.0.0.1:266{{$i}}6{{end}}"
+
+[mempool]
+size = 10000
+cache_size = 20000
+
+[consensus]
+skip_timeout_commit = false
+	    EOH
+    }
+  }
+
+  node_set "another_validators" {
+    count = 2
+    mode = "validator"
+	node_wallet_pass = "n0d3w4ll3t-p4ssphr4e3"
+	vega_wallet_pass = "w4ll3t-p4ssphr4e3"
+	ethereum_wallet_pass = "ch41nw4ll3t-3th3r3um-p4ssphr4e3"
+
+    config_templates {
+      vega = <<EOH
+[API]
+	Port = 30{{.NodeNumber}}2
+	[API.REST]
+			Port = 30{{.NodeNumber}}3
+
+[Blockchain]
+	[Blockchain.Tendermint]
+		ClientAddr = "tcp://127.0.0.1:266{{.NodeNumber}}7"
+		ServerAddr = "0.0.0.0"
+		ServerPort = 266{{.NodeNumber}}8
+	[Blockchain.Null]
+		Port = 31{{.NodeNumber}}1
+
+[EvtForward]
+	Level = "Info"
+	RetryRate = "1s"
+
+[NodeWallet]
+	[NodeWallet.ETH]
+		Address = "{{.ETHEndpoint}}"
+
+[Processor]
+	[Processor.Ratelimit]
+		Requests = 10000
+		PerNBlocks = 1
       EOH
       tendermint = <<EOH
 log_level = "debug"

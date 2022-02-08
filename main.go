@@ -5,82 +5,39 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path"
-	"path/filepath"
 )
 
-var (
-	dockerGanacheImage        = "trufflesuite/ganache-cli:v6.12.2"
-	dockerCipipelineImage     = "ghcr.io/vegaprotocol/devops-infra/cipipeline:latest"
-	dockerEefImage            = "vegaprotocol/ethereum-event-forwarder:$eef_version"
-	dockerPytoolsImage        = "ghcr.io/vegaprotocol/devops-infra/pytools:docker"
-	dockerSmartcontractsImage = "ghcr.io/vegaprotocol/devops-infra/smartcontracts:docker"
-	dockerVegaImage           = "ghcr.io/vegaprotocol/vega/vega:$vega_version"
-	dockerVegawalletImage     = "vegaprotocol/vegawallet:$vegawallet_version"
-	dockerDatanodeImage       = "ghcr.io/vegaprotocol/data-node/data-node:$datanode_version"
-	dockerVegatoolsImage      = "vegaprotocol/vegatools:$vegatools_version"
-	dockerClefImage           = "ghcr.io/vegaprotocol/devops-infra/clef:latest"
-)
-
-// TODO should come from config
-const defaultGanacheMnemonic = "cherry manage trip absorb logic half number test shed logic purpose rifle"
-
-var (
-	outputDir            = "/Users/karelmoravec/vega/vegacomposer/testnet"
-	prefix               = "st-local"
-	nodeDirPrefix        = "node"
-	tendermintNodePrefix = "tendermint-node"
-	vegaNodePrefix       = "vega-node"
-	dataNodePrefix       = "data-node"
-	vegaBinaryPath       = "/Users/karelmoravec/go/bin/vega"
-	chainID              = "1440"
-	networkID            = "1441"
-	nValidators          = 2
-	nNonValidators       = 0
-)
-
-func start(configFilePath string) error {
-	config, err := ParseConfigFile(configFilePath)
-	if err != nil {
-		return err
+func generate(config *Config) ([]nodeSet, error) {
+	if _, err := os.Stat(config.OutputDir); os.IsExist(err) {
+		return nil, fmt.Errorf("output directory %q already exist", config.OutputDir)
 	}
 
-	fmt.Println("---- config:", config)
-	return nil
+	log.Println("generating network")
+
+	gen, err := NewGenerator(config)
+	if err != nil {
+		return nil, err
+	}
+
+	nodeSets, err := gen.Generate()
+	if err != nil {
+		return nil, err
+	}
+
+	if err := config.Persist(); err != nil {
+		return nil, fmt.Errorf("failed to persist config in output directory %s", config.OutputDir)
+	}
+
+	log.Println("generating network success")
+
+	return nodeSets, nil
+}
+
+func start(config *Config) error {
 	log.Println("starting network")
-
-	vegaDir, err := filepath.Abs(path.Join(outputDir, "vega"))
+	nodeSets, err := generate(config)
 	if err != nil {
-		return err
-	}
-
-	tendermintDir, err := filepath.Abs(path.Join(outputDir, "tendermint"))
-	if err != nil {
-		return err
-	}
-
-	tendermintNodes, err := generateTendermintConfigs(tendermintDir, prefix, nodeDirPrefix, tendermintNodePrefix, vegaNodePrefix, defaultTendermintOverride, nValidators, nNonValidators)
-	if err != nil {
-		return err
-	}
-
-	vegaNodes, err := generateVegaConfig(vegaBinaryPath, vegaDir, prefix, tendermintNodes, nodeDirPrefix, tendermintNodePrefix, vegaNodePrefix, dataNodePrefix, defaultVegaOverride, defaultGenesisTemplate)
-	if err != nil {
-		return err
-	}
-
-	tmplCtx, err := NewGenesisTemplateContext(chainID, networkID, []byte(defaultSmartContractsAddresses))
-	if err != nil {
-		return fmt.Errorf("failed create genesis template context: %s", err)
-	}
-
-	genGenerator, err := NewGenesisGenerator(defaultGenesisTemplate, tmplCtx)
-	if err != nil {
-		return fmt.Errorf("failed to crate new genesis generator: %s", err)
-	}
-
-	if err := genGenerator.Generate(tendermintDir, vegaNodes); err != nil {
-		return fmt.Errorf("failed to generate genesis: %s", err)
+		return fmt.Errorf("failed to generate config for network: %w", err)
 	}
 
 	nomadRunner, err := NewNomadRunner(nil)
@@ -90,7 +47,7 @@ func start(configFilePath string) error {
 
 	runner := NewRunner(nomadRunner)
 
-	if err := runner.StartRawNetwork(vegaBinaryPath, tendermintNodes, vegaNodes); err != nil {
+	if err := runner.StartRawNetwork(config, nodeSets); err != nil {
 		return fmt.Errorf("failed to start nomad network: %s", err)
 	}
 
@@ -113,7 +70,7 @@ func stop() {
 	log.Println("stopping network success")
 }
 
-func destroy() {
+func destroy(outputDir string) {
 	log.Println("destroying network")
 	stop()
 
@@ -130,7 +87,10 @@ func main() {
 	}
 
 	startCmd := flag.NewFlagSet("start", flag.ExitOnError)
-	configFilePath := startCmd.String("config-path", "", "enable")
+	configFilePathS := startCmd.String("config-path", "", "enable")
+
+	generateCmd := flag.NewFlagSet("generate", flag.ExitOnError)
+	configFilePath := generateCmd.String("config-path", "", "enable")
 
 	arg := os.Args[1]
 	switch arg {
@@ -138,13 +98,34 @@ func main() {
 		if err := startCmd.Parse(os.Args[2:]); err != nil {
 			log.Fatal(err)
 		}
-		if err := start(*configFilePath); err != nil {
+
+		config, err := ParseConfigFile(*configFilePathS)
+		if err != nil {
 			log.Fatal(err)
 		}
+
+		if err := start(config); err != nil {
+			log.Fatal(err)
+		}
+
 	case "stop":
 		stop()
-	case "destroy":
-		destroy()
+	case "generate":
+		if err := generateCmd.Parse(os.Args[2:]); err != nil {
+			log.Fatal(err)
+		}
+
+		config, err := ParseConfigFile(*configFilePath)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if _, err := generate(config); err != nil {
+			log.Fatal(err)
+		}
+
+	// case "destroy":
+	// destroy()
 	default:
 		log.Printf("unknown subcommand %s: expected 'start'|'stop'|'destroy' subcommands", arg)
 		os.Exit(1)
