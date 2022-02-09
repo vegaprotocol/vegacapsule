@@ -14,7 +14,6 @@ import (
 	"code.vegaprotocol.io/vegacapsule/runner/nomad"
 	"code.vegaprotocol.io/vegacapsule/types"
 
-	"github.com/google/uuid"
 	"github.com/hashicorp/nomad/api"
 )
 
@@ -34,12 +33,10 @@ type Runner struct {
 }
 
 func New(n *nomad.NomadRunner) *Runner {
-	uid := uuid.New()
-
 	return &Runner{
 		nomad:              n,
-		ganacheJobName:     fmt.Sprintf("test-vega-ganache-%s", uid.String()),
-		vegaNetworkJobName: fmt.Sprintf("test-vega-network-%s", uid.String()),
+		ganacheJobName:     fmt.Sprintf("test-vega-ganache-%d", 1),
+		vegaNetworkJobName: fmt.Sprintf("test-vega-network-%d", 1),
 	}
 }
 
