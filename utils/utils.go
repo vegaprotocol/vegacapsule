@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"bytes"
@@ -7,7 +7,7 @@ import (
 	"os/exec"
 )
 
-func executeBinary(binaryPath string, args []string, v interface{}) ([]byte, error) {
+func ExecuteBinary(binaryPath string, args []string, v interface{}) ([]byte, error) {
 	command := exec.Command(binaryPath, args...)
 
 	var stdOut, stErr bytes.Buffer

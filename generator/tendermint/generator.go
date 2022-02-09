@@ -1,4 +1,4 @@
-package main
+package tendermint
 
 import (
 	"bytes"
@@ -10,22 +10,21 @@ import (
 
 	"github.com/spf13/viper"
 
-	cfg "github.com/tendermint/tendermint/config"
+	"code.vegaprotocol.io/vegacapsule/config"
+	"code.vegaprotocol.io/vegacapsule/types"
+	"code.vegaprotocol.io/vegacapsule/utils"
+
+	tmconfig "github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/p2p"
 	"github.com/tendermint/tendermint/privval"
-	"github.com/tendermint/tendermint/types"
+	tmtypes "github.com/tendermint/tendermint/types"
 )
 
 const (
 	nodeDirPerm = 0755
 )
 
-type InitTendermintNode struct {
-	HomeDir         string
-	GenesisFilePath string
-}
-
-type TendermingTemplateContext struct {
+type ConfigTemplateContext struct {
 	Prefix               string
 	TendermintNodePrefix string
 	VegaNodePrefix       string
@@ -34,29 +33,7 @@ type TendermingTemplateContext struct {
 	NodeIDs              []string
 }
 
-type TendermintConfigGenerator struct {
-	conf    *Config
-	homeDir string
-
-	genValidators []types.GenesisValidator
-	nodeIDs       []string
-}
-
-func NewTendermintConfigGenerator(conf *Config) (*TendermintConfigGenerator, error) {
-	homeDir, err := filepath.Abs(path.Join(conf.OutputDir, conf.TendermintNodePrefix))
-	if err != nil {
-		return nil, err
-	}
-
-	return &TendermintConfigGenerator{
-		conf:          conf,
-		homeDir:       homeDir,
-		genValidators: []types.GenesisValidator{},
-		nodeIDs:       []string{},
-	}, nil
-}
-
-func (tg TendermintConfigGenerator) NewConfigTemplate(templateRaw string) (*template.Template, error) {
+func NewConfigTemplate(templateRaw string) (*template.Template, error) {
 	t, err := template.New("config.toml").Parse(templateRaw)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse template config: %w", err)
@@ -65,11 +42,33 @@ func (tg TendermintConfigGenerator) NewConfigTemplate(templateRaw string) (*temp
 	return t, nil
 }
 
-func (tg TendermintConfigGenerator) HomeDir() string {
+type ConfigGenerator struct {
+	conf    *config.Config
+	homeDir string
+
+	genValidators []tmtypes.GenesisValidator
+	nodeIDs       []string
+}
+
+func NewConfigGenerator(conf *config.Config) (*ConfigGenerator, error) {
+	homeDir, err := filepath.Abs(path.Join(conf.OutputDir, conf.TendermintNodePrefix))
+	if err != nil {
+		return nil, err
+	}
+
+	return &ConfigGenerator{
+		conf:          conf,
+		homeDir:       homeDir,
+		genValidators: []tmtypes.GenesisValidator{},
+		nodeIDs:       []string{},
+	}, nil
+}
+
+func (tg ConfigGenerator) HomeDir() string {
 	return tg.homeDir
 }
 
-func (tg *TendermintConfigGenerator) Initiate(index int, mode string) (*InitTendermintNode, error) {
+func (tg *ConfigGenerator) Initiate(index int, mode string) (*types.TendermintNode, error) {
 	nodeDir := tg.nodeDir(index)
 
 	err := os.MkdirAll(filepath.Join(nodeDir, "config"), nodeDirPerm)
@@ -83,17 +82,29 @@ func (tg *TendermintConfigGenerator) Initiate(index int, mode string) (*InitTend
 		return nil, err
 	}
 
-	b, err := executeBinary(tg.conf.VegaBinary, []string{"tm", "init", "--home", nodeDir}, nil)
+	b, err := utils.ExecuteBinary(tg.conf.VegaBinary, []string{"tm", "init", "--home", nodeDir}, nil)
 	if err != nil {
 		return nil, err
 	}
 	fmt.Fprintln(os.Stdout, string(b))
 
-	config := cfg.DefaultConfig()
+	config := tmconfig.DefaultConfig()
 	config.SetRoot(nodeDir)
 
-	if mode != string(NodeModeValidator) {
-		return nil, nil
+	nodeKey, err := p2p.LoadNodeKey(config.NodeKeyFile())
+	if err != nil {
+		return nil, fmt.Errorf("failed to get node key: %w", err)
+	}
+
+	tg.nodeIDs = append(tg.nodeIDs, string(nodeKey.ID()))
+
+	initNode := &types.TendermintNode{
+		HomeDir:         nodeDir,
+		GenesisFilePath: config.BaseConfig.GenesisFile(),
+	}
+
+	if mode != string(types.NodeModeValidator) {
+		return initNode, nil
 	}
 
 	pv := privval.LoadFilePV(config.BaseConfig.PrivValidatorKeyFile(), config.BaseConfig.PrivValidatorStateFile())
@@ -103,26 +114,17 @@ func (tg *TendermintConfigGenerator) Initiate(index int, mode string) (*InitTend
 		return nil, fmt.Errorf("failed to get pubkey: %w", err)
 	}
 
-	nodeKey, err := p2p.LoadNodeKey(config.NodeKeyFile())
-	if err != nil {
-		return nil, fmt.Errorf("failed to get node key: %w", err)
-	}
-
-	tg.nodeIDs = append(tg.nodeIDs, string(nodeKey.ID()))
-	tg.genValidators = append(tg.genValidators, types.GenesisValidator{
+	tg.genValidators = append(tg.genValidators, tmtypes.GenesisValidator{
 		Address: pubKey.Address(),
 		PubKey:  pubKey,
 		Power:   1,
 		Name:    nodeDir,
 	})
 
-	return &InitTendermintNode{
-		HomeDir:         nodeDir,
-		GenesisFilePath: config.BaseConfig.GenesisFile(),
-	}, nil
+	return initNode, nil
 }
 
-func (tg *TendermintConfigGenerator) OverwriteConfig(index int, configTemplate *template.Template) error {
+func (tg *ConfigGenerator) OverwriteConfig(index int, configTemplate *template.Template) error {
 	nodeDir := tg.nodeDir(index)
 	configFilePath := tg.configFilePath(nodeDir)
 
@@ -131,7 +133,7 @@ func (tg *TendermintConfigGenerator) OverwriteConfig(index int, configTemplate *
 		return fmt.Errorf("failed to read config file %q: %w", configFilePath, err)
 	}
 
-	templateCtx := TendermingTemplateContext{
+	templateCtx := ConfigTemplateContext{
 		Prefix:               tg.conf.Prefix,
 		TendermintNodePrefix: tg.conf.TendermintNodePrefix,
 		VegaNodePrefix:       tg.conf.VegaNodePrefix,
@@ -151,25 +153,29 @@ func (tg *TendermintConfigGenerator) OverwriteConfig(index int, configTemplate *
 		return fmt.Errorf("failed to merge config override with config file %q: %w", configFilePath, err)
 	}
 
-	config := &cfg.Config{}
-	if err := viper.Unmarshal(config); err != nil {
+	conf := &tmconfig.Config{}
+	if err := viper.Unmarshal(conf); err != nil {
 		return fmt.Errorf("failed to unmarshal merged config file %q: %w", configFilePath, err)
 	}
-	if err := config.ValidateBasic(); err != nil {
+	if err := conf.ValidateBasic(); err != nil {
 		return fmt.Errorf("failed to validated merged config file %q: %w", configFilePath, err)
 	}
 
-	config.SetRoot(nodeDir)
-	cfg.WriteConfigFile(configFilePath, config)
+	conf.SetRoot(nodeDir)
+	tmconfig.WriteConfigFile(configFilePath, conf)
 
 	return nil
 }
 
-func (tg TendermintConfigGenerator) nodeDir(i int) string {
+func (tg ConfigGenerator) GenesisValidators() []tmtypes.GenesisValidator {
+	return tg.genValidators
+}
+
+func (tg ConfigGenerator) nodeDir(i int) string {
 	nodeDirName := fmt.Sprintf("%s%d", tg.conf.NodeDirPrefix, i)
 	return filepath.Join(tg.homeDir, nodeDirName)
 }
 
-func (tg TendermintConfigGenerator) configFilePath(nodeDir string) string {
+func (tg ConfigGenerator) configFilePath(nodeDir string) string {
 	return filepath.Join(nodeDir, "config", "config.toml")
 }

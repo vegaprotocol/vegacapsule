@@ -1,12 +1,15 @@
-package main
+package genesis
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"log"
-	"strings"
 	"text/template"
+
+	"code.vegaprotocol.io/vegacapsule/config"
+	"code.vegaprotocol.io/vegacapsule/types"
+	"code.vegaprotocol.io/vegacapsule/utils"
 
 	"code.vegaprotocol.io/vega/genesis"
 	vgtm "code.vegaprotocol.io/vega/tendermint"
@@ -19,82 +22,31 @@ type updateGenesisOutput struct {
 	RawOutput json.RawMessage
 }
 
-type SmartContract struct {
-	Ethereum string `json:"Ethereum"`
-	Vega     string `json:"Vega"`
-}
-
-type GenesisTemplateContext struct {
-	Addresses map[string]SmartContract
-	ChainID   string
-	NetworkID string
-}
-
-func NewGenesisTemplateContext(chainID, networkID string, addressesJSON []byte) (*GenesisTemplateContext, error) {
-	addrs := map[string]SmartContract{}
-
-	if err := json.Unmarshal(addressesJSON, &addrs); err != nil {
-		return nil, fmt.Errorf("could not parse json smart contract addresses: %s", addressesJSON)
-	}
-
-	return &GenesisTemplateContext{
-		ChainID:   chainID,
-		NetworkID: networkID,
-		Addresses: addrs,
-	}, nil
-}
-
-func (gc GenesisTemplateContext) GetEthContractAddr(contract string) string {
-	sc, ok := gc.Addresses[contract]
-	if !ok {
-		log.Fatalf("could not find Ethereum smart contract %q", contract)
-	}
-
-	if sc.Ethereum == "" {
-		log.Fatalf("could not find Ethereum smart contract %q", contract)
-	}
-
-	return sc.Ethereum
-}
-
-func (gc GenesisTemplateContext) GetVegaContractID(contract string) string {
-	sc, ok := gc.Addresses[contract]
-	if !ok {
-		log.Fatalf("could not find Vega smart contract %q", contract)
-	}
-
-	if sc.Vega == "" {
-		log.Fatalf("could not find Vega smart contract %q", contract)
-	}
-
-	return strings.Replace(sc.Vega, "0x", "", 1)
-}
-
-type GenesisGenerator struct {
+type Generator struct {
 	vegaBinary  string
 	template    *template.Template
-	templateCtx *GenesisTemplateContext
+	templateCtx *TemplateContext
 }
 
-func NewGenesisGenerator(conf *Config) (*GenesisGenerator, error) {
+func NewGenerator(conf *config.Config) (*Generator, error) {
 	tpl, err := template.New("genesis.json").Parse(conf.Network.GenesisTemplate)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse genesis override: %w", err)
 	}
 
-	templateContext, err := NewGenesisTemplateContext(conf.Network.ChainID, conf.Network.NetworkID, []byte(defaultSmartContractsAddresses))
+	templateContext, err := NewTemplateContext(conf.Network.ChainID, conf.Network.NetworkID, []byte(defaultSmartContractsAddresses))
 	if err != nil {
 		return nil, err
 	}
 
-	return &GenesisGenerator{
+	return &Generator{
 		vegaBinary:  conf.VegaBinary,
 		template:    tpl,
 		templateCtx: templateContext,
 	}, nil
 }
 
-func (g *GenesisGenerator) executeTemplate() ([]byte, error) {
+func (g *Generator) executeTemplate() ([]byte, error) {
 	buff := bytes.NewBuffer([]byte{})
 
 	if err := g.template.Execute(buff, g.templateCtx); err != nil {
@@ -110,7 +62,7 @@ func (g *GenesisGenerator) executeTemplate() ([]byte, error) {
 	return buff.Bytes(), nil
 }
 
-func (g *GenesisGenerator) updateGenesis(vegaHomePath, tendermintHomePath, nodeWalletPhraseFile string) (*updateGenesisOutput, error) {
+func (g *Generator) updateGenesis(vegaHomePath, tendermintHomePath, nodeWalletPhraseFile string) (*updateGenesisOutput, error) {
 	args := []string{
 		"genesis",
 		"--home", vegaHomePath,
@@ -122,7 +74,7 @@ func (g *GenesisGenerator) updateGenesis(vegaHomePath, tendermintHomePath, nodeW
 
 	log.Printf("Updating genesis: %v", args)
 
-	rawOut, err := executeBinary(g.vegaBinary, args, nil)
+	rawOut, err := utils.ExecuteBinary(g.vegaBinary, args, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +82,7 @@ func (g *GenesisGenerator) updateGenesis(vegaHomePath, tendermintHomePath, nodeW
 	return &updateGenesisOutput{RawOutput: rawOut}, nil
 }
 
-func (g *GenesisGenerator) Generate(nodeSets []nodeSet) error {
+func (g *Generator) Generate(nodeSets []types.NodeSet, genValidators []tmtypes.GenesisValidator) error {
 	templatedOverride, err := g.executeTemplate()
 	if err != nil {
 		return err
@@ -166,6 +118,9 @@ func (g *GenesisGenerator) Generate(nodeSets []nodeSet) error {
 	if genDoc == nil {
 		return nil
 	}
+
+	// TODO should this be inside of template???
+	genDoc.Validators = genValidators
 
 	// TODO clean up this genesis merging mess...
 	if err := vgtm.AddAppStateToGenesis(genDoc, genState); err != nil {

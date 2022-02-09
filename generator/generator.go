@@ -1,32 +1,32 @@
-package main
+package generator
 
 import (
 	"fmt"
+
+	"code.vegaprotocol.io/vegacapsule/config"
+	"code.vegaprotocol.io/vegacapsule/generator/genesis"
+	"code.vegaprotocol.io/vegacapsule/generator/tendermint"
+	"code.vegaprotocol.io/vegacapsule/generator/vega"
+	"code.vegaprotocol.io/vegacapsule/types"
 )
 
-type nodeSet struct {
-	Mode       string
-	Vega       InitVegaNode
-	Tendermint InitTendermintNode
-}
-
 type Generator struct {
-	conf          *Config
-	tendermintGen *TendermintConfigGenerator
-	vegaGen       *VegaConfigGenerator
-	genesisGen    *GenesisGenerator
+	conf          *config.Config
+	tendermintGen *tendermint.ConfigGenerator
+	vegaGen       *vega.ConfigGenerator
+	genesisGen    *genesis.Generator
 }
 
-func NewGenerator(conf *Config) (*Generator, error) {
-	tendermintGen, err := NewTendermintConfigGenerator(conf)
+func New(conf *config.Config) (*Generator, error) {
+	tendermintGen, err := tendermint.NewConfigGenerator(conf)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create new tendermint config generator: %w", err)
 	}
-	vegaGen, err := NewVegaConfigGenerator(conf)
+	vegaGen, err := vega.NewConfigGenerator(conf)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create new vega config generator: %w", err)
 	}
-	genesisGen, err := NewGenesisGenerator(conf)
+	genesisGen, err := genesis.NewGenerator(conf)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create new genesis generator: %w", err)
 	}
@@ -39,9 +39,9 @@ func NewGenerator(conf *Config) (*Generator, error) {
 	}, nil
 }
 
-func (g *Generator) Generate() ([]nodeSet, error) {
-	validatorsSet := []nodeSet{}
-	nonValidatorsSet := []nodeSet{}
+func (g *Generator) Generate() ([]types.NodeSet, error) {
+	validatorsSet := []types.NodeSet{}
+	nonValidatorsSet := []types.NodeSet{}
 
 	var index int
 	// Init phase
@@ -57,14 +57,14 @@ func (g *Generator) Generate() ([]nodeSet, error) {
 				return nil, fmt.Errorf("failed to initiate Tendermit node: %w", err)
 			}
 
-			if n.Mode == NodeModeValidator {
-				validatorsSet = append(validatorsSet, nodeSet{
+			if n.Mode == types.NodeModeValidator {
+				validatorsSet = append(validatorsSet, types.NodeSet{
 					Mode:       n.Mode,
 					Vega:       *initVNode,
 					Tendermint: *initTNode,
 				})
 			} else {
-				nonValidatorsSet = append(nonValidatorsSet, nodeSet{
+				nonValidatorsSet = append(nonValidatorsSet, types.NodeSet{
 					Mode:       n.Mode,
 					Vega:       *initVNode,
 					Tendermint: *initTNode,
@@ -78,16 +78,25 @@ func (g *Generator) Generate() ([]nodeSet, error) {
 	index = 0
 	// Override phase
 	for _, n := range g.conf.Network.Nodes {
-		// TODO finish override of Vega as well
-		tendermintTemplate, err := g.tendermintGen.NewConfigTemplate(n.Templates.Tendermint)
+		tendermintConfTemplate, err := tendermint.NewConfigTemplate(n.Templates.Tendermint)
+		if err != nil {
+			return nil, err
+		}
+
+		vegaConfTemplate, err := vega.NewConfigTemplate(n.Templates.Vega)
 		if err != nil {
 			return nil, err
 		}
 
 		for i := 0; i < n.Count; i++ {
-			if tendermintTemplate != nil {
-				if err := g.tendermintGen.OverwriteConfig(index, tendermintTemplate); err != nil {
+			if tendermintConfTemplate != nil {
+				if err := g.tendermintGen.OverwriteConfig(index, tendermintConfTemplate); err != nil {
 					return nil, fmt.Errorf("failed to overwrite Tendermit config: %w", err)
+				}
+			}
+			if vegaConfTemplate != nil {
+				if err := g.vegaGen.OverwriteConfig(index, n.Mode, vegaConfTemplate); err != nil {
+					return nil, fmt.Errorf("failed to overwrite Vega config: %w", err)
 				}
 			}
 
@@ -95,7 +104,7 @@ func (g *Generator) Generate() ([]nodeSet, error) {
 		}
 	}
 
-	if err := g.genesisGen.Generate(validatorsSet); err != nil {
+	if err := g.genesisGen.Generate(validatorsSet, g.tendermintGen.GenesisValidators()); err != nil {
 		return nil, fmt.Errorf("failed to generate genesis: %w", err)
 	}
 

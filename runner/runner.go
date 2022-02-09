@@ -1,4 +1,4 @@
-package main
+package runner
 
 import (
 	"bytes"
@@ -10,33 +10,36 @@ import (
 	"strings"
 	"time"
 
+	"code.vegaprotocol.io/vegacapsule/config"
+	"code.vegaprotocol.io/vegacapsule/runner/nomad"
+	"code.vegaprotocol.io/vegacapsule/types"
+
+	"github.com/google/uuid"
 	"github.com/hashicorp/nomad/api"
 )
 
 var (
-	dockerGanacheImage        = "trufflesuite/ganache-cli:v6.12.2"
-	dockerCipipelineImage     = "ghcr.io/vegaprotocol/devops-infra/cipipeline:latest"
-	dockerEefImage            = "vegaprotocol/ethereum-event-forwarder:$eef_version"
-	dockerPytoolsImage        = "ghcr.io/vegaprotocol/devops-infra/pytools:docker"
-	dockerSmartcontractsImage = "ghcr.io/vegaprotocol/devops-infra/smartcontracts:docker"
-	dockerVegaImage           = "ghcr.io/vegaprotocol/vega/vega:$vega_version"
-	dockerVegawalletImage     = "vegaprotocol/vegawallet:$vegawallet_version"
-	dockerDatanodeImage       = "ghcr.io/vegaprotocol/data-node/data-node:$datanode_version"
-	dockerVegatoolsImage      = "vegaprotocol/vegatools:$vegatools_version"
-	dockerClefImage           = "ghcr.io/vegaprotocol/devops-infra/clef:latest"
+	dockerGanacheImage    = "trufflesuite/ganache-cli:v6.12.2"
+	dockerVegaImage       = "ghcr.io/vegaprotocol/vega/vega:$vega_version"
+	dockerVegawalletImage = "vegaprotocol/vegawallet:$vegawallet_version"
+	dockerDatanodeImage   = "ghcr.io/vegaprotocol/data-node/data-node:$datanode_version"
+	dockerVegatoolsImage  = "vegaprotocol/vegatools:$vegatools_version"
+	dockerClefImage       = "ghcr.io/vegaprotocol/devops-infra/clef:latest"
 )
 
 type Runner struct {
-	nomad              *NomadRunner
+	nomad              *nomad.NomadRunner
 	ganacheJobName     string
 	vegaNetworkJobName string
 }
 
-func NewRunner(nomad *NomadRunner) *Runner {
+func New(n *nomad.NomadRunner) *Runner {
+	uid := uuid.New()
+
 	return &Runner{
-		nomad:              nomad,
-		ganacheJobName:     "test-vega-ganache-1",
-		vegaNetworkJobName: "test-vega-network-1",
+		nomad:              n,
+		ganacheJobName:     fmt.Sprintf("test-vega-ganache-%s", uid.String()),
+		vegaNetworkJobName: fmt.Sprintf("test-vega-network-%s", uid.String()),
 	}
 }
 
@@ -71,12 +74,16 @@ func ganacheCheck(url string, timeout time.Duration) error {
 	return fmt.Errorf("ganache container has timed out")
 }
 
-func (r *Runner) startGanache(url string) error {
+func (r *Runner) startGanache() error {
 	j := &api.Job{
 		ID:          strPoint(r.ganacheJobName),
 		Datacenters: []string{"dc1"},
 		TaskGroups: []*api.TaskGroup{
 			{
+				RestartPolicy: &api.RestartPolicy{
+					Attempts: intPoint(0),
+					Mode:     strPoint("fail"),
+				},
 				Name: strPoint("ganache"),
 				Tasks: []*api.Task{
 					{
@@ -113,24 +120,24 @@ func (r *Runner) startGanache(url string) error {
 		},
 	}
 
-	if _, err := r.nomad.Run(j); err != nil {
+	if err := r.nomad.RunAndWait(j); err != nil {
 		return fmt.Errorf("failed to run nomad ganache job: %w", err)
 	}
 
-	if err := ganacheCheck(url, time.Minute*3); err != nil {
-		return fmt.Errorf("failed to start ganache container: %w", err)
-	}
+	// if err := ganacheCheck(url, time.Minute*3); err != nil {
+	// 	return fmt.Errorf("failed to start ganache container: %w", err)
+	// }
 
 	return nil
 }
 
-// TODO remove this
-type tendermintNode struct {
-	Home string
+func (r *Runner) RunGanache() error {
+	return r.startGanache()
 }
 
-func (r *Runner) StartRawNetwork(conf *Config, nodeSets []nodeSet) error {
-	if err := r.startGanache(conf.Network.EthereumEndpoint); err != nil {
+func (r *Runner) StartRawNetwork(conf *config.Config, nodeSets []types.NodeSet) error {
+	// TODO this should come from config - do the pre-start network configuration
+	if err := r.startGanache(); err != nil {
 		return err
 	}
 
@@ -182,7 +189,7 @@ func (r *Runner) StartRawNetwork(conf *Config, nodeSets []nodeSet) error {
 		},
 	}
 
-	if _, err := r.nomad.Run(j); err != nil {
+	if err := r.nomad.RunAndWait(j); err != nil {
 		return fmt.Errorf("failed to run nomad network: %w", err)
 	}
 
@@ -199,4 +206,12 @@ func (r *Runner) StopRawNetwork() error {
 	}
 
 	return gErr
+}
+
+func strPoint(s string) *string {
+	return &s
+}
+
+func intPoint(i int) *int {
+	return &i
 }

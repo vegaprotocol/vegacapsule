@@ -8,3 +8,7 @@ plugin "docker" {
     }
   }
 }
+
+server {
+  enable_event_broker = true
+}

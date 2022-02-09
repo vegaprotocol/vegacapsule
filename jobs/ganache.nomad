@@ -1,12 +1,24 @@
-job "ganache-2" {
+job "ganache-1" {
   datacenters = ["dc1"]
   group "ganache" {
 
+    network {
+      port "http" {
+        static = 8545
+      }
+    }
+
+    update {
+      health_check = "task_states"
+    }
+
     count = 1
     task "mydvbits-ganache" {
+
       driver = "docker"
 
       config {
+        ports = ["http"]
         hostname = "mydvbits-ganache"
         image = "ghcr.io/vegaprotocol/devops-infra/ganache:latest"
         command = "ganache-cli"
@@ -20,15 +32,10 @@ job "ganache-2" {
           "--db", "/app/ganache-db",
         ]
       }
+
       resources {
         cpu    = 500 # 500 MHz
         memory = 1024 # 256MB
-        network {
-          mbits = 10
-          port "http" {
-            static = 8545
-          }
-        }
       }
     }
   }

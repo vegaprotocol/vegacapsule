@@ -5,16 +5,22 @@ import (
 	"fmt"
 	"log"
 	"os"
+
+	"code.vegaprotocol.io/vegacapsule/config"
+	"code.vegaprotocol.io/vegacapsule/generator"
+	"code.vegaprotocol.io/vegacapsule/runner"
+	"code.vegaprotocol.io/vegacapsule/runner/nomad"
+	"code.vegaprotocol.io/vegacapsule/types"
 )
 
-func generate(config *Config) ([]nodeSet, error) {
-	if _, err := os.Stat(config.OutputDir); os.IsExist(err) {
-		return nil, fmt.Errorf("output directory %q already exist", config.OutputDir)
+func generate(conf *config.Config) ([]types.NodeSet, error) {
+	if _, err := os.Stat(conf.OutputDir); os.IsExist(err) {
+		return nil, fmt.Errorf("output directory %q already exist", conf.OutputDir)
 	}
 
 	log.Println("generating network")
 
-	gen, err := NewGenerator(config)
+	gen, err := generator.New(conf)
 	if err != nil {
 		return nil, err
 	}
@@ -24,8 +30,8 @@ func generate(config *Config) ([]nodeSet, error) {
 		return nil, err
 	}
 
-	if err := config.Persist(); err != nil {
-		return nil, fmt.Errorf("failed to persist config in output directory %s", config.OutputDir)
+	if err := conf.Persist(); err != nil {
+		return nil, fmt.Errorf("failed to persist config in output directory %s", conf.OutputDir)
 	}
 
 	log.Println("generating network success")
@@ -33,21 +39,21 @@ func generate(config *Config) ([]nodeSet, error) {
 	return nodeSets, nil
 }
 
-func start(config *Config) error {
+func start(conf *config.Config) error {
 	log.Println("starting network")
-	nodeSets, err := generate(config)
+	nodeSets, err := generate(conf)
 	if err != nil {
 		return fmt.Errorf("failed to generate config for network: %w", err)
 	}
 
-	nomadRunner, err := NewNomadRunner(nil)
+	nomadRunner, err := nomad.New(nil)
 	if err != nil {
 		return err
 	}
 
-	runner := NewRunner(nomadRunner)
+	runner := runner.New(nomadRunner)
 
-	if err := runner.StartRawNetwork(config, nodeSets); err != nil {
+	if err := runner.StartRawNetwork(conf, nodeSets); err != nil {
 		return fmt.Errorf("failed to start nomad network: %s", err)
 	}
 
@@ -57,15 +63,30 @@ func start(config *Config) error {
 
 func stop() {
 	log.Println("stopping network")
-	nomadRunner, err := NewNomadRunner(nil)
+	nomadRunner, err := nomad.New(nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	runner := NewRunner(nomadRunner)
+	runner := runner.New(nomadRunner)
 
 	if err := runner.StopRawNetwork(); err != nil {
 		log.Fatalf("failed to start nomad network: %s", err)
+	}
+	log.Println("stopping network success")
+}
+
+func test() {
+	log.Println("stopping network")
+	nomadRunner, err := nomad.New(nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	runner := runner.New(nomadRunner)
+
+	if err := runner.RunGanache(); err != nil {
+		log.Fatalf("failed to start ganache network: %s", err)
 	}
 	log.Println("stopping network success")
 }
@@ -99,28 +120,30 @@ func main() {
 			log.Fatal(err)
 		}
 
-		config, err := ParseConfigFile(*configFilePathS)
+		conf, err := config.ParseConfigFile(*configFilePathS)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		if err := start(config); err != nil {
+		if err := start(conf); err != nil {
 			log.Fatal(err)
 		}
 
 	case "stop":
 		stop()
+	case "test":
+		test()
 	case "generate":
 		if err := generateCmd.Parse(os.Args[2:]); err != nil {
 			log.Fatal(err)
 		}
 
-		config, err := ParseConfigFile(*configFilePath)
+		conf, err := config.ParseConfigFile(*configFilePath)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		if _, err := generate(config); err != nil {
+		if _, err := generate(conf); err != nil {
 			log.Fatal(err)
 		}
 
@@ -131,12 +154,4 @@ func main() {
 		os.Exit(1)
 	}
 
-}
-
-func strPoint(s string) *string {
-	return &s
-}
-
-func intPoint(i int) *int {
-	return &i
 }
