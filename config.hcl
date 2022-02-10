@@ -258,7 +258,7 @@ network "testnet" {
   EOH
 
   node_set "validators" {
-    count = 2
+    count = 3
     mode = "validator"
     node_wallet_pass = "n0d3w4ll3t-p4ssphr4e3"
     vega_wallet_pass = "w4ll3t-p4ssphr4e3"
@@ -305,10 +305,77 @@ moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
 
 [p2p]
   laddr = "tcp://0.0.0.0:266{{.NodeNumber}}6"
-  addr_book_strict = true
+  addr_book_strict = false
   max_packet_msg_payload_size = 4096
   pex = false
-  allow_duplicate_ip = false
+  allow_duplicate_ip = true
+  persistent_peers = "{{range $i, $v := .NodeIDs}}{{if ne $i 0}},{{end}}{{$v}}@127.0.0.1:266{{$i}}6{{end}}"
+
+[mempool]
+  size = 10000
+  cache_size = 20000
+
+[consensus]
+  skip_timeout_commit = false
+EOT
+    }
+  }
+
+  node_set "full" {
+    count = 1
+    mode = "full"
+	data_node_binary = "/Users/karelmoravec/go/bin/data-node"
+
+    config_templates {
+      vega = <<-EOT
+[API]
+	Port = 30{{.NodeNumber}}2
+	[API.REST]
+			Port = 30{{.NodeNumber}}3
+
+[Blockchain]
+	[Blockchain.Tendermint]
+		ClientAddr = "tcp://127.0.0.1:266{{.NodeNumber}}7"
+		ServerAddr = "0.0.0.0"
+		ServerPort = 266{{.NodeNumber}}8
+	[Blockchain.Null]
+		Port = 31{{.NodeNumber}}1
+
+[EvtForward]
+	Level = "Info"
+	RetryRate = "1s"
+
+[NodeWallet]
+	[NodeWallet.ETH]
+		Address = "{{.ETHEndpoint}}"
+
+[Processor]
+	[Processor.Ratelimit]
+		Requests = 10000
+		PerNBlocks = 1
+
+[Broker]
+  [Broker.Socket]
+    Port = 3005
+    Enabled = true
+EOT
+
+	  tendermint = <<-EOT
+log_level = "info"
+
+proxy_app = "tcp://127.0.0.1:266{{.NodeNumber}}8"
+moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
+
+[rpc]
+  laddr = "tcp://0.0.0.0:266{{.NodeNumber}}7"
+  unsafe = true
+
+[p2p]
+  laddr = "tcp://0.0.0.0:266{{.NodeNumber}}6"
+  addr_book_strict = false
+  max_packet_msg_payload_size = 4096
+  pex = false
+  allow_duplicate_ip = true
   persistent_peers = "{{range $i, $v := .NodeIDs}}{{if ne $i 0}},{{end}}{{$v}}@127.0.0.1:266{{$i}}6{{end}}"
 
 [mempool]

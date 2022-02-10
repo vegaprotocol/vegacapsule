@@ -56,12 +56,12 @@ func (g *Generator) Generate() ([]types.NodeSet, error) {
 		for i := 0; i < n.Count; i++ {
 			initTNode, err := g.tendermintGen.Initiate(index, n.Mode)
 			if err != nil {
-				return nil, fmt.Errorf("failed to initiate Tendermit node: %w", err)
+				return nil, fmt.Errorf("failed to initiate Tendermit node id %d: %w", index, err)
 			}
 
 			initVNode, err := g.vegaGen.Initiate(index, n.Mode, initTNode.HomeDir, n.NodeWalletPass, n.VegaWalletPass, n.EthereumWalletPass)
 			if err != nil {
-				return nil, fmt.Errorf("failed to initiate Vega node: %w", err)
+				return nil, fmt.Errorf("failed to initiate Vega node id %d: %w", index, err)
 			}
 
 			var initDNode *types.DataNode
@@ -69,7 +69,7 @@ func (g *Generator) Generate() ([]types.NodeSet, error) {
 			if n.DataNodeBinary != "" {
 				node, err := g.dataNodeGen.Initiate(index, n.DataNodeBinary)
 				if err != nil {
-					return nil, fmt.Errorf("failed to initiate Data node: %w", err)
+					return nil, fmt.Errorf("failed to initiate Data node id %d: %w", index, err)
 				}
 
 				initDNode = node
@@ -111,12 +111,12 @@ func (g *Generator) Generate() ([]types.NodeSet, error) {
 		for i := 0; i < n.Count; i++ {
 			if tendermintConfTemplate != nil {
 				if err := g.tendermintGen.OverwriteConfig(index, tendermintConfTemplate); err != nil {
-					return nil, fmt.Errorf("failed to overwrite Tendermit config: %w", err)
+					return nil, fmt.Errorf("failed to overwrite Tendermit config for id %d: %w", index, err)
 				}
 			}
 			if vegaConfTemplate != nil {
 				if err := g.vegaGen.OverwriteConfig(index, n.Mode, vegaConfTemplate); err != nil {
-					return nil, fmt.Errorf("failed to overwrite Vega config: %w", err)
+					return nil, fmt.Errorf("failed to overwrite Vega config for id %d: %w", index, err)
 				}
 			}
 
