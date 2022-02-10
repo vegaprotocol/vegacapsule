@@ -9,6 +9,7 @@ import (
 	"code.vegaprotocol.io/vegacapsule/generator/genesis"
 	"code.vegaprotocol.io/vegacapsule/generator/tendermint"
 	"code.vegaprotocol.io/vegacapsule/generator/vega"
+	"code.vegaprotocol.io/vegacapsule/generator/wallet"
 	"code.vegaprotocol.io/vegacapsule/types"
 )
 
@@ -18,6 +19,7 @@ type Generator struct {
 	vegaGen       *vega.ConfigGenerator
 	dataNodeGen   *datanode.ConfigGenerator
 	genesisGen    *genesis.Generator
+	walletGen     *wallet.ConfigGenerator
 }
 
 func New(conf *config.Config) (*Generator, error) {
@@ -33,7 +35,11 @@ func New(conf *config.Config) (*Generator, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create new genesis generator: %w", err)
 	}
-	dataNode, err := datanode.NewConfigGenerator(conf)
+	dataNodeGen, err := datanode.NewConfigGenerator(conf)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create new genesis generator: %w", err)
+	}
+	walletGen, err := wallet.NewConfigGenerator(conf)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create new genesis generator: %w", err)
 	}
@@ -43,11 +49,12 @@ func New(conf *config.Config) (*Generator, error) {
 		tendermintGen: tendermintGen,
 		vegaGen:       vegaGen,
 		genesisGen:    genesisGen,
-		dataNodeGen:   dataNode,
+		dataNodeGen:   dataNodeGen,
+		walletGen:     walletGen,
 	}, nil
 }
 
-func (g *Generator) Generate() ([]types.NodeSet, error) {
+func (g *Generator) Generate() (*types.GeneratedServices, error) {
 	validatorsSet := []types.NodeSet{}
 	nonValidatorsSet := []types.NodeSet{}
 
@@ -143,5 +150,36 @@ func (g *Generator) Generate() ([]types.NodeSet, error) {
 		return nil, fmt.Errorf("failed to generate genesis: %w", err)
 	}
 
-	return append(validatorsSet, nonValidatorsSet...), nil
+	var wl *types.Wallet
+	if g.conf.Network.Wallet != nil {
+		initWallet, err := g.initAndOverrideWallet(g.conf.Network.Wallet, validatorsSet)
+		if err != nil {
+			return nil, err
+		}
+
+		wl = initWallet
+	}
+
+	return &types.GeneratedServices{
+		Wallet:   wl,
+		NodeSets: append(validatorsSet, nonValidatorsSet...),
+	}, nil
+}
+
+func (g *Generator) initAndOverrideWallet(conf *config.WalletConfig, validatorsSet []types.NodeSet) (*types.Wallet, error) {
+	initWallet, err := g.walletGen.Initiate(g.conf.Network.Wallet)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initate wallet: %w", err)
+	}
+
+	walletConfTemplate, err := wallet.NewConfigTemplate(g.conf.Network.Wallet.Template)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := g.walletGen.OverwriteConfig(*initWallet, validatorsSet, walletConfTemplate); err != nil {
+		return nil, fmt.Errorf("failed to generate overwrite config: %w", err)
+	}
+
+	return initWallet, nil
 }

@@ -16,17 +16,19 @@ type Config struct {
 	TendermintNodePrefix string        `hcl:"tendermint_node_prefix"`
 	VegaNodePrefix       string        `hcl:"vega_node_prefix"`
 	DataNodePrefix       string        `hcl:"data_node_prefix"`
+	WalletPrefix         string        `hcl:"wallet_prefix"`
 	Network              NetworkConfig `hcl:"network,block"`
 }
 
 type NetworkConfig struct {
-	Name             string `hcl:"name,label"`
-	GenesisTemplate  string `hcl:"genesis_template"`
-	ChainID          string `hcl:"chain_id"`
-	NetworkID        string `hcl:"network_id"`
-	EthereumEndpoint string `hcl:"ethereum_endpoint"`
+	Name             string        `hcl:"name,label"`
+	GenesisTemplate  string        `hcl:"genesis_template"`
+	ChainID          string        `hcl:"chain_id"`
+	NetworkID        string        `hcl:"network_id"`
+	EthereumEndpoint string        `hcl:"ethereum_endpoint"`
+	Wallet           *WalletConfig `hcl:"wallet,block"`
 
-	PreStart PrestartConfig `hcl:"pre_start,block"`
+	PreStart *PrestartConfig `hcl:"pre_start,block"`
 
 	Nodes []NodeConfig `hcl:"node_set,block"`
 }
@@ -41,6 +43,12 @@ type DockerConfig struct {
 	Command    string   `hcl:"cmd"`
 	Args       []string `hcl:"args"`
 	StaticPort int      `hcl:"static_port,optional"`
+}
+
+type WalletConfig struct {
+	Name     string `hcl:"name,label"`
+	Binary   string `hcl:"binary"`
+	Template string `hcl:"template,optional"`
 }
 
 type NodeConfig struct {

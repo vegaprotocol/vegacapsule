@@ -13,7 +13,7 @@ import (
 	"code.vegaprotocol.io/vegacapsule/types"
 )
 
-func generate(conf *config.Config) ([]types.NodeSet, error) {
+func generate(conf *config.Config) (*types.GeneratedServices, error) {
 	if _, err := os.Stat(conf.OutputDir); os.IsExist(err) {
 		return nil, fmt.Errorf("output directory %q already exist", conf.OutputDir)
 	}
@@ -25,7 +25,7 @@ func generate(conf *config.Config) ([]types.NodeSet, error) {
 		return nil, err
 	}
 
-	nodeSets, err := gen.Generate()
+	generatedSvcs, err := gen.Generate()
 	if err != nil {
 		return nil, err
 	}
@@ -36,12 +36,12 @@ func generate(conf *config.Config) ([]types.NodeSet, error) {
 
 	log.Println("generating network success")
 
-	return nodeSets, nil
+	return generatedSvcs, nil
 }
 
 func start(conf *config.Config) error {
 	log.Println("starting network")
-	nodeSets, err := generate(conf)
+	generatedSvcs, err := generate(conf)
 	if err != nil {
 		return fmt.Errorf("failed to generate config for network: %w", err)
 	}
@@ -59,7 +59,7 @@ func start(conf *config.Config) error {
 		}
 	}
 
-	if err := runner.StartRawNetwork(conf, nodeSets); err != nil {
+	if err := runner.StartRawNetwork(conf, generatedSvcs); err != nil {
 		return fmt.Errorf("failed to start nomad network: %s", err)
 	}
 

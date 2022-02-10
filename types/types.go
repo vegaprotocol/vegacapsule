@@ -22,6 +22,18 @@ type NodeSet struct {
 	DataNode   *DataNode
 }
 
+type Wallet struct {
+	HomeDir               string
+	ServiceConfigFilePath string
+	PublicKeyFilePath     string
+	PrivateKeyFilePath    string
+}
+
+type GeneratedServices struct {
+	Wallet   *Wallet
+	NodeSets []NodeSet
+}
+
 const (
 	NodeModeValidator           = "validator"
 	NodeModeFull                = "full"
