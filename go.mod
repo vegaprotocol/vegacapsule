@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	code.vegaprotocol.io/shared v0.0.0-20220128163854-7eab67fa60d2
-	code.vegaprotocol.io/vega v0.48.0-pre3
+	code.vegaprotocol.io/vega v0.47.1-0.20220210171444-a99ac6eddde9
 	github.com/btcsuite/btcd v0.22.0-beta
 	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
 	github.com/ethereum/go-ethereum v1.10.15
@@ -18,6 +18,7 @@ require (
 )
 
 require (
+	code.vegaprotocol.io/data-node v0.47.1-0.20220210134353-bd79b1ae24b0 // indirect
 	github.com/BurntSushi/toml v1.0.0 // indirect
 	github.com/rs/zerolog v1.26.0 // indirect
 	github.com/stretchr/objx v0.2.0 // indirect
@@ -26,7 +27,7 @@ require (
 )
 
 require (
-	code.vegaprotocol.io/protos v0.48.0-pre1 // indirect
+	code.vegaprotocol.io/protos v0.48.1-0.20220209133852-0f31e2fef5ff // indirect
 	code.vegaprotocol.io/quant v0.2.5 // indirect
 	code.vegaprotocol.io/vegawallet v0.12.0-pre1 // indirect
 	github.com/DataDog/zstd v1.4.1 // indirect

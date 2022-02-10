@@ -310,7 +310,14 @@ moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
   max-packet-msg-payload-size = 4096
   pex = false
   allow-duplicate-ip = true
-  persistent-peers = "{{range $i, $v := .NodeIDs}}{{if ne $i 0}},{{end}}{{$v}}@127.0.0.1:266{{$i}}6{{end}}"
+  persistent-peers = "
+  {{- range $i, $v := .NodeIDs -}}
+  	{{- if ne $.NodeNumber $i -}}
+	  {{- if or (and (eq $.NodeNumber 0) (gt $i 1)) (and (ne $.NodeNumber 0) (ne $i 0)) }},{{end -}}
+	  {{- $v}}@127.0.0.1:266{{$i}}6
+	{{- end -}}
+  {{- end -}}"
+
 
 [mempool]
   size = 10000
@@ -412,7 +419,13 @@ moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
   max-packet-msg-payload-size = 4096
   pex = false
   allow-duplicate-ip = true
-  persistent-peers = "{{range $i, $v := .NodeIDs}}{{if ne $i 0}},{{end}}{{$v}}@127.0.0.1:266{{$i}}6{{end}}"
+  persistent-peers = "
+  {{- range $i, $v := .NodeIDs -}}
+  	{{- if ne $.NodeNumber $i -}}
+	  {{- if or (and (eq $.NodeNumber 0) (gt $i 1)) (and (ne $.NodeNumber 0) (ne $i 0)) }},{{end -}}
+	  {{- $v}}@127.0.0.1:266{{$i}}6
+	{{- end -}}
+  {{- end -}}"
 
 [mempool]
   size = 10000
