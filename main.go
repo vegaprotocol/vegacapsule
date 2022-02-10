@@ -1,127 +1,146 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"log"
 	"os"
-	"path"
-	"path/filepath"
+
+	"code.vegaprotocol.io/vegacapsule/config"
+	"code.vegaprotocol.io/vegacapsule/generator"
+	"code.vegaprotocol.io/vegacapsule/runner"
+	"code.vegaprotocol.io/vegacapsule/runner/nomad"
+	"code.vegaprotocol.io/vegacapsule/types"
 )
 
-var (
-	dockerGanacheImage        = "trufflesuite/ganache-cli:v6.12.2"
-	dockerCipipelineImage     = "ghcr.io/vegaprotocol/devops-infra/cipipeline:latest"
-	dockerEefImage            = "vegaprotocol/ethereum-event-forwarder:$eef_version"
-	dockerPytoolsImage        = "ghcr.io/vegaprotocol/devops-infra/pytools:docker"
-	dockerSmartcontractsImage = "ghcr.io/vegaprotocol/devops-infra/smartcontracts:docker"
-	dockerVegaImage           = "ghcr.io/vegaprotocol/vega/vega:$vega_version"
-	dockerVegawalletImage     = "vegaprotocol/vegawallet:$vegawallet_version"
-	dockerDatanodeImage       = "ghcr.io/vegaprotocol/data-node/data-node:$datanode_version"
-	dockerVegatoolsImage      = "vegaprotocol/vegatools:$vegatools_version"
-	dockerClefImage           = "ghcr.io/vegaprotocol/devops-infra/clef:latest"
-)
+func generate(conf *config.Config) ([]types.NodeSet, error) {
+	if _, err := os.Stat(conf.OutputDir); os.IsExist(err) {
+		return nil, fmt.Errorf("output directory %q already exist", conf.OutputDir)
+	}
 
-// TODO should come from config
-const defaultGanacheMnemonic = "cherry manage trip absorb logic half number test shed logic purpose rifle"
+	log.Println("generating network")
 
-func start() {
+	gen, err := generator.New(conf)
+	if err != nil {
+		return nil, err
+	}
+
+	nodeSets, err := gen.Generate()
+	if err != nil {
+		return nil, err
+	}
+
+	if err := conf.Persist(); err != nil {
+		return nil, fmt.Errorf("failed to persist config in output directory %s", conf.OutputDir)
+	}
+
+	log.Println("generating network success")
+
+	return nodeSets, nil
+}
+
+func start(conf *config.Config) error {
 	log.Println("starting network")
-
-	outputDir := "./testnet"
-	prefix := "st-local"
-	nodeDirPrefix := "node"
-	tendermintNodePrefix := "tendermint-node"
-	vegaNodePrefix := "vega-node"
-	dataNodePrefix := "data-node"
-	vegaBinaryPath := "/Users/karelmoravec/go/bin/vega"
-
-	vegaDir, err := filepath.Abs(path.Join(outputDir, "vega"))
+	nodeSets, err := generate(conf)
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("failed to generate config for network: %w", err)
 	}
 
-	tendermintDir, err := filepath.Abs(path.Join(outputDir, "tendermint"))
+	nomadRunner, err := nomad.New(nil)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
-	chainID := "1440"
-	networkID := "1441"
+	runner := runner.New(nomadRunner)
 
-	nValidators := 2
-	nNonValidators := 0
-
-	tendermintNodes, err := generateTendermintConfigs(tendermintDir, prefix, nodeDirPrefix, tendermintNodePrefix, vegaNodePrefix, defaultTendermintOverride, nValidators, nNonValidators)
-	if err != nil {
-		panic(err)
+	for _, dc := range conf.Network.PreStart.Docker {
+		if err := runner.RunDockerJob(dc); err != nil {
+			return fmt.Errorf("failed to run pre start job %s: %w", dc.Name, err)
+		}
 	}
 
-	vegaNodes, err := generateVegaConfig(vegaBinaryPath, vegaDir, prefix, tendermintNodes, nodeDirPrefix, tendermintNodePrefix, vegaNodePrefix, dataNodePrefix, defaultVegaOverride, defaultGenesisTemplate)
-	if err != nil {
-		panic(err)
+	if err := runner.StartRawNetwork(conf, nodeSets); err != nil {
+		return fmt.Errorf("failed to start nomad network: %s", err)
 	}
 
-	tmplCtx, err := NewGenesisTemplateContext(chainID, networkID, []byte(defaultSmartContractsAddresses))
-	if err != nil {
-		log.Fatalf("failed create genesis template context: %s", err)
-	}
-
-	genGenerator, err := NewGenesisGenerator(defaultGenesisTemplate, tmplCtx)
-	if err != nil {
-		log.Fatalf("failed to crate new genesis generator: %s", err)
-	}
-
-	if err := genGenerator.Generate(tendermintDir, vegaNodes); err != nil {
-		log.Fatalf("failed to generate genesis: %s", err)
-	}
-
-	nomadRunner, err := NewNomadRunner(nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	runner := NewRunner(nomadRunner)
-
-	if err := runner.StartRawNetwork(vegaBinaryPath, tendermintNodes, vegaNodes); err != nil {
-		log.Fatalf("failed to start nomad network: %s", err)
-	}
+	log.Println("starting network success")
+	return nil
 }
 
 func stop() {
 	log.Println("stopping network")
-	nomadRunner, err := NewNomadRunner(nil)
+	nomadRunner, err := nomad.New(nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	runner := NewRunner(nomadRunner)
+	runner := runner.New(nomadRunner)
 
 	if err := runner.StopRawNetwork(); err != nil {
 		log.Fatalf("failed to start nomad network: %s", err)
 	}
+	log.Println("stopping network success")
+}
+
+func destroy(outputDir string) {
+	log.Println("destroying network")
+	stop()
+
+	if err := os.RemoveAll(outputDir); err != nil {
+		log.Fatalf("failed to destroy network: %s", err)
+	}
+	log.Println("destroying network success")
 }
 
 func main() {
 	if len(os.Args) < 2 {
-		log.Println("missing command")
+		fmt.Println("expected 'start'|'stop'|'destroy' subcommands")
 		os.Exit(1)
 	}
+
+	startCmd := flag.NewFlagSet("start", flag.ExitOnError)
+	configFilePathS := startCmd.String("config-path", "", "enable")
+
+	generateCmd := flag.NewFlagSet("generate", flag.ExitOnError)
+	configFilePath := generateCmd.String("config-path", "", "enable")
+
 	arg := os.Args[1]
 	switch arg {
 	case "start":
-		start()
+		if err := startCmd.Parse(os.Args[2:]); err != nil {
+			log.Fatal(err)
+		}
+
+		conf, err := config.ParseConfigFile(*configFilePathS)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if err := start(conf); err != nil {
+			log.Fatal(err)
+		}
+
 	case "stop":
 		stop()
+	case "generate":
+		if err := generateCmd.Parse(os.Args[2:]); err != nil {
+			log.Fatal(err)
+		}
+
+		conf, err := config.ParseConfigFile(*configFilePath)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if _, err := generate(conf); err != nil {
+			log.Fatal(err)
+		}
+
+	// case "destroy":
+	// destroy()
 	default:
-		log.Printf("unknown command %s", arg)
+		log.Printf("unknown subcommand %s: expected 'start'|'stop'|'destroy' subcommands", arg)
 		os.Exit(1)
 	}
 
-}
-
-func strPoint(s string) *string {
-	return &s
-}
-
-func intPoint(i int) *int {
-	return &i
 }
