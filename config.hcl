@@ -265,6 +265,11 @@ network "testnet" {
     ethereum_wallet_pass = "ch41nw4ll3t-3th3r3um-p4ssphr4e3"
 
     config_templates {
+
+// ============================
+// ===== VegaNode Config ======
+// ============================
+
       vega = <<-EOT
 [API]
 	Port = 30{{.NodeNumber}}2
@@ -293,10 +298,14 @@ network "testnet" {
 		PerNBlocks = 1
 EOT
 
-	  tendermint = <<-EOT
-log_level = "info"
+// ============================
+// ==== Tendermint Config =====
+// ============================
 
-proxy_app = "tcp://127.0.0.1:266{{.NodeNumber}}8"
+	  tendermint = <<-EOT
+log-level = "info"
+
+proxy-app = "tcp://127.0.0.1:266{{.NodeNumber}}8"
 moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
 
 [rpc]
@@ -305,18 +314,18 @@ moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
 
 [p2p]
   laddr = "tcp://0.0.0.0:266{{.NodeNumber}}6"
-  addr_book_strict = false
-  max_packet_msg_payload_size = 4096
+  addr-book-strict = false
+  max-packet-msg-payload-size = 4096
   pex = false
-  allow_duplicate_ip = true
-  persistent_peers = "{{range $i, $v := .NodeIDs}}{{if ne $i 0}},{{end}}{{$v}}@127.0.0.1:266{{$i}}6{{end}}"
+  allow-duplicate-ip = true
+  persistent-peers = "{{range $i, $v := .NodeIDs}}{{if ne $i 0}},{{end}}{{$v}}@127.0.0.1:266{{$i}}6{{end}}"
 
 [mempool]
   size = 10000
-  cache_size = 20000
+  cache-size = 20000
 
 [consensus]
-  skip_timeout_commit = false
+  skip-timeout-commit = false
 EOT
     }
   }
@@ -327,6 +336,11 @@ EOT
 	data_node_binary = "/Users/karelmoravec/go/bin/data-node"
 
     config_templates {
+
+// ============================
+// ===== VegaNode Config ======
+// ============================
+
       vega = <<-EOT
 [API]
 	Port = 30{{.NodeNumber}}2
@@ -360,10 +374,40 @@ EOT
     Enabled = true
 EOT
 
-	  tendermint = <<-EOT
-log_level = "info"
+// ============================
+// ===== DataNode Config ======
+// ============================
 
-proxy_app = "tcp://127.0.0.1:266{{.NodeNumber}}8"
+      data_node = <<-EOT
+
+GatewayEnabled = true
+UlimitNOFile = 8192
+[API]
+  Level = "Info"
+  Timeout = "5s"
+  Port = 30{{.NodeNumber}}7
+  IP = "0.0.0.0"
+  StreamRetries = 3
+  CoreNodeIP = "127.0.0.1"
+  CoreNodeGRPCPort = 30{{.NodeNumber}}2
+[Pprof]
+  Level = "Info"
+  Enabled = false
+  Port = 6{{.NodeNumber}}60
+  ProfilesDir = "{{.NodeHomeDir}}/pprof"
+  BlockProfileRate = 0
+  MutexProfileFraction = 0
+
+EOT
+
+// ============================
+// ==== Tendermint Config =====
+// ============================
+
+	  tendermint = <<-EOT
+log-level = "info"
+
+proxy-app = "tcp://127.0.0.1:266{{.NodeNumber}}8"
 moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
 
 [rpc]
@@ -372,18 +416,18 @@ moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
 
 [p2p]
   laddr = "tcp://0.0.0.0:266{{.NodeNumber}}6"
-  addr_book_strict = false
-  max_packet_msg_payload_size = 4096
+  addr-book_strict = false
+  max-packet-msg-payload-size = 4096
   pex = false
-  allow_duplicate_ip = true
-  persistent_peers = "{{range $i, $v := .NodeIDs}}{{if ne $i 0}},{{end}}{{$v}}@127.0.0.1:266{{$i}}6{{end}}"
+  allow-duplicate-ip = true
+  persistent-peers = "{{range $i, $v := .NodeIDs}}{{if ne $i 0}},{{end}}{{$v}}@127.0.0.1:266{{$i}}6{{end}}"
 
 [mempool]
   size = 10000
   cache_size = 20000
 
 [consensus]
-  skip_timeout_commit = false
+  skip-timeout-commit = false
 EOT
     }
   }
