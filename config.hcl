@@ -337,7 +337,7 @@ EOT
   }
 
   node_set "full" {
-    count = 1
+    count = 2
     mode = "full"
 	data_node_binary = "/Users/karelmoravec/go/bin/data-node"
 
@@ -376,8 +376,52 @@ EOT
 
 [Broker]
   [Broker.Socket]
-    Port = 3005
+    Port = 30{{.NodeNumber}}5
     Enabled = true
+EOT
+
+// ============================
+// ===== DataNode Config ======
+// ============================
+
+      data_node = <<-EOT
+
+GatewayEnabled = true
+[SqlStore]
+  Port = 5{{.NodeNumber}}32
+
+[API]
+  Level = "Info"
+  Port = 30{{.NodeNumber}}7
+  CoreNodeGRPCPort = 30{{.NodeNumber}}2
+
+[Pprof]
+  Level = "Info"
+  Enabled = true
+  Port = 6{{.NodeNumber}}60
+  ProfilesDir = "{{.NodeHomeDir}}"
+
+[Gateway]
+  Level = "Info"
+  [Gateway.Node]
+    Port = 30{{.NodeNumber}}7
+  [Gateway.GraphQL]
+    Port = 30{{.NodeNumber}}8
+  [Gateway.REST]
+    Port = 30{{.NodeNumber}}9
+	
+[Metrics]
+  Level = "Info"
+  Timeout = "5s"
+  Port = 21{{.NodeNumber}}2
+  Path = "/metrics"
+  Enabled = false
+[Broker]
+  Level = "Info"
+  UseEventFile = false
+  [Broker.SocketConfig]
+    Port = 30{{.NodeNumber}}5
+
 EOT
 
 // ============================

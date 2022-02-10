@@ -2,6 +2,7 @@ package generator
 
 import (
 	"fmt"
+	"text/template"
 
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/generator/datanode"
@@ -108,6 +109,15 @@ func (g *Generator) Generate() ([]types.NodeSet, error) {
 			return nil, err
 		}
 
+		var dataNodeConfTemplate *template.Template
+		if n.DataNodeBinary != "" {
+			dataNodeConfTemplate, err = datanode.NewConfigTemplate(n.Templates.DataNode)
+
+			if err != nil {
+				return nil, err
+			}
+		}
+
 		for i := 0; i < n.Count; i++ {
 			if tendermintConfTemplate != nil {
 				if err := g.tendermintGen.OverwriteConfig(index, tendermintConfTemplate); err != nil {
@@ -117,6 +127,11 @@ func (g *Generator) Generate() ([]types.NodeSet, error) {
 			if vegaConfTemplate != nil {
 				if err := g.vegaGen.OverwriteConfig(index, n.Mode, vegaConfTemplate); err != nil {
 					return nil, fmt.Errorf("failed to overwrite Vega config for id %d: %w", index, err)
+				}
+			}
+			if dataNodeConfTemplate != nil {
+				if err := g.dataNodeGen.OverwriteConfig(index, dataNodeConfTemplate); err != nil {
+					return nil, fmt.Errorf("failed to overwrite Data Node config for id %d: %w", index, err)
 				}
 			}
 
