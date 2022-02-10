@@ -18,8 +18,8 @@ require (
 )
 
 require (
-	code.vegaprotocol.io/data-node v0.47.1-0.20220210134353-bd79b1ae24b0 // indirect
 	github.com/BurntSushi/toml v1.0.0 // indirect
+	github.com/lib/pq v1.10.4 // indirect
 	github.com/rs/zerolog v1.26.0 // indirect
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/zclconf/go-cty v1.8.0 // indirect
