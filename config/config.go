@@ -26,7 +26,7 @@ type NetworkConfig struct {
 	NetworkID        string `hcl:"network_id"`
 	EthereumEndpoint string `hcl:"ethereum_endpoint"`
 
-	// PreStart PrestartConfig `hcl:"pre_start,optional"`
+	PreStart PrestartConfig `hcl:"pre_start,block"`
 
 	Nodes []NodeConfig `hcl:"node_set,block"`
 }
@@ -36,11 +36,11 @@ type PrestartConfig struct {
 }
 
 type DockerConfig struct {
-	Name        string   `hcl:"name,label"`
-	Image       string   `hcl:"image"`
-	Command     string   `hcl:"cmd"`
-	Args        []string `hcl:"args"`
-	ExposePorts []int    `hcl:"ports"`
+	Name       string   `hcl:"name,label"`
+	Image      string   `hcl:"image"`
+	Command    string   `hcl:"cmd"`
+	Args       []string `hcl:"args"`
+	StaticPort int      `hcl:"static_port,optional"`
 }
 
 type NodeConfig struct {
@@ -50,6 +50,7 @@ type NodeConfig struct {
 	NodeWalletPass     string `hcl:"node_wallet_pass,optional"`
 	EthereumWalletPass string `hcl:"ethereum_wallet_pass,optional"`
 	VegaWalletPass     string `hcl:"vega_wallet_pass,optional"`
+	DataNodeBinary     string `hcl:"data_node_binary,optional"`
 
 	Templates TemplateConfig `hcl:"config_templates,block"`
 }

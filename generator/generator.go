@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"code.vegaprotocol.io/vegacapsule/config"
+	"code.vegaprotocol.io/vegacapsule/generator/datanode"
 	"code.vegaprotocol.io/vegacapsule/generator/genesis"
 	"code.vegaprotocol.io/vegacapsule/generator/tendermint"
 	"code.vegaprotocol.io/vegacapsule/generator/vega"
@@ -14,6 +15,7 @@ type Generator struct {
 	conf          *config.Config
 	tendermintGen *tendermint.ConfigGenerator
 	vegaGen       *vega.ConfigGenerator
+	dataNodeGen   *datanode.ConfigGenerator
 	genesisGen    *genesis.Generator
 }
 
@@ -30,12 +32,17 @@ func New(conf *config.Config) (*Generator, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create new genesis generator: %w", err)
 	}
+	dataNode, err := datanode.NewConfigGenerator(conf)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create new genesis generator: %w", err)
+	}
 
 	return &Generator{
 		conf:          conf,
 		tendermintGen: tendermintGen,
 		vegaGen:       vegaGen,
 		genesisGen:    genesisGen,
+		dataNodeGen:   dataNode,
 	}, nil
 }
 
@@ -54,7 +61,18 @@ func (g *Generator) Generate() ([]types.NodeSet, error) {
 
 			initVNode, err := g.vegaGen.Initiate(index, n.Mode, initTNode.HomeDir, n.NodeWalletPass, n.VegaWalletPass, n.EthereumWalletPass)
 			if err != nil {
-				return nil, fmt.Errorf("failed to initiate Tendermit node: %w", err)
+				return nil, fmt.Errorf("failed to initiate Vega node: %w", err)
+			}
+
+			var initDNode *types.DataNode
+			// if data node binary is defined it is assumed that data-node should be deployed
+			if n.DataNodeBinary != "" {
+				node, err := g.dataNodeGen.Initiate(index, n.DataNodeBinary)
+				if err != nil {
+					return nil, fmt.Errorf("failed to initiate Data node: %w", err)
+				}
+
+				initDNode = node
 			}
 
 			if n.Mode == types.NodeModeValidator {
@@ -62,12 +80,14 @@ func (g *Generator) Generate() ([]types.NodeSet, error) {
 					Mode:       n.Mode,
 					Vega:       *initVNode,
 					Tendermint: *initTNode,
+					DataNode:   initDNode,
 				})
 			} else {
 				nonValidatorsSet = append(nonValidatorsSet, types.NodeSet{
 					Mode:       n.Mode,
 					Vega:       *initVNode,
 					Tendermint: *initTNode,
+					DataNode:   initDNode,
 				})
 			}
 
@@ -104,7 +124,7 @@ func (g *Generator) Generate() ([]types.NodeSet, error) {
 		}
 	}
 
-	if err := g.genesisGen.Generate(validatorsSet, g.tendermintGen.GenesisValidators()); err != nil {
+	if err := g.genesisGen.Generate(validatorsSet, nonValidatorsSet, g.tendermintGen.GenesisValidators()); err != nil {
 		return nil, fmt.Errorf("failed to generate genesis: %w", err)
 	}
 

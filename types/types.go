@@ -10,10 +10,16 @@ type TendermintNode struct {
 	GenesisFilePath string
 }
 
+type DataNode struct {
+	HomeDir    string
+	BinaryPath string
+}
+
 type NodeSet struct {
 	Mode       string
 	Vega       VegaNode
 	Tendermint TendermintNode
+	DataNode   *DataNode
 }
 
 const (

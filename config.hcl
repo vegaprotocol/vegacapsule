@@ -1,15 +1,32 @@
 output_dir             = "/Users/karelmoravec/vega/vegacapsule/testnet"
+vega_binary_path       = "/Users/karelmoravec/go/bin/vega"
 prefix                 = "st-local"
 node_dir_prefix        = "node"
 tendermint_node_prefix = "tendermint"
 vega_node_prefix       = "vega"
 data_node_prefix       = "data"
-vega_binary_path       = "/Users/karelmoravec/go/bin/vega"
 
 network "testnet" {
   chain_id          = "1440"
   network_id        = "1441"
   ethereum_endpoint = "http://127.0.0.1:8545/"
+
+  pre_start {
+    docker_service "ganache" {
+      image = "ghcr.io/vegaprotocol/devops-infra/ganache:latest"
+      cmd = "ganache-cli"
+      args = [
+        "--blockTime", "1",
+        "--chainId", "1440",
+        "--networkId", "1441",
+        "-h", "0.0.0.0",
+        "-p", "8545",
+        "-m", "cherry manage trip absorb logic half number test shed logic purpose rifle",
+        "--db", "/app/ganache-db",
+      ]
+      static_port = 8545
+    }
+  }
 
   genesis_template = <<EOH
 {
@@ -273,7 +290,7 @@ network "testnet" {
 [Processor]
 	[Processor.Ratelimit]
 		Requests = 10000
-		PerNBlocks = 2
+		PerNBlocks = 1
 EOT
 
 	  tendermint = <<-EOT

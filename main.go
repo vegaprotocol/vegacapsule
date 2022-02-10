@@ -53,6 +53,12 @@ func start(conf *config.Config) error {
 
 	runner := runner.New(nomadRunner)
 
+	for _, dc := range conf.Network.PreStart.Docker {
+		if err := runner.RunDockerJob(dc); err != nil {
+			return fmt.Errorf("failed to run pre start job %s: %w", dc.Name, err)
+		}
+	}
+
 	if err := runner.StartRawNetwork(conf, nodeSets); err != nil {
 		return fmt.Errorf("failed to start nomad network: %s", err)
 	}
@@ -72,21 +78,6 @@ func stop() {
 
 	if err := runner.StopRawNetwork(); err != nil {
 		log.Fatalf("failed to start nomad network: %s", err)
-	}
-	log.Println("stopping network success")
-}
-
-func test() {
-	log.Println("stopping network")
-	nomadRunner, err := nomad.New(nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	runner := runner.New(nomadRunner)
-
-	if err := runner.RunGanache(); err != nil {
-		log.Fatalf("failed to start ganache network: %s", err)
 	}
 	log.Println("stopping network success")
 }
@@ -131,8 +122,6 @@ func main() {
 
 	case "stop":
 		stop()
-	case "test":
-		test()
 	case "generate":
 		if err := generateCmd.Parse(os.Args[2:]); err != nil {
 			log.Fatal(err)

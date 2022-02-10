@@ -10,11 +10,12 @@ import (
 )
 
 const (
+	DeploymentStatusRunning  = "running"
 	DeploymentStatusCanceled = "canceled"
 	DeploymentStatusSuccess  = "successful"
 	AllocationStateDead      = "dead"
+	Running                  = "running"
 )
-const Running = "running"
 
 type NomadRunner struct {
 	NomadClient *api.Client
@@ -38,60 +39,30 @@ func New(config *api.Config) (*NomadRunner, error) {
 	return r, nil
 }
 
-// TODO this needs some love. Sometimes the function returns and error even though the job is running.....
-func (n *NomadRunner) waitForDeployment(jobID string, deployID string) error {
-	log.Printf("waiting for job: %q", jobID)
+// TODO maybe improve the logging?
+func (n *NomadRunner) waitForDeployment(jobID string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*5)
 	defer cancel()
-
-	topics := map[api.Topic][]string{
-		api.TopicDeployment: {deployID},
-		api.TopicAllocation: {deployID},
-	}
-
-	eventCh, err := n.NomadClient.EventStream().Stream(ctx, topics, 0, &api.QueryOptions{})
-	if err != nil {
-		return err
-	}
 
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
-		case event := <-eventCh:
-			if event.Err != nil {
-				log.Println("error from event stream", "error", err)
-				break
-			}
-			if event.IsHeartbeat() {
-				continue
+		default:
+			time.Sleep(time.Second * 4)
+			deployments, _, err := n.NomadClient.Jobs().Deployments(jobID, true, &api.QueryOptions{})
+			if err != nil {
+				return err
 			}
 
-			for _, e := range event.Events {
-				switch e.Topic {
-				case api.TopicDeployment:
-					dep, _ := e.Deployment()
-					log.Printf("deployment (%s) update for job: %q, status: %q, another: %s", dep.ID, dep.JobID, dep.Status, dep.StatusDescription)
+			for _, dep := range deployments {
+				log.Printf("deployment (%s) update for job: %q, status: %q, another: %s", dep.ID, dep.JobID, dep.Status, dep.StatusDescription)
 
-					switch dep.Status {
-					case DeploymentStatusCanceled:
-						return fmt.Errorf("failed to run %s job", jobID)
-					case DeploymentStatusSuccess:
-						return nil
-					}
-				case api.TopicAllocation:
-					alloc, _ := e.Allocation()
-
-					for _, ts := range alloc.TaskStates {
-						for _, tse := range ts.Events {
-							log.Printf("update for jobID %q, state: %q, type: %q, reason %q", jobID, ts.State, tse.Type, tse.DisplayMessage)
-						}
-
-						if ts.State == AllocationStateDead {
-							return fmt.Errorf("failed to run %q job", jobID)
-						}
-					}
-
+				switch dep.Status {
+				case DeploymentStatusCanceled:
+					return fmt.Errorf("failed to run %s job", jobID)
+				case DeploymentStatusSuccess:
+					return nil
 				}
 			}
 		}
@@ -120,17 +91,12 @@ func (n *NomadRunner) Run(job *api.Job) (bool, error) {
 func (n *NomadRunner) RunAndWait(job *api.Job) error {
 	jobs := n.NomadClient.Jobs()
 
-	resp, _, err := jobs.Register(job, nil)
+	_, _, err := jobs.Register(job, nil)
 	if err != nil {
 		return fmt.Errorf("error running jobs: %w", err)
 	}
 
-	eval, _, err := n.NomadClient.Evaluations().Info(resp.EvalID, nil)
-	if err != nil {
-		log.Fatalf("error registering jobs: %+v", err)
-	}
-
-	if err := n.waitForDeployment(eval.JobID, eval.DeploymentID); err != nil {
+	if err := n.waitForDeployment(*job.ID); err != nil {
 		return err
 	}
 

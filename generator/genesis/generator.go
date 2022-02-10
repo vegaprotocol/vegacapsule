@@ -82,7 +82,7 @@ func (g *Generator) updateGenesis(vegaHomePath, tendermintHomePath, nodeWalletPh
 	return &updateGenesisOutput{RawOutput: rawOut}, nil
 }
 
-func (g *Generator) Generate(nodeSets []types.NodeSet, genValidators []tmtypes.GenesisValidator) error {
+func (g *Generator) Generate(validatorsSets []types.NodeSet, nonValidatorsSets []types.NodeSet, genValidators []tmtypes.GenesisValidator) error {
 	templatedOverride, err := g.executeTemplate()
 	if err != nil {
 		return err
@@ -91,7 +91,7 @@ func (g *Generator) Generate(nodeSets []types.NodeSet, genValidators []tmtypes.G
 	var genDoc *tmtypes.GenesisDoc
 	var genState *genesis.GenesisState
 
-	for _, ns := range nodeSets {
+	for _, ns := range validatorsSets {
 		updatedGenesis, err := g.updateGenesis(ns.Vega.HomeDir, ns.Tendermint.HomeDir, ns.Vega.NodeWalletPassFilePath)
 		if err != nil {
 			return fmt.Errorf("failed to update genesis for %q from %q: %w", ns.Tendermint.HomeDir, ns.Vega.HomeDir, err)
@@ -142,7 +142,7 @@ func (g *Generator) Generate(nodeSets []types.NodeSet, genValidators []tmtypes.G
 		return fmt.Errorf("failed to get merged config from json: %w", err)
 	}
 
-	for _, ns := range nodeSets {
+	for _, ns := range append(validatorsSets, nonValidatorsSets...) {
 		if err := mergedGenDoc.SaveAs(ns.Tendermint.GenesisFilePath); err != nil {
 			return fmt.Errorf("failed to save genesis file: %w", err)
 		}
