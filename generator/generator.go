@@ -152,7 +152,7 @@ func (g *Generator) Generate() (*types.GeneratedServices, error) {
 
 	var wl *types.Wallet
 	if g.conf.Network.Wallet != nil {
-		initWallet, err := g.initAndOverrideWallet(g.conf.Network.Wallet, validatorsSet)
+		initWallet, err := g.initAndConfigureWallet(g.conf.Network.Wallet, validatorsSet)
 		if err != nil {
 			return nil, err
 		}
@@ -166,19 +166,15 @@ func (g *Generator) Generate() (*types.GeneratedServices, error) {
 	}, nil
 }
 
-func (g *Generator) initAndOverrideWallet(conf *config.WalletConfig, validatorsSet []types.NodeSet) (*types.Wallet, error) {
-	initWallet, err := g.walletGen.Initiate(g.conf.Network.Wallet)
-	if err != nil {
-		return nil, fmt.Errorf("failed to initate wallet: %w", err)
-	}
-
+func (g *Generator) initAndConfigureWallet(conf *config.WalletConfig, validatorsSet []types.NodeSet) (*types.Wallet, error) {
 	walletConfTemplate, err := wallet.NewConfigTemplate(g.conf.Network.Wallet.Template)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := g.walletGen.OverwriteConfig(*initWallet, validatorsSet, walletConfTemplate); err != nil {
-		return nil, fmt.Errorf("failed to generate overwrite config: %w", err)
+	initWallet, err := g.walletGen.InitiateWithNetworkConfig(g.conf.Network.Wallet, validatorsSet, walletConfTemplate)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initate wallet: %w", err)
 	}
 
 	return initWallet, nil

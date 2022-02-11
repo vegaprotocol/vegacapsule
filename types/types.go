@@ -24,6 +24,7 @@ type NodeSet struct {
 
 type Wallet struct {
 	HomeDir               string
+	Network               string
 	ServiceConfigFilePath string
 	PublicKeyFilePath     string
 	PrivateKeyFilePath    string

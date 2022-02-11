@@ -171,6 +171,7 @@ func (r *Runner) runWallet(conf *config.WalletConfig, wallet *types.Wallet) erro
 							"args": []string{
 								"service",
 								"run",
+								"--network", wallet.Network,
 								"--no-version-check",
 								"--output", "json",
 								"--home", wallet.HomeDir,
