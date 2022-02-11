@@ -16,6 +16,8 @@ import (
 	"github.com/imdario/mergo"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmtypes "github.com/tendermint/tendermint/types"
+
+	"github.com/Masterminds/sprig"
 )
 
 type updateGenesisOutput struct {
@@ -29,7 +31,7 @@ type Generator struct {
 }
 
 func NewGenerator(conf *config.Config) (*Generator, error) {
-	tpl, err := template.New("genesis.json").Parse(conf.Network.GenesisTemplate)
+	tpl, err := template.New("genesis.json").Funcs(sprig.TxtFuncMap()).Parse(conf.Network.GenesisTemplate)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse genesis override: %w", err)
 	}

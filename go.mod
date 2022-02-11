@@ -5,6 +5,7 @@ go 1.17
 require (
 	code.vegaprotocol.io/shared v0.0.0-20220128163854-7eab67fa60d2
 	code.vegaprotocol.io/vega v0.47.1-0.20220210171444-a99ac6eddde9
+	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/btcsuite/btcd v0.22.0-beta
 	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
 	github.com/ethereum/go-ethereum v1.10.15
@@ -20,6 +21,12 @@ require (
 require (
 	github.com/BurntSushi/toml v1.0.0 // indirect
 	github.com/lib/pq v1.10.4 // indirect
+	github.com/Masterminds/goutils v1.1.0 // indirect
+	github.com/Masterminds/semver v1.5.0 // indirect
+	github.com/huandu/xstrings v1.2.0 // indirect
+	github.com/lib/pq v1.10.4 // indirect
+	github.com/mitchellh/copystructure v1.0.0 // indirect
+	github.com/mitchellh/reflectwalk v1.0.1 // indirect
 	github.com/rs/zerolog v1.26.0 // indirect
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/zclconf/go-cty v1.8.0 // indirect
