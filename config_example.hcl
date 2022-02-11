@@ -310,12 +310,9 @@ moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
   max-packet-msg-payload-size = 4096
   pex = false
   allow-duplicate-ip = true
-  persistent-peers = "
-  {{- range $i, $v := .NodeIDs -}}
-  	{{- if ne $.NodeNumber $i -}}
-	  {{- if or (and (eq $.NodeNumber 0) (gt $i 1)) (and (ne $.NodeNumber 0) (ne $i 0)) }},{{end -}}
-	  {{- $v}}@127.0.0.1:266{{$i}}6
-	{{- end -}}
+  persistent-peers = "{{- range $i, $peer := .NodePeers -}}
+	  {{- if ne $i 0 }},{{end -}}
+	  {{- $peer.ID}}@127.0.0.1:266{{$peer.Index}}6
   {{- end -}}"
 
 
@@ -374,32 +371,6 @@ EOT
 EOT
 
 // ============================
-// ===== DataNode Config ======
-// ============================
-
-      data_node = <<-EOT
-
-GatewayEnabled = true
-UlimitNOFile = 8192
-[API]
-  Level = "Info"
-  Timeout = "5s"
-  Port = 30{{.NodeNumber}}7
-  IP = "0.0.0.0"
-  StreamRetries = 3
-  CoreNodeIP = "127.0.0.1"
-  CoreNodeGRPCPort = 30{{.NodeNumber}}2
-[Pprof]
-  Level = "Info"
-  Enabled = false
-  Port = 6{{.NodeNumber}}60
-  ProfilesDir = "{{.NodeHomeDir}}/pprof"
-  BlockProfileRate = 0
-  MutexProfileFraction = 0
-
-EOT
-
-// ============================
 // ==== Tendermint Config =====
 // ============================
 
@@ -419,12 +390,9 @@ moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
   max-packet-msg-payload-size = 4096
   pex = false
   allow-duplicate-ip = true
-  persistent-peers = "
-  {{- range $i, $v := .NodeIDs -}}
-  	{{- if ne $.NodeNumber $i -}}
-	  {{- if or (and (eq $.NodeNumber 0) (gt $i 1)) (and (ne $.NodeNumber 0) (ne $i 0)) }},{{end -}}
-	  {{- $v}}@127.0.0.1:266{{$i}}6
-	{{- end -}}
+  persistent-peers = "{{- range $i, $peer := .NodePeers -}}
+	  {{- if ne $i 0 }},{{end -}}
+	  {{- $peer.ID}}@127.0.0.1:266{{$peer.Index}}6
   {{- end -}}"
 
 [mempool]

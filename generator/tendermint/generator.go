@@ -24,6 +24,11 @@ const (
 	nodeDirPerm = 0755
 )
 
+type Peer struct {
+	Index int
+	ID    string
+}
+
 type ConfigTemplateContext struct {
 	Prefix               string
 	TendermintNodePrefix string
@@ -31,6 +36,7 @@ type ConfigTemplateContext struct {
 	NodeNumber           int
 	NodesCount           int
 	NodeIDs              []string
+	NodePeers            []Peer
 }
 
 func NewConfigTemplate(templateRaw string) (*template.Template, error) {
@@ -144,6 +150,7 @@ func (tg *ConfigGenerator) OverwriteConfig(index int, configTemplate *template.T
 		NodeNumber:           index,
 		NodesCount:           len(tg.nodeIDs),
 		NodeIDs:              tg.nodeIDs,
+		NodePeers:            tg.getNodePeers(index),
 	}
 
 	buff := bytes.NewBuffer([]byte{})
@@ -184,4 +191,21 @@ func (tg ConfigGenerator) nodeDir(i int) string {
 
 func (tg ConfigGenerator) configFilePath(nodeDir string) string {
 	return filepath.Join(nodeDir, "config", "config.toml")
+}
+
+func (tg ConfigGenerator) getNodePeers(index int) []Peer {
+	peers := []Peer{}
+
+	for nodeIdx, nodeId := range tg.nodeIDs {
+		if nodeIdx == index {
+			continue
+		}
+
+		peers = append(peers, Peer{
+			Index: nodeIdx,
+			ID:    nodeId,
+		})
+	}
+
+	return peers
 }
