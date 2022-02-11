@@ -3,6 +3,7 @@ module code.vegaprotocol.io/vegacapsule
 go 1.17
 
 require (
+	code.vegaprotocol.io/data-node v0.47.1-0.20220210134353-bd79b1ae24b0
 	code.vegaprotocol.io/shared v0.0.0-20220128163854-7eab67fa60d2
 	code.vegaprotocol.io/vega v0.47.1-0.20220210171444-a99ac6eddde9
 	github.com/Masterminds/sprig v2.22.0+incompatible
@@ -20,17 +21,30 @@ require (
 
 require (
 	github.com/BurntSushi/toml v1.0.0 // indirect
-	github.com/lib/pq v1.10.4 // indirect
 	github.com/Masterminds/goutils v1.1.0 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
+	github.com/cenkalti/backoff/v4 v4.1.2 // indirect
+	github.com/fergusstrange/embedded-postgres v0.0.0-00010101000000-000000000000 // indirect
+	github.com/georgysavva/scany v0.3.0 // indirect
 	github.com/huandu/xstrings v1.2.0 // indirect
+	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
+	github.com/jackc/pgconn v1.10.1 // indirect
+	github.com/jackc/pgio v1.0.0 // indirect
+	github.com/jackc/pgpassfile v1.0.0 // indirect
+	github.com/jackc/pgproto3/v2 v2.2.0 // indirect
+	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
+	github.com/jackc/pgtype v1.9.1 // indirect
+	github.com/jackc/pgx/v4 v4.14.1 // indirect
+	github.com/jackc/puddle v1.2.0 // indirect
 	github.com/lib/pq v1.10.4 // indirect
 	github.com/mitchellh/copystructure v1.0.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.1 // indirect
+	github.com/pressly/goose/v3 v3.5.1 // indirect
 	github.com/rs/zerolog v1.26.0 // indirect
-	github.com/stretchr/objx v0.2.0 // indirect
+	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	github.com/zclconf/go-cty v1.8.0 // indirect
 	go.uber.org/goleak v1.1.12 // indirect
+	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 )
 
 require (
@@ -126,4 +140,7 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
 
-replace github.com/shopspring/decimal => github.com/vegaprotocol/decimal v1.2.1-0.20210705145732-aaa563729a0a
+replace (
+	github.com/fergusstrange/embedded-postgres => github.com/vegaprotocol/embedded-postgres v1.13.1-0.20220208131313-1961d3e9e8d2
+	github.com/shopspring/decimal => github.com/vegaprotocol/decimal v1.2.1-0.20210705145732-aaa563729a0a
+)
