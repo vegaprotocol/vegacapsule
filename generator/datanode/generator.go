@@ -35,7 +35,7 @@ func (tg *ConfigGenerator) Initiate(index int, dataNodeBinary string) (*types.Da
 		return nil, err
 	}
 
-	b, err := utils.ExecuteBinary(dataNodeBinary, []string{"init", "-f", "--root-path", nodeDir}, nil)
+	b, err := utils.ExecuteBinary(dataNodeBinary, []string{"init", "-f", "--home", nodeDir}, nil)
 	if err != nil {
 		return nil, err
 	}

@@ -248,75 +248,20 @@ network "testnet" {
 }
   EOH
 
+
   node_set "validators" {
-    count = 2
+    count = 3
     mode = "validator"
     node_wallet_pass = "n0d3w4ll3t-p4ssphr4e3"
     vega_wallet_pass = "w4ll3t-p4ssphr4e3"
     ethereum_wallet_pass = "ch41nw4ll3t-3th3r3um-p4ssphr4e3"
 
     config_templates {
-      vega = <<-EOT
-[API]
-	Port = 30{{.NodeNumber}}2
-	[API.REST]
-			Port = 30{{.NodeNumber}}3
 
-[Blockchain]
-	[Blockchain.Tendermint]
-		ClientAddr = "tcp://127.0.0.1:266{{.NodeNumber}}7"
-		ServerAddr = "0.0.0.0"
-		ServerPort = 266{{.NodeNumber}}8
-	[Blockchain.Null]
-		Port = 31{{.NodeNumber}}1
+// ============================
+// ===== VegaNode Config ======
+// ============================
 
-[EvtForward]
-	Level = "Info"
-	RetryRate = "1s"
-
-[NodeWallet]
-	[NodeWallet.ETH]
-		Address = "{{.ETHEndpoint}}"
-
-[Processor]
-	[Processor.Ratelimit]
-		Requests = 10000
-		PerNBlocks = 2
-EOT
-
-	  tendermint = <<-EOT
-log_level = "info"
-
-proxy_app = "tcp://127.0.0.1:266{{.NodeNumber}}8"
-moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
-
-[rpc]
-  laddr = "tcp://0.0.0.0:266{{.NodeNumber}}7"
-  unsafe = true
-
-[p2p]
-  laddr = "tcp://0.0.0.0:266{{.NodeNumber}}6"
-  addr_book_strict = true
-  max_packet_msg_payload_size = 4096
-  pex = false
-  allow_duplicate_ip = false
-  persistent_peers = "{{range $i, $v := .NodeIDs}}{{if ne $i 0}},{{end}}{{$v}}@127.0.0.1:266{{$i}}6{{end}}"
-
-[mempool]
-  size = 10000
-  cache_size = 20000
-
-[consensus]
-  skip_timeout_commit = false
-EOT
-    }
-  }
-
-  node_set "validators" {
-    count = 2
-    mode = "full"
-
-    config_templates {
       vega = <<-EOT
 [API]
 	Port = 30{{.NodeNumber}}2
@@ -345,10 +290,14 @@ EOT
 		PerNBlocks = 1
 EOT
 
-	  tendermint = <<-EOT
-log_level = "debug"
+// ============================
+// ==== Tendermint Config =====
+// ============================
 
-proxy_app = "tcp://127.0.0.1:266{{.NodeNumber}}8"
+	  tendermint = <<-EOT
+log-level = "info"
+
+proxy-app = "tcp://127.0.0.1:266{{.NodeNumber}}8"
 moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
 
 [rpc]
@@ -357,18 +306,101 @@ moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
 
 [p2p]
   laddr = "tcp://0.0.0.0:266{{.NodeNumber}}6"
-  addr_book_strict = true
-  max_packet_msg_payload_size = 4096
+  addr-book-strict = false
+  max-packet-msg-payload-size = 4096
   pex = false
-  allow_duplicate_ip = false
-  persistent_peers = "{{range $i, $v := .NodeIDs}}{{if ne $i 0}},{{end}}{{$v}}@127.0.0.1:266{{$i}}6{{end}}"
+  allow-duplicate-ip = true
+  persistent-peers = "{{- range $i, $peer := .NodePeers -}}
+	  {{- if ne $i 0 }},{{end -}}
+	  {{- $peer.ID}}@127.0.0.1:266{{$peer.Index}}6
+  {{- end -}}"
+
+
+[mempool]
+  size = 10000
+  cache-size = 20000
+
+[consensus]
+  skip-timeout-commit = false
+EOT
+    }
+  }
+
+  node_set "full" {
+    count = 1
+    mode = "full"
+	data_node_binary = "/Users/karelmoravec/go/bin/data-node"
+
+    config_templates {
+
+// ============================
+// ===== VegaNode Config ======
+// ============================
+
+      vega = <<-EOT
+[API]
+	Port = 30{{.NodeNumber}}2
+	[API.REST]
+			Port = 30{{.NodeNumber}}3
+
+[Blockchain]
+	[Blockchain.Tendermint]
+		ClientAddr = "tcp://127.0.0.1:266{{.NodeNumber}}7"
+		ServerAddr = "0.0.0.0"
+		ServerPort = 266{{.NodeNumber}}8
+	[Blockchain.Null]
+		Port = 31{{.NodeNumber}}1
+
+[EvtForward]
+	Level = "Info"
+	RetryRate = "1s"
+
+[NodeWallet]
+	[NodeWallet.ETH]
+		Address = "{{.ETHEndpoint}}"
+
+[Processor]
+	[Processor.Ratelimit]
+		Requests = 10000
+		PerNBlocks = 1
+
+[Broker]
+  [Broker.Socket]
+    Port = 3005
+    Enabled = true
+EOT
+
+// ============================
+// ==== Tendermint Config =====
+// ============================
+
+	  tendermint = <<-EOT
+log-level = "info"
+
+proxy-app = "tcp://127.0.0.1:266{{.NodeNumber}}8"
+moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
+
+[rpc]
+  laddr = "tcp://0.0.0.0:266{{.NodeNumber}}7"
+  unsafe = true
+
+[p2p]
+  laddr = "tcp://0.0.0.0:266{{.NodeNumber}}6"
+  addr-book_strict = false
+  max-packet-msg-payload-size = 4096
+  pex = false
+  allow-duplicate-ip = true
+  persistent-peers = "{{- range $i, $peer := .NodePeers -}}
+	  {{- if ne $i 0 }},{{end -}}
+	  {{- $peer.ID}}@127.0.0.1:266{{$peer.Index}}6
+  {{- end -}}"
 
 [mempool]
   size = 10000
   cache_size = 20000
 
 [consensus]
-  skip_timeout_commit = false
+  skip-timeout-commit = false
 EOT
     }
   }

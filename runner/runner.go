@@ -123,7 +123,7 @@ func (r *Runner) StartRawNetwork(conf *config.Config, nodeSets []types.NodeSet) 
 					"command": ns.DataNode.BinaryPath,
 					"args": []string{
 						"node",
-						"--root-path", ns.DataNode.HomeDir,
+						"--home", ns.DataNode.HomeDir,
 					},
 				},
 				Resources: &api.Resources{

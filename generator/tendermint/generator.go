@@ -2,6 +2,7 @@ package tendermint
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"os"
 	"path"
@@ -15,7 +16,6 @@ import (
 	"code.vegaprotocol.io/vegacapsule/utils"
 
 	tmconfig "github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/p2p"
 	"github.com/tendermint/tendermint/privval"
 	tmtypes "github.com/tendermint/tendermint/types"
 )
@@ -24,6 +24,11 @@ const (
 	nodeDirPerm = 0755
 )
 
+type Peer struct {
+	Index int
+	ID    string
+}
+
 type ConfigTemplateContext struct {
 	Prefix               string
 	TendermintNodePrefix string
@@ -31,6 +36,7 @@ type ConfigTemplateContext struct {
 	NodeNumber           int
 	NodesCount           int
 	NodeIDs              []string
+	NodePeers            []Peer
 }
 
 func NewConfigTemplate(templateRaw string) (*template.Template, error) {
@@ -82,7 +88,7 @@ func (tg *ConfigGenerator) Initiate(index int, mode string) (*types.TendermintNo
 		return nil, err
 	}
 
-	b, err := utils.ExecuteBinary(tg.conf.VegaBinary, []string{"tm", "init", "--home", nodeDir}, nil)
+	b, err := utils.ExecuteBinary(tg.conf.VegaBinary, []string{"tm", "init", mode, "--home", nodeDir}, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -91,12 +97,12 @@ func (tg *ConfigGenerator) Initiate(index int, mode string) (*types.TendermintNo
 	config := tmconfig.DefaultConfig()
 	config.SetRoot(nodeDir)
 
-	nodeKey, err := p2p.LoadNodeKey(config.NodeKeyFile())
+	nodeKey, err := tmtypes.LoadNodeKey(config.NodeKeyFile())
 	if err != nil {
 		return nil, fmt.Errorf("failed to get node key: %w", err)
 	}
 
-	tg.nodeIDs = append(tg.nodeIDs, string(nodeKey.ID()))
+	tg.nodeIDs = append(tg.nodeIDs, string(nodeKey.ID))
 
 	initNode := &types.TendermintNode{
 		HomeDir:         nodeDir,
@@ -107,9 +113,13 @@ func (tg *ConfigGenerator) Initiate(index int, mode string) (*types.TendermintNo
 		return initNode, nil
 	}
 
-	pv := privval.LoadFilePV(config.BaseConfig.PrivValidatorKeyFile(), config.BaseConfig.PrivValidatorStateFile())
+	pv, err := privval.LoadFilePV(config.PrivValidator.KeyFile(), config.PrivValidator.StateFile())
+	if err != nil {
+		return nil, fmt.Errorf("failed to load FilePV for tendermint node: %w", err)
+	}
 
-	pubKey, err := pv.GetPubKey()
+	// TODO: Pass context from higher function to avoid locking
+	pubKey, err := pv.GetPubKey(context.TODO())
 	if err != nil {
 		return nil, fmt.Errorf("failed to get pubkey: %w", err)
 	}
@@ -140,6 +150,7 @@ func (tg *ConfigGenerator) OverwriteConfig(index int, configTemplate *template.T
 		NodeNumber:           index,
 		NodesCount:           len(tg.nodeIDs),
 		NodeIDs:              tg.nodeIDs,
+		NodePeers:            tg.getNodePeers(index),
 	}
 
 	buff := bytes.NewBuffer([]byte{})
@@ -152,7 +163,6 @@ func (tg *ConfigGenerator) OverwriteConfig(index int, configTemplate *template.T
 	if err := viper.MergeConfig(buff); err != nil {
 		return fmt.Errorf("failed to merge config override with config file %q: %w", configFilePath, err)
 	}
-
 	conf := &tmconfig.Config{}
 	if err := viper.Unmarshal(conf); err != nil {
 		return fmt.Errorf("failed to unmarshal merged config file %q: %w", configFilePath, err)
@@ -162,7 +172,10 @@ func (tg *ConfigGenerator) OverwriteConfig(index int, configTemplate *template.T
 	}
 
 	conf.SetRoot(nodeDir)
-	tmconfig.WriteConfigFile(configFilePath, conf)
+	err = tmconfig.WriteConfigFile(nodeDir, conf)
+	if err != nil {
+		return fmt.Errorf("failed to write overwritten tendermint configuration: %w", err)
+	}
 
 	return nil
 }
@@ -178,4 +191,21 @@ func (tg ConfigGenerator) nodeDir(i int) string {
 
 func (tg ConfigGenerator) configFilePath(nodeDir string) string {
 	return filepath.Join(nodeDir, "config", "config.toml")
+}
+
+func (tg ConfigGenerator) getNodePeers(index int) []Peer {
+	peers := []Peer{}
+
+	for nodeIdx, nodeId := range tg.nodeIDs {
+		if nodeIdx == index {
+			continue
+		}
+
+		peers = append(peers, Peer{
+			Index: nodeIdx,
+			ID:    nodeId,
+		})
+	}
+
+	return peers
 }
