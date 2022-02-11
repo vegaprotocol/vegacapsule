@@ -8,14 +8,16 @@ import (
 	"path/filepath"
 	"text/template"
 
-	datanodeconfig "code.vegaprotocol.io/data-node/config"
-	"code.vegaprotocol.io/shared/paths"
+	"github.com/Masterminds/sprig"
 	"github.com/imdario/mergo"
 	"github.com/zannen/toml"
 
+	"code.vegaprotocol.io/shared/paths"
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/types"
 	"code.vegaprotocol.io/vegacapsule/utils"
+
+	datanodeconfig "code.vegaprotocol.io/data-node/config"
 )
 
 type ConfigTemplateContext struct {
@@ -72,9 +74,9 @@ func (dng ConfigGenerator) configFilePath(nodeDir string) string {
 }
 
 func NewConfigTemplate(templateRaw string) (*template.Template, error) {
-	t, err := template.New("config.toml").Parse(templateRaw)
+	t, err := template.New("config.toml").Funcs(sprig.TxtFuncMap()).Parse(templateRaw)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse template config for datanode: %w", err)
+		return nil, fmt.Errorf("failed to parse template config for data node: %w", err)
 	}
 
 	return t, nil
@@ -90,7 +92,7 @@ func (dng ConfigGenerator) OverwriteConfig(index int, configTemplate *template.T
 	buff := bytes.NewBuffer([]byte{})
 
 	if err := configTemplate.Execute(buff, templateCtx); err != nil {
-		return fmt.Errorf("failed to execute template for data node : %w", err)
+		return fmt.Errorf("failed to execute template for data node: %w", err)
 	}
 
 	overrideConfig := datanodeconfig.Config{}
@@ -111,7 +113,7 @@ func (dng ConfigGenerator) OverwriteConfig(index int, configTemplate *template.T
 	}
 
 	if err := paths.WriteStructuredFile(configFilePath, overrideConfig); err != nil {
-		return fmt.Errorf("failed to write configuration file for datad at %s: %w", configFilePath, err)
+		return fmt.Errorf("failed to write configuration file for data node at %s: %w", configFilePath, err)
 	}
 
 	return nil
