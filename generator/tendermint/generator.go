@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"text/template"
 
+	"github.com/Masterminds/sprig"
 	"github.com/spf13/viper"
 
 	"code.vegaprotocol.io/vegacapsule/config"
@@ -40,7 +41,7 @@ type ConfigTemplateContext struct {
 }
 
 func NewConfigTemplate(templateRaw string) (*template.Template, error) {
-	t, err := template.New("config.toml").Parse(templateRaw)
+	t, err := template.New("config.toml").Funcs(sprig.TxtFuncMap()).Parse(templateRaw)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse template config: %w", err)
 	}
