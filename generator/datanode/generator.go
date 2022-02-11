@@ -72,10 +72,6 @@ func (dng ConfigGenerator) configFilePath(nodeDir string) string {
 }
 
 func NewConfigTemplate(templateRaw string) (*template.Template, error) {
-	if len(templateRaw) < 1 {
-		return nil, nil
-	}
-
 	t, err := template.New("config.toml").Parse(templateRaw)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse template config for datanode: %w", err)

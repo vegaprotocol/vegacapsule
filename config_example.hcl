@@ -404,7 +404,6 @@ GatewayEnabled = true
   Level = "Info"
   Timeout = "5s"
   Port = 21{{.NodeNumber}}2
-  Path = "/metrics"
   Enabled = false
 [Broker]
   Level = "Info"
