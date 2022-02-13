@@ -11,17 +11,23 @@ import (
 	"code.vegaprotocol.io/vegacapsule/generator"
 	"code.vegaprotocol.io/vegacapsule/runner"
 	"code.vegaprotocol.io/vegacapsule/runner/nomad"
+	"code.vegaprotocol.io/vegacapsule/state"
 	"code.vegaprotocol.io/vegacapsule/types"
 )
 
-func generate(conf *config.Config) (*types.GeneratedServices, error) {
-	if _, err := os.Stat(conf.OutputDir); os.IsExist(err) {
-		return nil, fmt.Errorf("output directory %q already exist", conf.OutputDir)
+func generate(state *state.NetworkState) (*types.GeneratedServices, error) {
+	if state.GeneratedServices != nil {
+		log.Println("Network already generated. Generate skipped")
+		return state.GeneratedServices, nil
+	}
+
+	if _, err := os.Stat(state.Config.OutputDir); os.IsExist(err) {
+		return nil, fmt.Errorf("output directory %q already exist", state.Config.OutputDir)
 	}
 
 	log.Println("generating network")
 
-	gen, err := generator.New(conf)
+	gen, err := generator.New(state.Config)
 	if err != nil {
 		return nil, err
 	}
@@ -31,8 +37,8 @@ func generate(conf *config.Config) (*types.GeneratedServices, error) {
 		return nil, err
 	}
 
-	if err := conf.Persist(); err != nil {
-		return nil, fmt.Errorf("failed to persist config in output directory %s", conf.OutputDir)
+	if err := state.Config.Persist(); err != nil {
+		return nil, fmt.Errorf("failed to persist config in output directory %s", err)
 	}
 
 	log.Println("generating network success")
@@ -40,12 +46,14 @@ func generate(conf *config.Config) (*types.GeneratedServices, error) {
 	return generatedSvcs, nil
 }
 
-func start(conf *config.Config) error {
+func start(state *state.NetworkState) error {
 	log.Println("starting network")
-	generatedSvcs, err := generate(conf)
+
+	generatedSvs, err := generate(state)
 	if err != nil {
 		return fmt.Errorf("failed to generate config for network: %w", err)
 	}
+	state.GeneratedServices = generatedSvs
 
 	nomadRunner, err := nomad.New(nil)
 	if err != nil {
@@ -56,13 +64,14 @@ func start(conf *config.Config) error {
 
 	ctx := context.Background()
 
-	for _, dc := range conf.Network.PreStart.Docker {
+	for _, dc := range state.Config.Network.PreStart.Docker {
 		if err := runner.RunDockerJob(ctx, dc); err != nil {
 			return fmt.Errorf("failed to run pre start job %s: %w", dc.Name, err)
 		}
 	}
+	state.PreTasks = jobNames(state.Config.Network.PreStart)
 
-	if err := runner.StartRawNetwork(ctx, conf, generatedSvcs); err != nil {
+	if err := runner.StartRawNetwork(ctx, state.Config, state.GeneratedServices); err != nil {
 		return fmt.Errorf("failed to start nomad network: %s", err)
 	}
 
@@ -70,7 +79,7 @@ func start(conf *config.Config) error {
 	return nil
 }
 
-func stop() {
+func stop(state *state.NetworkState) {
 	log.Println("stopping network")
 	nomadRunner, err := nomad.New(nil)
 	if err != nil {
@@ -79,20 +88,25 @@ func stop() {
 
 	runner := runner.New(nomadRunner)
 
-	if err := runner.StopRawNetwork(); err != nil {
-		log.Fatalf("failed to start nomad network: %s", err)
+	if err := runner.StopRawNetwork(state.GeneratedServices); err != nil {
+		log.Fatalf("failed to stop nomad network: %s", err)
 	}
+
+	if err := runner.StopJobs(state.PreTasks); err != nil {
+		log.Fatalf("failed to stop per-tasks: %s", err)
+	}
+
 	log.Println("stopping network success")
 }
 
-func destroy(outputDir string) {
-	log.Println("destroying network")
-	stop()
+func cleanup(outputDir string) {
+	log.Println("network cleaning up")
 
 	if err := os.RemoveAll(outputDir); err != nil {
-		log.Fatalf("failed to destroy network: %s", err)
+		log.Fatalf("failed cleanup network: %s", err)
 	}
-	log.Println("destroying network success")
+
+	log.Println("network cleaning up success")
 }
 
 func main() {
@@ -102,48 +116,63 @@ func main() {
 	}
 
 	startCmd := flag.NewFlagSet("start", flag.ExitOnError)
-	configFilePathS := startCmd.String("config-path", "", "enable")
+	configFilePath := startCmd.String("config-path", "", "enable")
 
-	generateCmd := flag.NewFlagSet("generate", flag.ExitOnError)
-	configFilePath := generateCmd.String("config-path", "", "enable")
+	if err := startCmd.Parse(os.Args[2:]); err != nil {
+		log.Fatal(err)
+	}
+
+	conf, err := config.ParseConfigFile(*configFilePath)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	networkState, err := state.LoadNetworkState(conf.OutputDir)
+	if err != nil {
+		log.Fatalf("cannot load network state: %s", err)
+	}
+	if networkState.Config == nil {
+		networkState.Config = conf
+	}
 
 	arg := os.Args[1]
 	switch arg {
 	case "start":
-		if err := startCmd.Parse(os.Args[2:]); err != nil {
+		if err := start(networkState); err != nil {
 			log.Fatal(err)
 		}
-
-		conf, err := config.ParseConfigFile(*configFilePathS)
-		if err != nil {
-			log.Fatal(err)
+		if err := networkState.Perist(); err != nil {
+			log.Fatalf("Cannot save network state")
 		}
-
-		if err := start(conf); err != nil {
-			log.Fatal(err)
-		}
-
 	case "stop":
-		stop()
+		stop(networkState)
 	case "generate":
-		if err := generateCmd.Parse(os.Args[2:]); err != nil {
+		if _, err := generate(networkState); err != nil {
 			log.Fatal(err)
 		}
-
-		conf, err := config.ParseConfigFile(*configFilePath)
-		if err != nil {
-			log.Fatal(err)
+		if err := networkState.Perist(); err != nil {
+			log.Fatalf("Cannot save network state")
 		}
-
-		if _, err := generate(conf); err != nil {
-			log.Fatal(err)
-		}
-
-	// case "destroy":
-	// destroy()
+	case "destroy":
+		stop(networkState)
+		cleanup(conf.OutputDir)
 	default:
 		log.Printf("unknown subcommand %s: expected 'start'|'stop'|'destroy' subcommands", arg)
 		os.Exit(1)
 	}
 
+}
+
+func jobNames(jobs *config.PrestartConfig) []string {
+	if jobs == nil {
+		return []string{}
+	}
+
+	jobNames := make([]string, len(jobs.Docker))
+
+	for jobIdx, jobDetails := range jobs.Docker {
+		jobNames[jobIdx] = jobDetails.Name
+	}
+
+	return jobNames
 }

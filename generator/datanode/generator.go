@@ -40,6 +40,15 @@ type ConfigGenerator struct {
 	homeDir string
 }
 
+func NewConfigTemplate(templateRaw string) (*template.Template, error) {
+	t, err := template.New("config.toml").Funcs(sprig.TxtFuncMap()).Parse(templateRaw)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse template config for data node: %w", err)
+	}
+
+	return t, nil
+}
+
 func NewConfigGenerator(conf *config.Config) (*ConfigGenerator, error) {
 	homeDir, err := filepath.Abs(path.Join(conf.OutputDir, conf.DataNodePrefix))
 	if err != nil {
@@ -54,20 +63,17 @@ func NewConfigGenerator(conf *config.Config) (*ConfigGenerator, error) {
 
 func (dng *ConfigGenerator) Initiate(index int, dataNodeBinary string) (*types.DataNode, error) {
 	nodeDir := dng.nodeDir(index)
-
 	if err := os.MkdirAll(nodeDir, os.ModePerm); err != nil {
 		return nil, err
 	}
 
-	b, err := utils.ExecuteBinary(dataNodeBinary, []string{"init", "-f", "--home", nodeDir}, nil)
-	if err != nil {
-		return nil, err
-	}
-	fmt.Fprintln(os.Stdout, string(b))
-
 	initNode := &types.DataNode{
 		HomeDir:    nodeDir,
 		BinaryPath: dataNodeBinary,
+	}
+
+	if _, err := utils.ExecuteBinary(dataNodeBinary, []string{"init", "-f", "--home", nodeDir}, nil); err != nil {
+		return nil, err
 	}
 
 	return initNode, nil

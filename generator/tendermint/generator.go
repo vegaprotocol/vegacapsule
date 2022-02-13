@@ -78,22 +78,23 @@ func (tg ConfigGenerator) HomeDir() string {
 func (tg *ConfigGenerator) Initiate(index int, mode string) (*types.TendermintNode, error) {
 	nodeDir := tg.nodeDir(index)
 
-	err := os.MkdirAll(filepath.Join(nodeDir, "config"), nodeDirPerm)
-	if err != nil {
-		_ = os.RemoveAll(tg.conf.OutputDir)
+	if err := os.MkdirAll(nodeDir, os.ModePerm); err != nil {
 		return nil, err
 	}
-	err = os.MkdirAll(filepath.Join(nodeDir, "data"), nodeDirPerm)
-	if err != nil {
+
+	if err := os.MkdirAll(filepath.Join(nodeDir, "config"), nodeDirPerm); err != nil {
 		_ = os.RemoveAll(tg.conf.OutputDir)
 		return nil, err
 	}
 
-	b, err := utils.ExecuteBinary(tg.conf.VegaBinary, []string{"tm", "init", mode, "--home", nodeDir}, nil)
-	if err != nil {
+	if err := os.MkdirAll(filepath.Join(nodeDir, "data"), nodeDirPerm); err != nil {
+		_ = os.RemoveAll(tg.conf.OutputDir)
 		return nil, err
 	}
-	fmt.Fprintln(os.Stdout, string(b))
+
+	if _, err := utils.ExecuteBinary(tg.conf.VegaBinary, []string{"tm", "init", mode, "--home", nodeDir}, nil); err != nil {
+		return nil, err
+	}
 
 	config := tmconfig.DefaultConfig()
 	config.SetRoot(nodeDir)
@@ -156,25 +157,25 @@ func (tg *ConfigGenerator) OverwriteConfig(index int, configTemplate *template.T
 
 	buff := bytes.NewBuffer([]byte{})
 
-	err := configTemplate.Execute(buff, templateCtx)
-	if err != nil {
+	if err := configTemplate.Execute(buff, templateCtx); err != nil {
 		return fmt.Errorf("failed to execute template: %w", err)
 	}
 
 	if err := viper.MergeConfig(buff); err != nil {
 		return fmt.Errorf("failed to merge config override with config file %q: %w", configFilePath, err)
 	}
+
 	conf := &tmconfig.Config{}
 	if err := viper.Unmarshal(conf); err != nil {
 		return fmt.Errorf("failed to unmarshal merged config file %q: %w", configFilePath, err)
 	}
+
 	if err := conf.ValidateBasic(); err != nil {
 		return fmt.Errorf("failed to validated merged config file %q: %w", configFilePath, err)
 	}
 
 	conf.SetRoot(nodeDir)
-	err = tmconfig.WriteConfigFile(nodeDir, conf)
-	if err != nil {
+	if err := tmconfig.WriteConfigFile(nodeDir, conf); err != nil {
 		return fmt.Errorf("failed to write overwritten tendermint configuration: %w", err)
 	}
 

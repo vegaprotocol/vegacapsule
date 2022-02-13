@@ -10,6 +10,7 @@ require (
 	github.com/btcsuite/btcd v0.22.0-beta
 	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
 	github.com/ethereum/go-ethereum v1.10.15
+	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/nomad/api v0.0.0-20211119141705-873b0969e01e
 	github.com/imdario/mergo v0.3.12
 	github.com/miguelmota/go-ethereum-hdwallet v0.1.1
@@ -26,6 +27,7 @@ require (
 	github.com/cenkalti/backoff/v4 v4.1.2 // indirect
 	github.com/fergusstrange/embedded-postgres v0.0.0-00010101000000-000000000000 // indirect
 	github.com/georgysavva/scany v0.3.0 // indirect
+	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/huandu/xstrings v1.2.0 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.10.1 // indirect
@@ -52,7 +54,7 @@ require (
 require (
 	code.vegaprotocol.io/protos v0.48.1-0.20220209133852-0f31e2fef5ff // indirect
 	code.vegaprotocol.io/quant v0.2.5 // indirect
-	code.vegaprotocol.io/vegawallet v0.12.0-pre1 // indirect
+	code.vegaprotocol.io/vegawallet v0.12.0-pre1
 	github.com/DataDog/zstd v1.4.1 // indirect
 	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/adrg/xdg v0.3.3 // indirect

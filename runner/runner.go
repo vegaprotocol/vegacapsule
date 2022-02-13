@@ -10,6 +10,8 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/hashicorp/nomad/api"
+
+	"github.com/hashicorp/go-multierror"
 )
 
 var (
@@ -269,13 +271,36 @@ func (r *Runner) StartRawNetwork(ctx context.Context, conf *config.Config, gener
 	return g.Wait()
 }
 
-func (r *Runner) StopRawNetwork() error {
-	var gErr error
-	if _, err := r.nomad.Stop(r.vegaNetworkJobName, true); err != nil {
-		gErr = fmt.Errorf("failed to stop %q job: %w: %s", r.vegaNetworkJobName, err, gErr)
+func (r *Runner) StopRawNetwork(generatedSvcs *types.GeneratedServices) error {
+	if generatedSvcs == nil {
+		generatedSvcs = &types.GeneratedServices{}
 	}
 
-	return gErr
+	var errors *multierror.Error
+
+	if _, err := r.nomad.Stop(r.vegaNetworkJobName, true); err != nil {
+		errors = multierror.Append(errors, fmt.Errorf("failed to stop %q job: %w", r.vegaNetworkJobName, err))
+	}
+
+	if generatedSvcs.Wallet != nil {
+		if _, err := r.nomad.Stop("wallet-1", true); err != nil {
+			errors = multierror.Append(errors, fmt.Errorf("failed to stop vega wallet job: %w", err))
+		}
+	}
+
+	return errors.ErrorOrNil()
+}
+
+func (r *Runner) StopJobs(jobs []string) error {
+	var errors *multierror.Error
+
+	for _, jobName := range jobs {
+		if _, err := r.nomad.Stop(jobName, true); err != nil {
+			errors = multierror.Append(errors, fmt.Errorf("cannot stop nomad job \"%s\": %w", jobName, err))
+		}
+	}
+
+	return errors.ErrorOrNil()
 }
 
 func strPoint(s string) *string {
