@@ -5,14 +5,32 @@ node_dir_prefix        = "node"
 tendermint_node_prefix = "tendermint"
 vega_node_prefix       = "vega"
 data_node_prefix       = "data"
+wallet_prefix          = "wallet"
 
 network "testnet" {
   chain_id          = "1440"
   network_id        = "1441"
   ethereum_endpoint = "http://127.0.0.1:8545/"
 
+  wallet "wallet-1" {
+    binary = "/Users/karelmoravec/go/bin/vegawallet"
+    
+    template = <<-EOT
+Name = "DV"
+Level = "info"
+TokenExpiry = "168h0m0s"
+Port = 1789
+Host = "0.0.0.0"
+
+[API]
+  [API.GRPC]
+    Hosts = [{{range $i, $v := .Validators}}{{if ne $i 0}},{{end}}"127.0.0.1:30{{$i}}2"{{end}}]
+    Retries = 5
+EOT
+  }
+
   pre_start {
-    docker_service "ganache" {
+    docker_service "ganache-1" {
       image = "ghcr.io/vegaprotocol/devops-infra/ganache:latest"
       cmd = "ganache-cli"
       args = [

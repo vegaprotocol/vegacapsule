@@ -21,7 +21,6 @@ var (
 
 type Runner struct {
 	nomad              *nomad.NomadRunner
-	ganacheJobName     string
 	vegaNetworkJobName string
 }
 
@@ -77,7 +76,7 @@ func (r *Runner) RunDockerJob(conf config.DockerConfig) error {
 	return nil
 }
 
-func (r *Runner) StartRawNetwork(conf *config.Config, nodeSets []types.NodeSet) error {
+func (r *Runner) runNodeSets(conf *config.Config, nodeSets []types.NodeSet) error {
 	tasks := make([]*api.Task, 0, len(nodeSets))
 
 	for i, ns := range nodeSets {
@@ -139,14 +138,67 @@ func (r *Runner) StartRawNetwork(conf *config.Config, nodeSets []types.NodeSet) 
 		Datacenters: []string{"dc1"},
 		TaskGroups: []*api.TaskGroup{
 			{
+				RestartPolicy: &api.RestartPolicy{
+					Attempts: intPoint(0),
+					Mode:     strPoint("fail"),
+				},
 				Name:  strPoint("vega"),
 				Tasks: tasks,
 			},
 		},
 	}
 
-	if err := r.nomad.RunAndWait(j); err != nil {
-		return fmt.Errorf("failed to run nomad network: %w", err)
+	return r.nomad.RunAndWait(j)
+}
+
+func (r *Runner) runWallet(conf *config.WalletConfig, wallet *types.Wallet) error {
+	j := &api.Job{
+		ID:          strPoint("wallet-1"),
+		Datacenters: []string{"dc1"},
+		TaskGroups: []*api.TaskGroup{
+			{
+				RestartPolicy: &api.RestartPolicy{
+					Attempts: intPoint(0),
+					Mode:     strPoint("fail"),
+				},
+				Name: strPoint("vega"),
+				Tasks: []*api.Task{
+					{
+						Name:   "wallet-1",
+						Driver: "raw_exec",
+						Config: map[string]interface{}{
+							"command": conf.Binary,
+							"args": []string{
+								"service",
+								"run",
+								"--network", wallet.Network,
+								"--no-version-check",
+								"--output", "json",
+								"--home", wallet.HomeDir,
+							},
+						},
+						Resources: &api.Resources{
+							CPU:      intPoint(500),
+							MemoryMB: intPoint(512),
+						},
+					},
+				},
+			},
+		},
+	}
+
+	return r.nomad.RunAndWait(j)
+}
+
+func (r *Runner) StartRawNetwork(conf *config.Config, generatedSvcs *types.GeneratedServices) error {
+	if generatedSvcs.Wallet != nil {
+		if err := r.runWallet(conf.Network.Wallet, generatedSvcs.Wallet); err != nil {
+			return fmt.Errorf("failed to run wallet: %w", err)
+		}
+	}
+
+	if err := r.runNodeSets(conf, generatedSvcs.NodeSets); err != nil {
+		return fmt.Errorf("failed to run node sets: %w", err)
 	}
 
 	return nil
