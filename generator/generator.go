@@ -37,11 +37,11 @@ func New(conf *config.Config) (*Generator, error) {
 	}
 	dataNodeGen, err := datanode.NewConfigGenerator(conf)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create new genesis generator: %w", err)
+		return nil, fmt.Errorf("failed to create new data node generator: %w", err)
 	}
 	walletGen, err := wallet.NewConfigGenerator(conf)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create new genesis generator: %w", err)
+		return nil, fmt.Errorf("failed to create new wallet generator: %w", err)
 	}
 
 	return &Generator{
