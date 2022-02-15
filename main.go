@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/user"
 
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/generator"
@@ -15,10 +16,13 @@ import (
 	"code.vegaprotocol.io/vegacapsule/types"
 )
 
-func generate(state *state.NetworkState) (*types.GeneratedServices, error) {
-	if state.GeneratedServices != nil {
-		log.Println("Network already generated. Generate skipped")
-		return state.GeneratedServices, nil
+func generate(state *state.NetworkState, force bool) (*types.GeneratedServices, error) {
+	if force {
+		if err := os.RemoveAll(state.Config.OutputDir); err != nil {
+			return nil, fmt.Errorf("cannot remove network file with --force flag")
+		}
+	} else if state.GeneratedServices != nil {
+		return nil, fmt.Errorf("failed to generate network: network is already generated")
 	}
 
 	if _, err := os.Stat(state.Config.OutputDir); os.IsExist(err) {
@@ -42,18 +46,16 @@ func generate(state *state.NetworkState) (*types.GeneratedServices, error) {
 	}
 
 	log.Println("generating network success")
+	state.GeneratedServices = generatedSvcs
 
 	return generatedSvcs, nil
 }
 
 func start(ctx context.Context, state *state.NetworkState) error {
 	log.Println("starting network")
-
-	generatedSvs, err := generate(state)
-	if err != nil {
-		return fmt.Errorf("failed to generate config for network: %w", err)
+	if state.Empty() {
+		return fmt.Errorf("failed to start network: network is not bootstrapped")
 	}
-	state.GeneratedServices = generatedSvs
 
 	nomadRunner, err := nomad.New(nil)
 	if err != nil {
@@ -73,8 +75,23 @@ func start(ctx context.Context, state *state.NetworkState) error {
 	return nil
 }
 
+func bootstrap(ctx context.Context, state *state.NetworkState, force bool) error {
+	log.Println("starting network")
+
+	_, err := generate(state, force)
+	if err != nil {
+		return fmt.Errorf("failed to generate config for network: %w", err)
+	}
+
+	return start(ctx, state)
+}
+
 func stop(ctx context.Context, state *state.NetworkState) {
 	log.Println("stopping network")
+	if state.Empty() {
+		log.Fatalf("cannot stop network: network is not bootstrapped")
+	}
+
 	nomadRunner, err := nomad.New(nil)
 	if err != nil {
 		log.Fatal(err)
@@ -105,51 +122,84 @@ func main() {
 		os.Exit(1)
 	}
 
-	startCmd := flag.NewFlagSet("start", flag.ExitOnError)
-	configFilePath := startCmd.String("config-path", "", "enable")
+	subcommand := os.Args[1]
+	command := flag.NewFlagSet("main", flag.ExitOnError)
+	configFilePath := command.String("config-path", "", "enable")
+	force := command.Bool("force", false, "enable")
+	networkHomePath := command.String("home-path", defaultNetworkHome(), "enable")
 
-	if err := startCmd.Parse(os.Args[2:]); err != nil {
+	if err := command.Parse(os.Args[2:]); err != nil {
 		log.Fatal(err)
-	}
-
-	conf, err := config.ParseConfigFile(*configFilePath)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	networkState, err := state.LoadNetworkState(conf.OutputDir)
-	if err != nil {
-		log.Fatalf("cannot load network state: %s", err)
-	}
-	if networkState.Config == nil {
-		networkState.Config = conf
 	}
 
 	ctx := context.Background()
-	arg := os.Args[1]
-	switch arg {
-	case "start":
-		if err := start(ctx, networkState); err != nil {
+	switch subcommand {
+	case "bootstrap", "generate":
+		if *configFilePath == "" {
+			log.Fatalf("Missing config file path. Use the `-config-path` flag")
+		}
+
+		conf, err := config.ParseConfigFile(*configFilePath)
+		if err != nil {
 			log.Fatal(err)
 		}
+
+		networkState, err := state.LoadNetworkState(conf.OutputDir)
+		if err != nil {
+			log.Fatalf("cannot load network state: %s", err)
+		}
+		networkState.Config = conf
+
+		if subcommand == "bootstrap" {
+			if err := bootstrap(ctx, networkState, *force); err != nil {
+				log.Fatal(err)
+			}
+		} else {
+			if _, err := generate(networkState, *force); err != nil {
+				log.Fatal(err)
+			}
+		}
+
 		if err := networkState.Perist(); err != nil {
 			log.Fatalf("Cannot save network state")
 		}
-	case "stop":
-		stop(ctx, networkState)
-	case "generate":
-		if _, err := generate(networkState); err != nil {
-			log.Fatal(err)
+	case "start", "stop", "destroy":
+		if *configFilePath != "" {
+			log.Printf("Flag `-config-path` is ignored for %s subcommand. Use the `-home-path` flag.", subcommand)
 		}
-		if err := networkState.Perist(); err != nil {
-			log.Fatalf("Cannot save network state")
+		log.Printf("Using network network home: %s", *networkHomePath)
+
+		networkState, err := state.LoadNetworkState(*networkHomePath)
+		if err != nil {
+			log.Fatalf("failed to %s network: %s", subcommand, err)
 		}
-	case "destroy":
-		stop(ctx, networkState)
-		cleanup(conf.OutputDir)
+
+		if networkState.Empty() {
+			log.Fatalf("Failed to %s network: network not bootstrapped. Use the 'bootstrap' subcommand or provide different network home with the `-home-path` flag", subcommand)
+		}
+
+		if subcommand == "start" {
+			if err := start(ctx, networkState); err != nil {
+				log.Fatalf("failed to start network: %s", err)
+			}
+		} else if subcommand == "stop" {
+			stop(ctx, networkState)
+		} else {
+			stop(ctx, networkState)
+			cleanup(*networkHomePath)
+		}
 	default:
-		log.Printf("unknown subcommand %s: expected 'start'|'stop'|'destroy' subcommands", arg)
+		log.Printf("unknown subcommand %s: expected 'bootstrap'|'start'|'stop'|'destroy' subcommands", subcommand)
 		os.Exit(1)
 	}
+}
 
+// This will be replaced during CLI refactor
+func defaultNetworkHome() string {
+	user, err := user.Current()
+	if err != nil {
+		return ""
+	}
+
+	return fmt.Sprintf("%s/%s", user.HomeDir, "vega/vegacapsule/testnet")
 }

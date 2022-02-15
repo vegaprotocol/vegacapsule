@@ -18,6 +18,10 @@ type NetworkState struct {
 	RunningJobs       *types.NetworkJobs
 }
 
+func (ns *NetworkState) Empty() bool {
+	return ns == nil || ns.Config == nil || len(ns.GeneratedServices.NodeSets) == 0
+}
+
 func (ns NetworkState) Perist() error {
 	networkBytes, err := encodeState(ns)
 	if err != nil {
