@@ -6,6 +6,7 @@ tendermint_node_prefix = "tendermint"
 vega_node_prefix       = "vega"
 data_node_prefix       = "data"
 wallet_prefix          = "wallet"
+faucet_prefix          = "faucet"
 
 network "testnet" {
   chain_id          = "1440"
