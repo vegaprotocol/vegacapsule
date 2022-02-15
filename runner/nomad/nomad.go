@@ -103,10 +103,11 @@ func (n *NomadRunner) RunAndWait(ctx context.Context, job api.Job) error {
 	return nil
 }
 
-func (n *NomadRunner) Stop(jobID string, purge bool) (bool, error) {
+func (n *NomadRunner) Stop(ctx context.Context, jobID string, purge bool) (bool, error) {
 	jobs := n.NomadClient.Jobs()
 
-	jId, _, err := jobs.Deregister(jobID, purge, &api.WriteOptions{})
+	writeOpts := new(api.WriteOptions).WithContext(ctx)
+	jId, _, err := jobs.Deregister(jobID, purge, writeOpts)
 	if err != nil {
 		log.Printf("error stopping the job: %+v", err)
 		return false, err

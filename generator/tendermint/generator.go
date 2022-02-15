@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"path"
 	"path/filepath"
@@ -92,9 +93,11 @@ func (tg *ConfigGenerator) Initiate(index int, mode string) (*types.TendermintNo
 		return nil, err
 	}
 
-	if _, err := utils.ExecuteBinary(tg.conf.VegaBinary, []string{"tm", "init", mode, "--home", nodeDir}, nil); err != nil {
+	b, err := utils.ExecuteBinary(tg.conf.VegaBinary, []string{"tm", "init", mode, "--home", nodeDir}, nil)
+	if err != nil {
 		return nil, err
 	}
+	log.Println(string(b))
 
 	config := tmconfig.DefaultConfig()
 	config.SetRoot(nodeDir)

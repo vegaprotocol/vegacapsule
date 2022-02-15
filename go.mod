@@ -10,7 +10,6 @@ require (
 	github.com/btcsuite/btcd v0.22.0-beta
 	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
 	github.com/ethereum/go-ethereum v1.10.15
-	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/nomad/api v0.0.0-20211119141705-873b0969e01e
 	github.com/imdario/mergo v0.3.12
 	github.com/miguelmota/go-ethereum-hdwallet v0.1.1
@@ -18,6 +17,7 @@ require (
 	github.com/tendermint/tendermint v0.35.0
 	github.com/tyler-smith/go-bip39 v1.1.0
 	github.com/zannen/toml v0.3.2
+	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 )
 
 require (
@@ -27,7 +27,6 @@ require (
 	github.com/cenkalti/backoff/v4 v4.1.2 // indirect
 	github.com/fergusstrange/embedded-postgres v0.0.0-00010101000000-000000000000 // indirect
 	github.com/georgysavva/scany v0.3.0 // indirect
-	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/huandu/xstrings v1.2.0 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.10.1 // indirect
@@ -48,7 +47,6 @@ require (
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	github.com/zclconf/go-cty v1.8.0 // indirect
 	go.uber.org/goleak v1.1.12 // indirect
-	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 )
 
 require (

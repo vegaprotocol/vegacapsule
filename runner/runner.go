@@ -10,8 +10,6 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/hashicorp/nomad/api"
-
-	"github.com/hashicorp/go-multierror"
 )
 
 var (
@@ -166,7 +164,7 @@ func (r *Runner) runNodeSets(ctx context.Context, conf *config.Config, nodeSets 
 
 func (r *Runner) runWallet(ctx context.Context, conf *config.WalletConfig, wallet *types.Wallet) error {
 	j := &api.Job{
-		ID:          strPoint("wallet-1"),
+		ID:          &conf.Name,
 		Datacenters: []string{"dc1"},
 		TaskGroups: []*api.TaskGroup{
 			{
@@ -240,8 +238,21 @@ func (r *Runner) runFaucet(ctx context.Context, binary string, conf *config.Fauc
 	return r.nomad.RunAndWait(ctx, *j)
 }
 
-func (r *Runner) StartRawNetwork(ctx context.Context, conf *config.Config, generatedSvcs *types.GeneratedServices) error {
+func (r *Runner) StartNetwork(ctx context.Context, conf *config.Config, generatedSvcs *types.GeneratedServices) (*types.NetworkJobs, error) {
 	g, ctx := errgroup.WithContext(ctx)
+	result := &types.NetworkJobs{}
+
+	for _, dc := range conf.Network.PreStart.Docker {
+		// Capture in the loop by copy
+		dc := dc
+		g.Go(func() error {
+			if err := r.RunDockerJob(ctx, dc); err != nil {
+				return fmt.Errorf("failed to run pre start job %s: %w", dc.Name, err)
+			}
+			return nil
+		})
+		result.ExtraJobIDs = append(result.ExtraJobIDs, dc.Name)
+	}
 
 	if generatedSvcs.Faucet != nil {
 		g.Go(func() error {
@@ -250,6 +261,7 @@ func (r *Runner) StartRawNetwork(ctx context.Context, conf *config.Config, gener
 			}
 			return nil
 		})
+		result.FaucetJobID = conf.Network.Faucet.Name
 	}
 
 	if generatedSvcs.Wallet != nil {
@@ -259,6 +271,7 @@ func (r *Runner) StartRawNetwork(ctx context.Context, conf *config.Config, gener
 			}
 			return nil
 		})
+		result.WalletJobID = conf.Network.Wallet.Name
 	}
 
 	g.Go(func() error {
@@ -268,39 +281,40 @@ func (r *Runner) StartRawNetwork(ctx context.Context, conf *config.Config, gener
 		return nil
 	})
 
+	result.NetworkJobIDs = networkJobNames(generatedSvcs.NodeSets)
+
+	if err := g.Wait(); err != nil {
+		return nil, fmt.Errorf("failed to start vega network: %w", err)
+	}
+	return result, nil
+}
+
+func (r *Runner) StopNetwork(ctx context.Context, jobs *types.NetworkJobs) error {
+	// no jobs, no network started
+	if jobs == nil {
+		return nil
+	}
+
+	allJobs := append(jobs.ExtraJobIDs, jobs.WalletJobID, jobs.FaucetJobID)
+	allJobs = append(allJobs, jobs.NetworkJobIDs...)
+	g, ctx := errgroup.WithContext(ctx)
+	for _, jobName := range allJobs {
+		if jobName == "" {
+			continue
+		}
+		// Explicitly copy name
+		jobName := jobName
+
+		g.Go(func() error {
+			if _, err := r.nomad.Stop(ctx, jobName, true); err != nil {
+				return fmt.Errorf("cannot stop nomad job \"%s\": %w", jobName, err)
+			}
+			return nil
+		})
+
+	}
+
 	return g.Wait()
-}
-
-func (r *Runner) StopRawNetwork(generatedSvcs *types.GeneratedServices) error {
-	if generatedSvcs == nil {
-		generatedSvcs = &types.GeneratedServices{}
-	}
-
-	var errors *multierror.Error
-
-	if _, err := r.nomad.Stop(r.vegaNetworkJobName, true); err != nil {
-		errors = multierror.Append(errors, fmt.Errorf("failed to stop %q job: %w", r.vegaNetworkJobName, err))
-	}
-
-	if generatedSvcs.Wallet != nil {
-		if _, err := r.nomad.Stop("wallet-1", true); err != nil {
-			errors = multierror.Append(errors, fmt.Errorf("failed to stop vega wallet job: %w", err))
-		}
-	}
-
-	return errors.ErrorOrNil()
-}
-
-func (r *Runner) StopJobs(jobs []string) error {
-	var errors *multierror.Error
-
-	for _, jobName := range jobs {
-		if _, err := r.nomad.Stop(jobName, true); err != nil {
-			errors = multierror.Append(errors, fmt.Errorf("cannot stop nomad job \"%s\": %w", jobName, err))
-		}
-	}
-
-	return errors.ErrorOrNil()
 }
 
 func strPoint(s string) *string {
@@ -309,4 +323,13 @@ func strPoint(s string) *string {
 
 func intPoint(i int) *int {
 	return &i
+}
+
+func networkJobNames(nodeSets []types.NodeSet) []string {
+	names := make([]string, len(nodeSets))
+	for i, ns := range nodeSets {
+		names[i] = fmt.Sprintf("nodeset-%s-%d", ns.Mode, i)
+	}
+
+	return names
 }

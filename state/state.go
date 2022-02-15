@@ -13,10 +13,9 @@ import (
 type StateType string
 
 type NetworkState struct {
-	PreTasks []string
-
 	Config            *config.Config
 	GeneratedServices *types.GeneratedServices
+	RunningJobs       *types.NetworkJobs
 }
 
 func (ns NetworkState) Perist() error {

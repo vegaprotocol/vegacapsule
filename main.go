@@ -38,7 +38,7 @@ func generate(state *state.NetworkState) (*types.GeneratedServices, error) {
 	}
 
 	if err := state.Config.Persist(); err != nil {
-		return nil, fmt.Errorf("failed to persist config in output directory %s", err)
+		return nil, fmt.Errorf("failed to persist config in output directory %s: %w", state.Config.OutputDir, err)
 	}
 
 	log.Println("generating network success")
@@ -46,7 +46,7 @@ func generate(state *state.NetworkState) (*types.GeneratedServices, error) {
 	return generatedSvcs, nil
 }
 
-func start(state *state.NetworkState) error {
+func start(ctx context.Context, state *state.NetworkState) error {
 	log.Println("starting network")
 
 	generatedSvs, err := generate(state)
@@ -62,24 +62,18 @@ func start(state *state.NetworkState) error {
 
 	runner := runner.New(nomadRunner)
 
-	ctx := context.Background()
+	res, err := runner.StartNetwork(ctx, state.Config, state.GeneratedServices)
+	if err != nil {
 
-	for _, dc := range state.Config.Network.PreStart.Docker {
-		if err := runner.RunDockerJob(ctx, dc); err != nil {
-			return fmt.Errorf("failed to run pre start job %s: %w", dc.Name, err)
-		}
-	}
-	state.PreTasks = jobNames(state.Config.Network.PreStart)
-
-	if err := runner.StartRawNetwork(ctx, state.Config, state.GeneratedServices); err != nil {
 		return fmt.Errorf("failed to start nomad network: %s", err)
 	}
+	state.RunningJobs = res
 
 	log.Println("starting network success")
 	return nil
 }
 
-func stop(state *state.NetworkState) {
+func stop(ctx context.Context, state *state.NetworkState) {
 	log.Println("stopping network")
 	nomadRunner, err := nomad.New(nil)
 	if err != nil {
@@ -88,12 +82,8 @@ func stop(state *state.NetworkState) {
 
 	runner := runner.New(nomadRunner)
 
-	if err := runner.StopRawNetwork(state.GeneratedServices); err != nil {
+	if err := runner.StopNetwork(ctx, state.RunningJobs); err != nil {
 		log.Fatalf("failed to stop nomad network: %s", err)
-	}
-
-	if err := runner.StopJobs(state.PreTasks); err != nil {
-		log.Fatalf("failed to stop per-tasks: %s", err)
 	}
 
 	log.Println("stopping network success")
@@ -135,17 +125,18 @@ func main() {
 		networkState.Config = conf
 	}
 
+	ctx := context.Background()
 	arg := os.Args[1]
 	switch arg {
 	case "start":
-		if err := start(networkState); err != nil {
+		if err := start(ctx, networkState); err != nil {
 			log.Fatal(err)
 		}
 		if err := networkState.Perist(); err != nil {
 			log.Fatalf("Cannot save network state")
 		}
 	case "stop":
-		stop(networkState)
+		stop(ctx, networkState)
 	case "generate":
 		if _, err := generate(networkState); err != nil {
 			log.Fatal(err)
@@ -154,25 +145,11 @@ func main() {
 			log.Fatalf("Cannot save network state")
 		}
 	case "destroy":
-		stop(networkState)
+		stop(ctx, networkState)
 		cleanup(conf.OutputDir)
 	default:
 		log.Printf("unknown subcommand %s: expected 'start'|'stop'|'destroy' subcommands", arg)
 		os.Exit(1)
 	}
 
-}
-
-func jobNames(jobs *config.PrestartConfig) []string {
-	if jobs == nil {
-		return []string{}
-	}
-
-	jobNames := make([]string, len(jobs.Docker))
-
-	for jobIdx, jobDetails := range jobs.Docker {
-		jobNames[jobIdx] = jobDetails.Name
-	}
-
-	return jobNames
 }

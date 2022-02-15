@@ -26,15 +26,6 @@ type ConfigTemplateContext struct {
 	NodeNumber  int
 }
 
-func NewConfigTemplate(templateRaw string) (*template.Template, error) {
-	t, err := template.New("config.toml").Funcs(sprig.TxtFuncMap()).Parse(templateRaw)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse template config for data node: %w", err)
-	}
-
-	return t, nil
-}
-
 type ConfigGenerator struct {
 	conf    *config.Config
 	homeDir string
