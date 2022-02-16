@@ -79,7 +79,7 @@ func (cg *ConfigGenerator) Initiate(conf *config.FaucetConfig) (*types.Faucet, e
 
 	walletPassFilePath := path.Join(cg.homeDir, "faucet-wallet-pass.txt")
 	if err := ioutil.WriteFile(walletPassFilePath, []byte(conf.Pass), 0644); err != nil {
-		return nil, fmt.Errorf("failed to write node wallet passphrase to file: %w", err)
+		return nil, fmt.Errorf("failed to write faucet wallet passphrase to file: %w", err)
 	}
 
 	initOut, err := cg.initiateFaucet(cg.homeDir, walletPassFilePath)
