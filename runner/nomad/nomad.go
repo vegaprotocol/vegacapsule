@@ -88,10 +88,10 @@ func (n *NomadRunner) Run(job *api.Job) (bool, error) {
 	return false, nil
 }
 
-func (n *NomadRunner) RunAndWait(job *api.Job) error {
+func (n *NomadRunner) RunAndWait(job api.Job) error {
 	jobs := n.NomadClient.Jobs()
 
-	_, _, err := jobs.Register(job, nil)
+	_, _, err := jobs.Register(&job, nil)
 	if err != nil {
 		return fmt.Errorf("error running jobs: %w", err)
 	}

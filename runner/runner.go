@@ -6,6 +6,7 @@ import (
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/runner/nomad"
 	"code.vegaprotocol.io/vegacapsule/types"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/hashicorp/nomad/api"
 )
@@ -32,7 +33,7 @@ func New(n *nomad.NomadRunner) *Runner {
 }
 
 func (r *Runner) RunDockerJob(conf config.DockerConfig) error {
-	j := &api.Job{
+	j := api.Job{
 		ID:          strPoint(conf.Name),
 		Datacenters: []string{"dc1"},
 		TaskGroups: []*api.TaskGroup{
@@ -77,9 +78,10 @@ func (r *Runner) RunDockerJob(conf config.DockerConfig) error {
 }
 
 func (r *Runner) runNodeSets(conf *config.Config, nodeSets []types.NodeSet) error {
-	tasks := make([]*api.Task, 0, len(nodeSets))
+	jobs := []api.Job{}
 
 	for i, ns := range nodeSets {
+		tasks := make([]*api.Task, 0, 3)
 		tasks = append(tasks,
 			&api.Task{
 				Name:   fmt.Sprintf("tendermint-%d", i),
@@ -131,24 +133,32 @@ func (r *Runner) runNodeSets(conf *config.Config, nodeSets []types.NodeSet) erro
 				},
 			})
 		}
-	}
 
-	j := &api.Job{
-		ID:          strPoint(r.vegaNetworkJobName),
-		Datacenters: []string{"dc1"},
-		TaskGroups: []*api.TaskGroup{
-			{
-				RestartPolicy: &api.RestartPolicy{
-					Attempts: intPoint(0),
-					Mode:     strPoint("fail"),
+		jobs = append(jobs, api.Job{
+			ID:          strPoint(fmt.Sprintf("nodeset-%s-%d", ns.Mode, i)),
+			Datacenters: []string{"dc1"},
+			TaskGroups: []*api.TaskGroup{
+				{
+					RestartPolicy: &api.RestartPolicy{
+						Attempts: intPoint(0),
+						Mode:     strPoint("fail"),
+					},
+					Name:  strPoint("vega"),
+					Tasks: tasks,
 				},
-				Name:  strPoint("vega"),
-				Tasks: tasks,
 			},
-		},
+		})
 	}
 
-	return r.nomad.RunAndWait(j)
+	eg := new(errgroup.Group)
+	for _, j := range jobs {
+		j := j
+		eg.Go(func() error {
+			return r.nomad.RunAndWait(j)
+		})
+	}
+
+	return eg.Wait()
 }
 
 func (r *Runner) runWallet(conf *config.WalletConfig, wallet *types.Wallet) error {
@@ -187,7 +197,7 @@ func (r *Runner) runWallet(conf *config.WalletConfig, wallet *types.Wallet) erro
 		},
 	}
 
-	return r.nomad.RunAndWait(j)
+	return r.nomad.RunAndWait(*j)
 }
 
 func (r *Runner) StartRawNetwork(conf *config.Config, generatedSvcs *types.GeneratedServices) error {
