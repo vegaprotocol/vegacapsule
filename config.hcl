@@ -6,11 +6,22 @@ tendermint_node_prefix = "tendermint"
 vega_node_prefix       = "vega"
 data_node_prefix       = "data"
 wallet_prefix          = "wallet"
+faucet_prefix          = "faucet"
 
 network "testnet" {
   chain_id          = "1440"
   network_id        = "1441"
   ethereum_endpoint = "http://127.0.0.1:8545/"
+  
+  faucet "faucet-1" {
+	  wallet_pass = "f4uc3tw4ll3t-v3g4-p4ssphr4e3"
+
+	  template = <<-EOT
+[Node]
+  Port = 3002
+  IP = "127.0.0.1"
+EOT
+  }
 
   wallet "wallet-1" {
     binary = "/Users/karelmoravec/go/bin/vegawallet"
@@ -276,7 +287,7 @@ EOT
   EOH
 
   node_set "validators" {
-    count = 3
+    count = 2
     mode = "validator"
     node_wallet_pass = "n0d3w4ll3t-p4ssphr4e3"
     vega_wallet_pass = "w4ll3t-p4ssphr4e3"
@@ -305,6 +316,9 @@ EOT
 [EvtForward]
 	Level = "Info"
 	RetryRate = "1s"
+	{{if .FaucetPublicKey}}
+	BlockchainQueueAllowlist = ["{{ .FaucetPublicKey }}"]
+	{{end}}
 
 [NodeWallet]
 	[NodeWallet.ETH]
@@ -355,7 +369,7 @@ EOT
   }
 
   node_set "full" {
-    count = 2
+    count = 1
     mode = "full"
 	data_node_binary = "/Users/karelmoravec/go/bin/data-node"
 

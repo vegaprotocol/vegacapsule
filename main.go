@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -53,13 +54,15 @@ func start(conf *config.Config) error {
 
 	runner := runner.New(nomadRunner)
 
+	ctx := context.Background()
+
 	for _, dc := range conf.Network.PreStart.Docker {
-		if err := runner.RunDockerJob(dc); err != nil {
+		if err := runner.RunDockerJob(ctx, dc); err != nil {
 			return fmt.Errorf("failed to run pre start job %s: %w", dc.Name, err)
 		}
 	}
 
-	if err := runner.StartRawNetwork(conf, generatedSvcs); err != nil {
+	if err := runner.StartRawNetwork(ctx, conf, generatedSvcs); err != nil {
 		return fmt.Errorf("failed to start nomad network: %s", err)
 	}
 

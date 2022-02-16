@@ -17,6 +17,7 @@ type Config struct {
 	VegaNodePrefix       string        `hcl:"vega_node_prefix"`
 	DataNodePrefix       string        `hcl:"data_node_prefix"`
 	WalletPrefix         string        `hcl:"wallet_prefix"`
+	FaucetPrefix         string        `hcl:"faucet_prefix"`
 	Network              NetworkConfig `hcl:"network,block"`
 }
 
@@ -27,6 +28,7 @@ type NetworkConfig struct {
 	NetworkID        string        `hcl:"network_id"`
 	EthereumEndpoint string        `hcl:"ethereum_endpoint"`
 	Wallet           *WalletConfig `hcl:"wallet,block"`
+	Faucet           *FaucetConfig `hcl:"faucet,block"`
 
 	PreStart *PrestartConfig `hcl:"pre_start,block"`
 
@@ -48,6 +50,12 @@ type DockerConfig struct {
 type WalletConfig struct {
 	Name     string `hcl:"name,label"`
 	Binary   string `hcl:"binary"`
+	Template string `hcl:"template,optional"`
+}
+
+type FaucetConfig struct {
+	Name     string `hcl:"name,label"`
+	Pass     string `hcl:"wallet_pass"`
 	Template string `hcl:"template,optional"`
 }
 

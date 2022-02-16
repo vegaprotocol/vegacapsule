@@ -1,6 +1,7 @@
 package runner
 
 import (
+	"context"
 	"fmt"
 
 	"code.vegaprotocol.io/vegacapsule/config"
@@ -32,7 +33,7 @@ func New(n *nomad.NomadRunner) *Runner {
 	}
 }
 
-func (r *Runner) RunDockerJob(conf config.DockerConfig) error {
+func (r *Runner) RunDockerJob(ctx context.Context, conf config.DockerConfig) error {
 	j := api.Job{
 		ID:          strPoint(conf.Name),
 		Datacenters: []string{"dc1"},
@@ -70,15 +71,15 @@ func (r *Runner) RunDockerJob(conf config.DockerConfig) error {
 		},
 	}
 
-	if err := r.nomad.RunAndWait(j); err != nil {
+	if err := r.nomad.RunAndWait(ctx, j); err != nil {
 		return fmt.Errorf("failed to run nomad docker job: %w", err)
 	}
 
 	return nil
 }
 
-func (r *Runner) runNodeSets(conf *config.Config, nodeSets []types.NodeSet) error {
-	jobs := []api.Job{}
+func (r *Runner) runNodeSets(ctx context.Context, conf *config.Config, nodeSets []types.NodeSet) error {
+	jobs := make([]api.Job, 0, len(nodeSets))
 
 	for i, ns := range nodeSets {
 		tasks := make([]*api.Task, 0, 3)
@@ -154,14 +155,14 @@ func (r *Runner) runNodeSets(conf *config.Config, nodeSets []types.NodeSet) erro
 	for _, j := range jobs {
 		j := j
 		eg.Go(func() error {
-			return r.nomad.RunAndWait(j)
+			return r.nomad.RunAndWait(ctx, j)
 		})
 	}
 
 	return eg.Wait()
 }
 
-func (r *Runner) runWallet(conf *config.WalletConfig, wallet *types.Wallet) error {
+func (r *Runner) runWallet(ctx context.Context, conf *config.WalletConfig, wallet *types.Wallet) error {
 	j := &api.Job{
 		ID:          strPoint("wallet-1"),
 		Datacenters: []string{"dc1"},
@@ -197,21 +198,75 @@ func (r *Runner) runWallet(conf *config.WalletConfig, wallet *types.Wallet) erro
 		},
 	}
 
-	return r.nomad.RunAndWait(*j)
+	return r.nomad.RunAndWait(ctx, *j)
 }
 
-func (r *Runner) StartRawNetwork(conf *config.Config, generatedSvcs *types.GeneratedServices) error {
+func (r *Runner) runFaucet(ctx context.Context, binary string, conf *config.FaucetConfig, fc *types.Faucet) error {
+	j := &api.Job{
+		ID:          strPoint(conf.Name),
+		Datacenters: []string{"dc1"},
+		TaskGroups: []*api.TaskGroup{
+			{
+				RestartPolicy: &api.RestartPolicy{
+					Attempts: intPoint(0),
+					Mode:     strPoint("fail"),
+				},
+				Name: strPoint(conf.Name),
+				Tasks: []*api.Task{
+					{
+						Name:   conf.Name,
+						Driver: "raw_exec",
+						Config: map[string]interface{}{
+							"command": binary,
+							"args": []string{
+								"faucet",
+								"run",
+								"--passphrase-file", fc.WalletPassFilePath,
+								"--home", fc.HomeDir,
+							},
+						},
+						Resources: &api.Resources{
+							CPU:      intPoint(500),
+							MemoryMB: intPoint(512),
+						},
+					},
+				},
+			},
+		},
+	}
+
+	return r.nomad.RunAndWait(ctx, *j)
+}
+
+func (r *Runner) StartRawNetwork(ctx context.Context, conf *config.Config, generatedSvcs *types.GeneratedServices) error {
+	g, ctx := errgroup.WithContext(ctx)
+
+	if generatedSvcs.Faucet != nil {
+		g.Go(func() error {
+			if err := r.runFaucet(ctx, conf.VegaBinary, conf.Network.Faucet, generatedSvcs.Faucet); err != nil {
+				return fmt.Errorf("failed to run faucet: %w", err)
+			}
+			return nil
+		})
+	}
+
 	if generatedSvcs.Wallet != nil {
-		if err := r.runWallet(conf.Network.Wallet, generatedSvcs.Wallet); err != nil {
-			return fmt.Errorf("failed to run wallet: %w", err)
+		g.Go(func() error {
+			if err := r.runWallet(ctx, conf.Network.Wallet, generatedSvcs.Wallet); err != nil {
+				return fmt.Errorf("failed to run wallet: %w", err)
+			}
+			return nil
+		})
+	}
+
+	g.Go(func() error {
+		if err := r.runNodeSets(ctx, conf, generatedSvcs.NodeSets); err != nil {
+			return fmt.Errorf("failed to run node sets: %w", err)
 		}
-	}
+		return nil
+	})
 
-	if err := r.runNodeSets(conf, generatedSvcs.NodeSets); err != nil {
-		return fmt.Errorf("failed to run node sets: %w", err)
-	}
-
-	return nil
+	return g.Wait()
 }
 
 func (r *Runner) StopRawNetwork() error {

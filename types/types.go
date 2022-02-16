@@ -30,8 +30,17 @@ type Wallet struct {
 	PrivateKeyFilePath    string
 }
 
+type Faucet struct {
+	HomeDir            string
+	PublicKey          string
+	ConfigFilePath     string
+	WalletFilePath     string
+	WalletPassFilePath string
+}
+
 type GeneratedServices struct {
 	Wallet   *Wallet
+	Faucet   *Faucet
 	NodeSets []NodeSet
 }
 

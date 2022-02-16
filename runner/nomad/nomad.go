@@ -40,8 +40,8 @@ func New(config *api.Config) (*NomadRunner, error) {
 }
 
 // TODO maybe improve the logging?
-func (n *NomadRunner) waitForDeployment(jobID string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*5)
+func (n *NomadRunner) waitForDeployment(ctx context.Context, jobID string) error {
+	ctx, cancel := context.WithTimeout(ctx, time.Minute*5)
 	defer cancel()
 
 	for {
@@ -88,7 +88,7 @@ func (n *NomadRunner) Run(job *api.Job) (bool, error) {
 	return false, nil
 }
 
-func (n *NomadRunner) RunAndWait(job api.Job) error {
+func (n *NomadRunner) RunAndWait(ctx context.Context, job api.Job) error {
 	jobs := n.NomadClient.Jobs()
 
 	_, _, err := jobs.Register(&job, nil)
@@ -96,7 +96,7 @@ func (n *NomadRunner) RunAndWait(job api.Job) error {
 		return fmt.Errorf("error running jobs: %w", err)
 	}
 
-	if err := n.waitForDeployment(*job.ID); err != nil {
+	if err := n.waitForDeployment(ctx, *job.ID); err != nil {
 		return err
 	}
 

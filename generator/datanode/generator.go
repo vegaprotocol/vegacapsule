@@ -26,6 +26,15 @@ type ConfigTemplateContext struct {
 	NodeNumber  int
 }
 
+func NewConfigTemplate(templateRaw string) (*template.Template, error) {
+	t, err := template.New("config.toml").Funcs(sprig.TxtFuncMap()).Parse(templateRaw)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse template config for data node: %w", err)
+	}
+
+	return t, nil
+}
+
 type ConfigGenerator struct {
 	conf    *config.Config
 	homeDir string
@@ -64,24 +73,6 @@ func (dng *ConfigGenerator) Initiate(index int, dataNodeBinary string) (*types.D
 	return initNode, nil
 }
 
-func (dng ConfigGenerator) nodeDir(i int) string {
-	nodeDirName := fmt.Sprintf("%s%d", dng.conf.NodeDirPrefix, i)
-	return filepath.Join(dng.homeDir, nodeDirName)
-}
-
-func (dng ConfigGenerator) configFilePath(nodeDir string) string {
-	return filepath.Join(nodeDir, "config", "data-node", "config.toml")
-}
-
-func NewConfigTemplate(templateRaw string) (*template.Template, error) {
-	t, err := template.New("config.toml").Funcs(sprig.TxtFuncMap()).Parse(templateRaw)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse template config for data node: %w", err)
-	}
-
-	return t, nil
-}
-
 func (dng ConfigGenerator) OverwriteConfig(index int, configTemplate *template.Template) error {
 	templateCtx := ConfigTemplateContext{
 		Prefix:      dng.conf.Prefix,
@@ -117,4 +108,13 @@ func (dng ConfigGenerator) OverwriteConfig(index int, configTemplate *template.T
 	}
 
 	return nil
+}
+
+func (dng ConfigGenerator) nodeDir(i int) string {
+	nodeDirName := fmt.Sprintf("%s%d", dng.conf.NodeDirPrefix, i)
+	return filepath.Join(dng.homeDir, nodeDirName)
+}
+
+func (dng ConfigGenerator) configFilePath(nodeDir string) string {
+	return filepath.Join(nodeDir, "config", "data-node", "config.toml")
 }
