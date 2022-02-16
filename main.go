@@ -13,19 +13,19 @@ import (
 	"code.vegaprotocol.io/vegacapsule/runner"
 	"code.vegaprotocol.io/vegacapsule/runner/nomad"
 	"code.vegaprotocol.io/vegacapsule/state"
-	"code.vegaprotocol.io/vegacapsule/types"
+	"code.vegaprotocol.io/vegacapsule/utils"
 )
 
-func generate(state *state.NetworkState, force bool) (*types.GeneratedServices, error) {
+func generate(state state.NetworkState, force bool) (*state.NetworkState, error) {
 	if force {
 		if err := os.RemoveAll(state.Config.OutputDir); err != nil {
-			return nil, fmt.Errorf("cannot remove network file with --force flag")
+			return nil, fmt.Errorf("failed to remove output folder with --force flag: %w", err)
 		}
 	} else if state.GeneratedServices != nil {
 		return nil, fmt.Errorf("failed to generate network: network is already generated")
 	}
 
-	if _, err := os.Stat(state.Config.OutputDir); os.IsExist(err) {
+	if netDirExists, _ := utils.FileExists(state.Config.OutputDir); netDirExists {
 		return nil, fmt.Errorf("output directory %q already exist", state.Config.OutputDir)
 	}
 
@@ -46,44 +46,48 @@ func generate(state *state.NetworkState, force bool) (*types.GeneratedServices, 
 	}
 
 	log.Println("generating network success")
-	state.GeneratedServices = generatedSvcs
 
-	return generatedSvcs, nil
+	state.GeneratedServices = generatedSvcs
+	return &state, nil
 }
 
-func start(ctx context.Context, state *state.NetworkState) error {
+func start(ctx context.Context, state state.NetworkState) (*state.NetworkState, error) {
 	log.Println("starting network")
 	if state.Empty() {
-		return fmt.Errorf("failed to start network: network is not bootstrapped")
+		return nil, fmt.Errorf("failed to start network: network is not bootstrapped")
 	}
 
 	nomadRunner, err := nomad.New(nil)
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("failed to start the network: %w", err)
 	}
 
 	runner := runner.New(nomadRunner)
 
 	res, err := runner.StartNetwork(ctx, state.Config, state.GeneratedServices)
 	if err != nil {
-
-		return fmt.Errorf("failed to start nomad network: %s", err)
+		return nil, fmt.Errorf("failed to start nomad network: %s", err)
 	}
 	state.RunningJobs = res
 
 	log.Println("starting network success")
-	return nil
+	return &state, nil
 }
 
-func bootstrap(ctx context.Context, state *state.NetworkState, force bool) error {
+func bootstrap(ctx context.Context, state state.NetworkState, force bool) (*state.NetworkState, error) {
 	log.Println("starting network")
 
-	_, err := generate(state, force)
+	updatedState, err := generate(state, force)
 	if err != nil {
-		return fmt.Errorf("failed to generate config for network: %w", err)
+		return nil, fmt.Errorf("failed to generate config for network: %w", err)
 	}
 
-	return start(ctx, state)
+	updatedState, err = start(ctx, *updatedState)
+	if err != nil {
+		return nil, fmt.Errorf("failed to start network: %w", err)
+	}
+
+	return updatedState, nil
 }
 
 func stop(ctx context.Context, state *state.NetworkState) {
@@ -118,7 +122,7 @@ func cleanup(outputDir string) {
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Println("expected 'start'|'stop'|'destroy' subcommands")
+		fmt.Println("expected 'generate'|'bootstrap'|'start'|'stop'|'destroy' subcommands")
 		os.Exit(1)
 	}
 
@@ -151,15 +155,14 @@ func main() {
 		networkState.Config = conf
 
 		if subcommand == "bootstrap" {
-			if err := bootstrap(ctx, networkState, *force); err != nil {
-				log.Fatal(err)
-			}
+			networkState, err = bootstrap(ctx, *networkState, *force)
 		} else {
-			if _, err := generate(networkState, *force); err != nil {
-				log.Fatal(err)
-			}
+			networkState, err = generate(*networkState, *force)
 		}
 
+		if err != nil {
+			log.Fatal(err)
+		}
 		if err := networkState.Perist(); err != nil {
 			log.Fatalf("Cannot save network state")
 		}
@@ -179,8 +182,12 @@ func main() {
 		}
 
 		if subcommand == "start" {
-			if err := start(ctx, networkState); err != nil {
+			networkState, err := start(ctx, *networkState)
+			if err != nil {
 				log.Fatalf("failed to start network: %s", err)
+			}
+			if err := networkState.Perist(); err != nil {
+				log.Fatalf("cannot persist network state: %s", err)
 			}
 		} else if subcommand == "stop" {
 			stop(ctx, networkState)
@@ -189,12 +196,12 @@ func main() {
 			cleanup(*networkHomePath)
 		}
 	default:
-		log.Printf("unknown subcommand %s: expected 'bootstrap'|'start'|'stop'|'destroy' subcommands", subcommand)
+		log.Printf("unknown subcommand %s: expected 'generate'|'bootstrap'|'start'|'stop'|'destroy' subcommands", subcommand)
 		os.Exit(1)
 	}
 }
 
-// This will be replaced during CLI refactor
+// TODO: This will be replaced during CLI refactor
 func defaultNetworkHome() string {
 	user, err := user.Current()
 	if err != nil {

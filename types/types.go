@@ -45,10 +45,10 @@ type GeneratedServices struct {
 }
 
 type NetworkJobs struct {
-	NetworkJobIDs []string
-	ExtraJobIDs   []string
-	FaucetJobID   string
-	WalletJobID   string
+	NodesSetsJobIDs []string
+	ExtraJobIDs     []string
+	FaucetJobID     string
+	WalletJobID     string
 }
 
 const (

@@ -2,25 +2,34 @@
 
 ## Commands
 
-- `generate` - generates the network configuration. 
-- `start` - generates the network configuration and starts the network. If configuration files already exist, the command only sets the network up.
+To generate network configuration files, use one of the following commands:
+
+- `generate` - generates the network configuration. Capsule puts network all files in the folder, which you set in the config file as the `output_dir` parameter.
+- `bootstrap` - generates the network config files and starts the network in the same command. The `generate` command executes both the `generate` and the `start` internally.
+
+All below commands require generated network configuration. If configuration files are missing, an error is returned.
+
+- `start` - starts the network. 
 - `stop` - stops the network. The command will not remove any configuration or data files. You can start the network later using the `start` command.
-- `destroy` - stops the network, then remove all associated configuration and data files.
+- `destroy` - stops the network, then removes all associated configuration and data files.
 
 ### Examples
 
 ```bash
+# Generate the network config files
+./capsule generate -config-path=config.hcl
+
 # Starts the network
-./capsule start -config-path=config.hcl
+./capsule start [-home-path=/var/tmp/veganetwork/testnetwork]
 
 # Stop the network
-./capsule stop -config-path=config.hcl
+./capsule stop [-home-path=/var/tmp/veganetwork/testnetwork]
 
 # Resume the network with previous configurationh
-./capsule start -config-path=config.hcl
+./capsule start [-home-path=/var/tmp/veganetwork/testnetwork]
 
 # Destroy the network
-./capsule destroy -config-path=config.hcl
+./capsule destroy [-home-path=/var/tmp/veganetwork/testnetwork]
 ```
 
 

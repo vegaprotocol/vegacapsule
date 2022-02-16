@@ -3,6 +3,7 @@ package datanode
 import (
 	"bytes"
 	"fmt"
+	"log"
 	"os"
 	"path"
 	"path/filepath"
@@ -58,13 +59,15 @@ func (dng *ConfigGenerator) Initiate(index int, dataNodeBinary string) (*types.D
 		return nil, err
 	}
 
+	b, err := utils.ExecuteBinary(dataNodeBinary, []string{"init", "-f", "--home", nodeDir}, nil)
+	if err != nil {
+		return nil, err
+	}
+	log.Println(string(b))
+
 	initNode := &types.DataNode{
 		HomeDir:    nodeDir,
 		BinaryPath: dataNodeBinary,
-	}
-
-	if _, err := utils.ExecuteBinary(dataNodeBinary, []string{"init", "-f", "--home", nodeDir}, nil); err != nil {
-		return nil, err
 	}
 
 	return initNode, nil
