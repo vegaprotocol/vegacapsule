@@ -27,7 +27,7 @@ type ConfigTemplateContext struct {
 func NewConfigTemplate(templateRaw string) (*template.Template, error) {
 	t, err := template.New("config.toml").Funcs(sprig.TxtFuncMap()).Parse(templateRaw)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse template config: %w", err)
+		return nil, fmt.Errorf("failed to parse the faucet's template config: %w", err)
 	}
 
 	return t, nil
