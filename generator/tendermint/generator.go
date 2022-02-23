@@ -2,7 +2,6 @@ package tendermint
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"log"
 	"os"
@@ -18,6 +17,7 @@ import (
 	"code.vegaprotocol.io/vegacapsule/utils"
 
 	tmconfig "github.com/tendermint/tendermint/config"
+	tmp2p "github.com/tendermint/tendermint/p2p"
 	"github.com/tendermint/tendermint/privval"
 	tmtypes "github.com/tendermint/tendermint/types"
 )
@@ -102,12 +102,12 @@ func (tg *ConfigGenerator) Initiate(index int, mode string) (*types.TendermintNo
 	config := tmconfig.DefaultConfig()
 	config.SetRoot(nodeDir)
 
-	nodeKey, err := tmtypes.LoadNodeKey(config.NodeKeyFile())
+	nodeKey, err := tmp2p.LoadNodeKey(config.NodeKeyFile())
 	if err != nil {
 		return nil, fmt.Errorf("failed to get node key: %w", err)
 	}
 
-	tg.nodeIDs = append(tg.nodeIDs, string(nodeKey.ID))
+	tg.nodeIDs = append(tg.nodeIDs, string(nodeKey.ID()))
 
 	initNode := &types.TendermintNode{
 		HomeDir:         nodeDir,
@@ -118,13 +118,12 @@ func (tg *ConfigGenerator) Initiate(index int, mode string) (*types.TendermintNo
 		return initNode, nil
 	}
 
-	pv, err := privval.LoadFilePV(config.PrivValidator.KeyFile(), config.PrivValidator.StateFile())
+	pv := privval.LoadFilePV(config.BaseConfig.PrivValidatorKeyFile(), config.BaseConfig.PrivValidatorStateFile())
 	if err != nil {
 		return nil, fmt.Errorf("failed to load FilePV for tendermint node: %w", err)
 	}
 
-	// TODO: Pass context from higher function to avoid locking
-	pubKey, err := pv.GetPubKey(context.TODO())
+	pubKey, err := pv.GetPubKey()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get pubkey: %w", err)
 	}
@@ -167,8 +166,7 @@ func (tg *ConfigGenerator) OverwriteConfig(index int, configTemplate *template.T
 	if err := viper.MergeConfig(buff); err != nil {
 		return fmt.Errorf("failed to merge config override with config file %q: %w", configFilePath, err)
 	}
-
-	conf := &tmconfig.Config{}
+	conf := tmconfig.DefaultConfig()
 	if err := viper.Unmarshal(conf); err != nil {
 		return fmt.Errorf("failed to unmarshal merged config file %q: %w", configFilePath, err)
 	}
@@ -178,9 +176,7 @@ func (tg *ConfigGenerator) OverwriteConfig(index int, configTemplate *template.T
 	}
 
 	conf.SetRoot(nodeDir)
-	if err := tmconfig.WriteConfigFile(nodeDir, conf); err != nil {
-		return fmt.Errorf("failed to write overwritten tendermint configuration: %w", err)
-	}
+	tmconfig.WriteConfigFile(configFilePath, conf)
 
 	return nil
 }
