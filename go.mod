@@ -3,7 +3,7 @@ module code.vegaprotocol.io/vegacapsule
 go 1.17
 
 require (
-	code.vegaprotocol.io/data-node v0.47.1-0.20220223192843-e437a3a8cc94
+	code.vegaprotocol.io/data-node v0.47.1-0.20220223192843-b08163bbbfe7
 	code.vegaprotocol.io/shared v0.0.0-20220202150846-b6aba31dcdb0
 	code.vegaprotocol.io/vega v0.48.0-pre4.0.20220223173047-c5a9f17a8d0d
 	github.com/Masterminds/sprig v2.22.0+incompatible
