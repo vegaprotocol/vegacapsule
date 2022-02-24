@@ -44,6 +44,13 @@ type GeneratedServices struct {
 	NodeSets []NodeSet
 }
 
+type NetworkJobs struct {
+	NodesSetsJobIDs []string
+	ExtraJobIDs     []string
+	FaucetJobID     string
+	WalletJobID     string
+}
+
 const (
 	NodeModeValidator           = "validator"
 	NodeModeFull                = "full"

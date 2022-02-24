@@ -66,6 +66,7 @@ func (vg ConfigGenerator) Initiate(index int, mode, tendermintHome, nodeWalletPa
 	}
 
 	nodeWalletPassFilePath := path.Join(nodeDir, "node-vega-wallet-pass.txt")
+
 	if err := ioutil.WriteFile(nodeWalletPassFilePath, []byte(nodeWalletPass), 0644); err != nil {
 		return nil, fmt.Errorf("failed to write node wallet passphrase to file: %w", err)
 	}

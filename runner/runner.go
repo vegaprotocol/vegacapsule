@@ -3,6 +3,7 @@ package runner
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/runner/nomad"
@@ -33,9 +34,9 @@ func New(n *nomad.NomadRunner) *Runner {
 	}
 }
 
-func (r *Runner) RunDockerJob(ctx context.Context, conf config.DockerConfig) error {
-	j := api.Job{
-		ID:          strPoint(conf.Name),
+func (r *Runner) runDockerJob(ctx context.Context, conf config.DockerConfig) (*api.Job, error) {
+	j := &api.Job{
+		ID:          &conf.Name,
 		Datacenters: []string{"dc1"},
 		TaskGroups: []*api.TaskGroup{
 			{
@@ -43,7 +44,7 @@ func (r *Runner) RunDockerJob(ctx context.Context, conf config.DockerConfig) err
 					Attempts: intPoint(0),
 					Mode:     strPoint("fail"),
 				},
-				Name: strPoint(conf.Name),
+				Name: &conf.Name,
 				Tasks: []*api.Task{
 					{
 						Name:   conf.Name,
@@ -71,14 +72,14 @@ func (r *Runner) RunDockerJob(ctx context.Context, conf config.DockerConfig) err
 		},
 	}
 
-	if err := r.nomad.RunAndWait(ctx, j); err != nil {
-		return fmt.Errorf("failed to run nomad docker job: %w", err)
+	if err := r.nomad.RunAndWait(ctx, *j); err != nil {
+		return nil, fmt.Errorf("failed to run nomad docker job: %w", err)
 	}
 
-	return nil
+	return j, nil
 }
 
-func (r *Runner) runNodeSets(ctx context.Context, conf *config.Config, nodeSets []types.NodeSet) error {
+func (r *Runner) runNodeSets(ctx context.Context, conf *config.Config, nodeSets []types.NodeSet) ([]api.Job, error) {
 	jobs := make([]api.Job, 0, len(nodeSets))
 
 	for i, ns := range nodeSets {
@@ -159,12 +160,16 @@ func (r *Runner) runNodeSets(ctx context.Context, conf *config.Config, nodeSets 
 		})
 	}
 
-	return eg.Wait()
+	if err := eg.Wait(); err != nil {
+		return nil, fmt.Errorf("failed to wait for node sets: %w", err)
+	}
+
+	return jobs, nil
 }
 
-func (r *Runner) runWallet(ctx context.Context, conf *config.WalletConfig, wallet *types.Wallet) error {
+func (r *Runner) runWallet(ctx context.Context, conf *config.WalletConfig, wallet *types.Wallet) (*api.Job, error) {
 	j := &api.Job{
-		ID:          strPoint("wallet-1"),
+		ID:          &conf.Name,
 		Datacenters: []string{"dc1"},
 		TaskGroups: []*api.TaskGroup{
 			{
@@ -198,12 +203,16 @@ func (r *Runner) runWallet(ctx context.Context, conf *config.WalletConfig, walle
 		},
 	}
 
-	return r.nomad.RunAndWait(ctx, *j)
+	if err := r.nomad.RunAndWait(ctx, *j); err != nil {
+		return nil, fmt.Errorf("failed to run the wallet job: %w", err)
+	}
+
+	return j, nil
 }
 
-func (r *Runner) runFaucet(ctx context.Context, binary string, conf *config.FaucetConfig, fc *types.Faucet) error {
+func (r *Runner) runFaucet(ctx context.Context, binary string, conf *config.FaucetConfig, fc *types.Faucet) (*api.Job, error) {
 	j := &api.Job{
-		ID:          strPoint(conf.Name),
+		ID:          &conf.Name,
 		Datacenters: []string{"dc1"},
 		TaskGroups: []*api.TaskGroup{
 			{
@@ -211,7 +220,7 @@ func (r *Runner) runFaucet(ctx context.Context, binary string, conf *config.Fauc
 					Attempts: intPoint(0),
 					Mode:     strPoint("fail"),
 				},
-				Name: strPoint(conf.Name),
+				Name: &conf.Name,
 				Tasks: []*api.Task{
 					{
 						Name:   conf.Name,
@@ -235,47 +244,117 @@ func (r *Runner) runFaucet(ctx context.Context, binary string, conf *config.Fauc
 		},
 	}
 
-	return r.nomad.RunAndWait(ctx, *j)
+	if err := r.nomad.RunAndWait(ctx, *j); err != nil {
+		return nil, fmt.Errorf("failed to wait for faucet job: %w", err)
+	}
+
+	return j, nil
 }
 
-func (r *Runner) StartRawNetwork(ctx context.Context, conf *config.Config, generatedSvcs *types.GeneratedServices) error {
-	g, ctx := errgroup.WithContext(ctx)
+func (r *Runner) StartNetwork(gCtx context.Context, conf *config.Config, generatedSvcs *types.GeneratedServices) (*types.NetworkJobs, error) {
+	g, ctx := errgroup.WithContext(gCtx)
+	result := &types.NetworkJobs{}
+	var lock sync.Mutex
 
+	for _, dc := range conf.Network.PreStart.Docker {
+		// capture in the loop by copy
+		dc := dc
+		g.Go(func() error {
+			job, err := r.runDockerJob(ctx, dc)
+			if err != nil {
+				return fmt.Errorf("failed to run pre start job %s: %w", dc.Name, err)
+			}
+
+			lock.Lock()
+			result.ExtraJobIDs = append(result.ExtraJobIDs, *job.ID)
+			lock.Unlock()
+
+			return nil
+		})
+	}
+	if err := g.Wait(); err != nil {
+		return nil, fmt.Errorf("failed to wait for pre-start jobs: %w", err)
+	}
+
+	// create new error group to be able call wait funcion again
+	g, ctx = errgroup.WithContext(gCtx)
 	if generatedSvcs.Faucet != nil {
 		g.Go(func() error {
-			if err := r.runFaucet(ctx, conf.VegaBinary, conf.Network.Faucet, generatedSvcs.Faucet); err != nil {
+			job, err := r.runFaucet(ctx, conf.VegaBinary, conf.Network.Faucet, generatedSvcs.Faucet)
+			if err != nil {
 				return fmt.Errorf("failed to run faucet: %w", err)
 			}
+
+			lock.Lock()
+			result.FaucetJobID = *job.ID
+			lock.Unlock()
+
 			return nil
 		})
 	}
 
 	if generatedSvcs.Wallet != nil {
 		g.Go(func() error {
-			if err := r.runWallet(ctx, conf.Network.Wallet, generatedSvcs.Wallet); err != nil {
+			job, err := r.runWallet(ctx, conf.Network.Wallet, generatedSvcs.Wallet)
+			if err != nil {
 				return fmt.Errorf("failed to run wallet: %w", err)
 			}
+
+			lock.Lock()
+			result.WalletJobID = *job.ID
+			lock.Unlock()
+
 			return nil
 		})
 	}
 
 	g.Go(func() error {
-		if err := r.runNodeSets(ctx, conf, generatedSvcs.NodeSets); err != nil {
+		jobs, err := r.runNodeSets(ctx, conf, generatedSvcs.NodeSets)
+		if err != nil {
 			return fmt.Errorf("failed to run node sets: %w", err)
 		}
+
+		lock.Lock()
+		for _, job := range jobs {
+			result.NodesSetsJobIDs = append(result.NodesSetsJobIDs, *job.ID)
+		}
+		lock.Unlock()
+
 		return nil
 	})
 
-	return g.Wait()
+	if err := g.Wait(); err != nil {
+		return nil, fmt.Errorf("failed to start vega network: %w", err)
+	}
+	return result, nil
 }
 
-func (r *Runner) StopRawNetwork() error {
-	var gErr error
-	if _, err := r.nomad.Stop(r.vegaNetworkJobName, true); err != nil {
-		gErr = fmt.Errorf("failed to stop %q job: %w: %s", r.vegaNetworkJobName, err, gErr)
+func (r *Runner) StopNetwork(ctx context.Context, jobs *types.NetworkJobs) error {
+	// no jobs, no network started
+	if jobs == nil {
+		return nil
 	}
 
-	return gErr
+	allJobs := append(jobs.ExtraJobIDs, jobs.WalletJobID, jobs.FaucetJobID)
+	allJobs = append(allJobs, jobs.NodesSetsJobIDs...)
+	g, ctx := errgroup.WithContext(ctx)
+	for _, jobName := range allJobs {
+		if jobName == "" {
+			continue
+		}
+		// Explicitly copy name
+		jobName := jobName
+
+		g.Go(func() error {
+			if _, err := r.nomad.Stop(ctx, jobName, true); err != nil {
+				return fmt.Errorf("cannot stop nomad job \"%s\": %w", jobName, err)
+			}
+			return nil
+		})
+
+	}
+
+	return g.Wait()
 }
 
 func strPoint(s string) *string {

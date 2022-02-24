@@ -66,7 +66,6 @@ code.vegaprotocol.io/shared v0.0.0-20220128163854-7eab67fa60d2/go.mod h1:pNHKwqR
 code.vegaprotocol.io/vega v0.47.1-0.20220206153536-409928126cd5/go.mod h1:GOvYLxJb2ZJbDb4QQ2G0FV3WvzXpcsiFfXY7toncqrw=
 code.vegaprotocol.io/vega v0.47.1-0.20220210171444-a99ac6eddde9 h1:uMUlqlnj/Y0ubjvoSpp0nVVeLlssFpYMWCViKoE3dcw=
 code.vegaprotocol.io/vega v0.47.1-0.20220210171444-a99ac6eddde9/go.mod h1:/x/Y1i0eIDQ5Hns5wC618+j6coOmdA0FrU2gwWslD0Y=
-code.vegaprotocol.io/vega v0.47.5/go.mod h1:zx4AZWNsikhvkRAzeFl8wqtLKBGGbr/aDDpRuUB90T4=
 code.vegaprotocol.io/vegawallet v0.11.1-0.20220128170319-bd1b750459bb/go.mod h1:BkmeqUmVmiFmCxyuNNxXroCuMODdTkt5xAk419uGI3w=
 code.vegaprotocol.io/vegawallet v0.12.0-pre1 h1:mD4H6Njs/NwVdHW7SjSLdYypAjegP2/xLpD/vOEI3Ro=
 code.vegaprotocol.io/vegawallet v0.12.0-pre1/go.mod h1:9IPuSZWl+s8HzppYAjo7qMXBjjLVxY0ZcKKFdnN/vsY=

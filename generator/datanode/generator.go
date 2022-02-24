@@ -3,6 +3,7 @@ package datanode
 import (
 	"bytes"
 	"fmt"
+	"log"
 	"os"
 	"path"
 	"path/filepath"
@@ -26,6 +27,11 @@ type ConfigTemplateContext struct {
 	NodeNumber  int
 }
 
+type ConfigGenerator struct {
+	conf    *config.Config
+	homeDir string
+}
+
 func NewConfigTemplate(templateRaw string) (*template.Template, error) {
 	t, err := template.New("config.toml").Funcs(sprig.TxtFuncMap()).Parse(templateRaw)
 	if err != nil {
@@ -33,11 +39,6 @@ func NewConfigTemplate(templateRaw string) (*template.Template, error) {
 	}
 
 	return t, nil
-}
-
-type ConfigGenerator struct {
-	conf    *config.Config
-	homeDir string
 }
 
 func NewConfigGenerator(conf *config.Config) (*ConfigGenerator, error) {
@@ -54,7 +55,6 @@ func NewConfigGenerator(conf *config.Config) (*ConfigGenerator, error) {
 
 func (dng *ConfigGenerator) Initiate(index int, dataNodeBinary string) (*types.DataNode, error) {
 	nodeDir := dng.nodeDir(index)
-
 	if err := os.MkdirAll(nodeDir, os.ModePerm); err != nil {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ func (dng *ConfigGenerator) Initiate(index int, dataNodeBinary string) (*types.D
 	if err != nil {
 		return nil, err
 	}
-	fmt.Fprintln(os.Stdout, string(b))
+	log.Println(string(b))
 
 	initNode := &types.DataNode{
 		HomeDir:    nodeDir,

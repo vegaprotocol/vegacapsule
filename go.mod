@@ -17,6 +17,7 @@ require (
 	github.com/tendermint/tendermint v0.35.0
 	github.com/tyler-smith/go-bip39 v1.1.0
 	github.com/zannen/toml v0.3.2
+	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 )
 
 require (
@@ -46,13 +47,12 @@ require (
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	github.com/zclconf/go-cty v1.8.0 // indirect
 	go.uber.org/goleak v1.1.12 // indirect
-	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 )
 
 require (
 	code.vegaprotocol.io/protos v0.48.1-0.20220209133852-0f31e2fef5ff // indirect
 	code.vegaprotocol.io/quant v0.2.5 // indirect
-	code.vegaprotocol.io/vegawallet v0.12.0-pre1 // indirect
+	code.vegaprotocol.io/vegawallet v0.12.0-pre1
 	github.com/DataDog/zstd v1.4.1 // indirect
 	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/adrg/xdg v0.3.3 // indirect
