@@ -335,10 +335,9 @@ EOT
 // ============================
 
 	  tendermint = <<-EOT
+log_level = "info"
 
-log-level = "info"
-
-proxy-app = "tcp://127.0.0.1:266{{.NodeNumber}}8"
+proxy_app = "tcp://127.0.0.1:266{{.NodeNumber}}8"
 moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
 
 [rpc]
@@ -347,12 +346,12 @@ moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
 
 [p2p]
   laddr = "tcp://0.0.0.0:266{{.NodeNumber}}6"
-  addr-book-strict = false
-  max-packet-msg-payload-size = 4096
+  addr_book_strict = false
+  max_packet_msg_payload_size = 4096
   pex = false
-  allow-duplicate-ip = true
+  allow_duplicate_ip = true
 
-  persistent-peers = "{{- range $i, $peer := .NodePeers -}}
+  persistent_peers = "{{- range $i, $peer := .NodePeers -}}
 	  {{- if ne $i 0 }},{{end -}}
 	  {{- $peer.ID}}@127.0.0.1:266{{$peer.Index}}6
   {{- end -}}"
@@ -360,10 +359,10 @@ moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
 
 [mempool]
   size = 10000
-  cache-size = 20000
+  cache_size = 20000
 
 [consensus]
-  skip-timeout-commit = false
+  skip_timeout_commit = false
 EOT
     }
   }
@@ -460,10 +459,9 @@ EOT
 // ============================
 
 	  tendermint = <<-EOT
+log_level = "info"
 
-log-level = "info"
-
-proxy-app = "tcp://127.0.0.1:266{{.NodeNumber}}8"
+proxy_app = "tcp://127.0.0.1:266{{.NodeNumber}}8"
 moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
 
 [rpc]
@@ -472,11 +470,11 @@ moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
 
 [p2p]
   laddr = "tcp://0.0.0.0:266{{.NodeNumber}}6"
-  addr-book_strict = false
-  max-packet-msg-payload-size = 4096
+  addr_book_strict = false
+  max_packet_msg_payload_size = 4096
   pex = false
-  allow-duplicate-ip = true
-  persistent-peers = "{{- range $i, $peer := .NodePeers -}}
+  allow_duplicate_ip = true
+  persistent_peers = "{{- range $i, $peer := .NodePeers -}}
 	  {{- if ne $i 0 }},{{end -}}
 	  {{- $peer.ID}}@127.0.0.1:266{{$peer.Index}}6
   {{- end -}}"
@@ -486,7 +484,7 @@ moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
   cache_size = 20000
 
 [consensus]
-  skip-timeout-commit = false
+  skip_timeout_commit = false
 EOT
     }
   }
