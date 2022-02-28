@@ -9,9 +9,11 @@ wallet_prefix          = "wallet"
 faucet_prefix          = "faucet"
 
 network "testnet" {
-  chain_id          = "1440"
-  network_id        = "1441"
-  ethereum_endpoint = "http://127.0.0.1:8545/"
+  ethereum {
+    chain_id   = "1440"
+    network_id = "1441"
+    endpoint   = "http://127.0.0.1:8545/"
+  }
 
   pre_start {
     docker_service "ganache-1" {

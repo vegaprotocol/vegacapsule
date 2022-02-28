@@ -7,10 +7,12 @@ data_node_prefix       = "data"
 vega_binary_path       = "/Users/karelmoravec/go/bin/vega"
 
 network "testnet" {
-  chain_id          = "1440"
-  network_id        = "1441"
-  ethereum_endpoint = "http://192.168.1.102:8545/"
-
+  ethereum {
+    chain_id   = "1440"
+    network_id = "1441"
+    endpoint   = "http://127.0.0.1:8545/"
+  }
+  
   pre_start {
 
     docker_service "ganache" {
