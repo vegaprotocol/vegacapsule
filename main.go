@@ -201,7 +201,7 @@ func main() {
 			cleanup(*networkHomePath)
 		}
 	case "nomad":
-		if err := nmrunner.StartAgent(); err != nil {
+		if err := nmrunner.StartAgent(*configFilePath); err != nil {
 			log.Fatal(err)
 		}
 	default:

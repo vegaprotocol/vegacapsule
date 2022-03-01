@@ -18,7 +18,7 @@ func capsuleHome() (string, error) {
 	return filepath.Join(homeDir, ".vegacapsule"), nil
 }
 
-func StartAgent() error {
+func StartAgent(configPath string) error {
 	switch runtime.GOOS {
 	case "darwin", "windows", "linux":
 	default:
@@ -36,9 +36,13 @@ func StartAgent() error {
 		}
 	}
 
-	configPath, err := generateConfig()
-	if err != nil {
-		return fmt.Errorf("failed to generate nomad config: %w", err)
+	if configPath == "" {
+		generatedConfigPath, err := generateConfig()
+		if err != nil {
+			return fmt.Errorf("failed to generate nomad config: %w", err)
+		}
+
+		configPath = generatedConfigPath
 	}
 
 	args := []string{"agent", "-dev", "-bind", "0.0.0.0", "-config", configPath}
