@@ -11,6 +11,7 @@ import (
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/generator"
 	"code.vegaprotocol.io/vegacapsule/nomad"
+	nmrunner "code.vegaprotocol.io/vegacapsule/nomad/runner"
 	"code.vegaprotocol.io/vegacapsule/state"
 	"code.vegaprotocol.io/vegacapsule/utils"
 )
@@ -200,7 +201,7 @@ func main() {
 			cleanup(*networkHomePath)
 		}
 	case "nomad":
-		if err := nomad.StartAgent(); err != nil {
+		if err := nmrunner.StartAgent(); err != nil {
 			log.Fatal(err)
 		}
 	default:
