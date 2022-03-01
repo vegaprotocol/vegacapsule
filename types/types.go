@@ -3,6 +3,7 @@ package types
 type VegaNode struct {
 	HomeDir                string
 	NodeWalletPassFilePath string
+	NodeWalletInfo         NodeWalletInfo
 }
 
 type TendermintNode struct {
@@ -49,6 +50,18 @@ type NetworkJobs struct {
 	ExtraJobIDs     []string
 	FaucetJobID     string
 	WalletJobID     string
+}
+
+type NodeWalletInfo struct {
+	NodeMode                 string
+	EthereumAddress          string
+	EthereumPrivateKey       string
+	VegaWalletPublicKey      string
+	VegaWalletRecoveryPhrase string
+}
+
+type NodeWallets struct {
+	Wallets []NodeWalletInfo
 }
 
 const (

@@ -18,6 +18,7 @@ import (
 	"code.vegaprotocol.io/shared/paths"
 	vgconfig "code.vegaprotocol.io/vega/config"
 	"code.vegaprotocol.io/vegacapsule/config"
+	"code.vegaprotocol.io/vegacapsule/ethereum"
 	"code.vegaprotocol.io/vegacapsule/types"
 )
 
@@ -79,6 +80,9 @@ func (vg ConfigGenerator) Initiate(index int, mode, tendermintHome, nodeWalletPa
 	initNode := &types.VegaNode{
 		HomeDir:                nodeDir,
 		NodeWalletPassFilePath: nodeWalletPassFilePath,
+		NodeWalletInfo: types.NodeWalletInfo{
+			NodeMode: types.NodeModeFull,
+		},
 	}
 
 	if mode != types.NodeModeValidator {
@@ -86,49 +90,69 @@ func (vg ConfigGenerator) Initiate(index int, mode, tendermintHome, nodeWalletPa
 		return initNode, nil
 	}
 
-	if err := vg.initiateValidatorWallets(nodeDir, tendermintHome, vegaWalletPass, ethereumWalletPass, nodeWalletPassFilePath); err != nil {
+	nodeWalletInfo, err := vg.initiateValidatorWallets(nodeDir, tendermintHome, vegaWalletPass, ethereumWalletPass, nodeWalletPassFilePath)
+	if err != nil {
 		return nil, err
 	}
+	initNode.NodeWalletInfo = *nodeWalletInfo
 
 	log.Printf("vega config initialized for node %q with id %d, paths: %#v", mode, index, initOut.ConfigFilePath)
 
 	return initNode, nil
 }
 
-func (vg ConfigGenerator) initiateValidatorWallets(nodeDir, tendermintHome, vegaWalletPass, ethereumWalletPass, nodeWalletPassFilePath string) error {
+func (vg ConfigGenerator) initiateValidatorWallets(nodeDir, tendermintHome, vegaWalletPass, ethereumWalletPass, nodeWalletPassFilePath string) (*types.NodeWalletInfo, error) {
 	walletPassFilePath := path.Join(nodeDir, "vega-wallet-pass.txt")
 	ethereumPassFilePath := path.Join(nodeDir, "ethereum-vega-wallet-pass.txt")
 
 	if err := ioutil.WriteFile(walletPassFilePath, []byte(vegaWalletPass), 0644); err != nil {
-		return fmt.Errorf("failed to write wallet passphrase to file: %w", err)
+		return nil, fmt.Errorf("failed to write wallet passphrase to file: %w", err)
 	}
 
 	if err := ioutil.WriteFile(ethereumPassFilePath, []byte(ethereumWalletPass), 0644); err != nil {
-		return fmt.Errorf("failed to write ethereum wallet passphrase to file: %w", err)
+		return nil, fmt.Errorf("failed to write ethereum wallet passphrase to file: %w", err)
 	}
 
-	vegaOut, err := vg.generateNodeWallet(nodeDir, nodeWalletPassFilePath, walletPassFilePath, types.NodeWalletChainTypeVega)
+	vegaOut, err := vg.createWallet(nodeDir, "created-wallet", walletPassFilePath)
 	if err != nil {
-		return fmt.Errorf("failed to generate vega wallet: %w", err)
+		return nil, fmt.Errorf("failed to create vega wallet: %w", err)
+	}
+	log.Printf("node wallet create out: %#v", vegaOut)
+
+	vegaImportOut, err := vg.importVegaNodeWallet(nodeDir, nodeWalletPassFilePath, walletPassFilePath, vegaOut.Wallet.FilePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate vega wallet: %w", err)
 	}
 
-	log.Printf("node wallet out: %#v", vegaOut)
+	log.Printf("node wallet import out: %#v", vegaImportOut)
 
 	ethOut, err := vg.generateNodeWallet(nodeDir, nodeWalletPassFilePath, ethereumPassFilePath, types.NodeWalletChainTypeEthereum)
 	if err != nil {
-		return fmt.Errorf("failed to generate vega wallet: %w", err)
+		return nil, fmt.Errorf("failed to generate vega wallet: %w", err)
+	}
+	log.Printf("ethereum wallet out: %#v", ethOut)
+
+	ethKey, err := ethereum.DescribeKeystore(ethOut.WalletFilePath, ethereumWalletPass)
+	if err != nil {
+		return nil, fmt.Errorf("failed to obtain thereum address for the wallet '%s': %w", ethOut.WalletFilePath, err)
 	}
 
-	log.Printf("ethereum wallet out: %#v", ethOut)
+	result := &types.NodeWalletInfo{
+		NodeMode:                 types.NodeModeValidator,
+		VegaWalletRecoveryPhrase: vegaOut.Wallet.RecoveryPhrase,
+		VegaWalletPublicKey:      vegaOut.Key.Public,
+		EthereumAddress:          ethKey.Address,
+		EthereumPrivateKey:       ethKey.PrivateKey,
+	}
 
 	tmtOut, err := vg.importTendermintNodeWallet(nodeDir, nodeWalletPassFilePath, tendermintHome)
 	if err != nil {
-		return fmt.Errorf("failed to generate tenderming wallet: %w", err)
+		return nil, fmt.Errorf("failed to generate tenderming wallet: %w", err)
 	}
 
 	log.Printf("tendermint wallet out: %#v", tmtOut)
 
-	return nil
+	return result, nil
 }
 
 func (vg ConfigGenerator) OverwriteConfig(index int, mode string, fc *types.Faucet, configTemplate *template.Template) error {
