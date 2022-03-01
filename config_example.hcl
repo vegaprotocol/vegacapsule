@@ -1,10 +1,10 @@
-output_dir             = "/Users/karelmoravec/vega/vegacapsule/testnet"
+output_dir             = "./testnet"
 prefix                 = "st-local"
 node_dir_prefix        = "node"
 tendermint_node_prefix = "tendermint"
 vega_node_prefix       = "vega"
 data_node_prefix       = "data"
-vega_binary_path       = "/Users/karelmoravec/go/bin/vega"
+vega_binary_path       = "vega"
 
 network "testnet" {
   ethereum {
@@ -331,7 +331,7 @@ EOT
   node_set "full" {
     count = 1
     mode = "full"
-	data_node_binary = "/Users/karelmoravec/go/bin/data-node"
+	data_node_binary = "data-node"
 
     config_templates {
 

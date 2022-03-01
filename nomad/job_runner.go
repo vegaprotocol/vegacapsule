@@ -1,4 +1,4 @@
-package runner
+package nomad
 
 import (
 	"context"
@@ -6,35 +6,23 @@ import (
 	"sync"
 
 	"code.vegaprotocol.io/vegacapsule/config"
-	"code.vegaprotocol.io/vegacapsule/runner/nomad"
 	"code.vegaprotocol.io/vegacapsule/types"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/hashicorp/nomad/api"
 )
 
-var (
-	dockerGanacheImage    = "trufflesuite/ganache-cli:v6.12.2"
-	dockerVegaImage       = "ghcr.io/vegaprotocol/vega/vega:$vega_version"
-	dockerVegawalletImage = "vegaprotocol/vegawallet:$vegawallet_version"
-	dockerDatanodeImage   = "ghcr.io/vegaprotocol/data-node/data-node:$datanode_version"
-	dockerVegatoolsImage  = "vegaprotocol/vegatools:$vegatools_version"
-	dockerClefImage       = "ghcr.io/vegaprotocol/devops-infra/clef:latest"
-)
-
-type Runner struct {
-	nomad              *nomad.NomadRunner
-	vegaNetworkJobName string
+type JobRunner struct {
+	client *Client
 }
 
-func New(n *nomad.NomadRunner) *Runner {
-	return &Runner{
-		nomad:              n,
-		vegaNetworkJobName: fmt.Sprintf("test-vega-network-%d", 1),
+func NewJobRunner(c *Client) *JobRunner {
+	return &JobRunner{
+		client: c,
 	}
 }
 
-func (r *Runner) runDockerJob(ctx context.Context, conf config.DockerConfig) (*api.Job, error) {
+func (r *JobRunner) runDockerJob(ctx context.Context, conf config.DockerConfig) (*api.Job, error) {
 	j := &api.Job{
 		ID:          &conf.Name,
 		Datacenters: []string{"dc1"},
@@ -72,14 +60,14 @@ func (r *Runner) runDockerJob(ctx context.Context, conf config.DockerConfig) (*a
 		},
 	}
 
-	if err := r.nomad.RunAndWait(ctx, *j); err != nil {
+	if err := r.client.RunAndWait(ctx, *j); err != nil {
 		return nil, fmt.Errorf("failed to run nomad docker job: %w", err)
 	}
 
 	return j, nil
 }
 
-func (r *Runner) runNodeSets(ctx context.Context, conf *config.Config, nodeSets []types.NodeSet) ([]api.Job, error) {
+func (r *JobRunner) runNodeSets(ctx context.Context, conf *config.Config, nodeSets []types.NodeSet) ([]api.Job, error) {
 	jobs := make([]api.Job, 0, len(nodeSets))
 
 	for i, ns := range nodeSets {
@@ -156,7 +144,7 @@ func (r *Runner) runNodeSets(ctx context.Context, conf *config.Config, nodeSets 
 	for _, j := range jobs {
 		j := j
 		eg.Go(func() error {
-			return r.nomad.RunAndWait(ctx, j)
+			return r.client.RunAndWait(ctx, j)
 		})
 	}
 
@@ -167,7 +155,7 @@ func (r *Runner) runNodeSets(ctx context.Context, conf *config.Config, nodeSets 
 	return jobs, nil
 }
 
-func (r *Runner) runWallet(ctx context.Context, conf *config.WalletConfig, wallet *types.Wallet) (*api.Job, error) {
+func (r *JobRunner) runWallet(ctx context.Context, conf *config.WalletConfig, wallet *types.Wallet) (*api.Job, error) {
 	j := &api.Job{
 		ID:          &conf.Name,
 		Datacenters: []string{"dc1"},
@@ -203,14 +191,14 @@ func (r *Runner) runWallet(ctx context.Context, conf *config.WalletConfig, walle
 		},
 	}
 
-	if err := r.nomad.RunAndWait(ctx, *j); err != nil {
+	if err := r.client.RunAndWait(ctx, *j); err != nil {
 		return nil, fmt.Errorf("failed to run the wallet job: %w", err)
 	}
 
 	return j, nil
 }
 
-func (r *Runner) runFaucet(ctx context.Context, binary string, conf *config.FaucetConfig, fc *types.Faucet) (*api.Job, error) {
+func (r *JobRunner) runFaucet(ctx context.Context, binary string, conf *config.FaucetConfig, fc *types.Faucet) (*api.Job, error) {
 	j := &api.Job{
 		ID:          &conf.Name,
 		Datacenters: []string{"dc1"},
@@ -244,14 +232,14 @@ func (r *Runner) runFaucet(ctx context.Context, binary string, conf *config.Fauc
 		},
 	}
 
-	if err := r.nomad.RunAndWait(ctx, *j); err != nil {
+	if err := r.client.RunAndWait(ctx, *j); err != nil {
 		return nil, fmt.Errorf("failed to wait for faucet job: %w", err)
 	}
 
 	return j, nil
 }
 
-func (r *Runner) StartNetwork(gCtx context.Context, conf *config.Config, generatedSvcs *types.GeneratedServices) (*types.NetworkJobs, error) {
+func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, generatedSvcs *types.GeneratedServices) (*types.NetworkJobs, error) {
 	g, ctx := errgroup.WithContext(gCtx)
 	result := &types.NetworkJobs{}
 	var lock sync.Mutex
@@ -329,7 +317,7 @@ func (r *Runner) StartNetwork(gCtx context.Context, conf *config.Config, generat
 	return result, nil
 }
 
-func (r *Runner) StopNetwork(ctx context.Context, jobs *types.NetworkJobs) error {
+func (r *JobRunner) StopNetwork(ctx context.Context, jobs *types.NetworkJobs) error {
 	// no jobs, no network started
 	if jobs == nil {
 		return nil
@@ -346,7 +334,7 @@ func (r *Runner) StopNetwork(ctx context.Context, jobs *types.NetworkJobs) error
 		jobName := jobName
 
 		g.Go(func() error {
-			if _, err := r.nomad.Stop(ctx, jobName, true); err != nil {
+			if _, err := r.client.Stop(ctx, jobName, true); err != nil {
 				return fmt.Errorf("cannot stop nomad job \"%s\": %w", jobName, err)
 			}
 			return nil

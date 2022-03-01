@@ -10,8 +10,7 @@ import (
 
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/generator"
-	"code.vegaprotocol.io/vegacapsule/runner"
-	"code.vegaprotocol.io/vegacapsule/runner/nomad"
+	"code.vegaprotocol.io/vegacapsule/nomad"
 	"code.vegaprotocol.io/vegacapsule/state"
 	"code.vegaprotocol.io/vegacapsule/utils"
 )
@@ -57,14 +56,14 @@ func start(ctx context.Context, state state.NetworkState) (*state.NetworkState, 
 		return nil, fmt.Errorf("failed to start network: network is not bootstrapped")
 	}
 
-	nomadRunner, err := nomad.New(nil)
+	nomadClient, err := nomad.NewClient(nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to start the network: %w", err)
+		return nil, fmt.Errorf("failed to create nomad client: %w", err)
 	}
 
-	runner := runner.New(nomadRunner)
+	nomadRunner := nomad.NewJobRunner(nomadClient)
 
-	res, err := runner.StartNetwork(ctx, state.Config, state.GeneratedServices)
+	res, err := nomadRunner.StartNetwork(ctx, state.Config, state.GeneratedServices)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start nomad network: %s", err)
 	}
@@ -75,7 +74,7 @@ func start(ctx context.Context, state state.NetworkState) (*state.NetworkState, 
 }
 
 func bootstrap(ctx context.Context, state state.NetworkState, force bool) (*state.NetworkState, error) {
-	log.Println("starting network")
+	log.Println("bootstraping network")
 
 	updatedState, err := generate(state, force)
 	if err != nil {
@@ -90,24 +89,25 @@ func bootstrap(ctx context.Context, state state.NetworkState, force bool) (*stat
 	return updatedState, nil
 }
 
-func stop(ctx context.Context, state *state.NetworkState) {
+func stop(ctx context.Context, state *state.NetworkState) error {
 	log.Println("stopping network")
 	if state.Empty() {
 		log.Fatalf("cannot stop network: network is not bootstrapped")
 	}
 
-	nomadRunner, err := nomad.New(nil)
+	nomadClient, err := nomad.NewClient(nil)
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("failed to create nomad client: %w", err)
 	}
 
-	runner := runner.New(nomadRunner)
+	nomadRunner := nomad.NewJobRunner(nomadClient)
 
-	if err := runner.StopNetwork(ctx, state.RunningJobs); err != nil {
-		log.Fatalf("failed to stop nomad network: %s", err)
+	if err := nomadRunner.StopNetwork(ctx, state.RunningJobs); err != nil {
+		return fmt.Errorf("failed to stop nomad network: %w", err)
 	}
 
 	log.Println("stopping network success")
+	return nil
 }
 
 func cleanup(outputDir string) {
@@ -174,7 +174,7 @@ func main() {
 
 		networkState, err := state.LoadNetworkState(*networkHomePath)
 		if err != nil {
-			log.Fatalf("failed to %s network: %s", subcommand, err)
+			log.Fatalf("Failed to %s network: %s", subcommand, err)
 		}
 
 		if networkState.Empty() {
@@ -190,10 +190,18 @@ func main() {
 				log.Fatalf("cannot persist network state: %s", err)
 			}
 		} else if subcommand == "stop" {
-			stop(ctx, networkState)
+			if err := stop(ctx, networkState); err != nil {
+				log.Fatal(err)
+			}
 		} else {
-			stop(ctx, networkState)
+			if err := stop(ctx, networkState); err != nil {
+				log.Fatal(err)
+			}
 			cleanup(*networkHomePath)
+		}
+	case "nomad":
+		if err := nomad.StartAgent(); err != nil {
+			log.Fatal(err)
 		}
 	default:
 		log.Printf("unknown subcommand %s: expected 'generate'|'bootstrap'|'start'|'stop'|'destroy' subcommands", subcommand)

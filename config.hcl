@@ -372,7 +372,7 @@ EOT
   node_set "full" {
     count = 1
     mode = "full"
-	  data_node_binary = "vegawallet"
+	  data_node_binary = "data-node"
 
     config_templates {
 

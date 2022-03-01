@@ -1,5 +1,5 @@
-output_dir             = "/Users/karelmoravec/vega/vegacapsule/testnet"
-vega_binary_path       = "/Users/karelmoravec/go/bin/vega"
+output_dir             = "./testnet"
+vega_binary_path       = "vega"
 prefix                 = "st-local"
 node_dir_prefix        = "node"
 tendermint_node_prefix = "tendermint"
