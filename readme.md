@@ -1,6 +1,50 @@
 # Vegacapsule
 
+## Quick start
+
+### Pre-start
+1. Make sure Docker is running on your machine
+```bash
+docker version
+```
+2. Run `docker login` to authenticate with private package repository on Github. Github token should be used.
+```bash
+cat PATH_TO_YOUR_TOKEN | docker login https://docker.pkg.github.com -u "YOUR_USER_NAME" --password-stdin
+```
+3. Test that docker login worked by running
+```bash
+docker pull ghcr.io/vegaprotocol/devops-infra/ganache:latest
+```
+
+### Start
+
+1. Clone repository
+```bash
+git clone git@github.com:vegaprotocol/vegacapsule.git
+cd vegacapsule
+```
+2. Build vega capsule from source
+```bash
+go install
+```
+3. Start nomad
+```bash
+vegacapsule nomad
+```
+
+4. A) **For M1 users only**!
+> Please locate `docker_service "ganache-1"` block in `config.hcl` file and replace image parameter from `ghcr.io/vegaprotocol/devops-infra/ganache:latest` to `ghcr.io/vegaprotocol/devops-infra/ganache:arm64-latest`
+
+
+4. B) In another Terminal window run bootstrap command to generate and start new network
+```bash
+vegacapsule bootstrap -config-path=config.hcl
+```
+5. Check Nomad console by opening http://localhost:4646/
+
 ## Commands
+
+### Commands to control network
 
 To generate network configuration files, use one of the following commands:
 
@@ -17,19 +61,27 @@ All below commands require generated network configuration. If configuration fil
 
 ```bash
 # Generate the network config files
-./capsule generate -config-path=config.hcl
+vegacapsule generate -config-path=config.hcl
 
 # Starts the network
-./capsule start [-home-path=/var/tmp/veganetwork/testnetwork]
+vegacapsule start -home-path=/var/tmp/veganetwork/testnetwork
 
 # Stop the network
-./capsule stop [-home-path=/var/tmp/veganetwork/testnetwork]
+vegacapsule stop -home-path=/var/tmp/veganetwork/testnetwork
 
 # Resume the network with previous configurationh
-./capsule start [-home-path=/var/tmp/veganetwork/testnetwork]
+vegacapsule start -home-path=/var/tmp/veganetwork/testnetwork
 
 # Destroy the network
-./capsule destroy [-home-path=/var/tmp/veganetwork/testnetwork]
+vegacapsule destroy -home-path=/var/tmp/veganetwork/testnetwork
+```
+
+### Commands to run nomad
+
+- `nomad` - starts (and installs) simple nomad agent to be run locally in `dev` mode.
+
+```bash
+vegacapsule nomad
 ```
 
 

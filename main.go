@@ -205,7 +205,7 @@ func main() {
 			log.Fatal(err)
 		}
 	default:
-		log.Printf("unknown subcommand %s: expected 'generate'|'bootstrap'|'start'|'stop'|'destroy' subcommands", subcommand)
+		log.Printf("unknown subcommand %s: expected 'generate'|'bootstrap'|'start'|'stop'|'destroy'|'nomad' subcommands", subcommand)
 		os.Exit(1)
 	}
 }
