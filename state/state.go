@@ -31,6 +31,19 @@ func (ns NetworkState) Perist() error {
 	return ioutil.WriteFile(stateFilePath(ns.Config.OutputDir), networkBytes, 0644)
 }
 
+func (ns NetworkState) ListValidators() []types.VegaNode {
+	var validators []types.VegaNode
+
+	for _, nodeSet := range ns.GeneratedServices.NodeSets {
+		if nodeSet.Mode != types.NodeModeValidator {
+			continue
+		}
+		validators = append(validators, nodeSet.Vega)
+	}
+
+	return validators
+}
+
 func LoadNetworkState(networkDir string) (*NetworkState, error) {
 	statePath := stateFilePath(networkDir)
 	configExists, err := utils.FileExists(statePath)

@@ -200,10 +200,6 @@ func (g *Generator) Generate() (*types.GeneratedServices, error) {
 		wl = initWallet
 	}
 
-	if err := g.persistNodesWalletsInfo(g.conf.OutputDir, ns.validators, ns.nonValidators); err != nil {
-		return nil, fmt.Errorf("failed to write wallets info: %w", err)
-	}
-
 	return &types.GeneratedServices{
 		Wallet:   wl,
 		Faucet:   fc,

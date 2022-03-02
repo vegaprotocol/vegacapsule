@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
@@ -204,8 +205,26 @@ func main() {
 		if err := nmrunner.StartAgent(*configFilePath); err != nil {
 			log.Fatal(err)
 		}
+	case "list-validators":
+		networkState, err := state.LoadNetworkState(*networkHomePath)
+		if err != nil {
+			log.Fatalf("Failed list validators: %s", err)
+		}
+
+		if networkState.Empty() {
+			log.Fatalf("Failed list validators: network not bootstrapped. Use the 'bootstrap' subcommand or provide different network home with the `-home-path` flag")
+		}
+
+		validators := networkState.ListValidators()
+
+		validatorsJson, err := json.MarshalIndent(validators, "", "\t")
+		if err != nil {
+			log.Fatalf("failed to marshal validators info: %s", err.Error())
+		}
+
+		fmt.Println(string(validatorsJson))
 	default:
-		log.Printf("unknown subcommand %s: expected 'generate'|'bootstrap'|'start'|'stop'|'destroy'|'nomad' subcommands", subcommand)
+		log.Printf("unknown subcommand %s: expected 'generate'|'bootstrap'|'start'|'stop'|'destroy'|'nomad'|'list-validators' subcommands", subcommand)
 		os.Exit(1)
 	}
 }

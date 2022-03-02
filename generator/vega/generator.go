@@ -78,11 +78,9 @@ func (vg ConfigGenerator) Initiate(index int, mode, tendermintHome, nodeWalletPa
 	}
 
 	initNode := &types.VegaNode{
+		Mode:                   mode,
 		HomeDir:                nodeDir,
 		NodeWalletPassFilePath: nodeWalletPassFilePath,
-		NodeWalletInfo: types.NodeWalletInfo{
-			NodeMode: types.NodeModeFull,
-		},
 	}
 
 	if mode != types.NodeModeValidator {
@@ -94,7 +92,7 @@ func (vg ConfigGenerator) Initiate(index int, mode, tendermintHome, nodeWalletPa
 	if err != nil {
 		return nil, err
 	}
-	initNode.NodeWalletInfo = *nodeWalletInfo
+	initNode.NodeWalletInfo = nodeWalletInfo
 
 	log.Printf("vega config initialized for node %q with id %d, paths: %#v", mode, index, initOut.ConfigFilePath)
 
@@ -121,28 +119,19 @@ func (vg ConfigGenerator) initiateValidatorWallets(nodeDir, tendermintHome, vega
 
 	vegaImportOut, err := vg.importVegaNodeWallet(nodeDir, nodeWalletPassFilePath, walletPassFilePath, vegaOut.Wallet.FilePath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate vega wallet: %w", err)
+		return nil, fmt.Errorf("failed to import vega wallet: %w", err)
 	}
-
 	log.Printf("node wallet import out: %#v", vegaImportOut)
 
 	ethOut, err := vg.generateNodeWallet(nodeDir, nodeWalletPassFilePath, ethereumPassFilePath, types.NodeWalletChainTypeEthereum)
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate vega wallet: %w", err)
+		return nil, fmt.Errorf("failed to generate %q wallet: %w", types.NodeWalletChainTypeEthereum, err)
 	}
 	log.Printf("ethereum wallet out: %#v", ethOut)
 
 	ethKey, err := ethereum.DescribeKeystore(ethOut.WalletFilePath, ethereumWalletPass)
 	if err != nil {
 		return nil, fmt.Errorf("failed to obtain thereum address for the wallet '%s': %w", ethOut.WalletFilePath, err)
-	}
-
-	result := &types.NodeWalletInfo{
-		NodeMode:                 types.NodeModeValidator,
-		VegaWalletRecoveryPhrase: vegaOut.Wallet.RecoveryPhrase,
-		VegaWalletPublicKey:      vegaOut.Key.Public,
-		EthereumAddress:          ethKey.Address,
-		EthereumPrivateKey:       ethKey.PrivateKey,
 	}
 
 	tmtOut, err := vg.importTendermintNodeWallet(nodeDir, nodeWalletPassFilePath, tendermintHome)
@@ -152,7 +141,12 @@ func (vg ConfigGenerator) initiateValidatorWallets(nodeDir, tendermintHome, vega
 
 	log.Printf("tendermint wallet out: %#v", tmtOut)
 
-	return result, nil
+	return &types.NodeWalletInfo{
+		VegaWalletRecoveryPhrase: vegaOut.Wallet.RecoveryPhrase,
+		VegaWalletPublicKey:      vegaOut.Key.Public,
+		EthereumAddress:          ethKey.Address,
+		EthereumPrivateKey:       ethKey.PrivateKey,
+	}, nil
 }
 
 func (vg ConfigGenerator) OverwriteConfig(index int, mode string, fc *types.Faucet, configTemplate *template.Template) error {
