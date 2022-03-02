@@ -31,16 +31,4 @@ func DescribeKeystore(keyFilePath, password string) (*KeyStoreDetails, error) {
 		Address:    key.Address.Hex(),
 		PrivateKey: hexutil.Encode(privateKeyBytes)[2:],
 	}, nil
-
-	// fmt.Printf("\naddress :\t %x", key.Address)
-	// fmt.Printf("\n*** Key : \t %x", hexutil.Encode(privateKeyBytes)[2:])
-
-	// keyFileDirPath := filepath.Dir(keyFilePath)
-	// ks := keystore.NewKeyStore(keyFileDirPath, keystore.StandardScryptN, keystore.StandardScryptP)
-	// accounts := ks.Accounts()
-	// if len(accounts) < 1 {
-	// 	return "", fmt.Errorf("failed to get account address from keystore: no accounts in the wallet")
-	// }
-
-	// return accounts[0].Address.Hex(), nil
 }
