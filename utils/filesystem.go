@@ -6,6 +6,15 @@ import (
 	"path/filepath"
 )
 
+func CapsuleHome() (string, error) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.Join(homeDir, ".vegacapsule"), nil
+}
+
 func FileExists(name string) (bool, error) {
 	_, err := os.Stat(name)
 	if err == nil {

@@ -42,7 +42,7 @@ func NewGenerator(conf *config.Config) (*Generator, error) {
 	}
 
 	return &Generator{
-		vegaBinary:  conf.VegaBinary,
+		vegaBinary:  *conf.VegaBinary,
 		template:    tpl,
 		templateCtx: templateContext,
 	}, nil

@@ -24,7 +24,7 @@ func (cg ConfigGenerator) initiateFaucet(homePath string, phraseFile string) (*i
 	log.Printf("Initiating faucet with: %s %v", cg.conf.VegaBinary, args)
 
 	out := &initFaucetOutput{}
-	if _, err := utils.ExecuteBinary(cg.conf.VegaBinary, args, out); err != nil {
+	if _, err := utils.ExecuteBinary(*cg.conf.VegaBinary, args, out); err != nil {
 		return nil, err
 	}
 

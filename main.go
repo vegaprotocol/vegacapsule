@@ -2,32 +2,36 @@ package main
 
 import (
 	"context"
+<<<<<<< HEAD
 	"encoding/json"
+=======
+	"errors"
+>>>>>>> create default config && add simple add-validator func skeleton
 	"flag"
 	"fmt"
 	"log"
 	"os"
-	"os/user"
 
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/generator"
 	"code.vegaprotocol.io/vegacapsule/nomad"
 	nmrunner "code.vegaprotocol.io/vegacapsule/nomad/runner"
 	"code.vegaprotocol.io/vegacapsule/state"
+	"code.vegaprotocol.io/vegacapsule/types"
 	"code.vegaprotocol.io/vegacapsule/utils"
 )
 
 func generate(state state.NetworkState, force bool) (*state.NetworkState, error) {
 	if force {
-		if err := os.RemoveAll(state.Config.OutputDir); err != nil {
+		if err := os.RemoveAll(*state.Config.OutputDir); err != nil {
 			return nil, fmt.Errorf("failed to remove output folder with --force flag: %w", err)
 		}
 	} else if state.GeneratedServices != nil {
 		return nil, fmt.Errorf("failed to generate network: network is already generated")
 	}
 
-	if netDirExists, _ := utils.FileExists(state.Config.OutputDir); netDirExists {
-		return nil, fmt.Errorf("output directory %q already exist", state.Config.OutputDir)
+	if netDirExists, _ := utils.FileExists(*state.Config.OutputDir); netDirExists {
+		return nil, fmt.Errorf("output directory %q already exist", *state.Config.OutputDir)
 	}
 
 	log.Println("generating network")
@@ -43,7 +47,7 @@ func generate(state state.NetworkState, force bool) (*state.NetworkState, error)
 	}
 
 	if err := state.Config.Persist(); err != nil {
-		return nil, fmt.Errorf("failed to persist config in output directory %s: %w", state.Config.OutputDir, err)
+		return nil, fmt.Errorf("failed to persist config in output directory %s: %w", *state.Config.OutputDir, err)
 	}
 
 	log.Println("generating network success")
@@ -122,17 +126,38 @@ func cleanup(outputDir string) {
 	log.Println("network cleaning up success")
 }
 
+func addValidator(state state.NetworkState) error {
+	gen, err := generator.New(state.Config)
+	if err != nil {
+		return err
+	}
+
+	for _, ns := range state.GeneratedServices.NodeSets {
+		if ns.Mode == types.NodeModeValidator {
+			return gen.AddValidator(len(state.GeneratedServices.NodeSets), ns)
+		}
+	}
+
+	return errors.New("no validator found")
+}
+
 func main() {
 	if len(os.Args) < 2 {
 		fmt.Println("expected 'generate'|'bootstrap'|'start'|'stop'|'destroy' subcommands")
 		os.Exit(1)
 	}
 
+	homePath, err := config.DefaultNetworkHome()
+	if err != nil {
+		log.Fatalf("Failed to get default network home: %s", err.Error())
+	}
+
 	subcommand := os.Args[1]
 	command := flag.NewFlagSet("main", flag.ExitOnError)
 	configFilePath := command.String("config-path", "", "enable")
 	force := command.Bool("force", false, "enable")
-	networkHomePath := command.String("home-path", defaultNetworkHome(), "enable")
+	networkHomePath := command.String("home-path", homePath, "enable")
+	// validatoSetName := command.String("name", homePath, "enable")
 
 	if err := command.Parse(os.Args[2:]); err != nil {
 		log.Fatal(err)
@@ -150,7 +175,7 @@ func main() {
 			log.Fatal(err)
 		}
 
-		networkState, err := state.LoadNetworkState(conf.OutputDir)
+		networkState, err := state.LoadNetworkState(*conf.OutputDir)
 		if err != nil {
 			log.Fatalf("cannot load network state: %s", err)
 		}
@@ -223,18 +248,21 @@ func main() {
 		}
 
 		fmt.Println(string(validatorsJson))
+	case "add-validator-set":
+		networkState, err := state.LoadNetworkState(*networkHomePath)
+		if err != nil {
+			log.Fatalf("Failed to %s network: %s", subcommand, err)
+		}
+
+		if networkState.Empty() {
+			log.Fatalf("Failed to %s network: network not bootstrapped. Use the 'bootstrap' subcommand or provide different network home with the `-home-path` flag", subcommand)
+		}
+
+		if err := addValidator(*networkState); err != nil {
+			log.Fatal(err)
+		}
 	default:
-		log.Printf("unknown subcommand %s: expected 'generate'|'bootstrap'|'start'|'stop'|'destroy'|'nomad'|'list-validators' subcommands", subcommand)
+		log.Printf("unknown subcommand %s: expected 'generate'|'bootstrap'|'start'|'stop'|'destroy'|'nomad'|'add-validator-set' subcommands", subcommand)
 		os.Exit(1)
 	}
-}
-
-// TODO: This will be replaced during CLI refactor
-func defaultNetworkHome() string {
-	user, err := user.Current()
-	if err != nil {
-		return ""
-	}
-
-	return fmt.Sprintf("%s/%s", user.HomeDir, "vega/vegacapsule/testnet")
 }

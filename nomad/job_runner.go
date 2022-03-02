@@ -7,6 +7,7 @@ import (
 
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/types"
+	"code.vegaprotocol.io/vegacapsule/utils"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/hashicorp/nomad/api"
@@ -29,8 +30,8 @@ func (r *JobRunner) runDockerJob(ctx context.Context, conf config.DockerConfig) 
 		TaskGroups: []*api.TaskGroup{
 			{
 				RestartPolicy: &api.RestartPolicy{
-					Attempts: intPoint(0),
-					Mode:     strPoint("fail"),
+					Attempts: utils.IntPoint(0),
+					Mode:     utils.StrPoint("fail"),
 				},
 				Name: &conf.Name,
 				Tasks: []*api.Task{
@@ -85,8 +86,8 @@ func (r *JobRunner) runNodeSets(ctx context.Context, conf *config.Config, nodeSe
 					},
 				},
 				Resources: &api.Resources{
-					CPU:      intPoint(500),
-					MemoryMB: intPoint(512),
+					CPU:      utils.IntPoint(500),
+					MemoryMB: utils.IntPoint(512),
 				},
 			},
 			&api.Task{
@@ -101,8 +102,8 @@ func (r *JobRunner) runNodeSets(ctx context.Context, conf *config.Config, nodeSe
 					},
 				},
 				Resources: &api.Resources{
-					CPU:      intPoint(500),
-					MemoryMB: intPoint(512),
+					CPU:      utils.IntPoint(500),
+					MemoryMB: utils.IntPoint(512),
 				},
 			})
 
@@ -118,22 +119,22 @@ func (r *JobRunner) runNodeSets(ctx context.Context, conf *config.Config, nodeSe
 					},
 				},
 				Resources: &api.Resources{
-					CPU:      intPoint(500),
-					MemoryMB: intPoint(512),
+					CPU:      utils.IntPoint(500),
+					MemoryMB: utils.IntPoint(512),
 				},
 			})
 		}
 
 		jobs = append(jobs, api.Job{
-			ID:          strPoint(fmt.Sprintf("nodeset-%s-%d", ns.Mode, i)),
+			ID:          utils.StrPoint(fmt.Sprintf("nodeset-%s-%d", ns.Mode, i)),
 			Datacenters: []string{"dc1"},
 			TaskGroups: []*api.TaskGroup{
 				{
 					RestartPolicy: &api.RestartPolicy{
-						Attempts: intPoint(0),
-						Mode:     strPoint("fail"),
+						Attempts: utils.IntPoint(0),
+						Mode:     utils.StrPoint("fail"),
 					},
-					Name:  strPoint("vega"),
+					Name:  utils.StrPoint("vega"),
 					Tasks: tasks,
 				},
 			},
@@ -162,10 +163,10 @@ func (r *JobRunner) runWallet(ctx context.Context, conf *config.WalletConfig, wa
 		TaskGroups: []*api.TaskGroup{
 			{
 				RestartPolicy: &api.RestartPolicy{
-					Attempts: intPoint(0),
-					Mode:     strPoint("fail"),
+					Attempts: utils.IntPoint(0),
+					Mode:     utils.StrPoint("fail"),
 				},
-				Name: strPoint("vega"),
+				Name: utils.StrPoint("vega"),
 				Tasks: []*api.Task{
 					{
 						Name:   "wallet-1",
@@ -182,8 +183,8 @@ func (r *JobRunner) runWallet(ctx context.Context, conf *config.WalletConfig, wa
 							},
 						},
 						Resources: &api.Resources{
-							CPU:      intPoint(500),
-							MemoryMB: intPoint(512),
+							CPU:      utils.IntPoint(500),
+							MemoryMB: utils.IntPoint(512),
 						},
 					},
 				},
@@ -205,8 +206,8 @@ func (r *JobRunner) runFaucet(ctx context.Context, binary string, conf *config.F
 		TaskGroups: []*api.TaskGroup{
 			{
 				RestartPolicy: &api.RestartPolicy{
-					Attempts: intPoint(0),
-					Mode:     strPoint("fail"),
+					Attempts: utils.IntPoint(0),
+					Mode:     utils.StrPoint("fail"),
 				},
 				Name: &conf.Name,
 				Tasks: []*api.Task{
@@ -223,8 +224,8 @@ func (r *JobRunner) runFaucet(ctx context.Context, binary string, conf *config.F
 							},
 						},
 						Resources: &api.Resources{
-							CPU:      intPoint(500),
-							MemoryMB: intPoint(512),
+							CPU:      utils.IntPoint(500),
+							MemoryMB: utils.IntPoint(512),
 						},
 					},
 				},
@@ -268,7 +269,7 @@ func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, gene
 	g, ctx = errgroup.WithContext(gCtx)
 	if generatedSvcs.Faucet != nil {
 		g.Go(func() error {
-			job, err := r.runFaucet(ctx, conf.VegaBinary, conf.Network.Faucet, generatedSvcs.Faucet)
+			job, err := r.runFaucet(ctx, *conf.VegaBinary, conf.Network.Faucet, generatedSvcs.Faucet)
 			if err != nil {
 				return fmt.Errorf("failed to run faucet: %w", err)
 			}
@@ -343,12 +344,4 @@ func (r *JobRunner) StopNetwork(ctx context.Context, jobs *types.NetworkJobs) er
 	}
 
 	return g.Wait()
-}
-
-func strPoint(s string) *string {
-	return &s
-}
-
-func intPoint(i int) *int {
-	return &i
 }

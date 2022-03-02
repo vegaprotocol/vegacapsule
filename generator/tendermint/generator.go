@@ -59,7 +59,7 @@ type ConfigGenerator struct {
 }
 
 func NewConfigGenerator(conf *config.Config) (*ConfigGenerator, error) {
-	homeDir, err := filepath.Abs(path.Join(conf.OutputDir, conf.TendermintNodePrefix))
+	homeDir, err := filepath.Abs(path.Join(*conf.OutputDir, *conf.TendermintNodePrefix))
 	if err != nil {
 		return nil, err
 	}
@@ -84,12 +84,12 @@ func (tg *ConfigGenerator) Initiate(index int, mode string) (*types.TendermintNo
 	}
 
 	if err := os.MkdirAll(filepath.Join(nodeDir, "config"), nodeDirPerm); err != nil {
-		_ = os.RemoveAll(tg.conf.OutputDir)
+		_ = os.RemoveAll(*tg.conf.OutputDir)
 		return nil, err
 	}
 
 	if err := os.MkdirAll(filepath.Join(nodeDir, "data"), nodeDirPerm); err != nil {
-		_ = os.RemoveAll(tg.conf.OutputDir)
+		_ = os.RemoveAll(*tg.conf.OutputDir)
 		return nil, err
 	}
 
@@ -97,7 +97,7 @@ func (tg *ConfigGenerator) Initiate(index int, mode string) (*types.TendermintNo
 
 	log.Printf("Initiating Tendermint node %q with: %s %v", mode, tg.conf.VegaBinary, args)
 
-	b, err := utils.ExecuteBinary(tg.conf.VegaBinary, args, nil)
+	b, err := utils.ExecuteBinary(*tg.conf.VegaBinary, args, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -152,9 +152,9 @@ func (tg *ConfigGenerator) OverwriteConfig(index int, configTemplate *template.T
 	}
 
 	templateCtx := ConfigTemplateContext{
-		Prefix:               tg.conf.Prefix,
-		TendermintNodePrefix: tg.conf.TendermintNodePrefix,
-		VegaNodePrefix:       tg.conf.VegaNodePrefix,
+		Prefix:               *tg.conf.Prefix,
+		TendermintNodePrefix: *tg.conf.TendermintNodePrefix,
+		VegaNodePrefix:       *tg.conf.VegaNodePrefix,
 		NodeNumber:           index,
 		NodesCount:           len(tg.nodeIDs),
 		NodeIDs:              tg.nodeIDs,
@@ -190,7 +190,7 @@ func (tg ConfigGenerator) GenesisValidators() []tmtypes.GenesisValidator {
 }
 
 func (tg ConfigGenerator) nodeDir(i int) string {
-	nodeDirName := fmt.Sprintf("%s%d", tg.conf.NodeDirPrefix, i)
+	nodeDirName := fmt.Sprintf("%s%d", *tg.conf.NodeDirPrefix, i)
 	return filepath.Join(tg.homeDir, nodeDirName)
 }
 

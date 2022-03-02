@@ -28,7 +28,7 @@ func (ns NetworkState) Perist() error {
 		return fmt.Errorf("cannot persist network state: %w", err)
 	}
 
-	return ioutil.WriteFile(stateFilePath(ns.Config.OutputDir), networkBytes, 0644)
+	return ioutil.WriteFile(stateFilePath(*ns.Config.OutputDir), networkBytes, 0644)
 }
 
 func (ns NetworkState) ListValidators() []types.VegaNode {

@@ -7,7 +7,10 @@ import (
 )
 
 func ParseConfig(conf []byte) (*Config, error) {
-	config := &Config{}
+	config, err := DefaultConfig()
+	if err != nil {
+		return nil, err
+	}
 	if err := hclsimple.Decode("config.hcl", conf, nil, config); err != nil {
 		return nil, fmt.Errorf("failed to load decode configuration: %w", err)
 	}
@@ -20,7 +23,10 @@ func ParseConfig(conf []byte) (*Config, error) {
 }
 
 func ParseConfigFile(filePath string) (*Config, error) {
-	config := &Config{}
+	config, err := DefaultConfig()
+	if err != nil {
+		return nil, err
+	}
 	if err := hclsimple.DecodeFile(filePath, nil, config); err != nil {
 		return nil, fmt.Errorf("failed to load configuration: %w", err)
 	}

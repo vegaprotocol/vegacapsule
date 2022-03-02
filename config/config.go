@@ -12,15 +12,15 @@ import (
 )
 
 type Config struct {
-	OutputDir            string        `hcl:"output_dir"`
-	VegaBinary           string        `hcl:"vega_binary_path"`
-	Prefix               string        `hcl:"prefix"`
-	NodeDirPrefix        string        `hcl:"node_dir_prefix"`
-	TendermintNodePrefix string        `hcl:"tendermint_node_prefix"`
-	VegaNodePrefix       string        `hcl:"vega_node_prefix"`
-	DataNodePrefix       string        `hcl:"data_node_prefix"`
-	WalletPrefix         string        `hcl:"wallet_prefix"`
-	FaucetPrefix         string        `hcl:"faucet_prefix"`
+	OutputDir            *string       `hcl:"output_dir"`
+	VegaBinary           *string       `hcl:"vega_binary_path"`
+	Prefix               *string       `hcl:"prefix"`
+	NodeDirPrefix        *string       `hcl:"node_dir_prefix"`
+	TendermintNodePrefix *string       `hcl:"tendermint_node_prefix"`
+	VegaNodePrefix       *string       `hcl:"vega_node_prefix"`
+	DataNodePrefix       *string       `hcl:"data_node_prefix"`
+	WalletPrefix         *string       `hcl:"wallet_prefix"`
+	FaucetPrefix         *string       `hcl:"faucet_prefix"`
 	Network              NetworkConfig `hcl:"network,block"`
 }
 
@@ -86,20 +86,20 @@ type TemplateConfig struct {
 
 func (c *Config) setAbsolutePaths() error {
 	// Output directory
-	if !filepath.IsAbs(c.OutputDir) {
-		absPath, err := filepath.Abs(c.OutputDir)
+	if !filepath.IsAbs(*c.OutputDir) {
+		absPath, err := filepath.Abs(*c.OutputDir)
 		if err != nil {
 			return fmt.Errorf("failed to get absolute path for outputDir: %w", err)
 		}
-		c.OutputDir = absPath
+		*c.OutputDir = absPath
 	}
 
 	// Vega binary
-	vegaBinPath, err := utils.BinaryAbsPath(c.VegaBinary)
+	vegaBinPath, err := utils.BinaryAbsPath(*c.VegaBinary)
 	if err != nil {
 		return err
 	}
-	c.VegaBinary = vegaBinPath
+	*c.VegaBinary = vegaBinPath
 
 	// Wallet binary
 	if c.Network.Wallet != nil {
@@ -137,5 +137,32 @@ func (c *Config) Validate() error {
 func (c *Config) Persist() error {
 	f := hclwrite.NewEmptyFile()
 	gohcl.EncodeIntoBody(*c, f.Body())
-	return ioutil.WriteFile(filepath.Join(c.OutputDir, "config.hcl"), f.Bytes(), 0644)
+	return ioutil.WriteFile(filepath.Join(*c.OutputDir, "config.hcl"), f.Bytes(), 0644)
+}
+
+func DefaultConfig() (*Config, error) {
+	outputDir, err := DefaultNetworkHome()
+	if err != nil {
+		return nil, err
+	}
+
+	return &Config{
+		OutputDir:            &outputDir,
+		Prefix:               utils.StrPoint("st-local"),
+		NodeDirPrefix:        utils.StrPoint("node"),
+		TendermintNodePrefix: utils.StrPoint("tendermint"),
+		VegaNodePrefix:       utils.StrPoint("vega"),
+		DataNodePrefix:       utils.StrPoint("data"),
+		WalletPrefix:         utils.StrPoint("wallet"),
+		FaucetPrefix:         utils.StrPoint("faucet"),
+	}, nil
+}
+
+func DefaultNetworkHome() (string, error) {
+	capsuleHome, err := utils.CapsuleHome()
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.Join(capsuleHome, "testnet"), nil
 }

@@ -48,7 +48,7 @@ type ConfigGenerator struct {
 }
 
 func NewConfigGenerator(conf *config.Config) (*ConfigGenerator, error) {
-	homeDir, err := filepath.Abs(path.Join(conf.OutputDir, conf.VegaNodePrefix))
+	homeDir, err := filepath.Abs(path.Join(*conf.OutputDir, *conf.VegaNodePrefix))
 	if err != nil {
 		return nil, err
 	}
@@ -151,10 +151,10 @@ func (vg ConfigGenerator) initiateValidatorWallets(nodeDir, tendermintHome, vega
 
 func (vg ConfigGenerator) OverwriteConfig(index int, mode string, fc *types.Faucet, configTemplate *template.Template) error {
 	templateCtx := ConfigTemplateContext{
-		Prefix:               vg.conf.Prefix,
-		TendermintNodePrefix: vg.conf.TendermintNodePrefix,
-		VegaNodePrefix:       vg.conf.VegaNodePrefix,
-		DataNodePrefix:       vg.conf.DataNodePrefix,
+		Prefix:               *vg.conf.Prefix,
+		TendermintNodePrefix: *vg.conf.TendermintNodePrefix,
+		VegaNodePrefix:       *vg.conf.VegaNodePrefix,
+		DataNodePrefix:       *vg.conf.DataNodePrefix,
 		ETHEndpoint:          vg.conf.Network.Ethereum.Endpoint,
 		NodeMode:             mode,
 		NodeNumber:           index,
