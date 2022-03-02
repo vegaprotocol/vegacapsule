@@ -129,7 +129,7 @@ func (vg ConfigGenerator) initiateValidatorWallets(nodeDir, tendermintHome, vega
 	}
 	log.Printf("ethereum wallet out: %#v", ethOut)
 
-	ethKey, err := ethereum.DescribeKeystore(ethOut.WalletFilePath, ethereumWalletPass)
+	ethKey, err := ethereum.DescribeKeyPair(ethOut.WalletFilePath, ethereumWalletPass)
 	if err != nil {
 		return nil, fmt.Errorf("failed to obtain thereum address for the wallet '%s': %w", ethOut.WalletFilePath, err)
 	}

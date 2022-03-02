@@ -9,12 +9,12 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
-type KeyStoreDetails struct {
+type KeyPair struct {
 	Address    string
 	PrivateKey string
 }
 
-func DescribeKeystore(keyFilePath, password string) (*KeyStoreDetails, error) {
+func DescribeKeyPair(keyFilePath, password string) (*KeyPair, error) {
 	keys, err := ioutil.ReadFile(keyFilePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read keystore file: %w", err)
@@ -27,7 +27,7 @@ func DescribeKeystore(keyFilePath, password string) (*KeyStoreDetails, error) {
 
 	privateKeyBytes := crypto.FromECDSA(key.PrivateKey)
 
-	return &KeyStoreDetails{
+	return &KeyPair{
 		Address:    key.Address.Hex(),
 		PrivateKey: hexutil.Encode(privateKeyBytes)[2:],
 	}, nil
