@@ -1,5 +1,5 @@
-output_dir             = "/Users/karelmoravec/vega/vegacapsule/testnet"
-vega_binary_path       = "/Users/karelmoravec/go/bin/vega"
+output_dir             = "./testnet"
+vega_binary_path       = "vega"
 prefix                 = "st-local"
 node_dir_prefix        = "node"
 tendermint_node_prefix = "tendermint"
@@ -9,9 +9,11 @@ wallet_prefix          = "wallet"
 faucet_prefix          = "faucet"
 
 network "testnet" {
-  chain_id          = "1440"
-  network_id        = "1441"
-  ethereum_endpoint = "http://127.0.0.1:8545/"
+  ethereum {
+    chain_id   = "1440"
+    network_id = "1441"
+    endpoint   = "http://127.0.0.1:8545/"
+  }
 
   pre_start {
     docker_service "ganache-1" {

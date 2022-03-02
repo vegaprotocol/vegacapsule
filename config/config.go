@@ -1,8 +1,11 @@
 package config
 
 import (
+	"fmt"
 	"io/ioutil"
 	"path/filepath"
+
+	"code.vegaprotocol.io/vegacapsule/utils"
 
 	"github.com/hashicorp/hcl/v2/gohcl"
 	"github.com/hashicorp/hcl/v2/hclwrite"
@@ -22,17 +25,21 @@ type Config struct {
 }
 
 type NetworkConfig struct {
-	Name             string        `hcl:"name,label"`
-	GenesisTemplate  string        `hcl:"genesis_template"`
-	ChainID          string        `hcl:"chain_id"`
-	NetworkID        string        `hcl:"network_id"`
-	EthereumEndpoint string        `hcl:"ethereum_endpoint"`
-	Wallet           *WalletConfig `hcl:"wallet,block"`
-	Faucet           *FaucetConfig `hcl:"faucet,block"`
+	Name            string         `hcl:"name,label"`
+	GenesisTemplate string         `hcl:"genesis_template"`
+	Ethereum        EthereumConfig `hcl:"ethereum,block"`
+	Wallet          *WalletConfig  `hcl:"wallet,block"`
+	Faucet          *FaucetConfig  `hcl:"faucet,block"`
 
 	PreStart *PrestartConfig `hcl:"pre_start,block"`
 
 	Nodes []NodeConfig `hcl:"node_set,block"`
+}
+
+type EthereumConfig struct {
+	ChainID   string `hcl:"chain_id"`
+	NetworkID string `hcl:"network_id"`
+	Endpoint  string `hcl:"endpoint"`
 }
 
 type PrestartConfig struct {
@@ -75,6 +82,56 @@ type TemplateConfig struct {
 	Vega       string `hcl:"vega"`
 	Tendermint string `hcl:"tendermint"`
 	DataNode   string `hcl:"data_node,optional"`
+}
+
+func (c *Config) setAbsolutePaths() error {
+	// Output directory
+	if !filepath.IsAbs(c.OutputDir) {
+		absPath, err := filepath.Abs(c.OutputDir)
+		if err != nil {
+			return fmt.Errorf("failed to get absolute path for outputDir: %w", err)
+		}
+		c.OutputDir = absPath
+	}
+
+	// Vega binary
+	vegaBinPath, err := utils.BinaryAbsPath(c.VegaBinary)
+	if err != nil {
+		return err
+	}
+	c.VegaBinary = vegaBinPath
+
+	// Wallet binary
+	if c.Network.Wallet != nil {
+		walletBinPath, err := utils.BinaryAbsPath(c.Network.Wallet.Binary)
+		if err != nil {
+			return err
+		}
+		c.Network.Wallet.Binary = walletBinPath
+	}
+
+	// Data nodes binaries
+	for _, nc := range c.Network.Nodes {
+		if nc.DataNodeBinary == "" {
+			continue
+		}
+
+		dataNodeBinPath, err := utils.BinaryAbsPath(nc.DataNodeBinary)
+		if err != nil {
+			return err
+		}
+		nc.DataNodeBinary = dataNodeBinPath
+	}
+
+	return nil
+}
+
+func (c *Config) Validate() error {
+	if err := c.setAbsolutePaths(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (c *Config) Persist() error {
