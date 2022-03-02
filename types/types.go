@@ -1,8 +1,10 @@
 package types
 
 type VegaNode struct {
+	Mode                   string
 	HomeDir                string
 	NodeWalletPassFilePath string
+	NodeWalletInfo         *NodeWalletInfo `json:",omitempty"`
 }
 
 type TendermintNode struct {
@@ -49,6 +51,13 @@ type NetworkJobs struct {
 	ExtraJobIDs     []string
 	FaucetJobID     string
 	WalletJobID     string
+}
+
+type NodeWalletInfo struct {
+	EthereumAddress          string
+	EthereumPrivateKey       string
+	VegaWalletPublicKey      string
+	VegaWalletRecoveryPhrase string
 }
 
 const (

@@ -198,7 +198,6 @@ func (g *Generator) Generate() (*types.GeneratedServices, error) {
 		}
 
 		wl = initWallet
-
 	}
 
 	return &types.GeneratedServices{
