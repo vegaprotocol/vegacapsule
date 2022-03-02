@@ -21,7 +21,7 @@ func (cg ConfigGenerator) initiateFaucet(homePath string, phraseFile string) (*i
 		"--output", "json",
 	}
 
-	log.Printf("Initiating faucet with: %s %v", cg.conf.VegaBinary, args)
+	log.Printf("Initiating faucet with: %v", args)
 
 	out := &initFaucetOutput{}
 	if _, err := utils.ExecuteBinary(cg.conf.VegaBinary, args, out); err != nil {

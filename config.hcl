@@ -1,5 +1,5 @@
-output_dir             = "./testnet"
-vega_binary_path       = "vega"
+output_dir             = "/Users/karelmoravec/vega/vegacapsule/testnet"
+vega_binary_path       = "/Users/karelmoravec/go/bin/vega"
 prefix                 = "st-local"
 node_dir_prefix        = "node"
 tendermint_node_prefix = "tendermint"
@@ -9,11 +9,9 @@ wallet_prefix          = "wallet"
 faucet_prefix          = "faucet"
 
 network "testnet" {
-	ethereum {
-    chain_id   = "1440"
-    network_id = "1441"
-    endpoint   = "http://127.0.0.1:8545/"
-  }
+  chain_id          = "1440"
+  network_id        = "1441"
+  ethereum_endpoint = "http://127.0.0.1:8545/"
   
   faucet "faucet-1" {
 	  wallet_pass = "f4uc3tw4ll3t-v3g4-p4ssphr4e3"
@@ -26,7 +24,7 @@ EOT
   }
 
   wallet "wallet-1" {
-    binary = "vegawallet"
+    binary = "/Users/karelmoravec/go/bin/vegawallet"
     
     template = <<-EOT
 Name = "DV"
@@ -372,7 +370,7 @@ EOT
   node_set "full" {
     count = 1
     mode = "full"
-	  data_node_binary = "data-node"
+	data_node_binary = "/Users/karelmoravec/go/bin/data-node"
 
     config_templates {
 

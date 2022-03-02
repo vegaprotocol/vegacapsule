@@ -20,4 +20,3 @@ dockerisedvega.sh
 Makefile
 zero-genesis.json
 capsule
-nomad-config.hcl

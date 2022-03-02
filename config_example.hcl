@@ -1,18 +1,16 @@
-output_dir             = "./testnet"
+output_dir             = "/Users/karelmoravec/vega/vegacapsule/testnet"
 prefix                 = "st-local"
 node_dir_prefix        = "node"
 tendermint_node_prefix = "tendermint"
 vega_node_prefix       = "vega"
 data_node_prefix       = "data"
-vega_binary_path       = "vega"
+vega_binary_path       = "/Users/karelmoravec/go/bin/vega"
 
 network "testnet" {
-  ethereum {
-    chain_id   = "1440"
-    network_id = "1441"
-    endpoint   = "http://127.0.0.1:8545/"
-  }
-  
+  chain_id          = "1440"
+  network_id        = "1441"
+  ethereum_endpoint = "http://192.168.1.102:8545/"
+
   pre_start {
 
     docker_service "ganache" {
@@ -331,7 +329,7 @@ EOT
   node_set "full" {
     count = 1
     mode = "full"
-	data_node_binary = "data-node"
+	data_node_binary = "/Users/karelmoravec/go/bin/data-node"
 
     config_templates {
 

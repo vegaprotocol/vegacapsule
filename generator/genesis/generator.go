@@ -36,7 +36,7 @@ func NewGenerator(conf *config.Config) (*Generator, error) {
 		return nil, fmt.Errorf("failed to parse genesis override: %w", err)
 	}
 
-	templateContext, err := NewTemplateContext(conf.Network.Ethereum.ChainID, conf.Network.Ethereum.NetworkID, []byte(defaultSmartContractsAddresses))
+	templateContext, err := NewTemplateContext(conf.Network.ChainID, conf.Network.NetworkID, []byte(defaultSmartContractsAddresses))
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +74,7 @@ func (g *Generator) updateGenesis(vegaHomePath, tendermintHomePath, nodeWalletPh
 		"--dry-run",
 	}
 
-	log.Printf("Updating genesis with: %s %v", g.vegaBinary, args)
+	log.Printf("Updating genesis: %v", args)
 
 	rawOut, err := utils.ExecuteBinary(g.vegaBinary, args, nil)
 	if err != nil {

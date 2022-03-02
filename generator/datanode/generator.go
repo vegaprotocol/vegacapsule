@@ -59,11 +59,7 @@ func (dng *ConfigGenerator) Initiate(index int, dataNodeBinary string) (*types.D
 		return nil, err
 	}
 
-	args := []string{"init", "-f", "--home", nodeDir}
-
-	log.Printf("Initiating data node with: %s %v", dataNodeBinary, args)
-
-	b, err := utils.ExecuteBinary(dataNodeBinary, args, nil)
+	b, err := utils.ExecuteBinary(dataNodeBinary, []string{"init", "-f", "--home", nodeDir}, nil)
 	if err != nil {
 		return nil, err
 	}

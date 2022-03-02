@@ -137,7 +137,7 @@ func (vg ConfigGenerator) OverwriteConfig(index int, mode string, fc *types.Fauc
 		TendermintNodePrefix: vg.conf.TendermintNodePrefix,
 		VegaNodePrefix:       vg.conf.VegaNodePrefix,
 		DataNodePrefix:       vg.conf.DataNodePrefix,
-		ETHEndpoint:          vg.conf.Network.Ethereum.Endpoint,
+		ETHEndpoint:          vg.conf.Network.EthereumEndpoint,
 		NodeMode:             mode,
 		NodeNumber:           index,
 	}

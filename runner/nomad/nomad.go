@@ -17,32 +17,30 @@ const (
 	Running                  = "running"
 )
 
-type Client struct {
-	API *api.Client
+type NomadRunner struct {
+	NomadClient *api.Client
 }
 
-func NewClient(config *api.Config) (*Client, error) {
+func New(config *api.Config) (*NomadRunner, error) {
 	nomadConfig := api.DefaultConfig()
 	if config != nil {
 		nomadConfig.Address = config.Address
 		nomadConfig.TLSConfig = config.TLSConfig
 	}
 
-	api, err := api.NewClient(nomadConfig)
+	cl, err := api.NewClient(nomadConfig)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create nomad client: %w", err)
+		log.Fatalf("Error creating client %+v", err)
+		return nil, err
 	}
 
-	// Ping Nomad
-	if _, err := api.Operator().Metrics(nil); err != nil {
-		return nil, fmt.Errorf("failed to connect to nomad: %w", err)
-	}
+	r := &NomadRunner{NomadClient: cl}
 
-	return &Client{API: api}, nil
+	return r, nil
 }
 
 // TODO maybe improve the logging?
-func (n *Client) waitForDeployment(ctx context.Context, jobID string) error {
+func (n *NomadRunner) waitForDeployment(ctx context.Context, jobID string) error {
 	ctx, cancel := context.WithTimeout(ctx, time.Minute*5)
 	defer cancel()
 
@@ -52,7 +50,7 @@ func (n *Client) waitForDeployment(ctx context.Context, jobID string) error {
 			return nil
 		default:
 			time.Sleep(time.Second * 4)
-			deployments, _, err := n.API.Jobs().Deployments(jobID, true, &api.QueryOptions{})
+			deployments, _, err := n.NomadClient.Jobs().Deployments(jobID, true, &api.QueryOptions{})
 			if err != nil {
 				return err
 			}
@@ -71,8 +69,8 @@ func (n *Client) waitForDeployment(ctx context.Context, jobID string) error {
 	}
 }
 
-func (n *Client) Run(job *api.Job) (bool, error) {
-	jobs := n.API.Jobs()
+func (n *NomadRunner) Run(job *api.Job) (bool, error) {
+	jobs := n.NomadClient.Jobs()
 
 	info, _, err := jobs.Info(*job.ID, &api.QueryOptions{})
 	if err != nil {
@@ -90,8 +88,8 @@ func (n *Client) Run(job *api.Job) (bool, error) {
 	return false, nil
 }
 
-func (n *Client) RunAndWait(ctx context.Context, job api.Job) error {
-	jobs := n.API.Jobs()
+func (n *NomadRunner) RunAndWait(ctx context.Context, job api.Job) error {
+	jobs := n.NomadClient.Jobs()
 
 	_, _, err := jobs.Register(&job, nil)
 	if err != nil {
@@ -105,8 +103,8 @@ func (n *Client) RunAndWait(ctx context.Context, job api.Job) error {
 	return nil
 }
 
-func (n *Client) Stop(ctx context.Context, jobID string, purge bool) (bool, error) {
-	jobs := n.API.Jobs()
+func (n *NomadRunner) Stop(ctx context.Context, jobID string, purge bool) (bool, error) {
+	jobs := n.NomadClient.Jobs()
 
 	writeOpts := new(api.WriteOptions).WithContext(ctx)
 	jId, _, err := jobs.Deregister(jobID, purge, writeOpts)

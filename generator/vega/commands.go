@@ -31,7 +31,7 @@ func (vg ConfigGenerator) initiateNode(homePath string, nodeWalletPhraseFile str
 		string(nodeMode),
 	}
 
-	log.Printf("Initiating node %q with: %v", nodeMode, args)
+	log.Printf("Initiating node %q wallet with: %v", nodeMode, args)
 
 	out := &initateNodeOutput{}
 	if _, err := utils.ExecuteBinary(vg.conf.VegaBinary, args, out); err != nil {

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
-	"path/filepath"
 )
 
 func ExecuteBinary(binaryPath string, args []string, v interface{}) ([]byte, error) {
@@ -16,10 +15,8 @@ func ExecuteBinary(binaryPath string, args []string, v interface{}) ([]byte, err
 	command.Stderr = &stErr
 
 	if err := command.Run(); err != nil {
-		return nil, fmt.Errorf("failed to execute binary %s %v with error: %s: %s", binaryPath, args, stErr.String(), err.Error())
+		return nil, fmt.Errorf("%s: %s", stErr.String(), err.Error())
 	}
-
-	fmt.Println(stErr.Len(), stdOut.Len())
 
 	if v == nil {
 		return stdOut.Bytes(), nil
@@ -31,21 +28,4 @@ func ExecuteBinary(binaryPath string, args []string, v interface{}) ([]byte, err
 	}
 
 	return nil, nil
-}
-
-func BinaryAbsPath(p string) (string, error) {
-	lPath, err := exec.LookPath(p)
-	if err != nil {
-		return "", fmt.Errorf("failed to look up path for %q: %w", p, err)
-	}
-	if filepath.IsAbs(lPath) {
-		return lPath, nil
-	}
-
-	aPath, err := filepath.Abs(lPath)
-	if err != nil {
-		return "", fmt.Errorf("failed to get absolute path for %q: %w", lPath, err)
-	}
-
-	return aPath, nil
 }
