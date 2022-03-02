@@ -78,7 +78,9 @@ vegacapsule destroy -home-path=/var/tmp/veganetwork/testnetwork
 
 ### Commands to run nomad
 
-- `nomad` - starts (and installs) simple nomad agent to be run locally in `dev` mode.
+A helper command allows you to download and install (if the correct version `nomad` command is missing on your computer) and set up a nomad if you do not already have one. 
+
+- `nomad` - starts (and installs) simple nomad agent to be run locally in `dev` mode. Instead of this command, you can run nomad manually (`nomad agent -dev -bind=0.0.0.0 -config=client.hcl`)
 
 ```bash
 vegacapsule nomad

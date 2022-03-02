@@ -95,7 +95,7 @@ func (tg *ConfigGenerator) Initiate(index int, mode string) (*types.TendermintNo
 
 	args := []string{"tm", "init", mode, "--home", nodeDir}
 
-	log.Printf("Initiating Tendermint node node %q with: %s %v", mode, tg.conf.VegaBinary, args)
+	log.Printf("Initiating Tendermint node %q with: %s %v", mode, tg.conf.VegaBinary, args)
 
 	b, err := utils.ExecuteBinary(tg.conf.VegaBinary, args, nil)
 	if err != nil {

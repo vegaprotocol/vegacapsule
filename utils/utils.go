@@ -19,8 +19,6 @@ func ExecuteBinary(binaryPath string, args []string, v interface{}) ([]byte, err
 		return nil, fmt.Errorf("failed to execute binary %s %v with error: %s: %s", binaryPath, args, stErr.String(), err.Error())
 	}
 
-	fmt.Println(stErr.Len(), stdOut.Len())
-
 	if v == nil {
 		return stdOut.Bytes(), nil
 	}
