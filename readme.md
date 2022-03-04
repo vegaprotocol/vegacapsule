@@ -9,7 +9,7 @@ docker version
 ```
 2. Run `docker login` to authenticate with private package repository on Github. Github token should be used.
 ```bash
-cat PATH_TO_YOUR_TOKEN | docker login https://docker.pkg.github.com -u "YOUR_USER_NAME" --password-stdin
+cat PATH_TO_YOUR_TOKEN | docker login https://ghcr.io -u "YOUR_USER_NAME" --password-stdin
 ```
 3. Test that docker login worked by running
 ```bash

@@ -8,6 +8,7 @@ type VegaNode struct {
 }
 
 type TendermintNode struct {
+	NodeID          string
 	HomeDir         string
 	GenesisFilePath string
 }
@@ -18,6 +19,8 @@ type DataNode struct {
 }
 
 type NodeSet struct {
+	GroupName  string
+	Name       string
 	Mode       string
 	Vega       VegaNode
 	Tendermint TendermintNode
@@ -25,6 +28,7 @@ type NodeSet struct {
 }
 
 type Wallet struct {
+	Name                  string
 	HomeDir               string
 	Network               string
 	ServiceConfigFilePath string
@@ -33,6 +37,7 @@ type Wallet struct {
 }
 
 type Faucet struct {
+	Name               string
 	HomeDir            string
 	PublicKey          string
 	ConfigFilePath     string

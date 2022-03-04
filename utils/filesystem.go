@@ -2,6 +2,8 @@ package utils
 
 import (
 	"errors"
+	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 )
@@ -33,4 +35,17 @@ func CreateFile(p string) (*os.File, error) {
 		return nil, err
 	}
 	return os.Create(p)
+}
+
+func CopyFile(srcFile, dstFile string) error {
+	input, err := ioutil.ReadFile(srcFile)
+	if err != nil {
+		return fmt.Errorf("failed to read file %q: %w", srcFile, err)
+	}
+
+	if err := ioutil.WriteFile(dstFile, input, 0644); err != nil {
+		return fmt.Errorf("failed to write to file %q: %w", dstFile, err)
+	}
+
+	return nil
 }

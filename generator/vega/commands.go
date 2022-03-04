@@ -67,7 +67,7 @@ func (vg ConfigGenerator) createWallet(homePath, name, walletPhraseFilePath stri
 	log.Printf("Creating vega wallet with: %v", args)
 
 	out := &createWalletOutput{}
-	if _, err := utils.ExecuteBinary(vg.conf.VegaBinary, args, out); err != nil {
+	if _, err := utils.ExecuteBinary(*vg.conf.VegaBinary, args, out); err != nil {
 		return nil, err
 	}
 
@@ -131,7 +131,7 @@ func (vg ConfigGenerator) importVegaNodeWallet(homePath, nodeWalletPhraseFile, w
 	log.Printf("Importing node vega wallet with: %v", args)
 
 	out := &importNodeWalletOutput{}
-	if _, err := utils.ExecuteBinary(vg.conf.VegaBinary, args, out); err != nil {
+	if _, err := utils.ExecuteBinary(*vg.conf.VegaBinary, args, out); err != nil {
 		return nil, err
 	}
 

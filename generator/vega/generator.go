@@ -195,7 +195,7 @@ func (vg ConfigGenerator) OverwriteConfig(index int, mode string, fc *types.Fauc
 }
 
 func (vg ConfigGenerator) nodeDir(i int) string {
-	nodeDirName := fmt.Sprintf("%s%d", vg.conf.NodeDirPrefix, i)
+	nodeDirName := fmt.Sprintf("%s%d", *vg.conf.NodeDirPrefix, i)
 	return filepath.Join(vg.homeDir, nodeDirName)
 }
 

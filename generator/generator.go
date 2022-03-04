@@ -2,7 +2,7 @@ package generator
 
 import (
 	"fmt"
-	"text/template"
+	"log"
 
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/generator/datanode"
@@ -12,6 +12,7 @@ import (
 	"code.vegaprotocol.io/vegacapsule/generator/vega"
 	"code.vegaprotocol.io/vegacapsule/generator/wallet"
 	"code.vegaprotocol.io/vegacapsule/types"
+	"code.vegaprotocol.io/vegacapsule/utils"
 )
 
 type nodeSets struct {
@@ -29,8 +30,8 @@ type Generator struct {
 	faucetGen     *faucet.ConfigGenerator
 }
 
-func New(conf *config.Config) (*Generator, error) {
-	tendermintGen, err := tendermint.NewConfigGenerator(conf)
+func New(conf *config.Config, genServices types.GeneratedServices) (*Generator, error) {
+	tendermintGen, err := tendermint.NewConfigGenerator(conf, genServices.NodeSets)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create new tendermint config generator: %w", err)
 	}
@@ -66,97 +67,17 @@ func New(conf *config.Config) (*Generator, error) {
 	}, nil
 }
 
-func (g *Generator) initiateNodeSet() (*nodeSets, error) {
-	validatorsSet := []types.NodeSet{}
-	nonValidatorsSet := []types.NodeSet{}
-
-	var index int
-	for _, n := range g.conf.Network.Nodes {
-		for i := 0; i < n.Count; i++ {
-			initTNode, err := g.tendermintGen.Initiate(index, n.Mode)
-			if err != nil {
-				return nil, fmt.Errorf("failed to initiate Tendermit node id %d: %w", index, err)
-			}
-
-			initVNode, err := g.vegaGen.Initiate(index, n.Mode, initTNode.HomeDir, n.NodeWalletPass, n.VegaWalletPass, n.EthereumWalletPass)
-			if err != nil {
-				return nil, fmt.Errorf("failed to initiate Vega node id %d: %w", index, err)
-			}
-
-			var initDNode *types.DataNode
-			// if data node binary is defined it is assumed that data-node should be deployed
-			if n.DataNodeBinary != "" {
-				node, err := g.dataNodeGen.Initiate(index, n.DataNodeBinary)
-				if err != nil {
-					return nil, fmt.Errorf("failed to initiate Data node id %d: %w", index, err)
-				}
-
-				initDNode = node
-			}
-
-			if n.Mode == types.NodeModeValidator {
-				validatorsSet = append(validatorsSet, types.NodeSet{
-					Mode:       n.Mode,
-					Vega:       *initVNode,
-					Tendermint: *initTNode,
-					DataNode:   initDNode,
-				})
-			} else {
-				nonValidatorsSet = append(nonValidatorsSet, types.NodeSet{
-					Mode:       n.Mode,
-					Vega:       *initVNode,
-					Tendermint: *initTNode,
-					DataNode:   initDNode,
-				})
-			}
-
-			index++
-		}
-	}
-
-	return &nodeSets{
-		validators:    validatorsSet,
-		nonValidators: nonValidatorsSet,
-	}, nil
-}
-
 func (g *Generator) configureNodeSets(fc *types.Faucet) error {
 	var index int
 	for _, n := range g.conf.Network.Nodes {
-		tendermintConfTemplate, err := tendermint.NewConfigTemplate(n.Templates.Tendermint)
+		co, err := newConfigOverride(g, n)
 		if err != nil {
 			return err
-		}
-
-		vegaConfTemplate, err := vega.NewConfigTemplate(n.Templates.Vega)
-		if err != nil {
-			return err
-		}
-
-		var dataNodeConfTemplate *template.Template
-		if n.DataNodeBinary != "" {
-			dataNodeConfTemplate, err = datanode.NewConfigTemplate(n.Templates.DataNode)
-
-			if err != nil {
-				return err
-			}
 		}
 
 		for i := 0; i < n.Count; i++ {
-			if tendermintConfTemplate != nil {
-				if err := g.tendermintGen.OverwriteConfig(index, tendermintConfTemplate); err != nil {
-					return fmt.Errorf("failed to overwrite Tendermit config for id %d: %w", index, err)
-				}
-			}
-			if vegaConfTemplate != nil {
-				if err := g.vegaGen.OverwriteConfig(index, n.Mode, fc, vegaConfTemplate); err != nil {
-					return fmt.Errorf("failed to overwrite Vega config for id %d: %w", index, err)
-				}
-			}
-			if dataNodeConfTemplate != nil {
-				if err := g.dataNodeGen.OverwriteConfig(index, dataNodeConfTemplate); err != nil {
-					return fmt.Errorf("failed to overwrite Data Node config for id %d: %w", index, err)
-				}
+			if err := co.Overwrite(index, n, fc); err != nil {
+				return err
 			}
 
 			index++
@@ -177,7 +98,7 @@ func (g *Generator) Generate() (*types.GeneratedServices, error) {
 		fc = initFaucet
 	}
 
-	ns, err := g.initiateNodeSet()
+	ns, err := g.initiateNodeSets()
 	if err != nil {
 		return nil, err
 	}
@@ -207,25 +128,26 @@ func (g *Generator) Generate() (*types.GeneratedServices, error) {
 	}, nil
 }
 
-func (g *Generator) initAndConfigureFaucet(conf *config.FaucetConfig) (*types.Faucet, error) {
-	initFaucet, err := g.faucetGen.InitiateAndConfigure(conf)
-	if err != nil {
-		return nil, fmt.Errorf("failed to initate faucet: %w", err)
-	}
-
-	return initFaucet, nil
-}
-
-func (g *Generator) initAndConfigureWallet(conf *config.WalletConfig, validatorsSet []types.NodeSet) (*types.Wallet, error) {
-	walletConfTemplate, err := wallet.NewConfigTemplate(g.conf.Network.Wallet.Template)
+func (g *Generator) AddNodeSet(index int, nc config.NodeConfig, ns types.NodeSet, fc *types.Faucet) (*types.NodeSet, error) {
+	initNodeSet, err := g.initiateNodeSet(index, nc)
 	if err != nil {
 		return nil, err
 	}
 
-	initWallet, err := g.walletGen.InitiateWithNetworkConfig(g.conf.Network.Wallet, validatorsSet, walletConfTemplate)
+	co, err := newConfigOverride(g, nc)
 	if err != nil {
-		return nil, fmt.Errorf("failed to initate wallet: %w", err)
+		return nil, err
 	}
 
-	return initWallet, nil
+	if err := co.Overwrite(index, nc, fc); err != nil {
+		return nil, err
+	}
+
+	if err := utils.CopyFile(ns.Tendermint.GenesisFilePath, initNodeSet.Tendermint.GenesisFilePath); err != nil {
+		return nil, fmt.Errorf("failed to copy genesis file: %w", err)
+	}
+
+	log.Printf("Added new node set with id %q", initNodeSet.Name)
+
+	return initNodeSet, nil
 }

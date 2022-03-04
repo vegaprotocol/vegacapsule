@@ -88,6 +88,7 @@ func (cg *ConfigGenerator) Initiate(conf *config.FaucetConfig) (*types.Faucet, e
 	}
 
 	return &types.Faucet{
+		Name:               fmt.Sprintf("%s-faucet", cg.conf.Network.Name),
 		HomeDir:            cg.homeDir,
 		PublicKey:          initOut.PublicKey,
 		ConfigFilePath:     initOut.FaucetConfigFilePath,

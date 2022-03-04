@@ -68,7 +68,7 @@ func (r *JobRunner) runDockerJob(ctx context.Context, conf config.DockerConfig) 
 	return j, nil
 }
 
-func (r *JobRunner) runNodeSets(ctx context.Context, conf *config.Config, nodeSets []types.NodeSet) ([]api.Job, error) {
+func (r *JobRunner) RunNodeSets(ctx context.Context, vegaBinary string, nodeSets []types.NodeSet) ([]api.Job, error) {
 	jobs := make([]api.Job, 0, len(nodeSets))
 
 	for i, ns := range nodeSets {
@@ -78,7 +78,7 @@ func (r *JobRunner) runNodeSets(ctx context.Context, conf *config.Config, nodeSe
 				Name:   fmt.Sprintf("tendermint-%d", i),
 				Driver: "raw_exec",
 				Config: map[string]interface{}{
-					"command": conf.VegaBinary,
+					"command": vegaBinary,
 					"args": []string{
 						"tm",
 						"node",
@@ -94,7 +94,7 @@ func (r *JobRunner) runNodeSets(ctx context.Context, conf *config.Config, nodeSe
 				Name:   fmt.Sprintf("vega-%s-%d", ns.Mode, i),
 				Driver: "raw_exec",
 				Config: map[string]interface{}{
-					"command": conf.VegaBinary,
+					"command": vegaBinary,
 					"args": []string{
 						"node",
 						"--home", ns.Vega.HomeDir,
@@ -126,7 +126,7 @@ func (r *JobRunner) runNodeSets(ctx context.Context, conf *config.Config, nodeSe
 		}
 
 		jobs = append(jobs, api.Job{
-			ID:          utils.StrPoint(fmt.Sprintf("nodeset-%s-%d", ns.Mode, i)),
+			ID:          utils.StrPoint(ns.Name),
 			Datacenters: []string{"dc1"},
 			TaskGroups: []*api.TaskGroup{
 				{
@@ -158,7 +158,7 @@ func (r *JobRunner) runNodeSets(ctx context.Context, conf *config.Config, nodeSe
 
 func (r *JobRunner) runWallet(ctx context.Context, conf *config.WalletConfig, wallet *types.Wallet) (*api.Job, error) {
 	j := &api.Job{
-		ID:          &conf.Name,
+		ID:          &wallet.Name,
 		Datacenters: []string{"dc1"},
 		TaskGroups: []*api.TaskGroup{
 			{
@@ -201,7 +201,7 @@ func (r *JobRunner) runWallet(ctx context.Context, conf *config.WalletConfig, wa
 
 func (r *JobRunner) runFaucet(ctx context.Context, binary string, conf *config.FaucetConfig, fc *types.Faucet) (*api.Job, error) {
 	j := &api.Job{
-		ID:          &conf.Name,
+		ID:          &fc.Name,
 		Datacenters: []string{"dc1"},
 		TaskGroups: []*api.TaskGroup{
 			{
@@ -298,7 +298,7 @@ func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, gene
 	}
 
 	g.Go(func() error {
-		jobs, err := r.runNodeSets(ctx, conf, generatedSvcs.NodeSets)
+		jobs, err := r.RunNodeSets(ctx, *conf.VegaBinary, generatedSvcs.NodeSets)
 		if err != nil {
 			return fmt.Errorf("failed to run node sets: %w", err)
 		}

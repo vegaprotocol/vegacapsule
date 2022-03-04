@@ -2,11 +2,8 @@ package main
 
 import (
 	"context"
-<<<<<<< HEAD
 	"encoding/json"
-=======
 	"errors"
->>>>>>> create default config && add simple add-validator func skeleton
 	"flag"
 	"fmt"
 	"log"
@@ -36,7 +33,7 @@ func generate(state state.NetworkState, force bool) (*state.NetworkState, error)
 
 	log.Println("generating network")
 
-	gen, err := generator.New(state.Config)
+	gen, err := generator.New(state.Config, types.GeneratedServices{})
 	if err != nil {
 		return nil, err
 	}
@@ -76,6 +73,39 @@ func start(ctx context.Context, state state.NetworkState) (*state.NetworkState, 
 	state.RunningJobs = res
 
 	log.Println("starting network success")
+	return &state, nil
+}
+
+func startNodeSet(ctx context.Context, state state.NetworkState, name string) (*state.NetworkState, error) {
+	log.Printf("starting %s job", name)
+
+	var nodeSet *types.NodeSet
+	for _, ns := range state.GeneratedServices.NodeSets {
+		if ns.Name == name {
+			nodeSet = &ns
+			break
+		}
+	}
+
+	if nodeSet == nil {
+		return nil, fmt.Errorf("node set with id %q not found", name)
+	}
+
+	nomadClient, err := nomad.NewClient(nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create nomad client: %w", err)
+	}
+
+	nomadRunner := nomad.NewJobRunner(nomadClient)
+
+	res, err := nomadRunner.RunNodeSets(ctx, *state.Config.VegaBinary, []types.NodeSet{*nodeSet})
+	if err != nil {
+		return nil, fmt.Errorf("failed to start nomad network: %s", err)
+	}
+
+	state.RunningJobs.NodesSetsJobIDs = append(state.RunningJobs.NodesSetsJobIDs, *res[0].ID)
+
+	log.Printf("starting %s job success", name)
 	return &state, nil
 }
 
@@ -126,24 +156,44 @@ func cleanup(outputDir string) {
 	log.Println("network cleaning up success")
 }
 
-func addValidator(state state.NetworkState) error {
-	gen, err := generator.New(state.Config)
+func addValidator(state state.NetworkState) (*types.NodeSet, error) {
+	gen, err := generator.New(state.Config, *state.GeneratedServices)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
+	// Find nodeset to use
+	var nodeSet *types.NodeSet
 	for _, ns := range state.GeneratedServices.NodeSets {
 		if ns.Mode == types.NodeModeValidator {
-			return gen.AddValidator(len(state.GeneratedServices.NodeSets), ns)
+			nodeSet = &ns
+			break
 		}
 	}
 
-	return errors.New("no validator found")
+	if nodeSet == nil {
+		return nil, errors.New("no validator found")
+	}
+
+	// Find config for the nodeset
+	var nodeConfig *config.NodeConfig
+	for _, nc := range state.Config.Network.Nodes {
+		if nc.Name == nodeSet.GroupName {
+			nodeConfig = &nc
+			break
+		}
+	}
+
+	if nodeConfig == nil {
+		return nil, fmt.Errorf("no node set config with name %s found", nodeSet.GroupName)
+	}
+
+	return gen.AddNodeSet(len(state.GeneratedServices.NodeSets), *nodeConfig, *nodeSet, state.GeneratedServices.Faucet)
 }
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Println("expected 'generate'|'bootstrap'|'start'|'stop'|'destroy' subcommands")
+		fmt.Println("expected 'generate'|'bootstrap'|'start'|'stop'|'destroy'|'nomad'|'add-validator-set' subcommands")
 		os.Exit(1)
 	}
 
@@ -190,8 +240,8 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		if err := networkState.Perist(); err != nil {
-			log.Fatalf("Cannot save network state")
+		if err := networkState.Persist(); err != nil {
+			log.Fatalf("Failed to persist network state")
 		}
 	case "start", "stop", "destroy":
 		if *configFilePath != "" {
@@ -213,7 +263,7 @@ func main() {
 			if err != nil {
 				log.Fatalf("failed to start network: %s", err)
 			}
-			if err := networkState.Perist(); err != nil {
+			if err := networkState.Persist(); err != nil {
 				log.Fatalf("cannot persist network state: %s", err)
 			}
 		} else if subcommand == "stop" {
@@ -258,9 +308,22 @@ func main() {
 			log.Fatalf("Failed to %s network: network not bootstrapped. Use the 'bootstrap' subcommand or provide different network home with the `-home-path` flag", subcommand)
 		}
 
-		if err := addValidator(*networkState); err != nil {
+		nodeSet, err := addValidator(*networkState)
+		if err != nil {
 			log.Fatal(err)
 		}
+
+		networkState.GeneratedServices.NodeSets = append(networkState.GeneratedServices.NodeSets, *nodeSet)
+
+		updatedNetworkState, err := startNodeSet(ctx, *networkState, nodeSet.Name)
+		if err != nil {
+			log.Fatalf("Failed to start node set %s: %s", nodeSet.Name, err.Error())
+		}
+
+		if err := updatedNetworkState.Persist(); err != nil {
+			log.Fatalf("Failed to persist network state")
+		}
+
 	default:
 		log.Printf("unknown subcommand %s: expected 'generate'|'bootstrap'|'start'|'stop'|'destroy'|'nomad'|'add-validator-set' subcommands", subcommand)
 		os.Exit(1)

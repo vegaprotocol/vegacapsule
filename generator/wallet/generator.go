@@ -71,6 +71,7 @@ func (cg *ConfigGenerator) InitiateWithNetworkConfig(conf *config.WalletConfig, 
 	}
 
 	return &types.Wallet{
+		Name:                  fmt.Sprintf("%s-wallet", cg.conf.Network.Name),
 		HomeDir:               cg.homeDir,
 		ServiceConfigFilePath: cg.configFilePath(),
 		Network:               importOut.Name,
