@@ -1,5 +1,6 @@
 package genesis
 
+const smartcontractsPath = "smartcontracts"
 const defaultSmartContractsAddresses = `
 {
 	"addr0": {

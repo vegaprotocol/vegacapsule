@@ -1,5 +1,5 @@
 output_dir             = "./testnet"
-vega_binary_path       = "vega"
+vega_binary_path       = "./vega"
 prefix                 = "st-local"
 node_dir_prefix        = "node"
 tendermint_node_prefix = "tendermint"
@@ -26,7 +26,7 @@ EOT
   }
 
   wallet "wallet-1" {
-    binary = "vegawallet"
+    binary = "./vegawallet"
     
     template = <<-EOT
 Name = "DV"
@@ -405,7 +405,7 @@ EOT
   node_set "full" {
     count = 1
     mode = "full"
-	  data_node_binary = "data-node"
+	  data_node_binary = "./data-node"
 
     config_templates {
 
