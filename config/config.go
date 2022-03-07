@@ -121,7 +121,7 @@ func (c *Config) setAbsolutePaths() error {
 	}
 
 	// Data nodes binaries
-	for _, nc := range c.Network.Nodes {
+	for idx, nc := range c.Network.Nodes {
 		if nc.DataNodeBinary == "" {
 			continue
 		}
@@ -130,7 +130,7 @@ func (c *Config) setAbsolutePaths() error {
 		if err != nil {
 			return err
 		}
-		nc.DataNodeBinary = dataNodeBinPath
+		c.Network.Nodes[idx].DataNodeBinary = dataNodeBinPath
 	}
 
 	return nil
