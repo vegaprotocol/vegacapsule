@@ -242,7 +242,10 @@ func (r *JobRunner) runFaucet(ctx context.Context, binary string, conf *config.F
 
 func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, generatedSvcs *types.GeneratedServices) (*types.NetworkJobs, error) {
 	g, ctx := errgroup.WithContext(gCtx)
-	result := &types.NetworkJobs{}
+	result := &types.NetworkJobs{
+		NodesSetsJobIDs: map[string]bool{},
+		ExtraJobIDs:     map[string]bool{},
+	}
 	var lock sync.Mutex
 
 	for _, dc := range conf.Network.PreStart.Docker {
@@ -255,7 +258,8 @@ func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, gene
 			}
 
 			lock.Lock()
-			result.ExtraJobIDs = append(result.ExtraJobIDs, *job.ID)
+
+			result.ExtraJobIDs[*job.ID] = true
 			lock.Unlock()
 
 			return nil
@@ -298,14 +302,14 @@ func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, gene
 	}
 
 	g.Go(func() error {
-		jobs, err := r.RunNodeSets(ctx, *conf.VegaBinary, generatedSvcs.NodeSets)
+		jobs, err := r.RunNodeSets(ctx, *conf.VegaBinary, generatedSvcs.NodeSets.ToSlice())
 		if err != nil {
 			return fmt.Errorf("failed to run node sets: %w", err)
 		}
 
 		lock.Lock()
 		for _, job := range jobs {
-			result.NodesSetsJobIDs = append(result.NodesSetsJobIDs, *job.ID)
+			result.NodesSetsJobIDs[*job.ID] = true
 		}
 		lock.Unlock()
 
@@ -324,10 +328,36 @@ func (r *JobRunner) StopNetwork(ctx context.Context, jobs *types.NetworkJobs) er
 		return nil
 	}
 
-	allJobs := append(jobs.ExtraJobIDs, jobs.WalletJobID, jobs.FaucetJobID)
-	allJobs = append(allJobs, jobs.NodesSetsJobIDs...)
+	allJobs := append(jobs.ExtraJobIDs.ToSlice(), jobs.WalletJobID, jobs.FaucetJobID)
+	allJobs = append(allJobs, jobs.NodesSetsJobIDs.ToSlice()...)
 	g, ctx := errgroup.WithContext(ctx)
 	for _, jobName := range allJobs {
+		if jobName == "" {
+			continue
+		}
+		// Explicitly copy name
+		jobName := jobName
+
+		g.Go(func() error {
+			if _, err := r.client.Stop(ctx, jobName, true); err != nil {
+				return fmt.Errorf("cannot stop nomad job \"%s\": %w", jobName, err)
+			}
+			return nil
+		})
+
+	}
+
+	return g.Wait()
+}
+
+func (r *JobRunner) StopJobs(ctx context.Context, jobIDs []string) error {
+	// no jobs to stop
+	if len(jobIDs) == 0 {
+		return nil
+	}
+
+	g, ctx := errgroup.WithContext(ctx)
+	for _, jobName := range jobIDs {
 		if jobName == "" {
 			continue
 		}

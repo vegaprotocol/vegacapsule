@@ -3,6 +3,7 @@ package generator
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/generator/datanode"
@@ -31,7 +32,7 @@ type Generator struct {
 }
 
 func New(conf *config.Config, genServices types.GeneratedServices) (*Generator, error) {
-	tendermintGen, err := tendermint.NewConfigGenerator(conf, genServices.NodeSets)
+	tendermintGen, err := tendermint.NewConfigGenerator(conf, genServices.NodeSets.ToSlice())
 	if err != nil {
 		return nil, fmt.Errorf("failed to create new tendermint config generator: %w", err)
 	}
@@ -121,11 +122,7 @@ func (g *Generator) Generate() (*types.GeneratedServices, error) {
 		wl = initWallet
 	}
 
-	return &types.GeneratedServices{
-		Wallet:   wl,
-		Faucet:   fc,
-		NodeSets: append(ns.validators, ns.nonValidators...),
-	}, nil
+	return types.NewGeneratedServices(wl, fc, append(ns.validators, ns.nonValidators...)), nil
 }
 
 func (g *Generator) AddNodeSet(index int, nc config.NodeConfig, ns types.NodeSet, fc *types.Faucet) (*types.NodeSet, error) {
@@ -150,4 +147,24 @@ func (g *Generator) AddNodeSet(index int, nc config.NodeConfig, ns types.NodeSet
 	log.Printf("Added new node set with id %q", initNodeSet.Name)
 
 	return initNodeSet, nil
+}
+
+func (g *Generator) RemoveNodeSet(ns types.NodeSet) error {
+	if err := os.RemoveAll(ns.Tendermint.HomeDir); err != nil {
+		return fmt.Errorf("failed to remove Tendermint directory %q: %w", ns.Tendermint.HomeDir, err)
+	}
+
+	if err := os.RemoveAll(ns.Vega.HomeDir); err != nil {
+		return fmt.Errorf("failed to remove Vega directory %q: %w", ns.Vega.HomeDir, err)
+	}
+
+	if ns.DataNode == nil {
+		return nil
+	}
+
+	if err := os.RemoveAll(ns.DataNode.HomeDir); err != nil {
+		return fmt.Errorf("failed to remove DataNode directory %q: %w", ns.DataNode.HomeDir, err)
+	}
+
+	return nil
 }

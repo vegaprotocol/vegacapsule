@@ -38,7 +38,7 @@ vegacapsule nomad
 
 4. B) In another Terminal window run bootstrap command to generate and start new network
 ```bash
-vegacapsule bootstrap -config-path=config.hcl
+vegacapsule bootstrap --config-path=config.hcl
 ```
 5. Check Nomad console by opening http://localhost:4646/
 
@@ -61,19 +61,19 @@ All below commands require generated network configuration. If configuration fil
 
 ```bash
 # Generate the network config files
-vegacapsule generate -config-path=config.hcl
+vegacapsule generate --config-path=config.hcl
 
 # Starts the network
-vegacapsule start -home-path=/var/tmp/veganetwork/testnetwork
+vegacapsule start --home-path=/var/tmp/veganetwork/testnetwork
 
 # Stop the network
-vegacapsule stop -home-path=/var/tmp/veganetwork/testnetwork
+vegacapsule stop --home-path=/var/tmp/veganetwork/testnetwork
 
 # Resume the network with previous configurationh
-vegacapsule start -home-path=/var/tmp/veganetwork/testnetwork
+vegacapsule start --home-path=/var/tmp/veganetwork/testnetwork
 
 # Destroy the network
-vegacapsule destroy -home-path=/var/tmp/veganetwork/testnetwork
+vegacapsule destroy --home-path=/var/tmp/veganetwork/testnetwork
 ```
 
 ### Commands to run nomad

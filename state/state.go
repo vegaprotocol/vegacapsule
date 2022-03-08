@@ -25,23 +25,15 @@ func (ns *NetworkState) Empty() bool {
 func (ns NetworkState) Persist() error {
 	networkBytes, err := encodeState(ns)
 	if err != nil {
-		return fmt.Errorf("cannot persist network state: %w", err)
+		return fmt.Errorf("failed to persist network state: %w", err)
 	}
 
-	return ioutil.WriteFile(stateFilePath(*ns.Config.OutputDir), networkBytes, 0644)
-}
+	if err := ioutil.WriteFile(stateFilePath(*ns.Config.OutputDir), networkBytes, 0644); err != nil {
+		return fmt.Errorf("failed to persist network state: %w", err)
 
-func (ns NetworkState) ListValidators() []types.VegaNode {
-	var validators []types.VegaNode
-
-	for _, nodeSet := range ns.GeneratedServices.NodeSets {
-		if nodeSet.Mode != types.NodeModeValidator {
-			continue
-		}
-		validators = append(validators, nodeSet.Vega)
 	}
 
-	return validators
+	return nil
 }
 
 func LoadNetworkState(networkDir string) (*NetworkState, error) {
@@ -60,7 +52,14 @@ func LoadNetworkState(networkDir string) (*NetworkState, error) {
 		return nil, fmt.Errorf("cannot read network state: %w", err)
 	}
 
-	return decodeState(networkBytes)
+	netState, err := decodeState(networkBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	netState.Config.OutputDir = &networkDir
+
+	return netState, nil
 }
 
 func stateFilePath(networkDir string) string {

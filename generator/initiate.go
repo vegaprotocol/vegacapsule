@@ -32,6 +32,7 @@ func (g *Generator) initiateNodeSet(index int, n config.NodeConfig) (*types.Node
 
 	return &types.NodeSet{
 		GroupName:  n.Name,
+		Index:      index,
 		Name:       fmt.Sprintf("%s-nodeset-%s-%d", g.conf.Network.Name, n.Mode, index),
 		Mode:       n.Mode,
 		Vega:       *initVNode,

@@ -1,5 +1,10 @@
 package types
 
+import (
+	"fmt"
+	"sort"
+)
+
 type VegaNode struct {
 	Mode                   string
 	HomeDir                string
@@ -22,6 +27,7 @@ type NodeSet struct {
 	GroupName  string
 	Name       string
 	Mode       string
+	Index      int
 	Vega       VegaNode
 	Tendermint TendermintNode
 	DataNode   *DataNode
@@ -45,15 +51,75 @@ type Faucet struct {
 	WalletPassFilePath string
 }
 
+type NodeSetMap map[string]NodeSet
+
+func (nm NodeSetMap) ToSlice() []NodeSet {
+	slice := make([]NodeSet, 0, len(nm))
+	for _, ns := range nm {
+		slice = append(slice, ns)
+	}
+
+	sort.Slice(slice, func(i, j int) bool {
+		return slice[i].Index < slice[j].Index
+	})
+
+	return slice
+}
+
 type GeneratedServices struct {
 	Wallet   *Wallet
 	Faucet   *Faucet
-	NodeSets []NodeSet
+	NodeSets NodeSetMap
+}
+
+func NewGeneratedServices(w *Wallet, f *Faucet, ns []NodeSet) *GeneratedServices {
+	nsm := NodeSetMap{}
+
+	for _, ns := range ns {
+		nsm[ns.Name] = ns
+	}
+
+	return &GeneratedServices{
+		Wallet:   w,
+		Faucet:   f,
+		NodeSets: nsm,
+	}
+}
+
+func (gs GeneratedServices) GetNodeSet(name string) (*NodeSet, error) {
+	ns, ok := gs.NodeSets[name]
+	if !ok {
+		return nil, fmt.Errorf("node set with name %q not found", name)
+	}
+	return &ns, nil
+}
+
+func (gs GeneratedServices) ListValidators() []VegaNode {
+	var validators []VegaNode
+
+	for _, nodeSet := range gs.NodeSets {
+		if nodeSet.Mode != NodeModeValidator {
+			continue
+		}
+		validators = append(validators, nodeSet.Vega)
+	}
+
+	return validators
+}
+
+type JobIDMap map[string]bool
+
+func (jm JobIDMap) ToSlice() []string {
+	slice := make([]string, 0, len(jm))
+	for id := range jm {
+		slice = append(slice, id)
+	}
+	return slice
 }
 
 type NetworkJobs struct {
-	NodesSetsJobIDs []string
-	ExtraJobIDs     []string
+	NodesSetsJobIDs JobIDMap
+	ExtraJobIDs     JobIDMap
 	FaucetJobID     string
 	WalletJobID     string
 }

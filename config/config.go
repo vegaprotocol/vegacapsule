@@ -12,7 +12,7 @@ import (
 )
 
 type Config struct {
-	OutputDir            *string       `hcl:"output_dir"`
+	OutputDir            *string       `hcl:"-"`
 	VegaBinary           *string       `hcl:"vega_binary_path"`
 	Prefix               *string       `hcl:"prefix"`
 	NodeDirPrefix        *string       `hcl:"node_dir_prefix"`
@@ -34,6 +34,16 @@ type NetworkConfig struct {
 	PreStart *PrestartConfig `hcl:"pre_start,block"`
 
 	Nodes []NodeConfig `hcl:"node_set,block"`
+}
+
+func (nc NetworkConfig) GetNodeConfig(name string) (*NodeConfig, error) {
+	for _, nodeConf := range nc.Nodes {
+		if nodeConf.Name == name {
+			return &nodeConf, nil
+		}
+	}
+
+	return nil, fmt.Errorf("node config with name %q not found", name)
 }
 
 type EthereumConfig struct {
