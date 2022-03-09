@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"os"
-	"path/filepath"
 	"text/template"
 
 	"code.vegaprotocol.io/vegacapsule/config"
@@ -22,15 +20,16 @@ import (
 	"github.com/Masterminds/sprig"
 )
 
+const smartcontractsPath = "smartcontracts/addresses.json"
+
 type updateGenesisOutput struct {
 	RawOutput json.RawMessage
 }
 
 type Generator struct {
-	networkOutputPath string
-	vegaBinary        string
-	template          *template.Template
-	templateCtx       *TemplateContext
+	vegaBinary  string
+	template    *template.Template
+	templateCtx *TemplateContext
 }
 
 func NewGenerator(conf *config.Config) (*Generator, error) {
@@ -39,7 +38,7 @@ func NewGenerator(conf *config.Config) (*Generator, error) {
 		return nil, fmt.Errorf("failed to parse genesis override: %w", err)
 	}
 
-	templateContext, err := NewTemplateContext(conf.Network.Ethereum.ChainID, conf.Network.Ethereum.NetworkID, []byte(defaultSmartContractsAddresses))
+	templateContext, err := NewTemplateContext(conf.Network.Ethereum.ChainID, conf.Network.Ethereum.NetworkID, []byte(conf.Network.SmartContractsAddresses))
 	if err != nil {
 		return nil, err
 	}
@@ -49,21 +48,6 @@ func NewGenerator(conf *config.Config) (*Generator, error) {
 		template:    tpl,
 		templateCtx: templateContext,
 	}, nil
-}
-
-func (g *Generator) writeAddressesJSON() error {
-	smartContractsPath := filepath.Join(g.networkOutputPath, smartcontractsPath)
-
-	if err := os.MkdirAll(smartContractsPath, 0755); err != nil && !os.IsExist(err) {
-		return fmt.Errorf("failed to create the '%s' directory: %w", smartContractsPath, err)
-	}
-
-	addressesJSONPath := filepath.Join(smartContractsPath, "addresses.json")
-	if err := os.WriteFile(addressesJSONPath, []byte(defaultSmartContractsAddresses), 0644); err != nil {
-		return fmt.Errorf("failed to write the addresses.json file: %w", err)
-	}
-
-	return nil
 }
 
 func (g *Generator) executeTemplate() ([]byte, error) {
@@ -166,10 +150,6 @@ func (g *Generator) Generate(validatorsSets []types.NodeSet, nonValidatorsSets [
 		if err := mergedGenDoc.SaveAs(ns.Tendermint.GenesisFilePath); err != nil {
 			return fmt.Errorf("failed to save genesis file: %w", err)
 		}
-	}
-
-	if err := g.writeAddressesJSON(); err != nil {
-		return fmt.Errorf("failed to save addresses.json file: %w", err)
 	}
 
 	return nil
