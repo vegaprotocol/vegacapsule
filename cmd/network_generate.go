@@ -22,7 +22,7 @@ var netGenerateCmd = &cobra.Command{
 	Use:   "generate",
 	Short: "Generate new network from configuration file",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		conf, err := config.ParseConfigFile(configFilePath)
+		conf, err := config.ParseConfigFile(configFilePath, homePath)
 		if err != nil {
 			return fmt.Errorf("failed to parse config file: %w", err)
 		}

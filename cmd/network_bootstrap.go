@@ -13,7 +13,7 @@ var netBootstrapCmd = &cobra.Command{
 	Use:   "bootstrap",
 	Short: "Bootstrap generates and starts new network",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		conf, err := config.ParseConfigFile(configFilePath)
+		conf, err := config.ParseConfigFile(configFilePath, homePath)
 		if err != nil {
 			return fmt.Errorf("failed to parse config file: %w", err)
 		}
@@ -22,6 +22,9 @@ var netBootstrapCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
+
+		conf.OutputDir = &homePath
+
 		netState.Config = conf
 
 		updatedNetState, err := netGenerate(*netState, forceGenerate)
