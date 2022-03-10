@@ -15,7 +15,7 @@ var nodesRemoveCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		networkState, err := state.LoadNetworkState(homePath)
 		if err != nil {
-			return fmt.Errorf("failed list validators: %w", err)
+			return fmt.Errorf("failed to load network state: %w", err)
 		}
 
 		if networkState.Empty() {

@@ -61,7 +61,7 @@ func netGenerate(state state.NetworkState, force bool) (*state.NetworkState, err
 		if err := os.RemoveAll(*state.Config.OutputDir); err != nil {
 			return nil, fmt.Errorf("failed to remove output folder with --force flag: %w", err)
 		}
-	} else if state.GeneratedServices != nil {
+	} else if !state.Empty() {
 		return nil, fmt.Errorf("failed to generate network: network is already generated")
 	}
 

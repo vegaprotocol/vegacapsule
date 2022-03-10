@@ -34,9 +34,6 @@ var netStartCmd = &cobra.Command{
 
 func netStart(ctx context.Context, state state.NetworkState) (*state.NetworkState, error) {
 	log.Println("starting network")
-	if state.Empty() {
-		return nil, fmt.Errorf("failed to start network: network is not bootstrapped")
-	}
 
 	nomadClient, err := nomad.NewClient(nil)
 	if err != nil {

@@ -33,9 +33,6 @@ var netStopCmd = &cobra.Command{
 
 func netStop(ctx context.Context, state *state.NetworkState) error {
 	log.Println("stopping network")
-	if state.Empty() {
-		log.Fatalf("cannot stop network: network is not bootstrapped")
-	}
 
 	nomadClient, err := nomad.NewClient(nil)
 	if err != nil {
