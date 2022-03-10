@@ -78,6 +78,7 @@ func (vg ConfigGenerator) Initiate(index int, mode, tendermintHome, nodeWalletPa
 	}
 
 	initNode := &types.VegaNode{
+		Name:                   fmt.Sprintf("vega-%s-%d", mode, index),
 		Mode:                   mode,
 		HomeDir:                nodeDir,
 		NodeWalletPassFilePath: nodeWalletPassFilePath,

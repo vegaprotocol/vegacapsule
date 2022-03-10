@@ -71,11 +71,11 @@ func (r *JobRunner) runDockerJob(ctx context.Context, conf config.DockerConfig) 
 func (r *JobRunner) RunNodeSets(ctx context.Context, vegaBinary string, nodeSets []types.NodeSet) ([]api.Job, error) {
 	jobs := make([]api.Job, 0, len(nodeSets))
 
-	for i, ns := range nodeSets {
+	for _, ns := range nodeSets {
 		tasks := make([]*api.Task, 0, 3)
 		tasks = append(tasks,
 			&api.Task{
-				Name:   fmt.Sprintf("tendermint-%d", i),
+				Name:   ns.Tendermint.Name,
 				Driver: "raw_exec",
 				Config: map[string]interface{}{
 					"command": vegaBinary,
@@ -91,7 +91,7 @@ func (r *JobRunner) RunNodeSets(ctx context.Context, vegaBinary string, nodeSets
 				},
 			},
 			&api.Task{
-				Name:   fmt.Sprintf("vega-%s-%d", ns.Mode, i),
+				Name:   ns.Vega.Name,
 				Driver: "raw_exec",
 				Config: map[string]interface{}{
 					"command": vegaBinary,
@@ -109,7 +109,7 @@ func (r *JobRunner) RunNodeSets(ctx context.Context, vegaBinary string, nodeSets
 
 		if ns.DataNode != nil {
 			tasks = append(tasks, &api.Task{
-				Name:   fmt.Sprintf("data-node-%s-%d", ns.Mode, i),
+				Name:   ns.DataNode.Name,
 				Driver: "raw_exec",
 				Config: map[string]interface{}{
 					"command": ns.DataNode.BinaryPath,

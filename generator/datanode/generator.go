@@ -70,6 +70,7 @@ func (dng *ConfigGenerator) Initiate(index int, dataNodeBinary string) (*types.D
 	log.Println(string(b))
 
 	initNode := &types.DataNode{
+		Name:       fmt.Sprintf("data-node-%d", index),
 		HomeDir:    nodeDir,
 		BinaryPath: dataNodeBinary,
 	}

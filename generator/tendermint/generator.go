@@ -119,6 +119,7 @@ func (tg *ConfigGenerator) Initiate(index int, mode string) (*types.TendermintNo
 	tg.nodeIDs = append(tg.nodeIDs, string(nodeKey.ID()))
 
 	initNode := &types.TendermintNode{
+		Name:            fmt.Sprintf("tendermint-%s-%d", mode, index),
 		HomeDir:         nodeDir,
 		NodeID:          string(nodeKey.ID()),
 		GenesisFilePath: config.BaseConfig.GenesisFile(),

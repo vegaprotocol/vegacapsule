@@ -5,7 +5,13 @@ import (
 	"sort"
 )
 
+type VegaNodeOutput struct {
+	NomadJobName string
+	VegaNode
+}
+
 type VegaNode struct {
+	Name                   string
 	Mode                   string
 	HomeDir                string
 	NodeWalletPassFilePath string
@@ -13,12 +19,14 @@ type VegaNode struct {
 }
 
 type TendermintNode struct {
+	Name            string
 	NodeID          string
 	HomeDir         string
 	GenesisFilePath string
 }
 
 type DataNode struct {
+	Name       string
 	HomeDir    string
 	BinaryPath string
 }
@@ -94,14 +102,17 @@ func (gs GeneratedServices) GetNodeSet(name string) (*NodeSet, error) {
 	return &ns, nil
 }
 
-func (gs GeneratedServices) ListValidators() []VegaNode {
-	var validators []VegaNode
+func (gs GeneratedServices) ListValidators() []VegaNodeOutput {
+	var validators []VegaNodeOutput
 
 	for _, nodeSet := range gs.NodeSets {
 		if nodeSet.Mode != NodeModeValidator {
 			continue
 		}
-		validators = append(validators, nodeSet.Vega)
+		validators = append(validators, VegaNodeOutput{
+			VegaNode:     nodeSet.Vega,
+			NomadJobName: nodeSet.Name,
+		})
 	}
 
 	return validators

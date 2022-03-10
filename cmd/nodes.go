@@ -10,6 +10,7 @@ var nodesCmd = &cobra.Command{
 
 func init() {
 	nodesCmd.AddCommand(nodesLsValidatorsCmd)
+	nodesCmd.AddCommand(nodesLsCmd)
 	nodesCmd.AddCommand(nodesAddCmd)
 	nodesCmd.AddCommand(nodesStartCmd)
 	nodesCmd.AddCommand(nodesStopCmd)
