@@ -8,27 +8,27 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var nodesLsValidatorsCmd = &cobra.Command{
-	Use:   "ls-validators",
-	Short: "Lists validators from node sets",
+var nodesLsCmd = &cobra.Command{
+	Use:   "ls",
+	Short: "Lists all node sets",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		networkState, err := state.LoadNetworkState(homePath)
 		if err != nil {
-			return fmt.Errorf("failed list validators: %w", err)
+			return fmt.Errorf("failed load network state: %w", err)
 		}
 
 		if networkState.Empty() {
-			return networkNotBootstrappedErr("nodes ls-validators")
+			return networkNotBootstrappedErr("ls")
 		}
 
-		validators := networkState.GeneratedServices.ListValidators()
+		nodeSets := networkState.GeneratedServices.NodeSets
 
-		validatorsJson, err := json.MarshalIndent(validators, "", "\t")
+		nodeSetsJson, err := json.MarshalIndent(nodeSets, "", "\t")
 		if err != nil {
 			return fmt.Errorf("failed to marshal validators info: %w", err)
 		}
 
-		fmt.Println(string(validatorsJson))
+		fmt.Println(string(nodeSetsJson))
 		return nil
 	},
 }
