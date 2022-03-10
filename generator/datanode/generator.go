@@ -42,7 +42,7 @@ func NewConfigTemplate(templateRaw string) (*template.Template, error) {
 }
 
 func NewConfigGenerator(conf *config.Config) (*ConfigGenerator, error) {
-	homeDir, err := filepath.Abs(path.Join(conf.OutputDir, conf.DataNodePrefix))
+	homeDir, err := filepath.Abs(path.Join(*conf.OutputDir, *conf.DataNodePrefix))
 	if err != nil {
 		return nil, err
 	}
@@ -70,6 +70,7 @@ func (dng *ConfigGenerator) Initiate(index int, dataNodeBinary string) (*types.D
 	log.Println(string(b))
 
 	initNode := &types.DataNode{
+		Name:       fmt.Sprintf("data-node-%d", index),
 		HomeDir:    nodeDir,
 		BinaryPath: dataNodeBinary,
 	}
@@ -79,7 +80,7 @@ func (dng *ConfigGenerator) Initiate(index int, dataNodeBinary string) (*types.D
 
 func (dng ConfigGenerator) OverwriteConfig(index int, configTemplate *template.Template) error {
 	templateCtx := ConfigTemplateContext{
-		Prefix:      dng.conf.Prefix,
+		Prefix:      *dng.conf.Prefix,
 		NodeNumber:  index,
 		NodeHomeDir: dng.homeDir,
 	}

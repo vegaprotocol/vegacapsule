@@ -47,3 +47,11 @@ func BinaryAbsPath(p string) (string, error) {
 
 	return aPath, nil
 }
+
+func StrPoint(s string) *string {
+	return &s
+}
+
+func IntPoint(i int) *int {
+	return &i
+}

@@ -47,7 +47,7 @@ func (vg ConfigGenerator) initiateNode(homePath string, nodeWalletPhraseFile str
 	log.Printf("Initiating node %q with: %v", nodeMode, args)
 
 	out := &initateNodeOutput{}
-	if _, err := utils.ExecuteBinary(vg.conf.VegaBinary, args, out); err != nil {
+	if _, err := utils.ExecuteBinary(*vg.conf.VegaBinary, args, out); err != nil {
 		return nil, err
 	}
 
@@ -67,7 +67,7 @@ func (vg ConfigGenerator) createWallet(homePath, name, walletPhraseFilePath stri
 	log.Printf("Creating vega wallet with: %v", args)
 
 	out := &createWalletOutput{}
-	if _, err := utils.ExecuteBinary(vg.conf.VegaBinary, args, out); err != nil {
+	if _, err := utils.ExecuteBinary(*vg.conf.VegaBinary, args, out); err != nil {
 		return nil, err
 	}
 
@@ -88,7 +88,7 @@ func (vg ConfigGenerator) generateNodeWallet(homePath string, nodeWalletPhraseFi
 	log.Printf("Generating node %q wallet with: %v", walletType, args)
 
 	out := &generateNodeWalletOutput{}
-	if _, err := utils.ExecuteBinary(vg.conf.VegaBinary, args, out); err != nil {
+	if _, err := utils.ExecuteBinary(*vg.conf.VegaBinary, args, out); err != nil {
 		return nil, err
 	}
 
@@ -109,7 +109,7 @@ func (vg ConfigGenerator) importTendermintNodeWallet(homePath string, nodeWallet
 	log.Printf("Importing tenderming wallet: %v", args)
 
 	nwo := &importNodeWalletOutput{}
-	if _, err := utils.ExecuteBinary(vg.conf.VegaBinary, args, nwo); err != nil {
+	if _, err := utils.ExecuteBinary(*vg.conf.VegaBinary, args, nwo); err != nil {
 		return nil, err
 	}
 
@@ -131,7 +131,7 @@ func (vg ConfigGenerator) importVegaNodeWallet(homePath, nodeWalletPhraseFile, w
 	log.Printf("Importing node vega wallet with: %v", args)
 
 	out := &importNodeWalletOutput{}
-	if _, err := utils.ExecuteBinary(vg.conf.VegaBinary, args, out); err != nil {
+	if _, err := utils.ExecuteBinary(*vg.conf.VegaBinary, args, out); err != nil {
 		return nil, err
 	}
 

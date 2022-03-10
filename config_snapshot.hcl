@@ -1,12 +1,4 @@
-output_dir             = "./testnet"
-vega_binary_path       = "vega"
-prefix                 = "st-local"
-node_dir_prefix        = "node"
-tendermint_node_prefix = "tendermint"
-vega_node_prefix       = "vega"
-data_node_prefix       = "data"
-wallet_prefix          = "wallet"
-faucet_prefix          = "faucet"
+vega_binary_path = "vega"
 
 network "testnet" {
   ethereum {

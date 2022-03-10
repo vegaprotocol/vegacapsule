@@ -7,6 +7,7 @@ import (
 
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/types"
+	"code.vegaprotocol.io/vegacapsule/utils"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/hashicorp/nomad/api"
@@ -29,8 +30,8 @@ func (r *JobRunner) runDockerJob(ctx context.Context, conf config.DockerConfig) 
 		TaskGroups: []*api.TaskGroup{
 			{
 				RestartPolicy: &api.RestartPolicy{
-					Attempts: intPoint(0),
-					Mode:     strPoint("fail"),
+					Attempts: utils.IntPoint(0),
+					Mode:     utils.StrPoint("fail"),
 				},
 				Name: &conf.Name,
 				Tasks: []*api.Task{
@@ -67,17 +68,17 @@ func (r *JobRunner) runDockerJob(ctx context.Context, conf config.DockerConfig) 
 	return j, nil
 }
 
-func (r *JobRunner) runNodeSets(ctx context.Context, conf *config.Config, nodeSets []types.NodeSet) ([]api.Job, error) {
+func (r *JobRunner) RunNodeSets(ctx context.Context, vegaBinary string, nodeSets []types.NodeSet) ([]api.Job, error) {
 	jobs := make([]api.Job, 0, len(nodeSets))
 
-	for i, ns := range nodeSets {
+	for _, ns := range nodeSets {
 		tasks := make([]*api.Task, 0, 3)
 		tasks = append(tasks,
 			&api.Task{
-				Name:   fmt.Sprintf("tendermint-%d", i),
+				Name:   ns.Tendermint.Name,
 				Driver: "raw_exec",
 				Config: map[string]interface{}{
-					"command": conf.VegaBinary,
+					"command": vegaBinary,
 					"args": []string{
 						"tm",
 						"node",
@@ -85,15 +86,15 @@ func (r *JobRunner) runNodeSets(ctx context.Context, conf *config.Config, nodeSe
 					},
 				},
 				Resources: &api.Resources{
-					CPU:      intPoint(500),
-					MemoryMB: intPoint(512),
+					CPU:      utils.IntPoint(500),
+					MemoryMB: utils.IntPoint(512),
 				},
 			},
 			&api.Task{
-				Name:   fmt.Sprintf("vega-%s-%d", ns.Mode, i),
+				Name:   ns.Vega.Name,
 				Driver: "raw_exec",
 				Config: map[string]interface{}{
-					"command": conf.VegaBinary,
+					"command": vegaBinary,
 					"args": []string{
 						"node",
 						"--home", ns.Vega.HomeDir,
@@ -101,14 +102,14 @@ func (r *JobRunner) runNodeSets(ctx context.Context, conf *config.Config, nodeSe
 					},
 				},
 				Resources: &api.Resources{
-					CPU:      intPoint(500),
-					MemoryMB: intPoint(512),
+					CPU:      utils.IntPoint(500),
+					MemoryMB: utils.IntPoint(512),
 				},
 			})
 
 		if ns.DataNode != nil {
 			tasks = append(tasks, &api.Task{
-				Name:   fmt.Sprintf("data-node-%s-%d", ns.Mode, i),
+				Name:   ns.DataNode.Name,
 				Driver: "raw_exec",
 				Config: map[string]interface{}{
 					"command": ns.DataNode.BinaryPath,
@@ -118,22 +119,22 @@ func (r *JobRunner) runNodeSets(ctx context.Context, conf *config.Config, nodeSe
 					},
 				},
 				Resources: &api.Resources{
-					CPU:      intPoint(500),
-					MemoryMB: intPoint(512),
+					CPU:      utils.IntPoint(500),
+					MemoryMB: utils.IntPoint(512),
 				},
 			})
 		}
 
 		jobs = append(jobs, api.Job{
-			ID:          strPoint(fmt.Sprintf("nodeset-%s-%d", ns.Mode, i)),
+			ID:          utils.StrPoint(ns.Name),
 			Datacenters: []string{"dc1"},
 			TaskGroups: []*api.TaskGroup{
 				{
 					RestartPolicy: &api.RestartPolicy{
-						Attempts: intPoint(0),
-						Mode:     strPoint("fail"),
+						Attempts: utils.IntPoint(0),
+						Mode:     utils.StrPoint("fail"),
 					},
-					Name:  strPoint("vega"),
+					Name:  utils.StrPoint("vega"),
 					Tasks: tasks,
 				},
 			},
@@ -157,15 +158,15 @@ func (r *JobRunner) runNodeSets(ctx context.Context, conf *config.Config, nodeSe
 
 func (r *JobRunner) runWallet(ctx context.Context, conf *config.WalletConfig, wallet *types.Wallet) (*api.Job, error) {
 	j := &api.Job{
-		ID:          &conf.Name,
+		ID:          &wallet.Name,
 		Datacenters: []string{"dc1"},
 		TaskGroups: []*api.TaskGroup{
 			{
 				RestartPolicy: &api.RestartPolicy{
-					Attempts: intPoint(0),
-					Mode:     strPoint("fail"),
+					Attempts: utils.IntPoint(0),
+					Mode:     utils.StrPoint("fail"),
 				},
-				Name: strPoint("vega"),
+				Name: utils.StrPoint("vega"),
 				Tasks: []*api.Task{
 					{
 						Name:   "wallet-1",
@@ -182,8 +183,8 @@ func (r *JobRunner) runWallet(ctx context.Context, conf *config.WalletConfig, wa
 							},
 						},
 						Resources: &api.Resources{
-							CPU:      intPoint(500),
-							MemoryMB: intPoint(512),
+							CPU:      utils.IntPoint(500),
+							MemoryMB: utils.IntPoint(512),
 						},
 					},
 				},
@@ -200,13 +201,13 @@ func (r *JobRunner) runWallet(ctx context.Context, conf *config.WalletConfig, wa
 
 func (r *JobRunner) runFaucet(ctx context.Context, binary string, conf *config.FaucetConfig, fc *types.Faucet) (*api.Job, error) {
 	j := &api.Job{
-		ID:          &conf.Name,
+		ID:          &fc.Name,
 		Datacenters: []string{"dc1"},
 		TaskGroups: []*api.TaskGroup{
 			{
 				RestartPolicy: &api.RestartPolicy{
-					Attempts: intPoint(0),
-					Mode:     strPoint("fail"),
+					Attempts: utils.IntPoint(0),
+					Mode:     utils.StrPoint("fail"),
 				},
 				Name: &conf.Name,
 				Tasks: []*api.Task{
@@ -223,8 +224,8 @@ func (r *JobRunner) runFaucet(ctx context.Context, binary string, conf *config.F
 							},
 						},
 						Resources: &api.Resources{
-							CPU:      intPoint(500),
-							MemoryMB: intPoint(512),
+							CPU:      utils.IntPoint(500),
+							MemoryMB: utils.IntPoint(512),
 						},
 					},
 				},
@@ -241,7 +242,10 @@ func (r *JobRunner) runFaucet(ctx context.Context, binary string, conf *config.F
 
 func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, generatedSvcs *types.GeneratedServices) (*types.NetworkJobs, error) {
 	g, ctx := errgroup.WithContext(gCtx)
-	result := &types.NetworkJobs{}
+	result := &types.NetworkJobs{
+		NodesSetsJobIDs: map[string]bool{},
+		ExtraJobIDs:     map[string]bool{},
+	}
 	var lock sync.Mutex
 
 	for _, dc := range conf.Network.PreStart.Docker {
@@ -254,7 +258,8 @@ func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, gene
 			}
 
 			lock.Lock()
-			result.ExtraJobIDs = append(result.ExtraJobIDs, *job.ID)
+
+			result.ExtraJobIDs[*job.ID] = true
 			lock.Unlock()
 
 			return nil
@@ -268,7 +273,7 @@ func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, gene
 	g, ctx = errgroup.WithContext(gCtx)
 	if generatedSvcs.Faucet != nil {
 		g.Go(func() error {
-			job, err := r.runFaucet(ctx, conf.VegaBinary, conf.Network.Faucet, generatedSvcs.Faucet)
+			job, err := r.runFaucet(ctx, *conf.VegaBinary, conf.Network.Faucet, generatedSvcs.Faucet)
 			if err != nil {
 				return fmt.Errorf("failed to run faucet: %w", err)
 			}
@@ -297,14 +302,14 @@ func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, gene
 	}
 
 	g.Go(func() error {
-		jobs, err := r.runNodeSets(ctx, conf, generatedSvcs.NodeSets)
+		jobs, err := r.RunNodeSets(ctx, *conf.VegaBinary, generatedSvcs.NodeSets.ToSlice())
 		if err != nil {
 			return fmt.Errorf("failed to run node sets: %w", err)
 		}
 
 		lock.Lock()
 		for _, job := range jobs {
-			result.NodesSetsJobIDs = append(result.NodesSetsJobIDs, *job.ID)
+			result.NodesSetsJobIDs[*job.ID] = true
 		}
 		lock.Unlock()
 
@@ -323,8 +328,8 @@ func (r *JobRunner) StopNetwork(ctx context.Context, jobs *types.NetworkJobs) er
 		return nil
 	}
 
-	allJobs := append(jobs.ExtraJobIDs, jobs.WalletJobID, jobs.FaucetJobID)
-	allJobs = append(allJobs, jobs.NodesSetsJobIDs...)
+	allJobs := append(jobs.ExtraJobIDs.ToSlice(), jobs.WalletJobID, jobs.FaucetJobID)
+	allJobs = append(allJobs, jobs.NodesSetsJobIDs.ToSlice()...)
 	g, ctx := errgroup.WithContext(ctx)
 	for _, jobName := range allJobs {
 		if jobName == "" {
@@ -345,10 +350,28 @@ func (r *JobRunner) StopNetwork(ctx context.Context, jobs *types.NetworkJobs) er
 	return g.Wait()
 }
 
-func strPoint(s string) *string {
-	return &s
-}
+func (r *JobRunner) StopJobs(ctx context.Context, jobIDs []string) error {
+	// no jobs to stop
+	if len(jobIDs) == 0 {
+		return nil
+	}
 
-func intPoint(i int) *int {
-	return &i
+	g, ctx := errgroup.WithContext(ctx)
+	for _, jobName := range jobIDs {
+		if jobName == "" {
+			continue
+		}
+		// Explicitly copy name
+		jobName := jobName
+
+		g.Go(func() error {
+			if _, err := r.client.Stop(ctx, jobName, true); err != nil {
+				return fmt.Errorf("cannot stop nomad job \"%s\": %w", jobName, err)
+			}
+			return nil
+		})
+
+	}
+
+	return g.Wait()
 }

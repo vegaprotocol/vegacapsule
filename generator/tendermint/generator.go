@@ -58,17 +58,22 @@ type ConfigGenerator struct {
 	nodeIDs       []string
 }
 
-func NewConfigGenerator(conf *config.Config) (*ConfigGenerator, error) {
-	homeDir, err := filepath.Abs(path.Join(conf.OutputDir, conf.TendermintNodePrefix))
+func NewConfigGenerator(conf *config.Config, generatedNodeSets []types.NodeSet) (*ConfigGenerator, error) {
+	homeDir, err := filepath.Abs(path.Join(*conf.OutputDir, *conf.TendermintNodePrefix))
 	if err != nil {
 		return nil, err
+	}
+
+	nodesIDs := make([]string, 0, len(generatedNodeSets))
+	for _, tn := range generatedNodeSets {
+		nodesIDs = append(nodesIDs, tn.Tendermint.NodeID)
 	}
 
 	return &ConfigGenerator{
 		conf:          conf,
 		homeDir:       homeDir,
 		genValidators: []tmtypes.GenesisValidator{},
-		nodeIDs:       []string{},
+		nodeIDs:       nodesIDs,
 	}, nil
 }
 
@@ -84,20 +89,20 @@ func (tg *ConfigGenerator) Initiate(index int, mode string) (*types.TendermintNo
 	}
 
 	if err := os.MkdirAll(filepath.Join(nodeDir, "config"), nodeDirPerm); err != nil {
-		_ = os.RemoveAll(tg.conf.OutputDir)
+		_ = os.RemoveAll(*tg.conf.OutputDir)
 		return nil, err
 	}
 
 	if err := os.MkdirAll(filepath.Join(nodeDir, "data"), nodeDirPerm); err != nil {
-		_ = os.RemoveAll(tg.conf.OutputDir)
+		_ = os.RemoveAll(*tg.conf.OutputDir)
 		return nil, err
 	}
 
 	args := []string{"tm", "init", mode, "--home", nodeDir}
 
-	log.Printf("Initiating Tendermint node %q with: %s %v", mode, tg.conf.VegaBinary, args)
+	log.Printf("Initiating Tendermint node %q with: %s %v", mode, *tg.conf.VegaBinary, args)
 
-	b, err := utils.ExecuteBinary(tg.conf.VegaBinary, args, nil)
+	b, err := utils.ExecuteBinary(*tg.conf.VegaBinary, args, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +119,9 @@ func (tg *ConfigGenerator) Initiate(index int, mode string) (*types.TendermintNo
 	tg.nodeIDs = append(tg.nodeIDs, string(nodeKey.ID()))
 
 	initNode := &types.TendermintNode{
+		Name:            fmt.Sprintf("tendermint-%s-%d", mode, index),
 		HomeDir:         nodeDir,
+		NodeID:          string(nodeKey.ID()),
 		GenesisFilePath: config.BaseConfig.GenesisFile(),
 	}
 
@@ -146,15 +153,10 @@ func (tg *ConfigGenerator) OverwriteConfig(index int, configTemplate *template.T
 	nodeDir := tg.nodeDir(index)
 	configFilePath := tg.configFilePath(nodeDir)
 
-	viper.SetConfigFile(configFilePath)
-	if err := viper.ReadInConfig(); err != nil {
-		return fmt.Errorf("failed to read config file %q: %w", configFilePath, err)
-	}
-
 	templateCtx := ConfigTemplateContext{
-		Prefix:               tg.conf.Prefix,
-		TendermintNodePrefix: tg.conf.TendermintNodePrefix,
-		VegaNodePrefix:       tg.conf.VegaNodePrefix,
+		Prefix:               *tg.conf.Prefix,
+		TendermintNodePrefix: *tg.conf.TendermintNodePrefix,
+		VegaNodePrefix:       *tg.conf.VegaNodePrefix,
 		NodeNumber:           index,
 		NodesCount:           len(tg.nodeIDs),
 		NodeIDs:              tg.nodeIDs,
@@ -167,11 +169,21 @@ func (tg *ConfigGenerator) OverwriteConfig(index int, configTemplate *template.T
 		return fmt.Errorf("failed to execute template: %w", err)
 	}
 
-	if err := viper.MergeConfig(buff); err != nil {
+	return tg.mergeAndSaveConfig(nodeDir, configFilePath, buff)
+}
+
+func (tg ConfigGenerator) mergeAndSaveConfig(nodeDir, configFilePath string, merge *bytes.Buffer) error {
+	v := viper.New()
+	v.SetConfigFile(configFilePath)
+	if err := v.ReadInConfig(); err != nil {
+		return fmt.Errorf("failed to read config file %q: %w", configFilePath, err)
+	}
+
+	if err := v.MergeConfig(merge); err != nil {
 		return fmt.Errorf("failed to merge config override with config file %q: %w", configFilePath, err)
 	}
 	conf := tmconfig.DefaultConfig()
-	if err := viper.Unmarshal(conf); err != nil {
+	if err := v.Unmarshal(conf); err != nil {
 		return fmt.Errorf("failed to unmarshal merged config file %q: %w", configFilePath, err)
 	}
 
@@ -190,7 +202,7 @@ func (tg ConfigGenerator) GenesisValidators() []tmtypes.GenesisValidator {
 }
 
 func (tg ConfigGenerator) nodeDir(i int) string {
-	nodeDirName := fmt.Sprintf("%s%d", tg.conf.NodeDirPrefix, i)
+	nodeDirName := fmt.Sprintf("%s%d", *tg.conf.NodeDirPrefix, i)
 	return filepath.Join(tg.homeDir, nodeDirName)
 }
 
