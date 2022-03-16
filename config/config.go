@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
@@ -33,7 +34,8 @@ type NetworkConfig struct {
 
 	PreStart *PrestartConfig `hcl:"pre_start,block"`
 
-	Nodes []NodeConfig `hcl:"node_set,block"`
+	Nodes                   []NodeConfig `hcl:"node_set,block"`
+	SmartContractsAddresses string       `hcl:"smart_contracts_addresses"`
 }
 
 func (nc NetworkConfig) GetNodeConfig(name string) (*NodeConfig, error) {
@@ -121,7 +123,7 @@ func (c *Config) setAbsolutePaths() error {
 	}
 
 	// Data nodes binaries
-	for _, nc := range c.Network.Nodes {
+	for idx, nc := range c.Network.Nodes {
 		if nc.DataNodeBinary == "" {
 			continue
 		}
@@ -130,7 +132,7 @@ func (c *Config) setAbsolutePaths() error {
 		if err != nil {
 			return err
 		}
-		nc.DataNodeBinary = dataNodeBinPath
+		c.Network.Nodes[idx].DataNodeBinary = dataNodeBinPath
 	}
 
 	return nil
@@ -139,6 +141,28 @@ func (c *Config) setAbsolutePaths() error {
 func (c *Config) Validate() error {
 	if err := c.setAbsolutePaths(); err != nil {
 		return err
+	}
+
+	if err := c.validateSmartContractsAddresses(); err != nil {
+		return fmt.Errorf("invalid configuration for smart contrtacts addresses: %w", err)
+	}
+
+	return nil
+}
+
+func (c Config) validateSmartContractsAddresses() error {
+	addressesStruct := map[string]interface{}{}
+
+	if err := json.Unmarshal([]byte(c.Network.SmartContractsAddresses), &addressesStruct); err != nil {
+		return fmt.Errorf("failed to check smart contract addreses: config.network.smart_contracts_addresses format is wrong: %w", err)
+	}
+
+	if _, ok := addressesStruct["addr0"]; !ok {
+		return fmt.Errorf("failed to check smart contract addresses: missing field 'addr0'")
+	}
+
+	if _, ok := addressesStruct["MultisigControl"]; !ok {
+		return fmt.Errorf("failed to check smart contract addresses: missing field 'MultisigControl'")
 	}
 
 	return nil

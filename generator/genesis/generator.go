@@ -20,6 +20,8 @@ import (
 	"github.com/Masterminds/sprig"
 )
 
+const smartcontractsPath = "smartcontracts/addresses.json"
+
 type updateGenesisOutput struct {
 	RawOutput json.RawMessage
 }
@@ -36,7 +38,7 @@ func NewGenerator(conf *config.Config) (*Generator, error) {
 		return nil, fmt.Errorf("failed to parse genesis override: %w", err)
 	}
 
-	templateContext, err := NewTemplateContext(conf.Network.Ethereum.ChainID, conf.Network.Ethereum.NetworkID, []byte(defaultSmartContractsAddresses))
+	templateContext, err := NewTemplateContext(conf.Network.Ethereum.ChainID, conf.Network.Ethereum.NetworkID, []byte(conf.Network.SmartContractsAddresses))
 	if err != nil {
 		return nil, err
 	}
