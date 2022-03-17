@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"code.vegaprotocol.io/vegacapsule/generator"
@@ -43,7 +44,17 @@ var nodesAddCmd = &cobra.Command{
 
 		}
 
-		return networkState.Persist()
+		if err := networkState.Persist(); err != nil {
+			return fmt.Errorf("failed to persist network: %w", err)
+		}
+
+		newNodeJson, err := json.MarshalIndent(newNodeSet, "", "\t")
+		if err != nil {
+			return fmt.Errorf("failed to marshal validators info: %w", err)
+		}
+
+		fmt.Println(string(newNodeJson))
+		return nil
 	},
 }
 
