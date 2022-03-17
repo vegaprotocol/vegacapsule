@@ -9,7 +9,7 @@
 - [](https://github.com/vegaprotocol/vegacapsule/issues/xxxx) -
 
 ### 🛠 Improvements
-- [](https://github.com/vegaprotocol/vegacapsule/issues/xxxx) -
+- [43](https://github.com/vegaprotocol/vegacapsule/issues/39) - add support to download nomad on Apple M1 computers
 
 ### 🐛 Fixes
-- [41](https://github.com/vegaprotocol/vegacapsule/pull/41) - persist the network state after it's generated in bootstrap command
+- [41](https://github.com/vegaprotocol/vegacapsule/issues/40) - persist the network state after it's generated in bootstrap command
