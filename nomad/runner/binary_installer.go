@@ -16,9 +16,15 @@ import (
 	"code.vegaprotocol.io/vegacapsule/utils"
 )
 
+const (
+	nomadBinaryVersion = "1.2.6"
+	osDarwin           = "darwin"
+	arm64Arch          = "arm64"
+	amd64Arch          = "amd64"
+)
+
 var (
-	nomadBinaryVersion = "1.2.5"
-	nomadBinaryName    = fmt.Sprintf("nomad_%s", nomadBinaryVersion)
+	nomadBinaryName = fmt.Sprintf("nomad_%s", nomadBinaryVersion)
 )
 
 func nomadBinaryPath() (string, error) {
@@ -30,8 +36,27 @@ func nomadBinaryPath() (string, error) {
 	return filepath.Join(homeDir, ".vegacapsule", nomadBinaryName), nil
 }
 
+func nomadDownloadUrl(binaryVersion, goos, arch string) (string, error) {
+	url := fmt.Sprintf("https://releases.hashicorp.com/nomad/%s/nomad_%s_%s_%s.zip", binaryVersion, binaryVersion, goos, arch)
+
+	resp, err := http.Head(url)
+	if err == nil && resp.StatusCode == http.StatusOK {
+		return url, nil
+	}
+
+	// For Mac M1 fallback to amd64 if original architecture not found
+	if runtime.GOOS == osDarwin && arch == arm64Arch {
+		return nomadDownloadUrl(binaryVersion, goos, amd64Arch)
+	}
+
+	return "", fmt.Errorf("failed to get existing url for nomad binary %s: %w", binaryVersion, err)
+}
+
 func installNomadBinary(binPath string) error {
-	url := fmt.Sprintf("https://releases.hashicorp.com/nomad/%s/nomad_%s_%s_%s.zip", nomadBinaryVersion, nomadBinaryVersion, runtime.GOOS, runtime.GOARCH)
+	url, err := nomadDownloadUrl(nomadBinaryVersion, runtime.GOOS, runtime.GOARCH)
+	if err != nil {
+		return fmt.Errorf("failed downloading nomad binary: expected version of nomad not found: %w", err)
+	}
 
 	log.Printf("Nomad binary was not found in. Installing from: %s", url)
 
