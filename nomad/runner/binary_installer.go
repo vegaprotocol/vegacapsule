@@ -45,7 +45,7 @@ func nomadDownloadUrl(binaryVersion, goos, arch string) (string, error) {
 	}
 
 	// For Mac M1 fallback to amd64 if original architecture not found
-	if runtime.GOOS == osDarwin && arch == arm64Arch {
+	if goos == osDarwin && arch == arm64Arch {
 		return nomadDownloadUrl(binaryVersion, goos, amd64Arch)
 	}
 
