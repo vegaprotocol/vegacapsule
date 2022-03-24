@@ -44,6 +44,8 @@ func (r *JobRunner) runDockerJob(ctx context.Context, conf config.DockerConfig) 
 							"args":    conf.Args,
 						},
 						Resources: &api.Resources{
+							CPU:      utils.IntPoint(500),
+							MemoryMB: utils.IntPoint(768),
 							Networks: []*api.NetworkResource{
 								{
 									ReservedPorts: []api.Port{
