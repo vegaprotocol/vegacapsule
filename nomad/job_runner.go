@@ -182,6 +182,7 @@ func (r *JobRunner) runWallet(ctx context.Context, conf *config.WalletConfig, wa
 								"--no-version-check",
 								"--output", "json",
 								"--home", wallet.HomeDir,
+								"--automatic-consent",
 							},
 						},
 						Resources: &api.Resources{
