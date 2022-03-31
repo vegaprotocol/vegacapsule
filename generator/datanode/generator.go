@@ -116,7 +116,7 @@ func (dng ConfigGenerator) OverwriteConfig(index int, configTemplate *template.T
 }
 
 func (dng ConfigGenerator) nodeDir(i int) string {
-	nodeDirName := fmt.Sprintf("%s%d", dng.conf.NodeDirPrefix, i)
+	nodeDirName := fmt.Sprintf("%s%d", *dng.conf.NodeDirPrefix, i)
 	return filepath.Join(dng.homeDir, nodeDirName)
 }
 
