@@ -44,6 +44,18 @@ vegacapsule bootstrap --config-path=config.hcl
 
 ## Commands
 
+You can see all available commands callin the `vegacapsule --help` command.
+
+### Available commands
+
+- `network` - Manages network
+- `nodes` - Manages nodes sets
+- `nomad` - Starts Nomad instance locally
+- `state` - Manages vegacapsule state
+
+
+
+
 ### Commands to control network
 
 To generate network configuration files, use one of the following commands:
@@ -61,19 +73,19 @@ All below commands require generated network configuration. If configuration fil
 
 ```bash
 # Generate the network config files
-vegacapsule generate --config-path=config.hcl
+vegacapsule network generate -home-path=/var/tmp/veganetwork/testnetwork --config-path=config.hcl
 
 # Starts the network
-vegacapsule start --home-path=/var/tmp/veganetwork/testnetwork
+vegacapsule network start --home-path=/var/tmp/veganetwork/testnetwork
 
 # Stop the network
-vegacapsule stop --home-path=/var/tmp/veganetwork/testnetwork
+vegacapsule network stop --home-path=/var/tmp/veganetwork/testnetwork
 
 # Resume the network with previous configurationh
-vegacapsule start --home-path=/var/tmp/veganetwork/testnetwork
+vegacapsule  network start --home-path=/var/tmp/veganetwork/testnetwork
 
 # Destroy the network
-vegacapsule destroy --home-path=/var/tmp/veganetwork/testnetwork
+vegacapsule network destroy --home-path=/var/tmp/veganetwork/testnetwork
 ```
 
 ### Commands to run nomad
