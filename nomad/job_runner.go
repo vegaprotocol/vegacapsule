@@ -179,10 +179,10 @@ func (r *JobRunner) runWallet(ctx context.Context, conf *config.WalletConfig, wa
 								"service",
 								"run",
 								"--network", wallet.Network,
+								"--automatic-consent",
 								"--no-version-check",
 								"--output", "json",
 								"--home", wallet.HomeDir,
-								"--automatic-consent",
 							},
 						},
 						Resources: &api.Resources{

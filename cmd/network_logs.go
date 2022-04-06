@@ -42,8 +42,6 @@ var netLogsCmd = &cobra.Command{
 			return err
 		}
 
-		fmt.Printf("%+v\n", jobIDs)
-
 		logs, err := netLogs(context.Background(), *netState, followLogs, logsOrigin, logsOffset, jobIDs)
 		if err != nil {
 			return err
