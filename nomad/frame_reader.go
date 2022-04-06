@@ -3,18 +3,21 @@ package nomad
 import (
 	"bufio"
 	"bytes"
-	"fmt"
 	"io"
-	"strings"
 	"sync"
 	"time"
 
 	"github.com/hashicorp/nomad/api"
 )
 
+type StreamFrame struct {
+	Name string
+	*api.StreamFrame
+}
+
 // FrameReader is used to convert a stream of frames into a read closer.
 type FrameReader struct {
-	frames   <-chan *api.StreamFrame
+	frames   <-chan *StreamFrame
 	errCh    <-chan error
 	cancelCh chan struct{}
 
@@ -23,7 +26,7 @@ type FrameReader struct {
 
 	unblockTime time.Duration
 
-	frame       *api.StreamFrame
+	frame       *StreamFrame
 	frameBytes  []byte
 	frameOffset int
 
@@ -32,7 +35,7 @@ type FrameReader struct {
 
 // NewFrameReader takes a channel of frames and returns a FrameReader which
 // implements io.ReadCloser
-func NewFrameReader(frames <-chan *api.StreamFrame, errCh <-chan error, cancelCh chan struct{}) *FrameReader {
+func NewFrameReader(frames <-chan *StreamFrame, errCh <-chan error, cancelCh chan struct{}) *FrameReader {
 	return &FrameReader{
 		frames:   frames,
 		errCh:    errCh,
@@ -70,12 +73,11 @@ func (f *FrameReader) Read(p []byte) (n int, err error) {
 
 			f.frame = frame
 
-			file := strings.Replace(frame.File, "alloc/logs/", "", 1)
 			// Prepend every log line
 			buff := bytes.NewBuffer([]byte{})
 			scanner := bufio.NewScanner(bytes.NewReader(frame.Data))
 			for scanner.Scan() {
-				buff.Write([]byte(file))
+				buff.Write([]byte(f.frame.Name))
 				buff.Write([]byte(": "))
 				buff.Write(scanner.Bytes())
 				buff.Write([]byte("\n"))
@@ -88,7 +90,6 @@ func (f *FrameReader) Read(p []byte) (n int, err error) {
 		case <-unblock:
 			return 0, nil
 		case err := <-f.errCh:
-			fmt.Println("err:", err)
 			return 0, err
 		case <-f.cancelCh:
 			return 0, io.EOF

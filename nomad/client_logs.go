@@ -2,6 +2,7 @@ package nomad
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"sync"
 
@@ -11,6 +12,7 @@ import (
 var logTypes = [2]string{"stdout", "stderr"}
 
 type framesSet struct {
+	name   string
 	frames <-chan *api.StreamFrame
 	errs   <-chan error
 	cancel chan struct{}
@@ -25,7 +27,7 @@ func (n *Client) LogJobs(ctx context.Context, follow bool, origin string, offset
 	for _, jobID := range jobIDs {
 		jobsAllocs, _, err := jobsApi.Allocations(jobID, true, queryOpts)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to get nomad job %q: %w", jobID, err)
 		}
 
 		for _, as := range jobsAllocs {
@@ -37,6 +39,7 @@ func (n *Client) LogJobs(ctx context.Context, follow bool, origin string, offset
 
 					frameSets = append(frameSets,
 						framesSet{
+							name:   fmt.Sprintf("Job: %s, Task: %s", jobID, taskName),
 							frames: framesCh,
 							errs:   errsCh,
 							cancel: cancelCh,
@@ -50,8 +53,8 @@ func (n *Client) LogJobs(ctx context.Context, follow bool, origin string, offset
 	return NewFrameReader(mergeFrameSets(frameSets)), nil
 }
 
-func mergeFrameSets(fss []framesSet) (<-chan *api.StreamFrame, <-chan error, chan struct{}) {
-	frames := make(chan *api.StreamFrame)
+func mergeFrameSets(fss []framesSet) (<-chan *StreamFrame, <-chan error, chan struct{}) {
+	frames := make(chan *StreamFrame)
 	errs := make(chan error, 1)
 	cancel := make(chan struct{}, 0)
 
@@ -60,13 +63,16 @@ func mergeFrameSets(fss []framesSet) (<-chan *api.StreamFrame, <-chan error, cha
 	for _, c := range fss {
 		go func(fs framesSet) {
 			for frame := range fs.frames {
-				frames <- frame
+				frames <- &StreamFrame{
+					Name:        fs.name,
+					StreamFrame: frame,
+				}
 			}
 			wg.Done()
 		}(c)
 		go func(fs framesSet) {
 			for err := range fs.errs {
-				errs <- err
+				errs <- fmt.Errorf("received error from %q: %w", fs.name, err)
 			}
 		}(c)
 	}
