@@ -22,6 +22,10 @@ func (ns *NetworkState) Empty() bool {
 	return ns == nil || ns.Config == nil || len(ns.GeneratedServices.NodeSets) == 0
 }
 
+func (ns *NetworkState) Running() bool {
+	return !ns.Empty() && ns.RunningJobs != nil && len(ns.RunningJobs.NodesSetsJobIDs) != 0
+}
+
 func (ns NetworkState) Persist() error {
 	networkBytes, err := encodeState(ns)
 	if err != nil {

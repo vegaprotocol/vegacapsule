@@ -10,6 +10,10 @@ func networkNotBootstrappedErr(cmd string) error {
 	return fmt.Errorf("failed to %s network: network not bootstrapped. Use the 'bootstrap' subcommand or provide different network home with the `--home-path` flag", cmd)
 }
 
+func networkNotRunningErr(cmd string) error {
+	return fmt.Errorf("failed to %s network: network is not running. Use the 'start' subcommand or provide different network home with the `--home-path` flag", cmd)
+}
+
 var networkCmd = &cobra.Command{
 	Use:   "network",
 	Short: "Manages network",
@@ -36,4 +40,5 @@ func init() {
 	networkCmd.AddCommand(netDestroyCmd)
 	networkCmd.AddCommand(netBootstrapCmd)
 	networkCmd.AddCommand(netGenerateCmd)
+	networkCmd.AddCommand(netLogsCmd)
 }

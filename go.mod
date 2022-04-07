@@ -3,13 +3,13 @@ module code.vegaprotocol.io/vegacapsule
 go 1.17
 
 require (
-	code.vegaprotocol.io/data-node v0.47.1-0.20220223203337-b08163bbbfe7
-	code.vegaprotocol.io/shared v0.0.0-20220202150846-b6aba31dcdb0
-	code.vegaprotocol.io/vega v0.48.0-pre4.0.20220223173047-c5a9f17a8d0d
+	code.vegaprotocol.io/data-node v0.49.3
+	code.vegaprotocol.io/shared v0.0.0-20220321185018-3b5684b00533
+	code.vegaprotocol.io/vega v0.49.9-pre1.0.20220406140115-b9fbd5ac4877
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/btcsuite/btcd v0.22.0-beta
 	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
-	github.com/ethereum/go-ethereum v1.10.15
+	github.com/ethereum/go-ethereum v1.10.16
 	github.com/hashicorp/nomad/api v0.0.0-20211119141705-873b0969e01e
 	github.com/imdario/mergo v0.3.12
 	github.com/miguelmota/go-ethereum-hdwallet v0.1.1
@@ -34,7 +34,9 @@ require (
 	github.com/go-kit/kit v0.12.0 // indirect
 	github.com/go-kit/log v0.2.0 // indirect
 	github.com/go-logfmt/logfmt v0.5.1 // indirect
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.7.3 // indirect
+	github.com/gorilla/mux v1.8.0 // indirect
+	github.com/gorilla/rpc v1.2.0 // indirect
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.9.0 // indirect
 	github.com/gtank/merlin v0.1.1 // indirect
 	github.com/gtank/ristretto255 v0.1.2 // indirect
 	github.com/huandu/xstrings v1.2.0 // indirect
@@ -45,7 +47,7 @@ require (
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgproto3/v2 v2.2.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
-	github.com/jackc/pgtype v1.9.1 // indirect
+	github.com/jackc/pgtype v1.10.0 // indirect
 	github.com/jackc/pgx/v4 v4.14.1 // indirect
 	github.com/jackc/puddle v1.2.0 // indirect
 	github.com/jhump/protoreflect v1.10.1 // indirect
@@ -62,12 +64,12 @@ require (
 )
 
 require (
-	code.vegaprotocol.io/protos v0.48.1-0.20220221113328-2bef6ffb4ee6 // indirect
+	code.vegaprotocol.io/protos v0.49.4-0.20220331114651-6aa87bc4a08d // indirect
 	code.vegaprotocol.io/quant v0.2.5 // indirect
-	code.vegaprotocol.io/vegawallet v0.12.1-0.20220217130931-e2d76ed75667
+	code.vegaprotocol.io/vegawallet v0.13.3-0.20220325131640-e19b55a4aa00
 	github.com/DataDog/zstd v1.4.1 // indirect
 	github.com/StackExchange/wmi v1.2.1 // indirect
-	github.com/adrg/xdg v0.3.3 // indirect
+	github.com/adrg/xdg v0.4.0 // indirect
 	github.com/agext/levenshtein v1.2.1 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -77,7 +79,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/confio/ics23/go v0.6.3 // indirect
 	github.com/cosmos/iavl v0.15.3 // indirect
-	github.com/deckarep/golang-set v0.0.0-20180603214616-504e848d77ea // indirect
+	github.com/deckarep/golang-set v1.8.0 // indirect
 	github.com/dgraph-io/badger/v2 v2.2007.3 // indirect
 	github.com/dgraph-io/ristretto v0.0.3-0.20200630154024-f66de99634de // indirect
 	github.com/dgryski/go-farm v0.0.0-20190423205320-6a90982ecee2 // indirect
@@ -109,7 +111,7 @@ require (
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
 	github.com/mitchellh/mapstructure v1.4.3 // indirect
 	github.com/mwitkow/go-proto-validators v0.3.2 // indirect
-	github.com/oasisprotocol/curve25519-voi v0.0.0-20210716083614-f38f8e8b0b84 // indirect
+	github.com/oasisprotocol/curve25519-voi v0.0.0-20220317090546-adb2f9614b17 // indirect
 	github.com/pelletier/go-toml v1.9.4 // indirect
 	github.com/petermattis/goid v0.0.0-20180202154549-b0b1615b78e5 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
@@ -125,7 +127,7 @@ require (
 	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/spf13/afero v1.8.0 // indirect
 	github.com/spf13/cast v1.4.1 // indirect
-	github.com/spf13/cobra v1.3.0
+	github.com/spf13/cobra v1.4.0
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
@@ -138,17 +140,17 @@ require (
 	go.etcd.io/bbolt v1.3.6 // indirect
 	go.nanomsg.org/mangos/v3 v3.2.1 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
-	go.uber.org/multierr v1.7.0 // indirect
-	go.uber.org/zap v1.20.0 // indirect
-	golang.org/x/crypto v0.0.0-20220112180741-5e0467b6c7ce // indirect
+	go.uber.org/multierr v1.8.0 // indirect
+	go.uber.org/zap v1.21.0 // indirect
+	golang.org/x/crypto v0.0.0-20220315160706-3147a52a75dd // indirect
 	golang.org/x/exp v0.0.0-20200331195152-e8c3332aa8e5 // indirect
-	golang.org/x/net v0.0.0-20211208012354-db4efeb81f4b // indirect
-	golang.org/x/sys v0.0.0-20220114195835-da31bd327af9 // indirect
+	golang.org/x/net v0.0.0-20220225172249-27dd8689420f // indirect
+	golang.org/x/sys v0.0.0-20220318055525-2edf467146b5 // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	gonum.org/v1/gonum v0.9.1 // indirect
-	google.golang.org/genproto v0.0.0-20220118154757-00ab72f36ad5 // indirect
-	google.golang.org/grpc v1.44.0 // indirect
+	google.golang.org/genproto v0.0.0-20220317150908-0efb43f6373e // indirect
+	google.golang.org/grpc v1.45.0 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/ini.v1 v1.66.3 // indirect
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect

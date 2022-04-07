@@ -135,6 +135,37 @@ type NetworkJobs struct {
 	WalletJobID     string
 }
 
+func (nj NetworkJobs) Exists(jobID string) bool {
+	if _, ok := nj.NodesSetsJobIDs[jobID]; ok {
+		return true
+	}
+	if _, ok := nj.ExtraJobIDs[jobID]; ok {
+		return true
+	}
+	if nj.FaucetJobID == jobID {
+		return true
+	}
+	if nj.WalletJobID == jobID {
+		return true
+	}
+
+	return false
+}
+
+func (nj NetworkJobs) ToSlice() []string {
+	out := append(nj.NodesSetsJobIDs.ToSlice(), nj.ExtraJobIDs.ToSlice()...)
+
+	if nj.FaucetJobID != "" {
+		out = append(out, nj.FaucetJobID)
+	}
+
+	if nj.WalletJobID != "" {
+		out = append(out, nj.WalletJobID)
+	}
+
+	return out
+}
+
 type NodeWalletInfo struct {
 	EthereumAddress          string
 	EthereumPrivateKey       string

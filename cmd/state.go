@@ -13,10 +13,10 @@ var stateCmd = &cobra.Command{
 }
 
 func init() {
-	stateCmd.AddCommand(stateGetSmartcontractsAddresses)
+	stateCmd.AddCommand(stateGetSmartcontractsAddressesCmd)
 }
 
-var stateGetSmartcontractsAddresses = &cobra.Command{
+var stateGetSmartcontractsAddressesCmd = &cobra.Command{
 	Use:   "get-smartcontracts-addresses",
 	Short: "Print smartcontracts addresses and keys passed to vegacapsule as a config parameter",
 	RunE: func(cmd *cobra.Command, args []string) error {
