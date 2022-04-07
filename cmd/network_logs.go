@@ -34,7 +34,7 @@ var netLogsCmd = &cobra.Command{
 		}
 
 		if !netState.Running() {
-			return networkNotBootstrappedErr("net logs")
+			return networkNotRunningErr("net logs")
 		}
 
 		jobIDs, err := filterJobIDsForLogs(*netState.RunningJobs, logsOnlyNodeSets, jobID)
