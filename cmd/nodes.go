@@ -15,4 +15,5 @@ func init() {
 	nodesCmd.AddCommand(nodesStartCmd)
 	nodesCmd.AddCommand(nodesStopCmd)
 	nodesCmd.AddCommand(nodesRemoveCmd)
+	nodesCmd.AddCommand(nodesUnsafeResetAllCmd)
 }
