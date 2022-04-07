@@ -53,6 +53,18 @@ pre_start {
 			}
 		  }
 		},
+		"6d9d35f657589e40ddfb448b7ad4a7463b66efb307527fedd2aa7df1bbd5ea61": {
+				"name": "tDAI",
+				"symbol": "tDAI",
+				"total_supply": "0",
+				"decimals": 5,
+				"min_lp_stake": "1",
+				"source": {
+				  "builtin_asset": {
+					"max_faucet_amount_mint": "10000000000"
+				  }
+				}
+			  },
 		"VOTE": {
 		  "name": "VOTE",
 		  "symbol": "VOTE",
@@ -223,6 +235,7 @@ pre_start {
     node_wallet_pass = "n0d3w4ll3t-p4ssphr4e3"
     vega_wallet_pass = "w4ll3t-p4ssphr4e3"
     ethereum_wallet_pass = "ch41nw4ll3t-3th3r3um-p4ssphr4e3"
+	data_node_binary = "data-node"
 
     config_templates {
 
@@ -260,6 +273,11 @@ pre_start {
 [NodeWallet]
 	[NodeWallet.ETH]
 		Address = "{{.ETHEndpoint}}"
+
+[Broker]
+  [Broker.Socket]
+    Port = 30{{.NodeNumber}}5
+    Enabled = true
 
 [Processor]
 	[Processor.Ratelimit]
