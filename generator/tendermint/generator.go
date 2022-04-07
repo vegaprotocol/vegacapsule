@@ -82,7 +82,7 @@ func (tg ConfigGenerator) HomeDir() string {
 }
 
 func (tg *ConfigGenerator) Initiate(index int, mode string) (*types.TendermintNode, error) {
-	nodeDir := tg.nodeDir(index)
+	nodeDir := tg.NodeDir(index)
 
 	if err := os.MkdirAll(nodeDir, os.ModePerm); err != nil {
 		return nil, err
@@ -151,7 +151,7 @@ func (tg *ConfigGenerator) Initiate(index int, mode string) (*types.TendermintNo
 }
 
 func (tg *ConfigGenerator) OverwriteConfig(index int, configTemplate *template.Template) error {
-	nodeDir := tg.nodeDir(index)
+	nodeDir := tg.NodeDir(index)
 	configFilePath := tg.configFilePath(nodeDir)
 
 	templateCtx := ConfigTemplateContext{
@@ -202,7 +202,7 @@ func (tg ConfigGenerator) GenesisValidators() []tmtypes.GenesisValidator {
 	return tg.genValidators
 }
 
-func (tg ConfigGenerator) nodeDir(i int) string {
+func (tg ConfigGenerator) NodeDir(i int) string {
 	nodeDirName := fmt.Sprintf("%s%d", *tg.conf.NodeDirPrefix, i)
 	return filepath.Join(tg.homeDir, nodeDirName)
 }

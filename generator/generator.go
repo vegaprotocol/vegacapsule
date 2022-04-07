@@ -77,7 +77,9 @@ func (g *Generator) configureNodeSets(fc *types.Faucet) error {
 		}
 
 		for i := 0; i < n.Count; i++ {
-			if err := co.Overwrite(index, n, fc); err != nil {
+
+			tmHome := g.tendermintGen.NodeDir(index)
+			if err := co.Overwrite(index, tmHome, n, fc); err != nil {
 				return err
 			}
 
@@ -136,7 +138,8 @@ func (g *Generator) AddNodeSet(index int, nc config.NodeConfig, ns types.NodeSet
 		return nil, err
 	}
 
-	if err := co.Overwrite(index, nc, fc); err != nil {
+	tmHome := ns.Tendermint.HomeDir
+	if err := co.Overwrite(index, tmHome, nc, fc); err != nil {
 		return nil, err
 	}
 

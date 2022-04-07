@@ -45,14 +45,14 @@ func newConfigOverride(gen *Generator, n config.NodeConfig) (*configOverride, er
 	}, nil
 }
 
-func (co *configOverride) Overwrite(index int, n config.NodeConfig, fc *types.Faucet) error {
+func (co *configOverride) Overwrite(index int, tmHome string, n config.NodeConfig, fc *types.Faucet) error {
 	if co.tendermintTmpl != nil {
 		if err := co.gen.tendermintGen.OverwriteConfig(index, co.tendermintTmpl); err != nil {
 			return fmt.Errorf("failed to overwrite Tendermit config for id %d: %w", index, err)
 		}
 	}
 	if co.vegaTmpl != nil {
-		if err := co.gen.vegaGen.OverwriteConfig(index, n.Mode, fc, co.vegaTmpl); err != nil {
+		if err := co.gen.vegaGen.OverwriteConfig(index, tmHome, n.Mode, fc, co.vegaTmpl); err != nil {
 			return fmt.Errorf("failed to overwrite Vega config for id %d: %w", index, err)
 		}
 	}

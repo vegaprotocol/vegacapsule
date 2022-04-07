@@ -31,6 +31,7 @@ type ConfigTemplateContext struct {
 	NodeMode             string
 	FaucetPublicKey      string
 	NodeNumber           int
+	TendermintHome       string
 }
 
 func NewConfigTemplate(templateRaw string) (*template.Template, error) {
@@ -151,7 +152,7 @@ func (vg ConfigGenerator) initiateValidatorWallets(nodeDir, tendermintHome, vega
 	}, nil
 }
 
-func (vg ConfigGenerator) OverwriteConfig(index int, mode string, fc *types.Faucet, configTemplate *template.Template) error {
+func (vg ConfigGenerator) OverwriteConfig(index int, tmHome, mode string, fc *types.Faucet, configTemplate *template.Template) error {
 	templateCtx := ConfigTemplateContext{
 		Prefix:               *vg.conf.Prefix,
 		TendermintNodePrefix: *vg.conf.TendermintNodePrefix,
@@ -160,6 +161,7 @@ func (vg ConfigGenerator) OverwriteConfig(index int, mode string, fc *types.Fauc
 		ETHEndpoint:          vg.conf.Network.Ethereum.Endpoint,
 		NodeMode:             mode,
 		NodeNumber:           index,
+		TendermintHome:       tmHome,
 	}
 
 	if fc != nil {
