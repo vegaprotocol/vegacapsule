@@ -52,7 +52,7 @@ You can see all available commands callin the `vegacapsule --help` command.
 - `nodes` - Manages nodes sets
 - `nomad` - Starts Nomad instance locally
 - `state` - Manages vegacapsule state
-
+- `smartcontracts` - Interacts with smart contracts
 
 
 
@@ -98,6 +98,20 @@ A helper command allows you to download and install (if the correct version `nom
 vegacapsule nomad
 ```
 
+### Commands for smartcontracts
+
+You can set up the multisig smart contract with the following command:
+
+```bash
+vegacapsule smartcontracts multisig init
+```
+
+Procedure executed by the above command:
+
+1. Set threshold to 1
+1. Add validators as signers
+1. Remove the contract owner from the signer list
+1. Set threshold to 500
 
 ## Configuration
 
