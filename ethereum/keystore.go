@@ -14,6 +14,18 @@ type KeyPair struct {
 	PrivateKey string
 }
 
+type KeyPairList []KeyPair
+
+func (l KeyPairList) PrivateKeys() []string {
+	result := make([]string, len(l))
+
+	for idx, keyPair := range l {
+		result[idx] = keyPair.PrivateKey
+	}
+
+	return result
+}
+
 func DescribeKeyPair(keyFilePath, password string) (*KeyPair, error) {
 	keys, err := ioutil.ReadFile(keyFilePath)
 	if err != nil {

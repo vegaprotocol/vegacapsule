@@ -37,4 +37,5 @@ func init() {
 	rootCmd.AddCommand(nomadCmd)
 	rootCmd.AddCommand(nodesCmd)
 	rootCmd.AddCommand(stateCmd)
+	rootCmd.AddCommand(smartcontractsCmd)
 }

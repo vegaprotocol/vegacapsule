@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 
+	"code.vegaprotocol.io/vegacapsule/types"
 	"code.vegaprotocol.io/vegacapsule/utils"
 
 	"github.com/hashicorp/hcl/v2/gohcl"
@@ -151,21 +152,23 @@ func (c *Config) Validate() error {
 }
 
 func (c Config) validateSmartContractsAddresses() error {
-	addressesStruct := map[string]interface{}{}
+	_, err := c.SmartContractsInfo()
 
-	if err := json.Unmarshal([]byte(c.Network.SmartContractsAddresses), &addressesStruct); err != nil {
-		return fmt.Errorf("failed to check smart contract addreses: config.network.smart_contracts_addresses format is wrong: %w", err)
-	}
-
-	if _, ok := addressesStruct["addr0"]; !ok {
-		return fmt.Errorf("failed to check smart contract addresses: missing field 'addr0'")
-	}
-
-	if _, ok := addressesStruct["MultisigControl"]; !ok {
-		return fmt.Errorf("failed to check smart contract addresses: missing field 'MultisigControl'")
+	if err != nil {
+		return fmt.Errorf("failed to check smart contract addreses: %w", err)
 	}
 
 	return nil
+}
+
+func (c Config) SmartContractsInfo() (*types.SmartContractsInfo, error) {
+	smartcontracts := &types.SmartContractsInfo{}
+
+	if err := json.Unmarshal([]byte(c.Network.SmartContractsAddresses), &smartcontracts); err != nil {
+		return nil, fmt.Errorf("failed to get smart contracts info: config.network.smart_contracts_addresses format is wrong: %w", err)
+	}
+
+	return smartcontracts, nil
 }
 
 func (c *Config) Persist() error {
