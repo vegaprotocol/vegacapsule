@@ -8,6 +8,7 @@ import (
 	"code.vegaprotocol.io/vegacapsule/ethereum"
 	"code.vegaprotocol.io/vegacapsule/state"
 	"code.vegaprotocol.io/vegacapsule/types"
+	"code.vegaprotocol.io/vegacapsule/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -95,7 +96,14 @@ var ethereumMultisigSetupCmd = &cobra.Command{
 		}
 
 		ctx := context.Background()
-		client, err := ethereum.NewEthereumClient(ctx, *netState.Config.VegaBinary, ethereumChainID, ethereumAddress, *smartcontracts)
+		client, err := ethereum.NewEthereumClient(ctx, ethereum.EthereumClientParameters{
+			VegaBinary: *netState.Config.VegaBinary,
+			VegaHome:   utils.VegaNodeHomePath(homePath, 0),
+
+			ChainID:            ethereumChainID,
+			EthereumAddress:    ethereumAddress,
+			SmartcontractsInfo: *smartcontracts,
+		})
 		if err != nil {
 			return fmt.Errorf("failed to create ethereum client: %w", err)
 		}

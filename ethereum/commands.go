@@ -7,12 +7,13 @@ import (
 	"code.vegaprotocol.io/vegacapsule/utils"
 )
 
-func setThresholdSignature(vegaBinary string, newThreshold int, nonce uint64, submitter string, signers []string) (string, error) {
+func setThresholdSignature(vegaBinary string, vegaHome string, newThreshold int, nonce uint64, submitter string, signers []string) (string, error) {
 	result := "0x"
 
 	for _, privKey := range signers {
 		signature, err := callVegaBridgeERC20(vegaBinary, []string{
 			"set_threshold",
+			"--home", vegaHome,
 			"--new-threshold", fmt.Sprintf("%d", newThreshold),
 			"--submitter", submitter,
 			"--nonce", fmt.Sprintf("%d", nonce),
@@ -32,12 +33,13 @@ func setThresholdSignature(vegaBinary string, newThreshold int, nonce uint64, su
 	return result, nil
 }
 
-func addSignerSignature(vegaBinary string, newSigner string, nonce uint64, submitter string, signers []string) (string, error) {
+func addSignerSignature(vegaBinary string, vegaHome string, newSigner string, nonce uint64, submitter string, signers []string) (string, error) {
 	result := "0x"
 
 	for _, privKey := range signers {
 		signature, err := callVegaBridgeERC20(vegaBinary, []string{
 			"add_signer",
+			"--home", vegaHome,
 			"--new-signer", newSigner,
 			"--submitter", submitter,
 			"--nonce", fmt.Sprintf("%d", nonce),
@@ -57,12 +59,13 @@ func addSignerSignature(vegaBinary string, newSigner string, nonce uint64, submi
 	return result, nil
 }
 
-func removeSignerSignature(vegaBinary string, oldSigner string, nonce uint64, submitter string, signers []string) (string, error) {
+func removeSignerSignature(vegaBinary string, vegaHome string, oldSigner string, nonce uint64, submitter string, signers []string) (string, error) {
 	result := "0x"
 
 	for _, privKey := range signers {
 		signature, err := callVegaBridgeERC20(vegaBinary, []string{
 			"remove_signer",
+			"--home", vegaHome,
 			"--old-signer", oldSigner,
 			"--submitter", submitter,
 			"--nonce", fmt.Sprintf("%d", nonce),
