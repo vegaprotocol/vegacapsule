@@ -23,6 +23,25 @@ type EthereumClient struct {
 	vegaBinary string
 }
 
+func WaitForNetwork(ctx context.Context, chainID int, ethAddress string) error {
+	done := make(chan bool)
+	go func(chainID int, ethAddress string) {
+		for {
+			if client, err := ethclient.DialContext(ctx, ethAddress); err == nil {
+				client.Close()
+				done <- true
+			}
+		}
+	}(chainID, ethAddress)
+
+	select {
+	case <-done:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}
+
 func NewEthereumClient(ctx context.Context, vegaBinary string, chainID int, ethAddress string, smartcontracts types.SmartContractsInfo) (*EthereumClient, error) {
 	client, err := ethclient.DialContext(ctx, ethAddress)
 
@@ -78,12 +97,12 @@ func (ec EthereumClient) InitMultisig(ctx context.Context, smartcontracts types.
 		return fmt.Errorf("failed to add signers: %w", err)
 	}
 
-	if err := ec.multisigRemoveSigners(ctx, session, smartcontracts.EthereumOwner.Public, KeyPairList{ownerKeyPair}); err != nil {
+	if err := ec.multisigRemoveSigner(ctx, session, smartcontracts.EthereumOwner.Public, KeyPairList{ownerKeyPair}); err != nil {
 		return fmt.Errorf("failed to remove contract owner from muiltisig signer: %w", err)
 	}
 
-	if err := ec.multisigSetThreshold(ctx, session, 500, validators); err != nil {
-		return fmt.Errorf("failed to set multisig threshold to 500: %w", err)
+	if err := ec.multisigSetThreshold(ctx, session, 667, validators); err != nil {
+		return fmt.Errorf("failed to set multisig threshold to 667: %w", err)
 	}
 
 	return nil
@@ -195,7 +214,7 @@ func (ec EthereumClient) multisigAddSigners(ctx context.Context, session *multis
 	return nil
 }
 
-func (ec EthereumClient) multisigRemoveSigners(ctx context.Context, session *multisig.MultiSigControlSession, oldSigner string, signers KeyPairList) error {
+func (ec EthereumClient) multisigRemoveSigner(ctx context.Context, session *multisig.MultiSigControlSession, oldSigner string, signers KeyPairList) error {
 	validSigner, err := session.IsValidSigner(common.HexToAddress(oldSigner))
 	if err != nil {
 		return fmt.Errorf("failed to check signer: %w", err)

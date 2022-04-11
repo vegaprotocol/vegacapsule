@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"code.vegaprotocol.io/vegacapsule/ethereum"
 	"code.vegaprotocol.io/vegacapsule/state"
@@ -10,44 +11,67 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var smartcontractsCmd = &cobra.Command{
-	Use:   "smartcontracts",
-	Short: "Support interactions with smartcontracts",
+var ethereumCmd = &cobra.Command{
+	Use:   "ethereum",
+	Short: "Support interactions with ethereum network",
 }
 
 // Flags
 var (
 	ethereumAddress string
 	ethereumChainID int
+
+	ethereumWaitTimeoutSeconds uint
 )
 
 const (
 	defaultEthereumAddress = "ws://127.0.0.1:8545"
 	defaultEthereumChainID = 1440
+
+	defaultEthreumWaitTimeout = 60
 )
 
 func init() {
-	smartcontractsCmd.PersistentFlags().StringVar(&ethereumAddress,
+	ethereumCmd.PersistentFlags().StringVar(&ethereumAddress,
 		"eth-address",
 		defaultEthereumAddress,
 		"Specify the ethereum network address",
 	)
-	smartcontractsCmd.PersistentFlags().IntVar(&ethereumChainID,
+	ethereumCmd.PersistentFlags().IntVar(&ethereumChainID,
 		"eth-chain-id",
 		defaultEthereumChainID,
 		"Specify the ethereum chain ID",
 	)
 
-	smartcontractsCmd.AddCommand(smartContractsMultisigCmd)
-	smartContractsMultisigCmd.AddCommand(smartContractsMultisigSetupCmd)
+	ethereumCmd.AddCommand(ethereumMultisigCmd)
+	ethereumMultisigCmd.AddCommand(ethereumMultisigSetupCmd)
+
+	ethereumCmd.PersistentFlags().UintVar(&ethereumWaitTimeoutSeconds,
+		"timeout",
+		defaultEthereumChainID,
+		"Specify the number of second to wait",
+	)
+
+	ethereumCmd.AddCommand(ethereumWaitCmd)
 }
 
-var smartContractsMultisigCmd = &cobra.Command{
+var ethereumMultisigCmd = &cobra.Command{
 	Use:   "multisig",
 	Short: "Manages multisig smartcontract",
 }
 
-var smartContractsMultisigSetupCmd = &cobra.Command{
+var ethereumWaitCmd = &cobra.Command{
+	Use:   "wait",
+	Short: "Waits for the ethereum network to be available",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(ethereumWaitTimeoutSeconds)*time.Second)
+		defer cancel()
+
+		return ethereum.WaitForNetwork(ctx, ethereumChainID, ethereumAddress)
+	},
+}
+
+var ethereumMultisigSetupCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Setups the multisig smart contract",
 	Long:  `Adds all validators to the multisig smart contract`,
@@ -58,16 +82,16 @@ var smartContractsMultisigSetupCmd = &cobra.Command{
 		}
 
 		if netState.Empty() {
-			return networkNotBootstrappedErr("state get-smartcontracts-addresses")
+			return networkNotBootstrappedErr("ethereum multisig init")
 		}
 
 		if !netState.Running() {
-			return networkNotRunningErr("smartcontracts multisig init")
+			return networkNotRunningErr("ethereum multisig init")
 		}
 
 		smartcontracts, err := netState.Config.SmartContractsInfo()
 		if err != nil {
-			return fmt.Errorf("error getting smart contract informations: %w", err)
+			return fmt.Errorf("failed getting smart contract informations: %w", err)
 		}
 
 		ctx := context.Background()
