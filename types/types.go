@@ -173,6 +173,16 @@ type NodeWalletInfo struct {
 	VegaWalletRecoveryPhrase string
 }
 
+type SmartContractsInfo struct {
+	MultisigControl struct {
+		EthereumAddress string `json:"Ethereum"`
+	} `json:"MultisigControl"`
+	EthereumOwner struct {
+		Public  string `json:"pub"`
+		Private string `json:"priv"`
+	} `json:"addr0"`
+}
+
 const (
 	NodeModeValidator           = "validator"
 	NodeModeFull                = "full"
