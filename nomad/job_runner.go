@@ -24,6 +24,16 @@ func NewJobRunner(c *Client) *JobRunner {
 }
 
 func (r *JobRunner) runDockerJob(ctx context.Context, conf config.DockerConfig) (*api.Job, error) {
+	dockerConfig := map[string]interface{}{
+		"image":   conf.Image,
+		"command": conf.Command,
+		"args":    conf.Args,
+	}
+	
+	if config.NetworkMode != "" {
+		dockerConfig["network_mode"] = config.NetworkMode
+	}
+
 	j := &api.Job{
 		ID:          &conf.Name,
 		Datacenters: []string{"dc1"},
@@ -38,11 +48,7 @@ func (r *JobRunner) runDockerJob(ctx context.Context, conf config.DockerConfig) 
 					{
 						Name:   conf.Name,
 						Driver: "docker",
-						Config: map[string]interface{}{
-							"image":   conf.Image,
-							"command": conf.Command,
-							"args":    conf.Args,
-						},
+						Config: dockerConfig,
 						Resources: &api.Resources{
 							CPU:      utils.IntPoint(500),
 							MemoryMB: utils.IntPoint(768),
