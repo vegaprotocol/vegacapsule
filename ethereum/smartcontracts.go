@@ -21,6 +21,7 @@ type EthereumClient struct {
 	multisig *multisig.MultiSigControl
 
 	vegaBinary string
+	vegaHome   string
 }
 
 func WaitForNetwork(ctx context.Context, chainID int, ethAddress string) error {
@@ -42,18 +43,27 @@ func WaitForNetwork(ctx context.Context, chainID int, ethAddress string) error {
 	}
 }
 
-func NewEthereumClient(ctx context.Context, vegaBinary string, chainID int, ethAddress string, smartcontracts types.SmartContractsInfo) (*EthereumClient, error) {
-	client, err := ethclient.DialContext(ctx, ethAddress)
+type EthereumClientParameters struct {
+	ChainID            int
+	EthereumAddress    string
+	SmartcontractsInfo types.SmartContractsInfo
+
+	VegaBinary string
+	VegaHome   string
+}
+
+func NewEthereumClient(ctx context.Context, params EthereumClientParameters) (*EthereumClient, error) {
+	client, err := ethclient.DialContext(ctx, params.EthereumAddress)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed creating ehtereum client: %w", err)
 	}
 
-	if smartcontracts.MultisigControl.EthereumAddress == "" {
+	if params.SmartcontractsInfo.MultisigControl.EthereumAddress == "" {
 		return nil, fmt.Errorf("failed to create ethereum client: the multisig smart contract address is not set, please uptate it in the network configuration")
 	}
 
-	multisigControl, err := multisig.NewMultiSigControl(common.HexToAddress(smartcontracts.MultisigControl.EthereumAddress), client)
+	multisigControl, err := multisig.NewMultiSigControl(common.HexToAddress(params.SmartcontractsInfo.MultisigControl.EthereumAddress), client)
 	if err != nil {
 		return nil, fmt.Errorf("failed creating multisig control: %w", err)
 	}
@@ -61,8 +71,9 @@ func NewEthereumClient(ctx context.Context, vegaBinary string, chainID int, ethA
 	return &EthereumClient{
 		client:     client,
 		multisig:   multisigControl,
-		chainID:    int64(chainID),
-		vegaBinary: vegaBinary,
+		chainID:    int64(params.ChainID),
+		vegaBinary: params.VegaBinary,
+		vegaHome:   params.VegaHome,
 	}, nil
 }
 
@@ -143,7 +154,13 @@ func (ec EthereumClient) multisigSetThreshold(ctx context.Context, session *mult
 		return fmt.Errorf("failed to get nonce: %w", err)
 	}
 
-	signature, err := setThresholdSignature(ec.vegaBinary, newThreshold, nonce.Uint64(), session.CallOpts.From.Hex(), signers.PrivateKeys())
+	signature, err := setThresholdSignature(
+		ec.vegaBinary,
+		ec.vegaHome,
+		newThreshold,
+		nonce.Uint64(),
+		session.CallOpts.From.Hex(),
+		signers.PrivateKeys())
 	if err != nil {
 		return fmt.Errorf("failed computing signature: %w", err)
 	}
@@ -188,7 +205,13 @@ func (ec EthereumClient) multisigAddSigners(ctx context.Context, session *multis
 		if err != nil {
 			return fmt.Errorf("failed to get nonce: %w", err)
 		}
-		signature, err := addSignerSignature(ec.vegaBinary, validator.Address, nonce.Uint64(), session.CallOpts.From.Hex(), signers.PrivateKeys())
+		signature, err := addSignerSignature(
+			ec.vegaBinary,
+			ec.vegaHome,
+			validator.Address,
+			nonce.Uint64(),
+			session.CallOpts.From.Hex(),
+			signers.PrivateKeys())
 		if err != nil {
 			return fmt.Errorf("failed generate the add_signer signature for %s signer: %w", validator.Address, err)
 		}
@@ -228,7 +251,13 @@ func (ec EthereumClient) multisigRemoveSigner(ctx context.Context, session *mult
 	if err != nil {
 		return fmt.Errorf("failed to get nonce: %w", err)
 	}
-	signature, err := removeSignerSignature(ec.vegaBinary, oldSigner, nonce.Uint64(), session.CallOpts.From.Hex(), signers.PrivateKeys())
+	signature, err := removeSignerSignature(
+		ec.vegaBinary,
+		ec.vegaHome,
+		oldSigner,
+		nonce.Uint64(),
+		session.CallOpts.From.Hex(),
+		signers.PrivateKeys())
 	if err != nil {
 		return fmt.Errorf("failed generate signature: %w", err)
 	}

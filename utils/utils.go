@@ -48,6 +48,10 @@ func BinaryAbsPath(p string) (string, error) {
 	return aPath, nil
 }
 
+func VegaNodeHomePath(networkHomePath string, nodeIdx int) string {
+	return filepath.Join(networkHomePath, "vega", fmt.Sprintf("node%d", nodeIdx))
+}
+
 func StrPoint(s string) *string {
 	return &s
 }
