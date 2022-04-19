@@ -38,9 +38,49 @@ vegacapsule nomad
 
 4. B) In another Terminal window run bootstrap command to generate and start new network
 ```bash
-vegacapsule bootstrap --config-path=config.hcl
+vegacapsule network bootstrap --config-path=config.hcl
 ```
 5. Check Nomad console by opening http://localhost:4646/
+
+## Restoring network from checkpoint
+### Bootstrapping a new network
+
+1. First generate the network
+```bash
+vegacapsule network generate --config-path=config.hcl
+```
+
+2. Run restore command to change networks genesis files
+```
+vegacapsule nodes restore-checkpoint --checkpoint-file PATH_TO_YOUR_CHECKPOINT_FILE
+```
+
+3. Lastly the network can be started. It will load it's state from the checkpoint
+```
+vegacapsule network start
+```
+
+### Restoring on existing network
+
+1. Stop the currently running network first (if the network is running)
+```bash
+vegacapsule network stop
+```
+
+2. Reset current network nodes state
+```bash
+vegacapsule nodes unsafe-reset-all
+```
+
+3. Run restore command to change networks genesis files
+```
+vegacapsule nodes restore-checkpoint --checkpoint-file PATH_TO_YOUR_CHECKPOINT_FILE
+```
+
+4. Lastly the network can be started. It will load it's state from the checkpoint
+```
+vegacapsule network start
+```
 
 ## Commands
 
@@ -52,8 +92,6 @@ You can see all available commands callin the `vegacapsule --help` command.
 - `nodes` - Manages nodes sets
 - `nomad` - Starts Nomad instance locally
 - `state` - Manages vegacapsule state
-
-
 
 
 ### Commands to control network
