@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 
+	"code.vegaprotocol.io/vegacapsule/nomad"
 	"code.vegaprotocol.io/vegacapsule/state"
 	"github.com/spf13/cobra"
 )
@@ -19,12 +20,12 @@ var netDestroyCmd = &cobra.Command{
 			return err
 		}
 
-		if netState.Empty() {
-			return networkNotBootstrappedErr("destroy")
-		}
-
 		if err := netStop(context.Background(), netState); err != nil {
-			return fmt.Errorf("failed to stop network: %w", err)
+			if nomad.IsConnectionErr(err) {
+				log.Println("stopping network skipped")
+			} else {
+				return fmt.Errorf("failed to stop network: %w", err)
+			}
 		}
 
 		return netCleanup(homePath)

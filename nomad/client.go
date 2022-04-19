@@ -2,12 +2,32 @@ package nomad
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/hashicorp/nomad/api"
 )
+
+type ConnectionError struct {
+	Err error
+}
+
+func (ce *ConnectionError) Error() string {
+	return fmt.Sprintf("failed to connect to nomad: %s", ce.Err.Error())
+}
+
+func newConnectionErr(err error) *ConnectionError {
+	return &ConnectionError{
+		Err: err,
+	}
+}
+
+func IsConnectionErr(err error) bool {
+	var cerr *ConnectionError
+	return errors.As(err, &cerr)
+}
 
 const (
 	DeploymentStatusRunning  = "running"
@@ -35,7 +55,7 @@ func NewClient(config *api.Config) (*Client, error) {
 
 	// Ping Nomad
 	if _, err := api.Operator().Metrics(nil); err != nil {
-		return nil, fmt.Errorf("failed to connect to nomad: %w", err)
+		return nil, newConnectionErr(err)
 	}
 
 	return &Client{API: api}, nil
