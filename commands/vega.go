@@ -18,10 +18,10 @@ func VegaUnsafeResetAll(binary, homeDir string) ([]byte, error) {
 
 func VegaRestoreCheckpoint(binary, homeDir, checkpointFile, nodeWalletPhraseFile string) ([]byte, error) {
 	args := []string{
-		"checkpoint",
-		"restore",
-		"--home", homeDir,
-		"--checkpoint-file", checkpointFile,
+		"genesis",
+		"load_checkpoint",
+		"--tm-home", homeDir,
+		"--checkpoint-path", checkpointFile,
 		"--passphrase-file", nodeWalletPhraseFile,
 	}
 

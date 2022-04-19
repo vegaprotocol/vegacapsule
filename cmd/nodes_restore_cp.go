@@ -5,7 +5,6 @@ import (
 
 	"code.vegaprotocol.io/vegacapsule/commands"
 	"code.vegaprotocol.io/vegacapsule/state"
-	"code.vegaprotocol.io/vegacapsule/types"
 	"github.com/spf13/cobra"
 )
 
@@ -30,22 +29,23 @@ var nodesRestoreCheckpointCmd = &cobra.Command{
 			return networkNotRunningErr("nodes restore-checkpoint")
 		}
 
-		ns := selectNodeSetForCheckpointRestore(netState)
-		if ns == nil {
-			return fmt.Errorf("no running node set found")
+		if checkpointFile == "" {
+			return fmt.Errorf("parameter checkpoint-file can not be empty")
 		}
 
-		r, err := commands.VegaRestoreCheckpoint(
-			*netState.Config.VegaBinary,
-			ns.Vega.HomeDir,
-			checkpointFile,
-			ns.Vega.NodeWalletPassFilePath,
-		)
-		if err != nil {
-			return fmt.Errorf("failed to restart from checkpoint node sets: %w", err)
-		}
+		for _, ns := range netState.GeneratedServices.NodeSets {
+			r, err := commands.VegaRestoreCheckpoint(
+				*netState.Config.VegaBinary,
+				ns.Tendermint.HomeDir,
+				checkpointFile,
+				ns.Vega.NodeWalletPassFilePath,
+			)
+			if err != nil {
+				return fmt.Errorf("failed to restore node %q from checkpoint: %w", ns.Name, err)
+			}
 
-		fmt.Printf("applied transaction for node set %q: %s", ns.Name, r)
+			fmt.Printf("applied transaction for node set %q: %s", ns.Name, r)
+		}
 
 		return nil
 	},
@@ -58,15 +58,4 @@ func init() {
 		"Path to the checkpoint file",
 	)
 	nodesRestoreCheckpointCmd.MarkFlagRequired("checkpoint-file")
-}
-
-func selectNodeSetForCheckpointRestore(state *state.NetworkState) *types.NodeSet {
-	for _, jobID := range state.RunningJobs.NodesSetsJobIDs.ToSlice() {
-		nodeSet, _ := state.GeneratedServices.GetNodeSet(jobID)
-		if nodeSet != nil && nodeSet.Mode == types.NodeModeValidator {
-			return nodeSet
-		}
-	}
-
-	return nil
 }
