@@ -25,10 +25,6 @@ var nodesRestoreCheckpointCmd = &cobra.Command{
 			return networkNotBootstrappedErr("nodes restore-checkpoint")
 		}
 
-		if !netState.Running() {
-			return networkNotRunningErr("nodes restore-checkpoint")
-		}
-
 		if checkpointFile == "" {
 			return fmt.Errorf("parameter checkpoint-file can not be empty")
 		}
