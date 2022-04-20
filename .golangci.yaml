@@ -1,0 +1,32 @@
+run:
+  allow-parallel-runners: true
+  print-linter-name: true
+  timeout: '5m0s'
+
+issues:
+  max-issues-per-linter: 50
+  max-same-issues: 0
+  exclude:
+    - Error return value of `(\s+).MarkFlagRequired` is not checked (errcheck)
+
+linters:
+  # Disable all linters.
+  # Default: false
+  disable-all: true
+  # Enable specific linter
+  # https://golangci-lint.run/usage/linters/#enabled-by-default-linters
+  enable:
+    - deadcode
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - structcheck
+    - typecheck
+    - unused
+    - varcheck
+    # Additional linters
+    - nilerr
+    - nilnil
+    - misspell
