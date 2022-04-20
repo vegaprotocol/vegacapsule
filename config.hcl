@@ -337,6 +337,9 @@ moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
 [rpc]
   laddr = "tcp://0.0.0.0:266{{.NodeNumber}}7"
   unsafe = true
+  cors_allowed_origins = ["*"]
+  cors-allowed-methods = ["HEAD", "GET", "POST", ]
+  cors-allowed-headers = ["Origin", "Accept", "Content-Type", "X-Requested-With", "X-Server-Time", ]
 
 [p2p]
   laddr = "tcp://0.0.0.0:266{{.NodeNumber}}6"
@@ -461,6 +464,9 @@ moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
 [rpc]
   laddr = "tcp://0.0.0.0:266{{.NodeNumber}}7"
   unsafe = true
+  cors_allowed_origins = ["*"]
+  cors-allowed-methods = ["HEAD", "GET", "POST", ]
+  cors-allowed-headers = ["Origin", "Accept", "Content-Type", "X-Requested-With", "X-Server-Time", ]
 
 [p2p]
   laddr = "tcp://0.0.0.0:266{{.NodeNumber}}6"
