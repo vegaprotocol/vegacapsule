@@ -49,7 +49,7 @@ func init() {
 
 	ethereumCmd.PersistentFlags().UintVar(&ethereumWaitTimeoutSeconds,
 		"timeout",
-		defaultEthereumChainID,
+		defaultEthreumWaitTimeout,
 		"Specify the number of second to wait",
 	)
 

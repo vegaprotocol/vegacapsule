@@ -22,7 +22,7 @@ var (
 
 var netLogsCmd = &cobra.Command{
 	Use:   "logs",
-	Short: "Print logs from running jobs in network. By default prints logs accross all jobs",
+	Short: "Print logs from running jobs in network. By default prints logs across all jobs",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		netState, err := state.LoadNetworkState(homePath)
 		if err != nil {

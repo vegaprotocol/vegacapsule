@@ -3,12 +3,17 @@ run:
   print-linter-name: true
   timeout: '5m0s'
 
+
+output:
+  print-issued-lines: true
+  format: colored-line-number
+
 issues:
   max-issues-per-linter: 50
-  max-same-issues: 0
+  max-same-issues: 0  
   exclude:
-    - Error return value of `(\s+).MarkFlagRequired` is not checked (errcheck)
-
+    - "Error return value of .(.*MarkFlagRequired). is not checked"
+    
 linters:
   # Disable all linters.
   # Default: false

@@ -33,7 +33,7 @@ var netBootstrapCmd = &cobra.Command{
 		}
 
 		if err := updatedNetState.Persist(); err != nil {
-			return fmt.Errorf("failed to persist netowrk state after bootstrap/generate command: %w", err)
+			return fmt.Errorf("failed to persist network state after bootstrap/generate command: %w", err)
 		}
 
 		updatedNetState, err = netStart(context.Background(), *updatedNetState)

@@ -24,7 +24,9 @@ func decodeState(data []byte) (*NetworkState, error) {
 	}
 
 	stateBytes := make([]byte, hex.DecodedLen(len(data)))
-	hex.Decode(stateBytes, data)
+	if _, err := hex.Decode(stateBytes, data); err != nil {
+		return nil, fmt.Errorf("cannot decode network state: %w", err)
+	}
 
 	networkState := &NetworkState{}
 	if err := json.Unmarshal(stateBytes, networkState); err != nil {
