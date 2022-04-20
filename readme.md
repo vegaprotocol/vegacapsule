@@ -38,7 +38,7 @@ vegacapsule nomad
 
 4. B) In another Terminal window run bootstrap command to generate and start new network
 ```bash
-vegacapsule bootstrap --config-path=config.hcl
+vegacapsule network bootstrap --config-path=config.hcl
 ```
 5. Check Nomad console by opening http://localhost:4646/
 
