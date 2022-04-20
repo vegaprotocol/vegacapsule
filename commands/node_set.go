@@ -2,6 +2,7 @@ package commands
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 
 	"code.vegaprotocol.io/vegacapsule/types"
@@ -21,7 +22,9 @@ func ResetNodeSetsData(binary string, nss []types.NodeSet) (io.Reader, error) {
 			return nil, err
 		}
 
+		buff.WriteString(fmt.Sprintf("Name: %s", ns.Vega.Name))
 		buff.Write(vegaOut)
+		buff.WriteString(fmt.Sprintf("Name: %s", ns.Tendermint.Name))
 		buff.Write(tendOut)
 	}
 

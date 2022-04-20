@@ -15,3 +15,20 @@ func VegaUnsafeResetAll(binary, homeDir string) ([]byte, error) {
 
 	return b, nil
 }
+
+func VegaRestoreCheckpoint(binary, homeDir, checkpointFile, nodeWalletPhraseFile string) ([]byte, error) {
+	args := []string{
+		"genesis",
+		"load_checkpoint",
+		"--tm-home", homeDir,
+		"--checkpoint-path", checkpointFile,
+		"--passphrase-file", nodeWalletPhraseFile,
+	}
+
+	b, err := utils.ExecuteBinary(binary, args, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return b, nil
+}
