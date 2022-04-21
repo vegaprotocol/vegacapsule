@@ -3,9 +3,8 @@ module code.vegaprotocol.io/vegacapsule
 go 1.17
 
 require (
-	code.vegaprotocol.io/data-node v0.49.3
 	code.vegaprotocol.io/shared v0.0.0-20220321185018-3b5684b00533
-	code.vegaprotocol.io/vega v0.49.8
+	code.vegaprotocol.io/vega v0.50.2-0.20220421074128-6d3f886cabab
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/btcsuite/btcd v0.22.0-beta
 	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
@@ -21,9 +20,9 @@ require (
 )
 
 require (
-	code.vegaprotocol.io/protos v0.49.3 // indirect
+	code.vegaprotocol.io/protos v0.50.3 // indirect
 	code.vegaprotocol.io/quant v0.2.5 // indirect
-	github.com/BurntSushi/toml v1.0.0 // indirect
+	github.com/BurntSushi/toml v1.1.0 // indirect
 	github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d // indirect
 	github.com/DataDog/zstd v1.4.1 // indirect
 	github.com/Masterminds/goutils v1.1.0 // indirect
@@ -35,7 +34,6 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
-	github.com/cenkalti/backoff/v4 v4.1.2 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/confio/ics23/go v0.6.3 // indirect
@@ -46,11 +44,7 @@ require (
 	github.com/dgraph-io/ristretto v0.0.3-0.20200630154024-f66de99634de // indirect
 	github.com/dgryski/go-farm v0.0.0-20190423205320-6a90982ecee2 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
-	github.com/fergusstrange/embedded-postgres v0.0.0-00010101000000-000000000000 // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
-	github.com/fullstorydev/grpcui v1.2.0 // indirect
-	github.com/fullstorydev/grpcurl v1.8.5 // indirect
-	github.com/georgysavva/scany v0.3.0 // indirect
 	github.com/go-kit/kit v0.12.0 // indirect
 	github.com/go-kit/log v0.2.0 // indirect
 	github.com/go-logfmt/logfmt v0.5.1 // indirect
@@ -62,7 +56,9 @@ require (
 	github.com/google/btree v1.0.0 // indirect
 	github.com/google/go-cmp v0.5.7 // indirect
 	github.com/google/uuid v1.3.0 // indirect
-	github.com/gorilla/websocket v1.4.2 // indirect
+	github.com/gorilla/mux v1.8.0 // indirect
+	github.com/gorilla/rpc v1.2.0 // indirect
+	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.9.0 // indirect
 	github.com/gtank/merlin v0.1.1 // indirect
@@ -74,19 +70,8 @@ require (
 	github.com/holiman/uint256 v1.2.0 // indirect
 	github.com/huandu/xstrings v1.2.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
-	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
-	github.com/jackc/pgconn v1.10.1 // indirect
-	github.com/jackc/pgio v1.0.0 // indirect
-	github.com/jackc/pgpassfile v1.0.0 // indirect
-	github.com/jackc/pgproto3/v2 v2.2.0 // indirect
-	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
-	github.com/jackc/pgtype v1.10.0 // indirect
-	github.com/jackc/pgx/v4 v4.14.1 // indirect
-	github.com/jackc/puddle v1.2.0 // indirect
-	github.com/jhump/protoreflect v1.10.1 // indirect
 	github.com/jmhodges/levigo v1.0.0 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
-	github.com/lib/pq v1.10.4 // indirect
 	github.com/libp2p/go-buffer-pool v0.0.2 // indirect
 	github.com/magiconair/properties v1.8.5 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
@@ -101,8 +86,7 @@ require (
 	github.com/pelletier/go-toml v1.9.4 // indirect
 	github.com/petermattis/goid v0.0.0-20180202154549-b0b1615b78e5 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/pressly/goose/v3 v3.5.1 // indirect
-	github.com/prometheus/client_golang v1.12.0 // indirect
+	github.com/prometheus/client_golang v1.12.1 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.32.1 // indirect
 	github.com/prometheus/procfs v0.7.3 // indirect
@@ -118,6 +102,7 @@ require (
 	github.com/spf13/cast v1.4.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
+	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7 // indirect
 	github.com/tecbot/gorocksdb v0.0.0-20191217155057-f0fad39f321c // indirect
@@ -125,7 +110,6 @@ require (
 	github.com/tklauser/go-sysconf v0.3.9 // indirect
 	github.com/tklauser/numcpus v0.3.0 // indirect
 	github.com/vegaprotocol/go-slip10 v0.1.0 // indirect
-	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	github.com/zclconf/go-cty v1.8.0 // indirect
 	go.etcd.io/bbolt v1.3.6 // indirect
 	go.nanomsg.org/mangos/v3 v3.2.1 // indirect
@@ -149,7 +133,7 @@ require (
 )
 
 require (
-	code.vegaprotocol.io/vegawallet v0.13.2
+	code.vegaprotocol.io/vegawallet v0.14.2-pre1
 	github.com/hashicorp/hcl v1.0.1-0.20201016140508-a07e7d50bbee // indirect
 	github.com/hashicorp/hcl/v2 v2.11.1
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
@@ -159,4 +143,9 @@ require (
 replace (
 	github.com/fergusstrange/embedded-postgres => github.com/vegaprotocol/embedded-postgres v1.13.1-0.20220208131313-1961d3e9e8d2
 	github.com/shopspring/decimal => github.com/vegaprotocol/decimal v1.2.1-0.20210705145732-aaa563729a0a
+)
+
+replace (
+	code.vegaprotocol.io/data-node => ../data-node
+	code.vegaprotocol.io/vega => ../vega
 )

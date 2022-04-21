@@ -13,3 +13,4 @@
 
 ### 🐛 Fixes
 - [41](https://github.com/vegaprotocol/vegacapsule/issues/40) - persist the network state after it's generated in bootstrap command
+- [86](https://github.com/vegaprotocol/vegacapsule/issues/86) - allow overriding config options that default true with falue
