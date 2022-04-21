@@ -20,8 +20,6 @@ import (
 	"github.com/Masterminds/sprig"
 )
 
-const smartcontractsPath = "smartcontracts/addresses.json"
-
 type updateGenesisOutput struct {
 	RawOutput json.RawMessage
 }

@@ -34,7 +34,7 @@ func (n *Client) LogJobs(ctx context.Context, follow bool, origin string, offset
 			cAlloc := &api.Allocation{ID: as.ID, NodeID: as.NodeID}
 			for taskName := range as.TaskStates {
 				for _, logType := range logTypes {
-					cancelCh := make(chan struct{}, 0)
+					cancelCh := make(chan struct{})
 					framesCh, errsCh := allocsApi.Logs(cAlloc, follow, taskName, logType, origin, offset, cancelCh, queryOpts)
 
 					frameSets = append(frameSets,
@@ -56,7 +56,7 @@ func (n *Client) LogJobs(ctx context.Context, follow bool, origin string, offset
 func mergeFrameSets(fss []framesSet) (<-chan *StreamFrame, <-chan error, chan struct{}) {
 	frames := make(chan *StreamFrame)
 	errs := make(chan error, 1)
-	cancel := make(chan struct{}, 0)
+	cancel := make(chan struct{})
 
 	var wg sync.WaitGroup
 	wg.Add(len(fss))
@@ -77,6 +77,7 @@ func mergeFrameSets(fss []framesSet) (<-chan *StreamFrame, <-chan error, chan st
 		}(c)
 	}
 
+	//nolint: gosimple
 	go func(fss []framesSet) {
 		select {
 		case c := <-cancel:
