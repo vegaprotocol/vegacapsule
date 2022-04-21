@@ -10,6 +10,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	stopNodesOnly bool
+)
+
 var netStopCmd = &cobra.Command{
 	Use:   "stop",
 	Short: "Stop existing network",
@@ -31,6 +35,14 @@ var netStopCmd = &cobra.Command{
 	},
 }
 
+func init() {
+	netStopCmd.PersistentFlags().BoolVar(&stopNodesOnly,
+		"nodes-only",
+		false,
+		"Stops all nodes running in the network.",
+	)
+}
+
 func netStop(ctx context.Context, state *state.NetworkState) error {
 	log.Println("stopping network")
 
@@ -41,7 +53,7 @@ func netStop(ctx context.Context, state *state.NetworkState) error {
 
 	nomadRunner := nomad.NewJobRunner(nomadClient)
 
-	if err := nomadRunner.StopNetwork(ctx, state.RunningJobs); err != nil {
+	if err := nomadRunner.StopNetwork(ctx, state.RunningJobs, stopNodesOnly); err != nil {
 		return fmt.Errorf("failed to stop nomad network: %w", err)
 	}
 
