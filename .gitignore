@@ -14,6 +14,9 @@
 # Dependency directories
 vendor/
 
+# VS Code launch file
+launch.json
+
 # TODO remove later
 testnet
 dockerisedvega.sh
