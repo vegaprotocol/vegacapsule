@@ -31,7 +31,7 @@ type Generator struct {
 }
 
 func NewGenerator(conf *config.Config) (*Generator, error) {
-	tpl, err := template.New("genesis.json").Funcs(sprig.TxtFuncMap()).Parse(conf.Network.GenesisTemplate)
+	tpl, err := template.New("genesis.json").Funcs(sprig.TxtFuncMap()).Parse(*conf.Network.GenesisTemplate)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse genesis override: %w", err)
 	}

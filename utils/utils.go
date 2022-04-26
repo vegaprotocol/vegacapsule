@@ -36,13 +36,18 @@ func BinaryAbsPath(p string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to look up path for %q: %w", p, err)
 	}
-	if filepath.IsAbs(lPath) {
-		return lPath, nil
+
+	return AbsPath(lPath)
+}
+
+func AbsPath(p string) (string, error) {
+	if filepath.IsAbs(p) {
+		return p, nil
 	}
 
-	aPath, err := filepath.Abs(lPath)
+	aPath, err := filepath.Abs(p)
 	if err != nil {
-		return "", fmt.Errorf("failed to get absolute path for %q: %w", lPath, err)
+		return "", fmt.Errorf("failed to get absolute path for %q: %w", p, err)
 	}
 
 	return aPath, nil

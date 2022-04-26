@@ -135,6 +135,11 @@ moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
   skip_timeout_commit = false
 EOT
     }
+
+    nomad_job_templates {
+      vega_file = "./jobs/vega.nomad"
+      tendermint_file = "./jobs/tendermint.nomad"
+    }
   }
 
   node_set "full" {

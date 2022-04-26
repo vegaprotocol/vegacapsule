@@ -19,19 +19,19 @@ type configOverride struct {
 }
 
 func newConfigOverride(gen *Generator, n config.NodeConfig) (*configOverride, error) {
-	tendermintTmpl, err := tendermint.NewConfigTemplate(n.Templates.Tendermint)
+	tendermintTmpl, err := tendermint.NewConfigTemplate(n.ConfigTemplates.Tendermint)
 	if err != nil {
 		return nil, err
 	}
 
-	vegaTmpl, err := vega.NewConfigTemplate(n.Templates.Vega)
+	vegaTmpl, err := vega.NewConfigTemplate(n.ConfigTemplates.Vega)
 	if err != nil {
 		return nil, err
 	}
 
 	var dataNodeTmpl *template.Template
 	if n.DataNodeBinary != "" {
-		dataNodeTmpl, err = datanode.NewConfigTemplate(n.Templates.DataNode)
+		dataNodeTmpl, err = datanode.NewConfigTemplate(n.ConfigTemplates.DataNode)
 
 		if err != nil {
 			return nil, err
