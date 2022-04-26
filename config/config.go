@@ -60,11 +60,13 @@ type PrestartConfig struct {
 }
 
 type DockerConfig struct {
-	Name       string   `hcl:"name,label"`
-	Image      string   `hcl:"image"`
-	Command    string   `hcl:"cmd"`
-	Args       []string `hcl:"args"`
-	StaticPort int      `hcl:"static_port,optional"`
+	Name       string            `hcl:"name,label"`
+	Image      string            `hcl:"image"`
+	Command    string            `hcl:"cmd"`
+	Args       []string          `hcl:"args"`
+	Env        map[string]string `hcl:"env,optional"`
+	StaticPort int               `hcl:"static_port,optional"`
+	ToPort     int               `hcl:"to_port,optional"`
 }
 
 type WalletConfig struct {

@@ -29,6 +29,17 @@ func (r *JobRunner) runDockerJob(ctx context.Context, conf config.DockerConfig) 
 		Datacenters: []string{"dc1"},
 		TaskGroups: []*api.TaskGroup{
 			{
+				Networks: []*api.NetworkResource{
+					&api.NetworkResource{
+						ReservedPorts: []api.Port{
+							api.Port{
+								Label: fmt.Sprintf("%s-port", conf.Name),
+								To:    conf.ToPort,
+								Value: conf.StaticPort,
+							},
+						},
+					},
+				},
 				RestartPolicy: &api.RestartPolicy{
 					Attempts: utils.IntPoint(0),
 					Mode:     utils.StrPoint("fail"),
@@ -42,20 +53,12 @@ func (r *JobRunner) runDockerJob(ctx context.Context, conf config.DockerConfig) 
 							"image":   conf.Image,
 							"command": conf.Command,
 							"args":    conf.Args,
+							"ports":   []string{fmt.Sprintf("%s-port", conf.Name)},
 						},
+						Env: conf.Env,
 						Resources: &api.Resources{
 							CPU:      utils.IntPoint(500),
 							MemoryMB: utils.IntPoint(768),
-							Networks: []*api.NetworkResource{
-								{
-									ReservedPorts: []api.Port{
-										{
-											Label: fmt.Sprintf("%s-port", conf.Name),
-											Value: conf.StaticPort,
-										},
-									},
-								},
-							},
 						},
 					},
 				},
