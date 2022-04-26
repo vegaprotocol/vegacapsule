@@ -17,8 +17,6 @@ import (
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/types"
 	"code.vegaprotocol.io/vegacapsule/utils"
-
-	datanodeconfig "code.vegaprotocol.io/data-node/config"
 )
 
 type ConfigTemplateContext struct {
@@ -91,7 +89,7 @@ func (dng ConfigGenerator) OverwriteConfig(index int, configTemplate *template.T
 		return fmt.Errorf("failed to execute template for data node: %w", err)
 	}
 
-	overrideConfig := datanodeconfig.Config{}
+	overrideConfig := map[string]interface{}{}
 
 	if _, err := toml.DecodeReader(buff, &overrideConfig); err != nil {
 		return fmt.Errorf("failed decode override config: %w", err)
@@ -99,16 +97,16 @@ func (dng ConfigGenerator) OverwriteConfig(index int, configTemplate *template.T
 
 	configFilePath := dng.configFilePath(dng.nodeDir(index))
 
-	defaultConfig := datanodeconfig.NewDefaultConfig()
-	if err := paths.ReadStructuredFile(configFilePath, &defaultConfig); err != nil {
+	config := map[string]interface{}{}
+	if err := paths.ReadStructuredFile(configFilePath, &config); err != nil {
 		return fmt.Errorf("failed to read configuration file at %s: %w", configFilePath, err)
 	}
 
-	if err := mergo.Merge(&overrideConfig, defaultConfig); err != nil {
+	if err := mergo.Map(&config, overrideConfig, mergo.WithOverride); err != nil {
 		return fmt.Errorf("failed to merge configs: %w", err)
 	}
 
-	if err := paths.WriteStructuredFile(configFilePath, overrideConfig); err != nil {
+	if err := paths.WriteStructuredFile(configFilePath, config); err != nil {
 		return fmt.Errorf("failed to write configuration file for data node at %s: %w", configFilePath, err)
 	}
 

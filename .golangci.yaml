@@ -33,5 +33,5 @@ linters:
     - varcheck
     # Additional linters
     - nilerr
-    - nilnil
+    # - nilnil
     - misspell
