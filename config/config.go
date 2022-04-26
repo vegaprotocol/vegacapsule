@@ -59,13 +59,17 @@ type PrestartConfig struct {
 	Docker []DockerConfig `hcl:"docker_service,block"`
 }
 
+type StaticPort struct {
+	To    int `hcl:"to,optional"`
+	Value int `hcl:"value"`
+}
 type DockerConfig struct {
 	Name       string            `hcl:"name,label"`
 	Image      string            `hcl:"image"`
 	Command    string            `hcl:"cmd"`
 	Args       []string          `hcl:"args"`
 	Env        map[string]string `hcl:"env,optional"`
-	StaticPort int               `hcl:"static_port,optional"`
+	StaticPort StaticPort        `hcl:"static_port,block"`
 	ToPort     int               `hcl:"to_port,optional"`
 }
 

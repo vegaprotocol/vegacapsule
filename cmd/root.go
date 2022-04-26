@@ -11,9 +11,10 @@ import (
 var homePath string
 
 var rootCmd = &cobra.Command{
-	Use:   os.Args[0],
-	Short: "Tool for generating and running vega network",
-	Long:  "Configuration based tool for bootstraping and managing vega network. Primary usages are local development of Vega, testing but also deploy new production network.",
+	Use:          os.Args[0],
+	Short:        "Tool for generating and running vega network",
+	Long:         "Configuration based tool for bootstraping and managing vega network. Primary usages are local development of Vega, testing but also deploy new production network.",
+	SilenceUsage: true,
 }
 
 // Execute executes the root command.

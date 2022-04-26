@@ -30,12 +30,12 @@ func (r *JobRunner) runDockerJob(ctx context.Context, conf config.DockerConfig) 
 		TaskGroups: []*api.TaskGroup{
 			{
 				Networks: []*api.NetworkResource{
-					&api.NetworkResource{
+					{
 						ReservedPorts: []api.Port{
-							api.Port{
+							{
 								Label: fmt.Sprintf("%s-port", conf.Name),
-								To:    conf.ToPort,
-								Value: conf.StaticPort,
+								To:    conf.StaticPort.To,
+								Value: conf.StaticPort.Value,
 							},
 						},
 					},
