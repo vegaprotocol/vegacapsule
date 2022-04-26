@@ -144,8 +144,3 @@ replace (
 	github.com/fergusstrange/embedded-postgres => github.com/vegaprotocol/embedded-postgres v1.13.1-0.20220208131313-1961d3e9e8d2
 	github.com/shopspring/decimal => github.com/vegaprotocol/decimal v1.2.1-0.20210705145732-aaa563729a0a
 )
-
-replace (
-	code.vegaprotocol.io/data-node => ../data-node
-	code.vegaprotocol.io/vega => ../vega
-)
