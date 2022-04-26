@@ -69,7 +69,7 @@ type DockerConfig struct {
 	Command    string            `hcl:"cmd"`
 	Args       []string          `hcl:"args"`
 	Env        map[string]string `hcl:"env,optional"`
-	StaticPort StaticPort        `hcl:"static_port,block"`
+	StaticPort *StaticPort       `hcl:"static_port,block"`
 }
 
 type WalletConfig struct {
