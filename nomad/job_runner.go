@@ -325,13 +325,16 @@ func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, gene
 	return result, nil
 }
 
-func (r *JobRunner) StopNetwork(ctx context.Context, jobs *types.NetworkJobs) error {
+func (r *JobRunner) StopNetwork(ctx context.Context, jobs *types.NetworkJobs, nodesOnly bool) error {
 	// no jobs, no network started
 	if jobs == nil {
 		return nil
 	}
 
-	allJobs := append(jobs.ExtraJobIDs.ToSlice(), jobs.WalletJobID, jobs.FaucetJobID)
+	allJobs := []string{}
+	if !nodesOnly {
+		allJobs = append(jobs.ExtraJobIDs.ToSlice(), jobs.WalletJobID, jobs.FaucetJobID)
+	}
 	allJobs = append(allJobs, jobs.NodesSetsJobIDs.ToSlice()...)
 	g, ctx := errgroup.WithContext(ctx)
 	for _, jobName := range allJobs {
