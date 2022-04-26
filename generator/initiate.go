@@ -41,8 +41,6 @@ func (g *Generator) initiateNodeSet(index int, n config.NodeConfig) (*types.Node
 		DataNode:   initDNode,
 	}
 
-	fmt.Println("n.NomadJobTemplate", n.NomadJobTemplate)
-
 	if n.NomadJobTemplate != nil {
 		nodeJob, err := nomad.GenerateTemplate(*n.NomadJobTemplate, *nodeSet)
 		if err != nil {

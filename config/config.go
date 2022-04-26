@@ -188,7 +188,6 @@ func (c *Config) validateAndSetNodeConfigs() error {
 }
 
 func (c Config) validateNomadJobTemplates(nc NodeConfig) (*NodeConfig, error) {
-	fmt.Println("validateNomadJobTemplates, nc.NomadJobTemplate, nc.NomadJobTemplateFile ", nc.NomadJobTemplate, nc.NomadJobTemplateFile)
 	if nc.NomadJobTemplate != nil {
 		return &nc, nil
 	}
@@ -196,8 +195,6 @@ func (c Config) validateNomadJobTemplates(nc NodeConfig) (*NodeConfig, error) {
 	if nc.NomadJobTemplateFile == nil {
 		return &nc, nil
 	}
-
-	fmt.Println("validateNomadJobTemplates - loading template file")
 
 	templateFile, err := utils.AbsPath(*nc.NomadJobTemplateFile)
 	if err != nil {

@@ -3,6 +3,7 @@ package nomad
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
 	"sync"
 
@@ -183,6 +184,8 @@ func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) (
 
 	for _, ns := range nodeSets {
 		if ns.NomadJobRaw == nil {
+			log.Printf("adding node set %q with default Nomad job definition", ns.Name)
+
 			jobs = append(jobs, r.defaultNodeSetJob(ns))
 			continue
 		}
@@ -191,6 +194,8 @@ func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) (
 		if err != nil {
 			return nil, err
 		}
+
+		log.Printf("adding node set %q with custom Nomad job definition", ns.Name)
 
 		jobs = append(jobs, *job)
 	}
