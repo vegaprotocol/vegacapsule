@@ -34,14 +34,14 @@ type DataNode struct {
 }
 
 type NodeSet struct {
-	GroupName  string
-	Name       string
-	Mode       string
-	Index      int
-	Vega       VegaNode
-	Tendermint TendermintNode
-	DataNode   *DataNode
-	NomadJob   string
+	GroupName   string
+	Name        string
+	Mode        string
+	Index       int
+	Vega        VegaNode
+	Tendermint  TendermintNode
+	DataNode    *DataNode
+	NomadJobRaw *string `json:",omitempty"`
 }
 
 type Wallet struct {

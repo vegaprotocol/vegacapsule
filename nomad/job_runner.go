@@ -108,77 +108,91 @@ func (r *JobRunner) RunRawJobs(ctx context.Context, rawJobs []string) ([]api.Job
 	return jobs, nil
 }
 
-func (r *JobRunner) RunNodeSets(ctx context.Context, vegaBinary string, nodeSets []types.NodeSet) ([]api.Job, error) {
+func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) api.Job {
+	tasks := make([]*api.Task, 0, 3)
+	tasks = append(tasks,
+		&api.Task{
+			Name:   ns.Tendermint.Name,
+			Driver: "raw_exec",
+			Config: map[string]interface{}{
+				"command": ns.Tendermint.BinaryPath,
+				"args": []string{
+					"tm",
+					"node",
+					"--home", ns.Tendermint.HomeDir,
+				},
+			},
+			Resources: &api.Resources{
+				CPU:      utils.IntPoint(500),
+				MemoryMB: utils.IntPoint(512),
+			},
+		},
+		&api.Task{
+			Name:   ns.Vega.Name,
+			Driver: "raw_exec",
+			Config: map[string]interface{}{
+				"command": ns.Vega.BinaryPath,
+				"args": []string{
+					"node",
+					"--home", ns.Vega.HomeDir,
+					"--nodewallet-passphrase-file", ns.Vega.NodeWalletPassFilePath,
+				},
+			},
+			Resources: &api.Resources{
+				CPU:      utils.IntPoint(500),
+				MemoryMB: utils.IntPoint(512),
+			},
+		})
+
+	if ns.DataNode != nil {
+		tasks = append(tasks, &api.Task{
+			Name:   ns.DataNode.Name,
+			Driver: "raw_exec",
+			Config: map[string]interface{}{
+				"command": ns.DataNode.BinaryPath,
+				"args": []string{
+					"node",
+					"--home", ns.DataNode.HomeDir,
+				},
+			},
+			Resources: &api.Resources{
+				CPU:      utils.IntPoint(500),
+				MemoryMB: utils.IntPoint(512),
+			},
+		})
+	}
+
+	return api.Job{
+		ID:          utils.StrPoint(ns.Name),
+		Datacenters: []string{"dc1"},
+		TaskGroups: []*api.TaskGroup{
+			{
+				RestartPolicy: &api.RestartPolicy{
+					Attempts: utils.IntPoint(0),
+					Mode:     utils.StrPoint("fail"),
+				},
+				Name:  utils.StrPoint("vega"),
+				Tasks: tasks,
+			},
+		},
+	}
+}
+
+func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) ([]api.Job, error) {
 	jobs := make([]api.Job, 0, len(nodeSets))
 
 	for _, ns := range nodeSets {
-		tasks := make([]*api.Task, 0, 3)
-		tasks = append(tasks,
-			&api.Task{
-				Name:   ns.Tendermint.Name,
-				Driver: "raw_exec",
-				Config: map[string]interface{}{
-					"command": vegaBinary,
-					"args": []string{
-						"tm",
-						"node",
-						"--home", ns.Tendermint.HomeDir,
-					},
-				},
-				Resources: &api.Resources{
-					CPU:      utils.IntPoint(500),
-					MemoryMB: utils.IntPoint(512),
-				},
-			},
-			&api.Task{
-				Name:   ns.Vega.Name,
-				Driver: "raw_exec",
-				Config: map[string]interface{}{
-					"command": vegaBinary,
-					"args": []string{
-						"node",
-						"--home", ns.Vega.HomeDir,
-						"--nodewallet-passphrase-file", ns.Vega.NodeWalletPassFilePath,
-					},
-				},
-				Resources: &api.Resources{
-					CPU:      utils.IntPoint(500),
-					MemoryMB: utils.IntPoint(512),
-				},
-			})
-
-		if ns.DataNode != nil {
-			tasks = append(tasks, &api.Task{
-				Name:   ns.DataNode.Name,
-				Driver: "raw_exec",
-				Config: map[string]interface{}{
-					"command": ns.DataNode.BinaryPath,
-					"args": []string{
-						"node",
-						"--home", ns.DataNode.HomeDir,
-					},
-				},
-				Resources: &api.Resources{
-					CPU:      utils.IntPoint(500),
-					MemoryMB: utils.IntPoint(512),
-				},
-			})
+		if ns.NomadJobRaw == nil {
+			jobs = append(jobs, r.defaultNodeSetJob(ns))
+			continue
 		}
 
-		jobs = append(jobs, api.Job{
-			ID:          utils.StrPoint(ns.Name),
-			Datacenters: []string{"dc1"},
-			TaskGroups: []*api.TaskGroup{
-				{
-					RestartPolicy: &api.RestartPolicy{
-						Attempts: utils.IntPoint(0),
-						Mode:     utils.StrPoint("fail"),
-					},
-					Name:  utils.StrPoint("vega"),
-					Tasks: tasks,
-				},
-			},
-		})
+		job, err := jobspec.Parse(strings.NewReader(*ns.NomadJobRaw))
+		if err != nil {
+			return nil, err
+		}
+
+		jobs = append(jobs, *job)
 	}
 
 	eg := new(errgroup.Group)
@@ -344,7 +358,7 @@ func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, gene
 	}
 
 	g.Go(func() error {
-		jobs, err := r.RunNodeSets(ctx, *conf.VegaBinary, generatedSvcs.NodeSets.ToSlice())
+		jobs, err := r.RunNodeSets(ctx, generatedSvcs.NodeSets.ToSlice())
 		if err != nil {
 			return fmt.Errorf("failed to run node sets: %w", err)
 		}

@@ -68,11 +68,8 @@ require (
 	github.com/bmatcuk/doublestar v1.1.5 // indirect
 	github.com/boltdb/bolt v1.3.1 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
-<<<<<<< HEAD
-=======
 	github.com/cenkalti/backoff/v4 v4.1.2 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.3.0 // indirect
->>>>>>> 972909c (support files loading & support running raw nomad jobs)
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/checkpoint-restore/go-criu/v5 v5.0.0 // indirect
@@ -115,9 +112,7 @@ require (
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/docker/libnetwork v0.8.0-dev.2.0.20200612180813-9e99af28df21 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
-<<<<<<< HEAD
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
-=======
 	github.com/elazarl/go-bindata-assetfs v1.0.1-0.20200509193318-234c15e7648f // indirect
 	github.com/envoyproxy/go-control-plane v0.10.1 // indirect
 	github.com/envoyproxy/protoc-gen-validate v0.6.2 // indirect
@@ -128,7 +123,6 @@ require (
 	github.com/fullstorydev/grpcui v1.2.0 // indirect
 	github.com/fullstorydev/grpcurl v1.8.5 // indirect
 	github.com/georgysavva/scany v0.3.0 // indirect
->>>>>>> 972909c (support files loading & support running raw nomad jobs)
 	github.com/go-kit/kit v0.12.0 // indirect
 	github.com/go-kit/log v0.2.0 // indirect
 	github.com/go-logfmt/logfmt v0.5.1 // indirect
@@ -143,11 +137,9 @@ require (
 	github.com/google/go-cmp v0.5.7 // indirect
 	github.com/google/go-querystring v0.0.0-20170111101155-53e6ce116135 // indirect
 	github.com/google/uuid v1.3.0 // indirect
-<<<<<<< HEAD
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/gorilla/rpc v1.2.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
-=======
 	github.com/googleapis/gax-go/v2 v2.1.1 // indirect
 	github.com/gookit/color v1.3.1 // indirect
 	github.com/gophercloud/gophercloud v0.1.0 // indirect
@@ -155,7 +147,6 @@ require (
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/gosuri/uilive v0.0.4 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2 // indirect
->>>>>>> 972909c (support files loading & support running raw nomad jobs)
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.9.0 // indirect
 	github.com/gtank/merlin v0.1.1 // indirect
@@ -202,8 +193,6 @@ require (
 	github.com/hpcloud/tail v1.0.1-0.20170814160653-37f427138745 // indirect
 	github.com/huandu/xstrings v1.2.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
-<<<<<<< HEAD
-=======
 	github.com/ishidawataru/sctp v0.0.0-20191218070446-00ab2ac2db07 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.10.1 // indirect
@@ -216,18 +205,14 @@ require (
 	github.com/jackc/puddle v1.2.0 // indirect
 	github.com/jhump/protoreflect v1.10.1 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
->>>>>>> 972909c (support files loading & support running raw nomad jobs)
 	github.com/jmhodges/levigo v1.0.0 // indirect
 	github.com/joyent/triton-go v0.0.0-20190112182421-51ffac552869 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
-<<<<<<< HEAD
-=======
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/kr/pretty v0.3.0 // indirect
 	github.com/kr/pty v1.1.8 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/lib/pq v1.10.4 // indirect
->>>>>>> 972909c (support files loading & support running raw nomad jobs)
 	github.com/libp2p/go-buffer-pool v0.0.2 // indirect
 	github.com/linode/linodego v0.7.1 // indirect
 	github.com/magiconair/properties v1.8.5 // indirect
@@ -267,14 +252,11 @@ require (
 	github.com/petermattis/goid v0.0.0-20180202154549-b0b1615b78e5 // indirect
 	github.com/pierrec/lz4 v2.5.2+incompatible // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-<<<<<<< HEAD
 	github.com/prometheus/client_golang v1.12.1 // indirect
-=======
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/posener/complete v1.2.3 // indirect
 	github.com/pressly/goose/v3 v3.5.1 // indirect
 	github.com/prometheus/client_golang v1.12.0 // indirect
->>>>>>> 972909c (support files loading & support running raw nomad jobs)
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.32.1 // indirect
 	github.com/prometheus/procfs v0.7.3 // indirect
@@ -301,11 +283,8 @@ require (
 	github.com/spf13/cast v1.4.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-<<<<<<< HEAD
 	github.com/stretchr/objx v0.2.0 // indirect
-=======
 	github.com/stretchr/testify v1.7.0 // indirect
->>>>>>> 972909c (support files loading & support running raw nomad jobs)
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/syndtr/gocapability v0.0.0-20200815063812-42c35b437635 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7 // indirect
@@ -318,15 +297,12 @@ require (
 	github.com/tv42/httpunix v0.0.0-20191220191345-2ba4b9c3382c // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	github.com/vegaprotocol/go-slip10 v0.1.0 // indirect
-<<<<<<< HEAD
-=======
 	github.com/vishvananda/netlink v1.1.0 // indirect
 	github.com/vishvananda/netns v0.0.0-20191106174202-0a2b9b5464df // indirect
 	github.com/vmihailenco/msgpack/v4 v4.3.12 // indirect
 	github.com/vmihailenco/tagparser v0.1.1 // indirect
 	github.com/vmware/govmomi v0.18.0 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
->>>>>>> 972909c (support files loading & support running raw nomad jobs)
 	github.com/zclconf/go-cty v1.8.0 // indirect
 	github.com/zclconf/go-cty-yaml v1.0.2 // indirect
 	go.etcd.io/bbolt v1.3.6 // indirect

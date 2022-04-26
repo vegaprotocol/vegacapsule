@@ -59,7 +59,8 @@ EOT
     node_wallet_pass = "n0d3w4ll3t-p4ssphr4e3"
     vega_wallet_pass = "w4ll3t-p4ssphr4e3"
     ethereum_wallet_pass = "ch41nw4ll3t-3th3r3um-p4ssphr4e3"
-
+    nomad_job_template_file = "./jobs/node_set.tmpl"
+    
     config_templates {
 
 // ============================
@@ -136,10 +137,6 @@ moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
 EOT
     }
 
-    nomad_job_templates {
-      vega_file = "./jobs/vega.nomad"
-      tendermint_file = "./jobs/tendermint.nomad"
-    }
   }
 
   node_set "full" {

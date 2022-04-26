@@ -94,23 +94,15 @@ type NodeConfig struct {
 	VegaWalletPass     string `hcl:"vega_wallet_pass,optional"`
 	DataNodeBinary     string `hcl:"data_node_binary,optional"`
 
-	ConfigTemplates   ConfigTemplates    `hcl:"config_templates,block"`
-	NomadJobTemplates *NomadJobTemplates `hcl:"nomad_job_templates,block"`
+	ConfigTemplates      ConfigTemplates `hcl:"config_templates,block"`
+	NomadJobTemplate     *string         `hcl:"nomad_job_template,optional"`
+	NomadJobTemplateFile *string         `hcl:"nomad_job_template_file,optional"`
 }
 
 type ConfigTemplates struct {
 	Vega       string `hcl:"vega"`
 	Tendermint string `hcl:"tendermint"`
 	DataNode   string `hcl:"data_node,optional"`
-}
-
-type NomadJobTemplates struct {
-	VegaFile       *string `hcl:"vega_file"`
-	TendermintFile *string `hcl:"tendermint_file"`
-	DataNodeFile   *string `hcl:"data_node_file"`
-	Vega           *string `hcl:"vega"`
-	Tendermint     *string `hcl:"tendermint"`
-	DataNode       *string `hcl:"data_node"`
 }
 
 func (c *Config) setAbsolutePaths() error {
@@ -172,24 +164,6 @@ func (c *Config) Validate() error {
 		return fmt.Errorf("invalid configuration for smart contrtacts addresses: %w", err)
 	}
 
-	for _, nc := range c.Network.Nodes {
-		if nc.NomadJobTemplates == nil {
-			continue
-		}
-
-		if nc.NomadJobTemplates.Vega != nil {
-			fmt.Printf("vega: %s \n", *nc.NomadJobTemplates.Vega)
-		}
-
-		if nc.NomadJobTemplates.DataNode != nil {
-			fmt.Printf("data-node: %s \n", *nc.NomadJobTemplates.DataNode)
-		}
-
-		if nc.NomadJobTemplates.Tendermint != nil {
-			fmt.Printf("tendermint: %s \n", *nc.NomadJobTemplates.Tendermint)
-		}
-	}
-
 	return nil
 }
 
@@ -197,15 +171,13 @@ func (c *Config) validateAndSetNodeConfigs() error {
 	mErr := utils.NewMultiError()
 
 	for i, nc := range c.Network.Nodes {
-		if nc.NomadJobTemplates != nil {
-			njt, err := c.validateNomadJobTemplates(nc.NomadJobTemplates)
-			if err != nil {
-				mErr.Add(fmt.Errorf("failed to validate nomad job templates for %q: %w", nc.Name, err))
-				continue
-			}
-
-			c.Network.Nodes[i].NomadJobTemplates = njt
+		nc, err := c.validateNomadJobTemplates(nc)
+		if err != nil {
+			mErr.Add(fmt.Errorf("failed to validate nomad job template for %q: %w", nc.Name, err))
+			continue
 		}
+
+		c.Network.Nodes[i] = *nc
 	}
 
 	if mErr.HasAny() {
@@ -215,56 +187,33 @@ func (c *Config) validateAndSetNodeConfigs() error {
 	return nil
 }
 
-func (c Config) validateNomadJobTemplates(njt *NomadJobTemplates) (*NomadJobTemplates, error) {
-	if njt.DataNode == nil && njt.DataNodeFile != nil {
-		dataNodeFile, err := utils.AbsPath(*njt.DataNodeFile)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get absolute file path %q: %w", *njt.DataNodeFile, err)
-		}
-
-		dataNode, err := ioutil.ReadFile(dataNodeFile)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read file %q: %w", dataNodeFile, err)
-		}
-
-		str := string(dataNode)
-		njt.DataNode = &str
-		njt.DataNodeFile = nil
+func (c Config) validateNomadJobTemplates(nc NodeConfig) (*NodeConfig, error) {
+	fmt.Println("validateNomadJobTemplates, nc.NomadJobTemplate, nc.NomadJobTemplateFile ", nc.NomadJobTemplate, nc.NomadJobTemplateFile)
+	if nc.NomadJobTemplate != nil {
+		return &nc, nil
 	}
 
-	if njt.Tendermint == nil && njt.TendermintFile != nil {
-		tendermintFile, err := utils.AbsPath(*njt.TendermintFile)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get absolute file path %q: %w", tendermintFile, err)
-		}
-
-		tendermint, err := ioutil.ReadFile(tendermintFile)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read file %q: %w", tendermintFile, err)
-		}
-
-		str := string(tendermint)
-		njt.Tendermint = &str
-		njt.TendermintFile = nil
+	if nc.NomadJobTemplateFile == nil {
+		return &nc, nil
 	}
 
-	if njt.Vega == nil && njt.VegaFile != nil {
-		vegaFile, err := utils.AbsPath(*njt.VegaFile)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get absolute file path %q: %w", vegaFile, err)
-		}
+	fmt.Println("validateNomadJobTemplates - loading template file")
 
-		vega, err := ioutil.ReadFile(vegaFile)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read file %q: %w", vegaFile, err)
-		}
-
-		str := string(vega)
-		njt.Vega = &str
-		njt.VegaFile = nil
+	templateFile, err := utils.AbsPath(*nc.NomadJobTemplateFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get absolute file path %q: %w", *nc.NomadJobTemplateFile, err)
 	}
 
-	return njt, nil
+	template, err := ioutil.ReadFile(templateFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read file %q: %w", templateFile, err)
+	}
+
+	str := string(template)
+	nc.NomadJobTemplate = &str
+	nc.NomadJobTemplateFile = nil
+
+	return &nc, nil
 }
 
 func (c *Config) validateAndSetGenesis() error {

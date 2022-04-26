@@ -59,7 +59,7 @@ func nodesStartNode(ctx context.Context, state state.NetworkState, name string) 
 
 	nomadRunner := nomad.NewJobRunner(nomadClient)
 
-	res, err := nomadRunner.RunNodeSets(ctx, *state.Config.VegaBinary, []types.NodeSet{*nodeSet})
+	res, err := nomadRunner.RunNodeSets(ctx, []types.NodeSet{*nodeSet})
 	if err != nil {
 		return nil, fmt.Errorf("failed to start nomad network: %s", err)
 	}

@@ -13,10 +13,11 @@ job "{{ .Name }}" {
           "node",
           "--home", "{{ .Tendermint.HomeDir }}",
         ]
-        resources {
-          cpu    = 500
-          memory = 512
-        }
+      }
+
+      resources {
+        cpu    = 500
+        memory = 512
       }
     }
 
@@ -30,14 +31,15 @@ job "{{ .Name }}" {
           "--home", "{{ .Vega.HomeDir }}",
           "--nodewallet-passphrase-file", "{{ .Vega.NodeWalletPassFilePath }}",
         ]
-        resources {
-          cpu    = 500
-          memory = 512
-        }
+      }
+
+      resources {
+        cpu    = 500
+        memory = 512
       }
     }
     
-    {{ if ns.DataNode }}
+    {{ if .DataNode }}
     task "{{ .DataNode.Name }}" {
       driver = "raw_exec"
 
@@ -47,10 +49,11 @@ job "{{ .Name }}" {
           "node",
           "--home", "{{ .DataNode.HomeDir }}",
         ]
-        resources {
-          cpu    = 500
-          memory = 512
-        }
+      }
+
+      resources {
+        cpu    = 500
+        memory = 512
       }
     }
     {{ end }}

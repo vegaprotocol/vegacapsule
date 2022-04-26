@@ -123,6 +123,7 @@ func (tg *ConfigGenerator) Initiate(index int, mode string) (*types.TendermintNo
 		HomeDir:         nodeDir,
 		NodeID:          string(nodeKey.ID()),
 		GenesisFilePath: config.BaseConfig.GenesisFile(),
+		BinaryPath:      *tg.conf.VegaBinary,
 	}
 
 	if mode != string(types.NodeModeValidator) {
