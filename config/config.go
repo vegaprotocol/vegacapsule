@@ -36,8 +36,9 @@ type NetworkConfig struct {
 
 	PreStart *PrestartConfig `hcl:"pre_start,block"`
 
-	Nodes                   []NodeConfig `hcl:"node_set,block"`
-	SmartContractsAddresses string       `hcl:"smart_contracts_addresses"`
+	Nodes                       []NodeConfig `hcl:"node_set,block"`
+	SmartContractsAddresses     *string      `hcl:"smart_contracts_addresses,optional"`
+	SmartContractsAddressesFile *string      `hcl:"smart_contracts_addresses_file,optional"`
 }
 
 func (nc NetworkConfig) GetNodeConfig(name string) (*NodeConfig, error) {
@@ -160,7 +161,7 @@ func (c *Config) Validate() error {
 		return fmt.Errorf("failed to node configs: %w", err)
 	}
 
-	if err := c.validateSmartContractsAddresses(); err != nil {
+	if err := c.validateAndSetSmartContractsAddresses(); err != nil {
 		return fmt.Errorf("invalid configuration for smart contrtacts addresses: %w", err)
 	}
 
@@ -240,7 +241,36 @@ func (c *Config) validateAndSetGenesis() error {
 	return fmt.Errorf("missing genesis file template: either genesis_template or genesis_template_file must be defined")
 }
 
-func (c Config) validateSmartContractsAddresses() error {
+func (c *Config) validateAndSetSmartContractsAddresses() error {
+	if c.Network.SmartContractsAddresses == nil {
+		fmt.Println("c.Network.SmartContractsAddresses == nil")
+		if c.Network.SmartContractsAddressesFile == nil {
+			fmt.Println("c.Network.SmartContractsAddressesFile == nil")
+			return fmt.Errorf("missing smart contracts file: either smart_contracts_addresses or smart_contracts_addresses_file must be defined")
+		}
+
+		fmt.Println("c.Network.SmartContractsAddressesFile != nil")
+
+		smartContractsFile, err := utils.AbsPath(*c.Network.SmartContractsAddressesFile)
+		if err != nil {
+			return fmt.Errorf("failed to get absolute file path %q: %w", smartContractsFile, err)
+		}
+
+		fmt.Println("c.Network.SmartContractsAddressesFile smartContractsFile: ", smartContractsFile)
+
+		smartContracts, err := ioutil.ReadFile(smartContractsFile)
+		if err != nil {
+			return fmt.Errorf("failed to read file %q: %w", smartContractsFile, err)
+		}
+
+		smartContractsStr := string(smartContracts)
+
+		fmt.Println("c.Network.SmartContractsAddressesFile smartContractsStr: ", smartContractsStr)
+
+		c.Network.SmartContractsAddresses = &smartContractsStr
+		c.Network.SmartContractsAddressesFile = nil
+	}
+
 	_, err := c.SmartContractsInfo()
 
 	if err != nil {
@@ -253,7 +283,7 @@ func (c Config) validateSmartContractsAddresses() error {
 func (c Config) SmartContractsInfo() (*types.SmartContractsInfo, error) {
 	smartcontracts := &types.SmartContractsInfo{}
 
-	if err := json.Unmarshal([]byte(c.Network.SmartContractsAddresses), &smartcontracts); err != nil {
+	if err := json.Unmarshal([]byte(*c.Network.SmartContractsAddresses), &smartcontracts); err != nil {
 		return nil, fmt.Errorf("failed to get smart contracts info: config.network.smart_contracts_addresses format is wrong: %w", err)
 	}
 

@@ -47,7 +47,10 @@ EOT
         "-m", "cherry manage trip absorb logic half number test shed logic purpose rifle",
         "--db", "/app/ganache-db",
       ]
-      static_port = 8545
+      static_port {
+        value = 8545
+        to = 8545
+      }
     }
   }
   
