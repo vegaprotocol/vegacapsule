@@ -81,34 +81,6 @@ func (r *JobRunner) runDockerJob(ctx context.Context, conf config.DockerConfig) 
 	return j, nil
 }
 
-func (r *JobRunner) RunRawJobs(ctx context.Context, rawJobs []string) ([]api.Job, error) {
-	jobs := make([]api.Job, 0, len(rawJobs))
-
-	for _, jobRaw := range rawJobs {
-		job, err := jobspec.Parse(strings.NewReader(jobRaw))
-		if err != nil {
-			return nil, err
-		}
-
-		jobs = append(jobs, *job)
-	}
-
-	eg := new(errgroup.Group)
-	for _, j := range jobs {
-		j := j
-
-		eg.Go(func() error {
-			return r.client.RunAndWait(ctx, j)
-		})
-	}
-
-	if err := eg.Wait(); err != nil {
-		return nil, fmt.Errorf("failed to wait for node sets: %w", err)
-	}
-
-	return jobs, nil
-}
-
 func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) api.Job {
 	tasks := make([]*api.Task, 0, 3)
 	tasks = append(tasks,
