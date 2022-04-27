@@ -64,12 +64,13 @@ type StaticPort struct {
 	Value int `hcl:"value"`
 }
 type DockerConfig struct {
-	Name       string            `hcl:"name,label"`
-	Image      string            `hcl:"image"`
-	Command    string            `hcl:"cmd"`
-	Args       []string          `hcl:"args"`
-	Env        map[string]string `hcl:"env,optional"`
-	StaticPort *StaticPort       `hcl:"static_port,block"`
+	Name         string            `hcl:"name,label"`
+	Image        string            `hcl:"image"`
+	Command      string            `hcl:"cmd"`
+	Args         []string          `hcl:"args"`
+	Env          map[string]string `hcl:"env,optional"`
+	StaticPort   *StaticPort       `hcl:"static_port,block"`
+	AuthSoftFail bool              `hcl:"auth_soft_fail,optional"`
 }
 
 type WalletConfig struct {
