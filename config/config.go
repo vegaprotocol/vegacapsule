@@ -243,20 +243,14 @@ func (c *Config) validateAndSetGenesis() error {
 
 func (c *Config) validateAndSetSmartContractsAddresses() error {
 	if c.Network.SmartContractsAddresses == nil {
-		fmt.Println("c.Network.SmartContractsAddresses == nil")
 		if c.Network.SmartContractsAddressesFile == nil {
-			fmt.Println("c.Network.SmartContractsAddressesFile == nil")
 			return fmt.Errorf("missing smart contracts file: either smart_contracts_addresses or smart_contracts_addresses_file must be defined")
 		}
-
-		fmt.Println("c.Network.SmartContractsAddressesFile != nil")
 
 		smartContractsFile, err := utils.AbsPath(*c.Network.SmartContractsAddressesFile)
 		if err != nil {
 			return fmt.Errorf("failed to get absolute file path %q: %w", smartContractsFile, err)
 		}
-
-		fmt.Println("c.Network.SmartContractsAddressesFile smartContractsFile: ", smartContractsFile)
 
 		smartContracts, err := ioutil.ReadFile(smartContractsFile)
 		if err != nil {
@@ -264,8 +258,6 @@ func (c *Config) validateAndSetSmartContractsAddresses() error {
 		}
 
 		smartContractsStr := string(smartContracts)
-
-		fmt.Println("c.Network.SmartContractsAddressesFile smartContractsStr: ", smartContractsStr)
 
 		c.Network.SmartContractsAddresses = &smartContractsStr
 		c.Network.SmartContractsAddressesFile = nil
