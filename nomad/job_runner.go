@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/types"
@@ -280,7 +281,7 @@ func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, gene
 	if err := g.Wait(); err != nil {
 		return nil, fmt.Errorf("failed to wait for pre-start jobs: %w", err)
 	}
-
+	time.Sleep(30 * time.Second) // DO NOT MERGE IT IT IS JUST TEMPORARY SOLUTION because data node starts very long
 	// create new error group to be able call wait funcion again
 	g, ctx = errgroup.WithContext(gCtx)
 	if generatedSvcs.Faucet != nil {
