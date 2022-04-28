@@ -39,4 +39,5 @@ func init() {
 	rootCmd.AddCommand(nodesCmd)
 	rootCmd.AddCommand(stateCmd)
 	rootCmd.AddCommand(ethereumCmd)
+	rootCmd.AddCommand(installCependenciesCmd)
 }
