@@ -31,12 +31,12 @@ type Generator struct {
 }
 
 func NewGenerator(conf *config.Config) (*Generator, error) {
-	tpl, err := template.New("genesis.json").Funcs(sprig.TxtFuncMap()).Parse(conf.Network.GenesisTemplate)
+	tpl, err := template.New("genesis.json").Funcs(sprig.TxtFuncMap()).Parse(*conf.Network.GenesisTemplate)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse genesis override: %w", err)
 	}
 
-	templateContext, err := NewTemplateContext(conf.Network.Ethereum.ChainID, conf.Network.Ethereum.NetworkID, []byte(conf.Network.SmartContractsAddresses))
+	templateContext, err := NewTemplateContext(conf.Network.Ethereum.ChainID, conf.Network.Ethereum.NetworkID, []byte(*conf.Network.SmartContractsAddresses))
 	if err != nil {
 		return nil, err
 	}

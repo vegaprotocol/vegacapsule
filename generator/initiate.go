@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"code.vegaprotocol.io/vegacapsule/config"
+	"code.vegaprotocol.io/vegacapsule/generator/nomad"
 	"code.vegaprotocol.io/vegacapsule/generator/wallet"
 	"code.vegaprotocol.io/vegacapsule/types"
 )
@@ -30,7 +31,7 @@ func (g *Generator) initiateNodeSet(index int, n config.NodeConfig) (*types.Node
 		initDNode = node
 	}
 
-	return &types.NodeSet{
+	nodeSet := &types.NodeSet{
 		GroupName:  n.Name,
 		Index:      index,
 		Name:       fmt.Sprintf("%s-nodeset-%s-%d", g.conf.Network.Name, n.Mode, index),
@@ -38,8 +39,18 @@ func (g *Generator) initiateNodeSet(index int, n config.NodeConfig) (*types.Node
 		Vega:       *initVNode,
 		Tendermint: *initTNode,
 		DataNode:   initDNode,
-	}, nil
+	}
 
+	if n.NomadJobTemplate != nil {
+		nodeJob, err := nomad.GenerateTemplate(*n.NomadJobTemplate, *nodeSet)
+		if err != nil {
+			return nil, err
+		}
+
+		nodeSet.NomadJobRaw = &nodeJob
+	}
+
+	return nodeSet, nil
 }
 
 func (g *Generator) initiateNodeSets() (*nodeSets, error) {

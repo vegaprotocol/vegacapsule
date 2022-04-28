@@ -16,6 +16,7 @@ type VegaNode struct {
 	HomeDir                string
 	NodeWalletPassFilePath string
 	NodeWalletInfo         *NodeWalletInfo `json:",omitempty"`
+	BinaryPath             string
 }
 
 type TendermintNode struct {
@@ -23,6 +24,7 @@ type TendermintNode struct {
 	NodeID          string
 	HomeDir         string
 	GenesisFilePath string
+	BinaryPath      string
 }
 
 type DataNode struct {
@@ -32,13 +34,14 @@ type DataNode struct {
 }
 
 type NodeSet struct {
-	GroupName  string
-	Name       string
-	Mode       string
-	Index      int
-	Vega       VegaNode
-	Tendermint TendermintNode
-	DataNode   *DataNode
+	GroupName   string
+	Name        string
+	Mode        string
+	Index       int
+	Vega        VegaNode
+	Tendermint  TendermintNode
+	DataNode    *DataNode
+	NomadJobRaw *string `json:",omitempty"`
 }
 
 type Wallet struct {

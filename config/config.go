@@ -27,16 +27,18 @@ type Config struct {
 }
 
 type NetworkConfig struct {
-	Name            string         `hcl:"name,label"`
-	GenesisTemplate string         `hcl:"genesis_template"`
-	Ethereum        EthereumConfig `hcl:"ethereum,block"`
-	Wallet          *WalletConfig  `hcl:"wallet,block"`
-	Faucet          *FaucetConfig  `hcl:"faucet,block"`
+	Name                string         `hcl:"name,label"`
+	GenesisTemplate     *string        `hcl:"genesis_template"`
+	GenesisTemplateFile *string        `hcl:"genesis_template_file"`
+	Ethereum            EthereumConfig `hcl:"ethereum,block"`
+	Wallet              *WalletConfig  `hcl:"wallet,block"`
+	Faucet              *FaucetConfig  `hcl:"faucet,block"`
 
 	PreStart *PrestartConfig `hcl:"pre_start,block"`
 
-	Nodes                   []NodeConfig `hcl:"node_set,block"`
-	SmartContractsAddresses string       `hcl:"smart_contracts_addresses"`
+	Nodes                       []NodeConfig `hcl:"node_set,block"`
+	SmartContractsAddresses     *string      `hcl:"smart_contracts_addresses,optional"`
+	SmartContractsAddressesFile *string      `hcl:"smart_contracts_addresses_file,optional"`
 }
 
 func (nc NetworkConfig) GetNodeConfig(name string) (*NodeConfig, error) {
@@ -94,10 +96,12 @@ type NodeConfig struct {
 	VegaWalletPass     string `hcl:"vega_wallet_pass,optional"`
 	DataNodeBinary     string `hcl:"data_node_binary,optional"`
 
-	Templates TemplateConfig `hcl:"config_templates,block"`
+	ConfigTemplates      ConfigTemplates `hcl:"config_templates,block"`
+	NomadJobTemplate     *string         `hcl:"nomad_job_template,optional"`
+	NomadJobTemplateFile *string         `hcl:"nomad_job_template_file,optional"`
 }
 
-type TemplateConfig struct {
+type ConfigTemplates struct {
 	Vega       string `hcl:"vega"`
 	Tendermint string `hcl:"tendermint"`
 	DataNode   string `hcl:"data_node,optional"`
@@ -147,17 +151,119 @@ func (c *Config) setAbsolutePaths() error {
 
 func (c *Config) Validate() error {
 	if err := c.setAbsolutePaths(); err != nil {
-		return err
+		return fmt.Errorf("failed to set absolute paths: %w", err)
 	}
 
-	if err := c.validateSmartContractsAddresses(); err != nil {
+	if err := c.validateAndSetGenesis(); err != nil {
+		return fmt.Errorf("failed to validate genesis: %w", err)
+	}
+
+	if err := c.validateAndSetNodeConfigs(); err != nil {
+		return fmt.Errorf("failed to validate node configs: %w", err)
+	}
+
+	if err := c.validateAndSetSmartContractsAddresses(); err != nil {
 		return fmt.Errorf("invalid configuration for smart contrtacts addresses: %w", err)
 	}
 
 	return nil
 }
 
-func (c Config) validateSmartContractsAddresses() error {
+func (c *Config) validateAndSetNodeConfigs() error {
+	mErr := utils.NewMultiError()
+
+	for i, nc := range c.Network.Nodes {
+		nc, err := c.validateNomadJobTemplates(nc)
+		if err != nil {
+			mErr.Add(fmt.Errorf("failed to validate nomad job template for %q: %w", nc.Name, err))
+			continue
+		}
+
+		c.Network.Nodes[i] = *nc
+	}
+
+	if mErr.HasAny() {
+		return mErr
+	}
+
+	return nil
+}
+
+func (c Config) validateNomadJobTemplates(nc NodeConfig) (*NodeConfig, error) {
+	if nc.NomadJobTemplate != nil {
+		return &nc, nil
+	}
+
+	if nc.NomadJobTemplateFile == nil {
+		return &nc, nil
+	}
+
+	templateFile, err := utils.AbsPath(*nc.NomadJobTemplateFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get absolute file path %q: %w", *nc.NomadJobTemplateFile, err)
+	}
+
+	template, err := ioutil.ReadFile(templateFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read file %q: %w", templateFile, err)
+	}
+
+	str := string(template)
+	nc.NomadJobTemplate = &str
+	nc.NomadJobTemplateFile = nil
+
+	return &nc, nil
+}
+
+func (c *Config) validateAndSetGenesis() error {
+	if c.Network.GenesisTemplate != nil {
+		return nil
+	}
+
+	if c.Network.GenesisTemplateFile != nil {
+		genTemplateFile, err := utils.AbsPath(*c.Network.GenesisTemplateFile)
+		if err != nil {
+			return fmt.Errorf("failed to get absolute file path %q: %w", genTemplateFile, err)
+		}
+
+		genTemplate, err := ioutil.ReadFile(genTemplateFile)
+		if err != nil {
+			return fmt.Errorf("failed to read file %q: %w", genTemplateFile, err)
+		}
+
+		genTemplateStr := string(genTemplate)
+		// set file content as template a set file path to nil
+		c.Network.GenesisTemplate = &genTemplateStr
+		c.Network.GenesisTemplateFile = nil
+
+		return nil
+	}
+
+	return fmt.Errorf("missing genesis file template: either genesis_template or genesis_template_file must be defined")
+}
+
+func (c *Config) validateAndSetSmartContractsAddresses() error {
+	if c.Network.SmartContractsAddresses == nil {
+		if c.Network.SmartContractsAddressesFile == nil {
+			return fmt.Errorf("missing smart contracts file: either smart_contracts_addresses or smart_contracts_addresses_file must be defined")
+		}
+
+		smartContractsFile, err := utils.AbsPath(*c.Network.SmartContractsAddressesFile)
+		if err != nil {
+			return fmt.Errorf("failed to get absolute file path %q: %w", smartContractsFile, err)
+		}
+
+		smartContracts, err := ioutil.ReadFile(smartContractsFile)
+		if err != nil {
+			return fmt.Errorf("failed to read file %q: %w", smartContractsFile, err)
+		}
+
+		smartContractsStr := string(smartContracts)
+
+		c.Network.SmartContractsAddresses = &smartContractsStr
+		c.Network.SmartContractsAddressesFile = nil
+	}
+
 	_, err := c.SmartContractsInfo()
 
 	if err != nil {
@@ -170,7 +276,7 @@ func (c Config) validateSmartContractsAddresses() error {
 func (c Config) SmartContractsInfo() (*types.SmartContractsInfo, error) {
 	smartcontracts := &types.SmartContractsInfo{}
 
-	if err := json.Unmarshal([]byte(c.Network.SmartContractsAddresses), &smartcontracts); err != nil {
+	if err := json.Unmarshal([]byte(*c.Network.SmartContractsAddresses), &smartcontracts); err != nil {
 		return nil, fmt.Errorf("failed to get smart contracts info: config.network.smart_contracts_addresses format is wrong: %w", err)
 	}
 
