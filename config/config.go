@@ -158,7 +158,7 @@ func (c *Config) Validate() error {
 	}
 
 	if err := c.validateAndSetNodeConfigs(); err != nil {
-		return fmt.Errorf("failed to node configs: %w", err)
+		return fmt.Errorf("failed to validate node configs: %w", err)
 	}
 
 	if err := c.validateAndSetSmartContractsAddresses(); err != nil {
