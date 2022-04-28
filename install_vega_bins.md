@@ -2,15 +2,15 @@
 
 ## Install automatically
 
-There is a feature avalible in Capsule that allows fetching supported binaries automatically. Your Gihub crendentials are required for this step.
+There is a feature avalible in Capsule that allows fetching supported binaries automatically. Your personal Gihub token is required for this step. [Get Github Token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token)
 
 1. Validate that Capsule is installed
 ```bash
 vegacapsule --help
 ```
-2. Run the fetch command
+2. Run the install command
 ```bash
-vegacapsule --help
+vegacapsule install-deps
 ```
 
 ## Install manually - build from source (more flexible)
