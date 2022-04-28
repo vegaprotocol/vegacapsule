@@ -58,10 +58,11 @@ func (r *JobRunner) runDockerJob(ctx context.Context, conf config.DockerConfig) 
 						Name:   conf.Name,
 						Driver: "docker",
 						Config: map[string]interface{}{
-							"image":   conf.Image,
-							"command": conf.Command,
-							"args":    conf.Args,
-							"ports":   portLabels,
+							"image":          conf.Image,
+							"command":        conf.Command,
+							"args":           conf.Args,
+							"ports":          portLabels,
+							"auth_soft_fail": conf.AuthSoftFail,
 						},
 						Env: conf.Env,
 						Resources: &api.Resources{
