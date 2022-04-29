@@ -43,7 +43,7 @@ var installBinariesCmd = &cobra.Command{
 		if len(installPath) == 0 {
 			installPath = os.Getenv("GOBIN")
 			if len(installPath) == 0 {
-				return fmt.Errorf("GOBIN enviroment variable has not been found - please set install-path flag instead")
+				return fmt.Errorf("GOBIN environment variable has not been found - please set install-path flag instead")
 			}
 		}
 
@@ -69,7 +69,7 @@ func init() {
 	installBinariesCmd.PersistentFlags().StringVar(&githubToken,
 		"install-path",
 		"",
-		"Install path for the binaries. Uses GOBIN enviroment variable by default.",
+		"Install path for the binaries. Uses GOBIN environment variable by default.",
 	)
 	installBinariesCmd.MarkFlagRequired("github-token")
 }
@@ -168,7 +168,7 @@ func cpAndChmodxFile(source, destination string) error {
 		return fmt.Errorf("failed to chmod 0700 file %q: %w", destination, err)
 	}
 
-	log.Printf("Succesfully copied from %q to %q", source, destination)
+	log.Printf("Successfully copied from %q to %q", source, destination)
 
 	return nil
 }
@@ -236,7 +236,7 @@ func downloadReleaseAsset(ctx context.Context, client *github.Client, owner, rep
 		return fmt.Errorf("failed to write to file: %w", err)
 	}
 
-	log.Printf("Asset for %q with tag %q succesfully downloaded to %q", repository, releaseTag, downloadPath)
+	log.Printf("Asset for %q with tag %q successfully downloaded to %q", repository, releaseTag, downloadPath)
 
 	return nil
 }
