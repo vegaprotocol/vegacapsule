@@ -10,7 +10,13 @@ vegacapsule --help
 ```
 2. Run the install command
 ```bash
-vegacapsule install-deps
+vegacapsule install-bins --github-token "$(cat PATH_TO_YOUR_GITHUB_TOKEN)"
+```
+3. Validate that binaries are accessible trough $PATH. And versions matching the one from previous cmd output. If not, please run step 2 again with --install-path flag.
+```bash
+vega version
+vegawallet version
+data-node version
 ```
 
 ## Install manually - build from source (more flexible)

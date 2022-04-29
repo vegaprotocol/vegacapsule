@@ -1,157 +1,189 @@
 package cmd
 
 import (
-	"archive/zip"
 	"context"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"path"
-	"path/filepath"
 	"runtime"
-	"syscall"
 
 	"code.vegaprotocol.io/vegacapsule/utils"
 	"github.com/google/go-github/v43/github"
 	"github.com/spf13/cobra"
-	"golang.org/x/crypto/ssh/terminal"
 	"golang.org/x/oauth2"
 	"golang.org/x/sync/errgroup"
 )
 
 const (
-	owner                = "vegaprotocol"
+	repositoryOwner      = "vegaprotocol"
 	vegaRepository       = "vega"
+	vegaVersion          = "v0.50.1"
 	vegaWalletRepository = "vegawallet"
+	vegaWalletVersion    = "v0.14.0"
 	dataNodeRepository   = "data-node"
+	dataNodeVersion      = "v0.50.1"
 )
 
-var installCependenciesCmd = &cobra.Command{
-	Use:   "install-deps",
+var (
+	githubToken string
+	installPath string
+)
+
+var installBinariesCmd = &cobra.Command{
+	Use:   "install-bins",
 	Short: "Automatically download and install supported versions of vega, vegawallet and data-node binaries.",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// @TODO allow to set custom install PATH if gobin is missing
-		goBin := os.Getenv("GOBIN")
-		if len(goBin) == 0 {
-			panic("missing GOBIN env variable")
+		if len(githubToken) == 0 {
+			return fmt.Errorf("--github-token flag must be defined")
 		}
 
-		info, err := os.Lstat(goBin)
+		if len(installPath) == 0 {
+			installPath = os.Getenv("GOBIN")
+			if len(installPath) == 0 {
+				return fmt.Errorf("GOBIN enviroment variable has not been found - please set install-path flag instead")
+			}
+		}
+
+		info, err := os.Lstat(installPath)
 		if err != nil {
-			panic(err)
+			return fmt.Errorf("failed to get info about install-path %q: %w", installPath, err)
 		}
 
 		if !info.IsDir() {
-			panic("GOBIN should be a directory")
+			return fmt.Errorf("install-path should be a should be a directory")
 		}
 
-		fmt.Print("GitHub Token: ")
-		byteToken, _ := terminal.ReadPassword(int(syscall.Stdin))
-		println()
-		token := string(byteToken)
-
-		ctx := context.Background()
-		ts := oauth2.StaticTokenSource(
-			&oauth2.Token{AccessToken: token},
-		)
-		tc := oauth2.NewClient(ctx, ts)
-
-		client := github.NewClient(tc)
-
-		eg, ctx := errgroup.WithContext(ctx)
-
-		eg.Go(func() error {
-			vegaBinaryName := fmt.Sprintf("vega-%s-amd64", runtime.GOOS)
-			vegaBinaryPath := path.Join(homePath, vegaBinaryName)
-			if err := downloadReleaseAsset(ctx, client, owner, vegaRepository, "v0.50.1", vegaBinaryName, homePath); err != nil {
-				return fmt.Errorf("failed to download binary for vega: %w", err)
-			}
-
-			destination := path.Join(goBin, "vega")
-			if err := utils.CopyFile(vegaBinaryPath, destination); err != nil {
-				return fmt.Errorf("failed to copy file %q to %q: %w", vegaBinaryPath, destination, err)
-			}
-
-			if err := os.Chmod(destination, 0700); err != nil {
-				return fmt.Errorf("failed to chmod 0700 file %q: %w", destination, err)
-			}
-
-			os.Remove(vegaBinaryName)
-
-			return nil
-		})
-
-		eg.Go(func() error {
-			vegaWalletAssetName := fmt.Sprintf("vegawallet-%s-%s.zip", runtime.GOOS, runtime.GOARCH)
-			vegaWalletAssetPath := path.Join(homePath, vegaWalletAssetName)
-			vegaWalletBinaryName := "vegawallet"
-			vegaWalletBinaryPath := path.Join(homePath, vegaWalletBinaryName)
-
-			if err := downloadReleaseAsset(ctx, client, owner, vegaWalletRepository, "v0.13.2", vegaWalletAssetName, homePath); err != nil {
-				return fmt.Errorf("failed to download binary for vega wallet: %w", err)
-			}
-
-			if err := unzip(vegaWalletAssetPath, vegaWalletBinaryName, homePath); err != nil {
-				return fmt.Errorf("failed to unzip file %q from %q: %w", vegaWalletBinaryName, vegaWalletAssetName, err)
-			}
-
-			destination := path.Join(goBin, vegaWalletBinaryName)
-			if err := utils.CopyFile(vegaWalletBinaryPath, destination); err != nil {
-				return fmt.Errorf("failed to copy file %q to %q: %w", vegaWalletBinaryPath, destination, err)
-			}
-
-			if err := os.Chmod(destination, 0700); err != nil {
-				return fmt.Errorf("failed to chmod 0700 file %q: %w", vegaWalletBinaryPath, err)
-			}
-
-			os.Remove(vegaWalletAssetName)
-			os.Remove(vegaWalletBinaryPath)
-
-			return nil
-		})
-
-		eg.Go(func() error {
-			dataNodeBinary := fmt.Sprintf("data-node-%s-amd64", runtime.GOOS)
-			dataNodeBinaryPath := path.Join(homePath, dataNodeBinary)
-			if err := downloadReleaseAsset(ctx, client, owner, dataNodeRepository, "v0.50.1", dataNodeBinary, homePath); err != nil {
-				return fmt.Errorf("failed to download binary for data-node: %w", err)
-			}
-
-			destination := path.Join(goBin, "data-node")
-			if err := utils.CopyFile(dataNodeBinaryPath, destination); err != nil {
-				return fmt.Errorf("failed to copy file %q to %q: %w", dataNodeBinary, destination, err)
-			}
-
-			if err := os.Chmod(destination, 0700); err != nil {
-				return fmt.Errorf("failed to chmod 0700 file %q: %w", destination, err)
-			}
-
-			os.Remove(dataNodeBinaryPath)
-
-			return nil
-		})
-
-		return eg.Wait()
+		return installDependencies(githubToken, installPath)
 	},
 }
 
 func init() {
-	// installCependenciesCmd.PersistentFlags().StringVar(&nomadConfigPath,
-	// 	"nomad-config-path",
-	// 	"",
-	// 	"Allows to use Nomad configuration",
-	// )
+	installBinariesCmd.PersistentFlags().StringVar(&githubToken,
+		"github-token",
+		"",
+		"Github personal token",
+	)
+	installBinariesCmd.PersistentFlags().StringVar(&githubToken,
+		"install-path",
+		"",
+		"Install path for the binaries. Uses GOBIN enviroment variable by default.",
+	)
+	installBinariesCmd.MarkFlagRequired("github-token")
+}
+
+func installDependencies(githubToken, installPath string) error {
+	ctx := context.Background()
+	ts := oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: githubToken},
+	)
+	tc := oauth2.NewClient(ctx, ts)
+
+	client := github.NewClient(tc)
+
+	eg, ctx := errgroup.WithContext(ctx)
+
+	eg.Go(func() error {
+		vegaBinName := "vega"
+		vegaAssetName := fmt.Sprintf("%s-%s-amd64", vegaBinName, runtime.GOOS)
+
+		if err := downloadReleaseAsset(ctx, client, repositoryOwner, vegaRepository, vegaVersion, vegaAssetName, homePath); err != nil {
+			return fmt.Errorf("failed to download binary for vega: %w", err)
+		}
+
+		vegaAssetPath := path.Join(homePath, vegaAssetName)
+		if err := cpAndChmodxFile(
+			vegaAssetPath,
+			path.Join(installPath, vegaBinName),
+		); err != nil {
+			return err
+		}
+
+		os.Remove(vegaAssetPath)
+
+		return nil
+	})
+
+	eg.Go(func() error {
+		vegaWalletBinName := "vegawallet"
+		vegaWalletAssetName := fmt.Sprintf("%s-%s-%s.zip", vegaWalletBinName, runtime.GOOS, runtime.GOARCH)
+		vegaWalletAssetPath := path.Join(homePath, vegaWalletAssetName)
+
+		if err := downloadReleaseAsset(ctx, client, repositoryOwner, vegaWalletRepository, vegaWalletVersion, vegaWalletAssetName, homePath); err != nil {
+			return fmt.Errorf("failed to download binary for vega wallet: %w", err)
+		}
+
+		log.Printf("Unziping %q from %q", vegaWalletBinName, vegaWalletAssetPath)
+
+		if err := utils.Unzip(vegaWalletAssetPath, vegaWalletBinName, homePath); err != nil {
+			return fmt.Errorf("failed to unzip file %q from %q: %w", vegaWalletBinName, vegaWalletAssetName, err)
+		}
+
+		vegaWalletBinaryPath := path.Join(homePath, vegaWalletBinName)
+		if err := cpAndChmodxFile(
+			vegaWalletBinaryPath,
+			path.Join(installPath, vegaWalletBinName),
+		); err != nil {
+			return err
+		}
+
+		os.Remove(vegaWalletAssetPath)
+		os.Remove(vegaWalletBinaryPath)
+
+		return nil
+	})
+
+	eg.Go(func() error {
+		dataNodeBin := "data-node"
+		dataNodeAsset := fmt.Sprintf("%s-%s-amd64", dataNodeBin, runtime.GOOS)
+
+		if err := downloadReleaseAsset(ctx, client, repositoryOwner, dataNodeRepository, dataNodeVersion, dataNodeAsset, homePath); err != nil {
+			return fmt.Errorf("failed to download binary for data-node: %w", err)
+		}
+
+		dataNodeAssetPath := path.Join(homePath, dataNodeAsset)
+		if err := cpAndChmodxFile(
+			dataNodeAssetPath,
+			path.Join(installPath, dataNodeBin),
+		); err != nil {
+			return err
+		}
+
+		os.Remove(dataNodeAssetPath)
+
+		return nil
+	})
+
+	return eg.Wait()
+}
+
+func cpAndChmodxFile(source, destination string) error {
+	if err := utils.CopyFile(source, destination); err != nil {
+		return fmt.Errorf("failed to copy file %q to %q: %w", source, destination, err)
+	}
+
+	if err := os.Chmod(destination, 0700); err != nil {
+		return fmt.Errorf("failed to chmod 0700 file %q: %w", destination, err)
+	}
+
+	log.Printf("Succesfully copied from %q to %q", source, destination)
+
+	return nil
 }
 
 func downloadReleaseAsset(ctx context.Context, client *github.Client, owner, repository, releaseTag, assetName, downloadDir string) error {
-	log.Printf("downloading release asset for %q with tag %q", repository, releaseTag)
+	log.Printf("Downloading release asset for %q with tag %q", repository, releaseTag)
 
-	releases, _, err := client.Repositories.ListReleases(ctx, owner, repository, nil)
+	releases, resp, err := client.Repositories.ListReleases(ctx, owner, repository, nil)
 	if err != nil {
 		return err
+	}
+
+	// If a Token Expiration has been set, it will be displayed.
+	if !resp.TokenExpiration.IsZero() {
+		log.Printf("Github Token Expiration: %v\n", resp.TokenExpiration)
 	}
 
 	var releaseID int64
@@ -165,7 +197,7 @@ func downloadReleaseAsset(ctx context.Context, client *github.Client, owner, rep
 		return fmt.Errorf("release in repository %q with tag %q not found", repository, releaseTag)
 	}
 
-	assets, resp, err := client.Repositories.ListReleaseAssets(ctx, owner, repository, releaseID, nil)
+	assets, _, err := client.Repositories.ListReleaseAssets(ctx, owner, repository, releaseID, nil)
 	if err != nil {
 		return err
 	}
@@ -177,20 +209,15 @@ func downloadReleaseAsset(ctx context.Context, client *github.Client, owner, rep
 		}
 	}
 
-	// If a Token Expiration has been set, it will be displayed.
-	if !resp.TokenExpiration.IsZero() {
-		log.Printf("Token Expiration: %v\n", resp.TokenExpiration)
-	}
-
 	if assetID == 0 {
-		return fmt.Errorf("asset %q not found", assetName)
+		return fmt.Errorf("asset %q in repository %q not found", repository, assetName)
 	}
 
-	rc, _, err := client.Repositories.DownloadReleaseAsset(ctx, owner, repository, assetID, http.DefaultClient)
+	ra, _, err := client.Repositories.DownloadReleaseAsset(ctx, owner, repository, assetID, http.DefaultClient)
 	if err != nil {
 		return fmt.Errorf("failed to download release asset: %w", err)
 	}
-	defer rc.Close()
+	defer ra.Close()
 
 	downloadPath := path.Join(downloadDir, assetName)
 
@@ -200,61 +227,16 @@ func downloadReleaseAsset(ctx context.Context, client *github.Client, owner, rep
 	}
 	defer file.Close()
 
-	all, err := ioutil.ReadAll(rc)
+	all, err := ioutil.ReadAll(ra)
 	if err != nil {
 		return fmt.Errorf("failed to read  %q: %w", downloadPath, err)
 	}
 
-	_, err = file.Write(all)
-	if err != nil {
+	if _, err = file.Write(all); err != nil {
 		return fmt.Errorf("failed to write to file: %w", err)
 	}
 
-	log.Printf("asset for %q with tag %q succesfully downloaded to %q", repository, releaseTag, downloadPath)
+	log.Printf("Asset for %q with tag %q succesfully downloaded to %q", repository, releaseTag, downloadPath)
 
-	return nil
-}
-
-func unzip(source, fileName, outDir string) error {
-	log.Printf("unziping %q from %q", fileName, source)
-
-	reader, err := zip.OpenReader(source)
-	if err != nil {
-		return err
-	}
-	defer reader.Close()
-
-	destination := filepath.Join(outDir, fileName)
-
-	for _, f := range reader.File {
-		if f.Name != fileName {
-			continue
-		}
-
-		err := unzipFile(f, destination)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func unzipFile(f *zip.File, destination string) error {
-	destinationFile, err := os.OpenFile(destination, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
-	if err != nil {
-		return err
-	}
-	defer destinationFile.Close()
-
-	zippedFile, err := f.Open()
-	if err != nil {
-		return err
-	}
-	defer zippedFile.Close()
-
-	if _, err := io.Copy(destinationFile, zippedFile); err != nil {
-		return err
-	}
 	return nil
 }

@@ -1,8 +1,10 @@
 package utils
 
 import (
+	"archive/zip"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -47,5 +49,47 @@ func CopyFile(srcFile, dstFile string) error {
 		return fmt.Errorf("failed to write to file %q: %w", dstFile, err)
 	}
 
+	return nil
+}
+
+func Unzip(source, fileName, outDir string) error {
+	reader, err := zip.OpenReader(source)
+	if err != nil {
+		return err
+	}
+	defer reader.Close()
+
+	destination := filepath.Join(outDir, fileName)
+
+	for _, f := range reader.File {
+		if f.Name != fileName {
+			continue
+		}
+
+		err := unzipFile(f, destination)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func unzipFile(f *zip.File, destination string) error {
+	destinationFile, err := os.OpenFile(destination, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
+	if err != nil {
+		return err
+	}
+	defer destinationFile.Close()
+
+	zippedFile, err := f.Open()
+	if err != nil {
+		return err
+	}
+	defer zippedFile.Close()
+
+	if _, err := io.Copy(destinationFile, zippedFile); err != nil {
+		return err
+	}
 	return nil
 }
