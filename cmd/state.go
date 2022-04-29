@@ -29,7 +29,7 @@ var stateGetSmartcontractsAddressesCmd = &cobra.Command{
 			return networkNotBootstrappedErr("state get-smartcontracts-addresses")
 		}
 
-		fmt.Println(netState.Config.Network.SmartContractsAddresses)
+		fmt.Println(*netState.Config.Network.SmartContractsAddresses)
 
 		return nil
 	},
