@@ -9,7 +9,7 @@ network "testnet" {
 
   pre_start {
     docker_service "ganache-1" {
-      image = "ghcr.io/vegaprotocol/devops-infra/ganache:latest"
+      image = "vegaprotocol/ganache:v1.1.0"
       cmd = "ganache-cli"
       args = [
         "--blockTime", "1",
@@ -17,13 +17,14 @@ network "testnet" {
         "--networkId", "1441",
         "-h", "0.0.0.0",
         "-p", "8545",
-        "-m", "cherry manage trip absorb logic half number test shed logic purpose rifle",
+        "-m", "ozone access unlock valid olympic save include omit supply green clown session",
         "--db", "/app/ganache-db",
       ]
 	  static_port {
         value = 8545
         to = 8545
       }
+	  auth_soft_fail = true
     }
   }
 
@@ -347,52 +348,52 @@ EOT
 
     smart_contracts_addresses = <<EOH
 {
-	"addr0": {
-		"priv": "adef89153e4bd6b43876045efdd6818cec359340683edaec5e8588e635e8428b",
-		"pub": "0xb89A165EA8b619c14312dB316BaAa80D2a98B493"
-	},
-	"MultisigControl": {
-		"Ethereum": "0xa956B5c58B4Ac8Dd1D44Ade3e8972A16e9C917E4"
-	},
-	"ERC20_Asset_Pool": {
-		"Ethereum": "0x3EA59801698c6820328597F26d29fC3EaAa17AcA"
-	},
-	"erc20_bridge_1": {
-		"Ethereum": "0x0858D9BD11A4F6Bae8b979402550CA6c6ddB8332"
-	},
-	"erc20_bridge_2": {
-		"Ethereum": "0x846087f262859fe6604e2e9f787a9F3f39296Ff8"
-	},
-	"tBTC": {
-		"Ethereum": "0xc6a6000d740707edc35f75f42447320B60450c04",
-		"Vega": "0x5cfa87844724df6069b94e4c8a6f03af21907d7bc251593d08e4251043ee9f7c"
-	},
-	"tDAI": {
-		"Ethereum": "0xE25F12E386Cd7F84c41B5210504d9743A35Badda",
-		"Vega": "0x6d9d35f657589e40ddfb448b7ad4a7463b66efb307527fedd2aa7df1bbd5ea61"
-	},
-	"tEURO": {
-		"Ethereum": "0x7c23d674fED4500103A0b7e05b4A0da17291FCE9",
-		"Vega": "0x8b52d4a3a4b0ffe733cddbc2b67be273816cfeb6ca4c8b339bac03ffba08e4e4"
-	},
-	"tUSDC": {
-		"Ethereum": "0xD76Bd796e117D54044E616ae42A3577256B601D1",
-		"Vega": "0x993ed98f4f770d91a796faab1738551193ba45c62341d20597df70fea6704ede"
-	},
-	"VEGA": {
-		"Ethereum": "0xBC944ba38753A6fCAdd634Be98379330dbaB3Eb8",
-		"Vega": "0xb4f2726571fbe8e33b442dc92ed2d7f0d810e21835b7371a7915a365f07ccd9b"
-	},
-	"VEGAv1": {
-		"Ethereum": "0xB69a81EE133d8c4dC4AeCB30af93bC8698118ccE",
-		"Vega": "0xc1607f28ec1d0a0b36842c8327101b18de2c5f172585870912f5959145a9176c"
-	},
-	"erc20_vesting": {
-		"Ethereum": "0xB9f84835F00C0E4f494C51C945863109cF80754A"
-	},
-	"staking_bridge": {
-		"Ethereum": "0xE4c9fB5955bAa8a7965D000afdCEFF25cfe0E8a3"
-	}
+  "addr0": {
+    "priv": "a37f4c2a678aefb5037bf415a826df1540b330b7e471aa54184877ba901b9ef0",
+    "pub": "0xEe7D375bcB50C26d52E1A4a472D8822A2A22d94F"
+  },
+  "MultisigControl": {
+    "Ethereum": "0xdEcdA30fd3449718304eA201A8f220eBdE25dd1E"
+  },
+  "ERC20_Asset_Pool": {
+    "Ethereum": "0xAa1eDb6C25e6B5ff2c8EdAf68757Ae557178E6eE"
+  },
+  "erc20_bridge_1": {
+    "Ethereum": "0x9708FF7510D4A7B9541e1699d15b53Ecb1AFDc54"
+  },
+  "erc20_bridge_2": {
+    "Ethereum": "0x29e1eA1cfb78f7c34802C90198Cc24aDcBBE4AD0"
+  },
+  "tBTC": {
+    "Ethereum": "0xb63D135B0a6854EEb765d69ca36210cC70BECAE0",
+    "Vega": "0x5cfa87844724df6069b94e4c8a6f03af21907d7bc251593d08e4251043ee9f7c"
+  },
+  "tDAI": {
+    "Ethereum": "0x879B84eCA313D62CE4e5ED717939B42cBa9e53cb",
+    "Vega": "0x6d9d35f657589e40ddfb448b7ad4a7463b66efb307527fedd2aa7df1bbd5ea61"
+  },
+  "tEURO": {
+    "Ethereum": "0x7ccE194dAEf2A4e5C23C78C9330D4c907eCA6980",
+    "Vega": "0x8b52d4a3a4b0ffe733cddbc2b67be273816cfeb6ca4c8b339bac03ffba08e4e4"
+  },
+  "tUSDC": {
+    "Ethereum": "0x1b8a1B6CBE5c93609b46D1829Cc7f3Cb8eeE23a0",
+    "Vega": "0x993ed98f4f770d91a796faab1738551193ba45c62341d20597df70fea6704ede"
+  },
+  "VEGA": {
+    "Ethereum": "0x67175Da1D5e966e40D11c4B2519392B2058373de",
+    "Vega": "0xb4f2726571fbe8e33b442dc92ed2d7f0d810e21835b7371a7915a365f07ccd9b"
+  },
+  "VEGAv1": {
+    "Ethereum": "0x8fa21D653C1bF17741055f00dD55663Bc52a8362",
+    "Vega": "0xc1607f28ec1d0a0b36842c8327101b18de2c5f172585870912f5959145a9176c"
+  },
+  "erc20_vesting": {
+    "Ethereum": "0xF41bD86d462D36b997C0bbb4D97a0a3382f205B7"
+  },
+  "staking_bridge": {
+    "Ethereum": "0x9135f5afd6F055e731bca2348429482eE614CFfA"
+  }
 }
 EOH
 }

@@ -7,13 +7,9 @@
 ```bash
 docker version
 ```
-2. Run `docker login` to authenticate with private package repository on Github. Github token should be used.
+2. If you use a private docker image, run `docker login` to authenticate with private package repository (eg. Github).
 ```bash
 cat PATH_TO_YOUR_TOKEN | docker login https://ghcr.io -u "YOUR_USER_NAME" --password-stdin
-```
-3. Test that docker login worked by running
-```bash
-docker pull ghcr.io/vegaprotocol/devops-infra/ganache:latest
 ```
 
 ### Start
@@ -32,17 +28,14 @@ go install
 vegacapsule nomad
 ```
 
-4. A) **For M1 users only**!
-> Please locate `docker_service "ganache-1"` block in `config.hcl` file and replace image parameter from `ghcr.io/vegaprotocol/devops-infra/ganache:latest` to `ghcr.io/vegaprotocol/devops-infra/ganache:arm64-latest`
-
-
-4. B) In another Terminal window run bootstrap command to generate and start new network
+4. In another Terminal window run bootstrap command to generate and start new network
 ```bash
 vegacapsule network bootstrap --config-path=config.hcl
 ```
 5. Check Nomad console by opening http://localhost:4646/
 
 ## Restoring network from checkpoint
+
 ### Bootstrapping a new network
 
 1. First generate the network
