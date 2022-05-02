@@ -99,6 +99,11 @@ EOT
 	[Processor.Ratelimit]
 		Requests = 10000
 		PerNBlocks = 1
+
+[Admin]
+  [Admin.Server]
+    SocketPath = "/tmp/vega-{{.NodeNumber}}.sock"
+    Enabled = true
 EOT
 
 // ============================
@@ -183,10 +188,6 @@ EOT
   [Broker.Socket]
     Port = 30{{.NodeNumber}}5
     Enabled = true
-
-[Admin]
-  [Admin.Server]
-    Enabled = false
 EOT
 
 // ============================
