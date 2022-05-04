@@ -21,6 +21,18 @@ type nodeSets struct {
 	nonValidators []types.NodeSet
 }
 
+func (ns nodeSets) GetAllByGroupName(groupName string) []types.NodeSet {
+	var out []types.NodeSet
+
+	for _, n := range append(ns.validators, ns.nonValidators...) {
+		if n.GroupName == groupName {
+			out = append(out, n)
+		}
+	}
+
+	return out
+}
+
 type Generator struct {
 	conf          *config.Config
 	tendermintGen *tendermint.ConfigGenerator
@@ -68,23 +80,19 @@ func New(conf *config.Config, genServices types.GeneratedServices) (*Generator, 
 	}, nil
 }
 
-func (g *Generator) configureNodeSets(fc *types.Faucet) error {
-	var index int
-	for _, n := range g.conf.Network.Nodes {
-		co, err := newConfigOverride(g, n)
+func (g *Generator) configureNodeSets(nss *nodeSets, fc *types.Faucet) error {
+	for _, nc := range g.conf.Network.Nodes {
+		co, err := newConfigOverride(g, nc)
 		if err != nil {
 			return err
 		}
 
-		for i := 0; i < n.Count; i++ {
-
-			tmHome := g.tendermintGen.NodeDir(index)
-			if err := co.Overwrite(index, tmHome, n, fc); err != nil {
+		for _, ns := range nss.GetAllByGroupName(nc.Name) {
+			if err := co.Overwrite(nc, ns, fc); err != nil {
 				return err
 			}
-
-			index++
 		}
+
 	}
 
 	return nil
@@ -106,7 +114,7 @@ func (g *Generator) Generate() (*types.GeneratedServices, error) {
 		return nil, err
 	}
 
-	if err := g.configureNodeSets(fc); err != nil {
+	if err := g.configureNodeSets(ns, fc); err != nil {
 		return nil, err
 	}
 
@@ -138,8 +146,7 @@ func (g *Generator) AddNodeSet(index int, nc config.NodeConfig, ns types.NodeSet
 		return nil, err
 	}
 
-	tmHome := ns.Tendermint.HomeDir
-	if err := co.Overwrite(index, tmHome, nc, fc); err != nil {
+	if err := co.Overwrite(nc, *initNodeSet, fc); err != nil {
 		return nil, err
 	}
 

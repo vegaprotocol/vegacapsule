@@ -39,6 +39,7 @@ type ConfigTemplateContext struct {
 	NodesCount           int
 	NodeIDs              []string
 	NodePeers            []Peer
+	NodeSet              types.NodeSet
 }
 
 func NewConfigTemplate(templateRaw string) (*template.Template, error) {
@@ -82,7 +83,7 @@ func (tg ConfigGenerator) HomeDir() string {
 }
 
 func (tg *ConfigGenerator) Initiate(index int, mode string) (*types.TendermintNode, error) {
-	nodeDir := tg.NodeDir(index)
+	nodeDir := tg.nodeDir(index)
 
 	if err := os.MkdirAll(nodeDir, os.ModePerm); err != nil {
 		return nil, err
@@ -150,18 +151,19 @@ func (tg *ConfigGenerator) Initiate(index int, mode string) (*types.TendermintNo
 	return initNode, nil
 }
 
-func (tg *ConfigGenerator) OverwriteConfig(index int, configTemplate *template.Template) error {
-	nodeDir := tg.NodeDir(index)
+func (tg *ConfigGenerator) OverwriteConfig(ns types.NodeSet, configTemplate *template.Template) error {
+	nodeDir := tg.nodeDir(ns.Index)
 	configFilePath := tg.configFilePath(nodeDir)
 
 	templateCtx := ConfigTemplateContext{
 		Prefix:               *tg.conf.Prefix,
 		TendermintNodePrefix: *tg.conf.TendermintNodePrefix,
 		VegaNodePrefix:       *tg.conf.VegaNodePrefix,
-		NodeNumber:           index,
+		NodeNumber:           ns.Index,
 		NodesCount:           len(tg.nodeIDs),
 		NodeIDs:              tg.nodeIDs,
-		NodePeers:            tg.getNodePeers(index),
+		NodePeers:            tg.getNodePeers(ns.Index),
+		NodeSet:              ns,
 	}
 
 	buff := bytes.NewBuffer([]byte{})
@@ -202,7 +204,7 @@ func (tg ConfigGenerator) GenesisValidators() []tmtypes.GenesisValidator {
 	return tg.genValidators
 }
 
-func (tg ConfigGenerator) NodeDir(i int) string {
+func (tg ConfigGenerator) nodeDir(i int) string {
 	nodeDirName := fmt.Sprintf("%s%d", *tg.conf.NodeDirPrefix, i)
 	return filepath.Join(tg.homeDir, nodeDirName)
 }
