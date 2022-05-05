@@ -8,10 +8,17 @@ There is a feature avalible in Capsule that allows fetching supported binaries a
 ```bash
 vegacapsule --help
 ```
-2. Run the install command
+2. Run the install command with github token flag
 ```bash
 vegacapsule install-bins --github-token "$(cat PATH_TO_YOUR_GITHUB_TOKEN)"
 ```
+
+Alternatively GITHUB_TOKEN env variable can be used instead of --github-token flag
+```bash
+export GITHUB_TOKEN=YOUR_TOKEN
+vegacapsule install-bins
+```
+
 3. Validate that binaries are accessible trough $PATH. And versions matching the one from previous cmd output. If not, please run step 2 again with --install-path flag.
 ```bash
 vega version

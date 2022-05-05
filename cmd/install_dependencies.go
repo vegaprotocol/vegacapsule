@@ -25,6 +25,9 @@ const (
 	vegaWalletVersion    = "v0.14.0"
 	dataNodeRepository   = "data-node"
 	dataNodeVersion      = "v0.50.1"
+	vegaBinName          = "vega"
+	vegaWalletBinName    = "vegawallet"
+	dataNodeBin          = "data-node"
 )
 
 var (
@@ -37,7 +40,11 @@ var installBinariesCmd = &cobra.Command{
 	Short: "Automatically download and install supported versions of vega, vegawallet and data-node binaries.",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(githubToken) == 0 {
-			return fmt.Errorf("--github-token flag must be defined")
+			githubToken = os.Getenv("GITHUB_TOKEN")
+
+			if len(githubToken) == 0 {
+				return fmt.Errorf("--github-token flag or GITHUB_TOKEN must be defined")
+			}
 		}
 
 		if len(installPath) == 0 {
@@ -56,7 +63,15 @@ var installBinariesCmd = &cobra.Command{
 			return fmt.Errorf("install-path should be a should be a directory")
 		}
 
-		return installDependencies(githubToken, installPath)
+		if err := installDependencies(githubToken, installPath); err != nil {
+			return fmt.Errorf("failed to install dependencies: %w", err)
+		}
+
+		if err := testBinariesAccessibility(vegaBinName, vegaWalletBinName, dataNodeBin); err != nil {
+			return fmt.Errorf("failed to lookup installed binaries, please check %q is in $PATH: %w", installPath, err)
+		}
+
+		return nil
 	},
 }
 
@@ -64,9 +79,9 @@ func init() {
 	installBinariesCmd.PersistentFlags().StringVar(&githubToken,
 		"github-token",
 		"",
-		"Github personal token",
+		"Github personal token. Uses GITHUB_TOKEN environment variable by default.",
 	)
-	installBinariesCmd.PersistentFlags().StringVar(&githubToken,
+	installBinariesCmd.PersistentFlags().StringVar(&installPath,
 		"install-path",
 		"",
 		"Install path for the binaries. Uses GOBIN environment variable by default.",
@@ -86,7 +101,6 @@ func installDependencies(githubToken, installPath string) error {
 	eg, ctx := errgroup.WithContext(ctx)
 
 	eg.Go(func() error {
-		vegaBinName := "vega"
 		vegaAssetName := fmt.Sprintf("%s-%s-amd64", vegaBinName, runtime.GOOS)
 
 		if err := downloadReleaseAsset(ctx, client, repositoryOwner, vegaRepository, vegaVersion, vegaAssetName, homePath); err != nil {
@@ -107,7 +121,6 @@ func installDependencies(githubToken, installPath string) error {
 	})
 
 	eg.Go(func() error {
-		vegaWalletBinName := "vegawallet"
 		vegaWalletAssetName := fmt.Sprintf("%s-%s-%s.zip", vegaWalletBinName, runtime.GOOS, runtime.GOARCH)
 		vegaWalletAssetPath := path.Join(homePath, vegaWalletAssetName)
 
@@ -136,7 +149,6 @@ func installDependencies(githubToken, installPath string) error {
 	})
 
 	eg.Go(func() error {
-		dataNodeBin := "data-node"
 		dataNodeAsset := fmt.Sprintf("%s-%s-amd64", dataNodeBin, runtime.GOOS)
 
 		if err := downloadReleaseAsset(ctx, client, repositoryOwner, dataNodeRepository, dataNodeVersion, dataNodeAsset, homePath); err != nil {
@@ -155,6 +167,22 @@ func installDependencies(githubToken, installPath string) error {
 
 		return nil
 	})
+
+	return eg.Wait()
+}
+
+func testBinariesAccessibility(binaries ...string) error {
+	var eg errgroup.Group
+
+	for _, bin := range binaries {
+		bin := bin
+		eg.Go(func() error {
+			if _, err := utils.BinaryAbsPath(bin); err != nil {
+				return err
+			}
+			return nil
+		})
+	}
 
 	return eg.Wait()
 }
@@ -221,7 +249,7 @@ func downloadReleaseAsset(ctx context.Context, client *github.Client, owner, rep
 
 	downloadPath := path.Join(downloadDir, assetName)
 
-	file, err := os.Create(downloadPath)
+	file, err := utils.CreateFile(downloadPath)
 	if err != nil {
 		return fmt.Errorf("failed to create file %q: %w", downloadPath, err)
 	}
