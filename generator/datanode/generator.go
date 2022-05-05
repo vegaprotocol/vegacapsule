@@ -23,6 +23,7 @@ type ConfigTemplateContext struct {
 	Prefix      string
 	NodeHomeDir string
 	NodeNumber  int
+	NodeSet     types.NodeSet
 }
 
 type ConfigGenerator struct {
@@ -76,11 +77,12 @@ func (dng *ConfigGenerator) Initiate(index int, dataNodeBinary string) (*types.D
 	return initNode, nil
 }
 
-func (dng ConfigGenerator) OverwriteConfig(index int, configTemplate *template.Template) error {
+func (dng ConfigGenerator) OverwriteConfig(ns types.NodeSet, configTemplate *template.Template) error {
 	templateCtx := ConfigTemplateContext{
 		Prefix:      *dng.conf.Prefix,
-		NodeNumber:  index,
+		NodeNumber:  ns.Index,
 		NodeHomeDir: dng.homeDir,
+		NodeSet:     ns,
 	}
 
 	buff := bytes.NewBuffer([]byte{})
@@ -95,7 +97,7 @@ func (dng ConfigGenerator) OverwriteConfig(index int, configTemplate *template.T
 		return fmt.Errorf("failed decode override config: %w", err)
 	}
 
-	configFilePath := dng.configFilePath(dng.nodeDir(index))
+	configFilePath := dng.configFilePath(dng.nodeDir(ns.Index))
 
 	config := map[string]interface{}{}
 	if err := paths.ReadStructuredFile(configFilePath, &config); err != nil {

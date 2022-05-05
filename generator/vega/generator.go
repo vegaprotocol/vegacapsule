@@ -31,6 +31,7 @@ type ConfigTemplateContext struct {
 	NodeMode             string
 	FaucetPublicKey      string
 	NodeNumber           int
+	NodeSet              types.NodeSet
 }
 
 func NewConfigTemplate(templateRaw string) (*template.Template, error) {
@@ -151,15 +152,16 @@ func (vg ConfigGenerator) initiateValidatorWallets(nodeDir, tendermintHome, vega
 	}, nil
 }
 
-func (vg ConfigGenerator) OverwriteConfig(index int, mode string, fc *types.Faucet, configTemplate *template.Template) error {
+func (vg ConfigGenerator) OverwriteConfig(ns types.NodeSet, fc *types.Faucet, configTemplate *template.Template) error {
 	templateCtx := ConfigTemplateContext{
 		Prefix:               *vg.conf.Prefix,
 		TendermintNodePrefix: *vg.conf.TendermintNodePrefix,
 		VegaNodePrefix:       *vg.conf.VegaNodePrefix,
 		DataNodePrefix:       *vg.conf.DataNodePrefix,
 		ETHEndpoint:          vg.conf.Network.Ethereum.Endpoint,
-		NodeMode:             mode,
-		NodeNumber:           index,
+		NodeMode:             ns.Mode,
+		NodeNumber:           ns.Index,
+		NodeSet:              ns,
 	}
 
 	if fc != nil {
@@ -178,7 +180,7 @@ func (vg ConfigGenerator) OverwriteConfig(index int, mode string, fc *types.Fauc
 		return fmt.Errorf("failed decode override config: %w", err)
 	}
 
-	configFilePath := vg.configFilePath(vg.nodeDir(index))
+	configFilePath := vg.configFilePath(vg.nodeDir(ns.Index))
 
 	vegaConfig := vgconfig.NewDefaultConfig()
 	if err := paths.ReadStructuredFile(configFilePath, &vegaConfig); err != nil {

@@ -45,20 +45,20 @@ func newConfigOverride(gen *Generator, n config.NodeConfig) (*configOverride, er
 	}, nil
 }
 
-func (co *configOverride) Overwrite(index int, n config.NodeConfig, fc *types.Faucet) error {
+func (co *configOverride) Overwrite(nc config.NodeConfig, ns types.NodeSet, fc *types.Faucet) error {
 	if co.tendermintTmpl != nil {
-		if err := co.gen.tendermintGen.OverwriteConfig(index, co.tendermintTmpl); err != nil {
-			return fmt.Errorf("failed to overwrite Tendermit config for id %d: %w", index, err)
+		if err := co.gen.tendermintGen.OverwriteConfig(ns, co.tendermintTmpl); err != nil {
+			return fmt.Errorf("failed to overwrite Tendermit config for id %d: %w", ns.Index, err)
 		}
 	}
 	if co.vegaTmpl != nil {
-		if err := co.gen.vegaGen.OverwriteConfig(index, n.Mode, fc, co.vegaTmpl); err != nil {
-			return fmt.Errorf("failed to overwrite Vega config for id %d: %w", index, err)
+		if err := co.gen.vegaGen.OverwriteConfig(ns, fc, co.vegaTmpl); err != nil {
+			return fmt.Errorf("failed to overwrite Vega config for id %d: %w", ns.Index, err)
 		}
 	}
-	if co.dataNodeTmpl != nil {
-		if err := co.gen.dataNodeGen.OverwriteConfig(index, co.dataNodeTmpl); err != nil {
-			return fmt.Errorf("failed to overwrite Data Node config for id %d: %w", index, err)
+	if co.dataNodeTmpl != nil && ns.DataNode != nil {
+		if err := co.gen.dataNodeGen.OverwriteConfig(ns, co.dataNodeTmpl); err != nil {
+			return fmt.Errorf("failed to overwrite Data Node config for id %d: %w", ns.Index, err)
 		}
 	}
 
