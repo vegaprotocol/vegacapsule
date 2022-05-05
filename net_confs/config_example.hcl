@@ -265,6 +265,11 @@ network "testnet" {
 // ============================
 
       vega = <<-EOT
+[Admin]
+  [Admin.Server]
+    SocketPath = "/tmp/vega-{{.NodeNumber}}.sock"
+    Enabled = true
+
 [API]
 	Port = 30{{.NodeNumber}}2
 	[API.REST]
@@ -343,6 +348,11 @@ EOT
 // ============================
 
       vega = <<-EOT
+[Admin]
+  [Admin.Server]
+    SocketPath = "/tmp/vega-{{.NodeNumber}}.sock"
+    Enabled = true
+	
 [API]
 	Port = 30{{.NodeNumber}}2
 	[API.REST]
