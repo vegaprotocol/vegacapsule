@@ -356,9 +356,38 @@ func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, gene
 	return result, nil
 }
 
+func (r *JobRunner) stopAllJobs(ctx context.Context) error {
+	jobs, _, err := r.client.API.Jobs().List(nil)
+	if err != nil {
+		return err
+	}
+
+	var eg errgroup.Group
+	for _, j := range jobs {
+		j := j
+		eg.Go(func() error {
+			_, err := r.client.Stop(ctx, j.ID, true)
+			return err
+		})
+	}
+
+	if err := eg.Wait(); err != nil {
+		return err
+	}
+
+	// just to try - we are not interested in error
+	r.client.API.System().GarbageCollect()
+
+	return nil
+}
+
 func (r *JobRunner) StopNetwork(ctx context.Context, jobs *types.NetworkJobs, nodesOnly bool) error {
 	// no jobs, no network started
 	if jobs == nil {
+		if !nodesOnly {
+			return r.stopAllJobs(ctx)
+		}
+
 		return nil
 	}
 
@@ -384,7 +413,14 @@ func (r *JobRunner) StopNetwork(ctx context.Context, jobs *types.NetworkJobs, no
 
 	}
 
-	return g.Wait()
+	if err := g.Wait(); err != nil {
+		return err
+	}
+
+	// just to try - we are not interested in error
+	r.client.API.System().GarbageCollect()
+
+	return nil
 }
 
 func (r *JobRunner) StopJobs(ctx context.Context, jobIDs []string) error {
