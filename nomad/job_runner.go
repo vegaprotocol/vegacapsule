@@ -376,7 +376,7 @@ func (r *JobRunner) stopAllJobs(ctx context.Context) error {
 	}
 
 	// just to try - we are not interested in error
-	r.client.API.System().GarbageCollect()
+	_ = r.client.API.System().GarbageCollect()
 
 	return nil
 }
@@ -418,7 +418,7 @@ func (r *JobRunner) StopNetwork(ctx context.Context, jobs *types.NetworkJobs, no
 	}
 
 	// just to try - we are not interested in error
-	r.client.API.System().GarbageCollect()
+	_ = r.client.API.System().GarbageCollect()
 
 	return nil
 }
