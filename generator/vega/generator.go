@@ -187,7 +187,7 @@ func (vg ConfigGenerator) OverwriteConfig(ns types.NodeSet, fc *types.Faucet, co
 		return fmt.Errorf("failed to read configuration file at %s: %w", configFilePath, err)
 	}
 
-	if err := mergo.Merge(&overrideConfig, vegaConfig); err != nil {
+	if err := mergo.MergeWithOverwrite(&overrideConfig, vegaConfig); err != nil {
 		return fmt.Errorf("failed to merge configs: %w", err)
 	}
 

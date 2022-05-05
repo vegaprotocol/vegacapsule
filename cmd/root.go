@@ -11,10 +11,9 @@ import (
 var homePath string
 
 var rootCmd = &cobra.Command{
-	Use:          os.Args[0],
-	Short:        "Tool for generating and running vega network",
-	Long:         "Configuration based tool for bootstraping and managing vega network. Primary usages are local development of Vega, testing but also deploy new production network.",
-	SilenceUsage: true,
+	Use:   os.Args[0],
+	Short: "Tool for generating and running vega network",
+	Long:  "Configuration based tool for bootstraping and managing vega network. Primary usages are local development of Vega, testing but also deploy new production network.",
 }
 
 // Execute executes the root command.
@@ -39,4 +38,5 @@ func init() {
 	rootCmd.AddCommand(nodesCmd)
 	rootCmd.AddCommand(stateCmd)
 	rootCmd.AddCommand(ethereumCmd)
+	rootCmd.AddCommand(installBinariesCmd)
 }

@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	code.vegaprotocol.io/shared v0.0.0-20220321185018-3b5684b00533
-	code.vegaprotocol.io/vega v0.50.2-0.20220421074128-6d3f886cabab
+	code.vegaprotocol.io/vega v0.50.3-0.20220502152631-dd3cfad66a88
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/btcsuite/btcd v0.22.0-beta
 	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
@@ -16,11 +16,12 @@ require (
 	github.com/tendermint/tendermint v0.34.15
 	github.com/tyler-smith/go-bip39 v1.1.0
 	github.com/zannen/toml v0.3.2
+	golang.org/x/oauth2 v0.0.0-20220309155454-6242fa91716a
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 )
 
 require (
-	code.vegaprotocol.io/protos v0.50.3 // indirect
+	code.vegaprotocol.io/protos v0.50.4-0.20220428192224-eedc5d5fe8c5 // indirect
 	code.vegaprotocol.io/quant v0.2.5 // indirect
 	github.com/BurntSushi/toml v1.1.0 // indirect
 	github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d // indirect
@@ -55,6 +56,7 @@ require (
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/btree v1.0.0 // indirect
 	github.com/google/go-cmp v0.5.7 // indirect
+	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/gorilla/rpc v1.2.0 // indirect
@@ -124,6 +126,7 @@ require (
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	gonum.org/v1/gonum v0.9.1 // indirect
+	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20220317150908-0efb43f6373e // indirect
 	google.golang.org/grpc v1.45.0 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
@@ -133,7 +136,8 @@ require (
 )
 
 require (
-	code.vegaprotocol.io/vegawallet v0.14.2-pre1
+	code.vegaprotocol.io/vegawallet v0.14.2-pre1.0.20220425142700-ee9cd43c568d
+	github.com/google/go-github/v43 v43.0.0
 	github.com/hashicorp/hcl v1.0.1-0.20201016140508-a07e7d50bbee // indirect
 	github.com/hashicorp/hcl/v2 v2.11.1
 	github.com/hashicorp/nomad v1.2.6
