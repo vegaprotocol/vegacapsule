@@ -182,16 +182,16 @@ func (vg ConfigGenerator) OverwriteConfig(ns types.NodeSet, fc *types.Faucet, co
 
 	configFilePath := vg.configFilePath(vg.nodeDir(ns.Index))
 
-	vegaConfig := vgconfig.NewDefaultConfig()
+	vegaConfig := vgconfig.Config{}
 	if err := paths.ReadStructuredFile(configFilePath, &vegaConfig); err != nil {
 		return fmt.Errorf("failed to read configuration file at %s: %w", configFilePath, err)
 	}
 
-	if err := mergo.MergeWithOverwrite(&overrideConfig, vegaConfig); err != nil {
+	if err := mergo.MergeWithOverwrite(&vegaConfig, overrideConfig); err != nil {
 		return fmt.Errorf("failed to merge configs: %w", err)
 	}
 
-	if err := paths.WriteStructuredFile(configFilePath, overrideConfig); err != nil {
+	if err := paths.WriteStructuredFile(configFilePath, vegaConfig); err != nil {
 		return fmt.Errorf("failed to write configuration file at %s: %w", configFilePath, err)
 	}
 

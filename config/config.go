@@ -24,6 +24,9 @@ type Config struct {
 	WalletPrefix         *string       `hcl:"wallet_prefix"`
 	FaucetPrefix         *string       `hcl:"faucet_prefix"`
 	Network              NetworkConfig `hcl:"network,block"`
+
+	// Internal helper variables
+	configDir string
 }
 
 type NetworkConfig struct {
@@ -149,31 +152,33 @@ func (c *Config) setAbsolutePaths() error {
 	return nil
 }
 
-func (c *Config) Validate() error {
+func (c *Config) Validate(configDir string) error {
 	if err := c.setAbsolutePaths(); err != nil {
 		return fmt.Errorf("failed to set absolute paths: %w", err)
 	}
 
-	if err := c.validateAndSetGenesis(); err != nil {
+	c.configDir = configDir
+
+	if err := c.loadAndValidateGenesis(); err != nil {
 		return fmt.Errorf("failed to validate genesis: %w", err)
 	}
 
-	if err := c.validateAndSetNodeConfigs(); err != nil {
+	if err := c.loadAndValidateNodeConfigs(); err != nil {
 		return fmt.Errorf("failed to validate node configs: %w", err)
 	}
 
-	if err := c.validateAndSetSmartContractsAddresses(); err != nil {
+	if err := c.loadAndValidatSetSmartContractsAddresses(); err != nil {
 		return fmt.Errorf("invalid configuration for smart contrtacts addresses: %w", err)
 	}
 
 	return nil
 }
 
-func (c *Config) validateAndSetNodeConfigs() error {
+func (c *Config) loadAndValidateNodeConfigs() error {
 	mErr := utils.NewMultiError()
 
 	for i, nc := range c.Network.Nodes {
-		nc, err := c.validateNomadJobTemplates(nc)
+		nc, err := c.loadAndValidateNomadJobTemplates(nc)
 		if err != nil {
 			mErr.Add(fmt.Errorf("failed to validate nomad job template for %q: %w", nc.Name, err))
 			continue
@@ -189,7 +194,7 @@ func (c *Config) validateAndSetNodeConfigs() error {
 	return nil
 }
 
-func (c Config) validateNomadJobTemplates(nc NodeConfig) (*NodeConfig, error) {
+func (c Config) loadAndValidateNomadJobTemplates(nc NodeConfig) (*NodeConfig, error) {
 	if nc.NomadJobTemplate != nil {
 		return &nc, nil
 	}
@@ -198,7 +203,7 @@ func (c Config) validateNomadJobTemplates(nc NodeConfig) (*NodeConfig, error) {
 		return &nc, nil
 	}
 
-	templateFile, err := utils.AbsPath(*nc.NomadJobTemplateFile)
+	templateFile, err := utils.AbsPathWithPrefix(c.configDir, *nc.NomadJobTemplateFile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get absolute file path %q: %w", *nc.NomadJobTemplateFile, err)
 	}
@@ -215,13 +220,13 @@ func (c Config) validateNomadJobTemplates(nc NodeConfig) (*NodeConfig, error) {
 	return &nc, nil
 }
 
-func (c *Config) validateAndSetGenesis() error {
+func (c *Config) loadAndValidateGenesis() error {
 	if c.Network.GenesisTemplate != nil {
 		return nil
 	}
 
 	if c.Network.GenesisTemplateFile != nil {
-		genTemplateFile, err := utils.AbsPath(*c.Network.GenesisTemplateFile)
+		genTemplateFile, err := utils.AbsPathWithPrefix(c.configDir, *c.Network.GenesisTemplateFile)
 		if err != nil {
 			return fmt.Errorf("failed to get absolute file path %q: %w", genTemplateFile, err)
 		}
@@ -242,13 +247,13 @@ func (c *Config) validateAndSetGenesis() error {
 	return fmt.Errorf("missing genesis file template: either genesis_template or genesis_template_file must be defined")
 }
 
-func (c *Config) validateAndSetSmartContractsAddresses() error {
+func (c *Config) loadAndValidatSetSmartContractsAddresses() error {
 	if c.Network.SmartContractsAddresses == nil {
 		if c.Network.SmartContractsAddressesFile == nil {
 			return fmt.Errorf("missing smart contracts file: either smart_contracts_addresses or smart_contracts_addresses_file must be defined")
 		}
 
-		smartContractsFile, err := utils.AbsPath(*c.Network.SmartContractsAddressesFile)
+		smartContractsFile, err := utils.AbsPathWithPrefix(c.configDir, *c.Network.SmartContractsAddressesFile)
 		if err != nil {
 			return fmt.Errorf("failed to get absolute file path %q: %w", smartContractsFile, err)
 		}

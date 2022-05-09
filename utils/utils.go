@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
+	"path"
 	"path/filepath"
 )
 
@@ -46,6 +47,19 @@ func AbsPath(p string) (string, error) {
 	}
 
 	aPath, err := filepath.Abs(p)
+	if err != nil {
+		return "", fmt.Errorf("failed to get absolute path for %q: %w", p, err)
+	}
+
+	return aPath, nil
+}
+
+func AbsPathWithPrefix(prefix, p string) (string, error) {
+	if filepath.IsAbs(p) {
+		return p, nil
+	}
+
+	aPath, err := filepath.Abs(path.Join(prefix, p))
 	if err != nil {
 		return "", fmt.Errorf("failed to get absolute path for %q: %w", p, err)
 	}
