@@ -1,47 +1,18 @@
 package vega
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"path"
 	"path/filepath"
-	"text/template"
 
-	"github.com/Masterminds/sprig"
-	"github.com/zannen/toml"
-
-	"github.com/imdario/mergo"
-
-	"code.vegaprotocol.io/shared/paths"
-	vgconfig "code.vegaprotocol.io/vega/config"
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/ethereum"
 	"code.vegaprotocol.io/vegacapsule/types"
+	"code.vegaprotocol.io/vegacapsule/utils"
 )
-
-type ConfigTemplateContext struct {
-	Prefix               string
-	TendermintNodePrefix string
-	VegaNodePrefix       string
-	DataNodePrefix       string
-	ETHEndpoint          string
-	NodeMode             string
-	FaucetPublicKey      string
-	NodeNumber           int
-	NodeSet              types.NodeSet
-}
-
-func NewConfigTemplate(templateRaw string) (*template.Template, error) {
-	t, err := template.New("config.toml").Funcs(sprig.TxtFuncMap()).Parse(templateRaw)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse template config: %w", err)
-	}
-
-	return t, nil
-}
 
 type ConfigGenerator struct {
 	conf    *config.Config
@@ -76,6 +47,13 @@ func (vg ConfigGenerator) Initiate(index int, mode, tendermintHome, nodeWalletPa
 	initOut, err := vg.initiateNode(nodeDir, nodeWalletPassFilePath, mode)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initiate vega node: %w", err)
+	}
+
+	confFilePath := vg.configFilePath(nodeDir)
+	origConFilePath := vg.originalConfigFilePath(nodeDir)
+
+	if err := utils.CopyFile(confFilePath, origConFilePath); err != nil {
+		return nil, fmt.Errorf("failed to copy initiated config from %q to %q: %w", confFilePath, origConFilePath, err)
 	}
 
 	initNode := &types.VegaNode{
@@ -152,52 +130,6 @@ func (vg ConfigGenerator) initiateValidatorWallets(nodeDir, tendermintHome, vega
 	}, nil
 }
 
-func (vg ConfigGenerator) OverwriteConfig(ns types.NodeSet, fc *types.Faucet, configTemplate *template.Template) error {
-	templateCtx := ConfigTemplateContext{
-		Prefix:               *vg.conf.Prefix,
-		TendermintNodePrefix: *vg.conf.TendermintNodePrefix,
-		VegaNodePrefix:       *vg.conf.VegaNodePrefix,
-		DataNodePrefix:       *vg.conf.DataNodePrefix,
-		ETHEndpoint:          vg.conf.Network.Ethereum.Endpoint,
-		NodeMode:             ns.Mode,
-		NodeNumber:           ns.Index,
-		NodeSet:              ns,
-	}
-
-	if fc != nil {
-		templateCtx.FaucetPublicKey = fc.PublicKey
-	}
-
-	buff := bytes.NewBuffer([]byte{})
-
-	if err := configTemplate.Execute(buff, templateCtx); err != nil {
-		return fmt.Errorf("failed to execute template: %w", err)
-	}
-
-	overrideConfig := vgconfig.Config{}
-
-	if _, err := toml.DecodeReader(buff, &overrideConfig); err != nil {
-		return fmt.Errorf("failed decode override config: %w", err)
-	}
-
-	configFilePath := vg.configFilePath(vg.nodeDir(ns.Index))
-
-	vegaConfig := vgconfig.Config{}
-	if err := paths.ReadStructuredFile(configFilePath, &vegaConfig); err != nil {
-		return fmt.Errorf("failed to read configuration file at %s: %w", configFilePath, err)
-	}
-
-	if err := mergo.MergeWithOverwrite(&vegaConfig, overrideConfig); err != nil {
-		return fmt.Errorf("failed to merge configs: %w", err)
-	}
-
-	if err := paths.WriteStructuredFile(configFilePath, vegaConfig); err != nil {
-		return fmt.Errorf("failed to write configuration file at %s: %w", configFilePath, err)
-	}
-
-	return nil
-}
-
 func (vg ConfigGenerator) nodeDir(i int) string {
 	nodeDirName := fmt.Sprintf("%s%d", *vg.conf.NodeDirPrefix, i)
 	return filepath.Join(vg.homeDir, nodeDirName)
@@ -205,4 +137,8 @@ func (vg ConfigGenerator) nodeDir(i int) string {
 
 func (vg ConfigGenerator) configFilePath(nodeDir string) string {
 	return filepath.Join(nodeDir, "config", "node", "config.toml")
+}
+
+func (vg ConfigGenerator) originalConfigFilePath(nodeDir string) string {
+	return filepath.Join(nodeDir, "config", "node", "config-original.toml")
 }

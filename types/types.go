@@ -105,6 +105,18 @@ func (gs GeneratedServices) GetNodeSet(name string) (*NodeSet, error) {
 	return &ns, nil
 }
 
+func (gs GeneratedServices) GetNodeSetsByGroupName(groupName string) []NodeSet {
+	var out []NodeSet
+
+	for _, ns := range gs.NodeSets {
+		if ns.GroupName == groupName {
+			out = append(out, ns)
+		}
+	}
+
+	return out
+}
+
 func (gs GeneratedServices) ListValidators() []VegaNodeOutput {
 	var validators []VegaNodeOutput
 
