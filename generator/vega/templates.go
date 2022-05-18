@@ -58,7 +58,7 @@ func (vg ConfigGenerator) TemplateConfig(ns types.NodeSet, fc *types.Faucet, con
 		return nil, fmt.Errorf("failed to execute template: %w", err)
 	}
 
-	return nil, nil
+	return buff, nil
 }
 
 // TemplateAndMergeConfig templates provided template and merge it with originally initated Tendermint instance's config
@@ -79,7 +79,7 @@ func (vg *ConfigGenerator) TemplateAndMergeConfig(ns types.NodeSet, fc *types.Fa
 		return nil, err
 	}
 
-	if err := vg.mergeAndSaveConfig(ns, buff, vg.originalConfigFilePath(ns.Tendermint.HomeDir), f.Name()); err != nil {
+	if err := vg.mergeAndSaveConfig(ns, buff, vg.originalConfigFilePath(ns.Vega.HomeDir), f.Name()); err != nil {
 		return nil, err
 	}
 

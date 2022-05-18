@@ -8,7 +8,9 @@ import (
 	"path"
 	"text/template"
 
+	"code.vegaprotocol.io/vegacapsule/generator/datanode"
 	"code.vegaprotocol.io/vegacapsule/generator/tendermint"
+	"code.vegaprotocol.io/vegacapsule/generator/vega"
 	"code.vegaprotocol.io/vegacapsule/state"
 	"code.vegaprotocol.io/vegacapsule/types"
 	"code.vegaprotocol.io/vegacapsule/utils"
@@ -107,6 +109,21 @@ type templator interface {
 	TemplateAndMergeConfig(types.NodeSet, *template.Template) (*bytes.Buffer, error)
 }
 
+type templateFunc func(ns types.NodeSet, tmpl *template.Template) (*bytes.Buffer, error)
+
+type templatorWrapper struct {
+	templateConfig         templateFunc
+	templateAndMergeConfig templateFunc
+}
+
+func (tw templatorWrapper) TemplateConfig(ns types.NodeSet, tmpl *template.Template) (*bytes.Buffer, error) {
+	return tw.templateConfig(ns, tmpl)
+}
+
+func (tw templatorWrapper) TemplateAndMergeConfig(ns types.NodeSet, tmpl *template.Template) (*bytes.Buffer, error) {
+	return tw.templateAndMergeConfig(ns, tmpl)
+}
+
 func applyTemplate(tmplType string, template string, netState *state.NetworkState) error {
 	switch tmplType {
 	case tendermintTemplateType, vegaTemplateType, dataNodeTemplateType:
@@ -116,29 +133,37 @@ func applyTemplate(tmplType string, template string, netState *state.NetworkStat
 	}
 }
 
-func templateNodeSets(tmplType string, template string, netState *state.NetworkState) error {
+func getNodeSetsByNames(netState *state.NetworkState) ([]types.NodeSet, error) {
 	if nodeSetGroupName == "" && nodeSetName == "" {
-		return fmt.Errorf("either of 'nodeset-name' or 'nodeset-group-name' flags must be defined to template node set")
+		return nil, fmt.Errorf("either of 'nodeset-name' or 'nodeset-group-name' flags must be defined to template node set")
 	}
 
-	var nodeSets []types.NodeSet
 	if nodeSetName != "" {
 		ns, err := netState.GeneratedServices.GetNodeSet(nodeSetName)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
-		nodeSets = append(nodeSets, *ns)
-	} else {
-		nodeSets = netState.GeneratedServices.GetNodeSetsByGroupName(nodeSetGroupName)
-		if len(nodeSets) == 0 {
-			return fmt.Errorf("node set group with name %q not found", nodeSetGroupName)
-		}
+		return []types.NodeSet{*ns}, nil
+	}
+
+	nodeSets := netState.GeneratedServices.GetNodeSetsByGroupName(nodeSetGroupName)
+	if len(nodeSets) == 0 {
+		return nil, fmt.Errorf("node set group with name %q not found", nodeSetGroupName)
+	}
+
+	return nodeSets, nil
+}
+
+func templateNodeSets(tmplType string, templateRaw string, netState *state.NetworkState) error {
+	nodeSets, err := getNodeSetsByNames(netState)
+	if err != nil {
+		return err
 	}
 
 	switch tmplType {
 	case tendermintTemplateType:
-		template, err := tendermint.NewConfigTemplate(template)
+		tmpl, err := tendermint.NewConfigTemplate(templateRaw)
 		if err != nil {
 			return err
 		}
@@ -148,20 +173,50 @@ func templateNodeSets(tmplType string, template string, netState *state.NetworkS
 			return err
 		}
 
-		return templateNodeSetConfig(gen, template, nodeSets)
-	case vegaTemplateType, dataNodeTemplateType:
-		return fmt.Errorf("template type %q not implemented yet", tmplType)
+		return templateNodeSetConfig(gen, tmplType, tmpl, nodeSets)
+	case vegaTemplateType:
+		tmpl, err := vega.NewConfigTemplate(templateRaw)
+		if err != nil {
+			return err
+		}
+
+		gen, err := vega.NewConfigGenerator(netState.Config)
+		if err != nil {
+			return err
+		}
+
+		genWrapper := templatorWrapper{
+			templateConfig: func(ns types.NodeSet, tmpl *template.Template) (*bytes.Buffer, error) {
+				return gen.TemplateConfig(ns, netState.GeneratedServices.Faucet, tmpl)
+			},
+			templateAndMergeConfig: func(ns types.NodeSet, tmpl *template.Template) (*bytes.Buffer, error) {
+				return gen.TemplateAndMergeConfig(ns, netState.GeneratedServices.Faucet, tmpl)
+			},
+		}
+
+		return templateNodeSetConfig(genWrapper, tmplType, tmpl, nodeSets)
+	case dataNodeTemplateType:
+		tmpl, err := datanode.NewConfigTemplate(templateRaw)
+		if err != nil {
+			return err
+		}
+
+		gen, err := datanode.NewConfigGenerator(netState.Config)
+		if err != nil {
+			return err
+		}
+
+		return templateNodeSetConfig(gen, tmplType, tmpl, nodeSets)
 	}
 
 	return fmt.Errorf("template type %q does not exists", tmplType)
 }
 
-func templateNodeSetConfig(gen templator, template *template.Template, nodeSets []types.NodeSet) error {
+func templateNodeSetConfig(gen templator, tmplType string, template *template.Template, nodeSets []types.NodeSet) error {
 	var buff *bytes.Buffer
 	var err error
 
 	for _, ns := range nodeSets {
-		// @TODO Solve this tomorrow
 		if withMerge {
 			buff, err = gen.TemplateAndMergeConfig(ns, template)
 		} else {
@@ -171,7 +226,7 @@ func templateNodeSetConfig(gen templator, template *template.Template, nodeSets 
 			return err
 		}
 
-		fileName := fmt.Sprintf("tendermint-%s.conf", ns.Name)
+		fileName := fmt.Sprintf("%s-%s.conf", tmplType, ns.Name)
 
 		if len(templateOutDir) != 0 {
 			filePath := path.Join(templateOutDir, fileName)

@@ -1,43 +1,20 @@
 package datanode
 
 import (
-	"bytes"
 	"fmt"
 	"log"
 	"os"
 	"path"
 	"path/filepath"
-	"text/template"
 
-	"github.com/Masterminds/sprig"
-	"github.com/imdario/mergo"
-	"github.com/zannen/toml"
-
-	"code.vegaprotocol.io/shared/paths"
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/types"
 	"code.vegaprotocol.io/vegacapsule/utils"
 )
 
-type ConfigTemplateContext struct {
-	Prefix      string
-	NodeHomeDir string
-	NodeNumber  int
-	NodeSet     types.NodeSet
-}
-
 type ConfigGenerator struct {
 	conf    *config.Config
 	homeDir string
-}
-
-func NewConfigTemplate(templateRaw string) (*template.Template, error) {
-	t, err := template.New("config.toml").Funcs(sprig.TxtFuncMap()).Parse(templateRaw)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse template config for data node: %w", err)
-	}
-
-	return t, nil
 }
 
 func NewConfigGenerator(conf *config.Config) (*ConfigGenerator, error) {
@@ -68,6 +45,13 @@ func (dng *ConfigGenerator) Initiate(index int, dataNodeBinary string) (*types.D
 	}
 	log.Println(string(b))
 
+	confFilePath := dng.configFilePath(nodeDir)
+	origConFilePath := dng.originalConfigFilePath(nodeDir)
+
+	if err := utils.CopyFile(confFilePath, origConFilePath); err != nil {
+		return nil, fmt.Errorf("failed to copy initiated config from %q to %q: %w", confFilePath, origConFilePath, err)
+	}
+
 	initNode := &types.DataNode{
 		Name:       fmt.Sprintf("data-node-%d", index),
 		HomeDir:    nodeDir,
@@ -77,44 +61,6 @@ func (dng *ConfigGenerator) Initiate(index int, dataNodeBinary string) (*types.D
 	return initNode, nil
 }
 
-func (dng ConfigGenerator) OverwriteConfig(ns types.NodeSet, configTemplate *template.Template) error {
-	templateCtx := ConfigTemplateContext{
-		Prefix:      *dng.conf.Prefix,
-		NodeNumber:  ns.Index,
-		NodeHomeDir: dng.homeDir,
-		NodeSet:     ns,
-	}
-
-	buff := bytes.NewBuffer([]byte{})
-
-	if err := configTemplate.Execute(buff, templateCtx); err != nil {
-		return fmt.Errorf("failed to execute template for data node: %w", err)
-	}
-
-	overrideConfig := map[string]interface{}{}
-
-	if _, err := toml.DecodeReader(buff, &overrideConfig); err != nil {
-		return fmt.Errorf("failed decode override config: %w", err)
-	}
-
-	configFilePath := dng.configFilePath(dng.nodeDir(ns.Index))
-
-	config := map[string]interface{}{}
-	if err := paths.ReadStructuredFile(configFilePath, &config); err != nil {
-		return fmt.Errorf("failed to read configuration file at %s: %w", configFilePath, err)
-	}
-
-	if err := mergo.Map(&config, overrideConfig, mergo.WithOverride); err != nil {
-		return fmt.Errorf("failed to merge configs: %w", err)
-	}
-
-	if err := paths.WriteStructuredFile(configFilePath, config); err != nil {
-		return fmt.Errorf("failed to write configuration file for data node at %s: %w", configFilePath, err)
-	}
-
-	return nil
-}
-
 func (dng ConfigGenerator) nodeDir(i int) string {
 	nodeDirName := fmt.Sprintf("%s%d", *dng.conf.NodeDirPrefix, i)
 	return filepath.Join(dng.homeDir, nodeDirName)
@@ -122,4 +68,8 @@ func (dng ConfigGenerator) nodeDir(i int) string {
 
 func (dng ConfigGenerator) configFilePath(nodeDir string) string {
 	return filepath.Join(nodeDir, "config", "data-node", "config.toml")
+}
+
+func (dng ConfigGenerator) originalConfigFilePath(nodeDir string) string {
+	return filepath.Join(nodeDir, "config", "data-node", "original-config.toml")
 }
