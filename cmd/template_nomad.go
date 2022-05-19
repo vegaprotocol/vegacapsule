@@ -24,7 +24,7 @@ var templateNomadCmd = &cobra.Command{
 		}
 
 		if networkState.Empty() {
-			return networkNotBootstrappedErr("template genesis")
+			return networkNotBootstrappedErr("template nomad")
 		}
 
 		return templateNomad(string(template), networkState)
