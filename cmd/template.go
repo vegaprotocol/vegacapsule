@@ -20,7 +20,7 @@ var templateCmd = &cobra.Command{
 	Use:   "template",
 	Short: "Allows to template genesis and various types of configurations",
 	Long: `Allows templating of genesis and nodes sets configurations like Vega, Tendermint, Nomad.
-	It's very usefull for config templates debugging or continuous update on running Capsule network.`,
+	It's very useful for config templates debugging or continuous update on running Capsule network.`,
 }
 
 func init() {
