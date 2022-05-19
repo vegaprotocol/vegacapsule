@@ -47,7 +47,8 @@ func (g *Generator) initiateNodeSet(index int, n config.NodeConfig) (*types.Node
 			return nil, err
 		}
 
-		nodeSet.NomadJobRaw = &nodeJob
+		rawJob := nodeJob.String()
+		nodeSet.NomadJobRaw = &rawJob
 	}
 
 	return nodeSet, nil

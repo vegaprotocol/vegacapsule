@@ -39,5 +39,5 @@ func init() {
 	rootCmd.AddCommand(stateCmd)
 	rootCmd.AddCommand(ethereumCmd)
 	rootCmd.AddCommand(installBinariesCmd)
-	rootCmd.AddCommand(templateConfigCmd)
+	rootCmd.AddCommand(templateCmd)
 }

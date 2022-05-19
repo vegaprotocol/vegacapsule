@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
+	"os"
 	"text/template"
 
 	"code.vegaprotocol.io/vegacapsule/config"
@@ -30,8 +32,8 @@ type Generator struct {
 	templateCtx *TemplateContext
 }
 
-func NewGenerator(conf *config.Config) (*Generator, error) {
-	tpl, err := template.New("genesis.json").Funcs(sprig.TxtFuncMap()).Parse(*conf.Network.GenesisTemplate)
+func NewGenerator(conf *config.Config, templateRaw string) (*Generator, error) {
+	tpl, err := template.New("genesis.json").Funcs(sprig.TxtFuncMap()).Parse(templateRaw)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse genesis override: %w", err)
 	}
@@ -48,7 +50,7 @@ func NewGenerator(conf *config.Config) (*Generator, error) {
 	}, nil
 }
 
-func (g *Generator) executeTemplate() ([]byte, error) {
+func (g *Generator) ExecuteTemplate() (*bytes.Buffer, error) {
 	buff := bytes.NewBuffer([]byte{})
 
 	if err := g.template.Execute(buff, g.templateCtx); err != nil {
@@ -61,7 +63,114 @@ func (g *Generator) executeTemplate() ([]byte, error) {
 		return nil, fmt.Errorf("failed to parse genesis templated genesis: %w", err)
 	}
 
-	return buff.Bytes(), nil
+	return buff, nil
+}
+
+func (g *Generator) GenerateAndSave(validatorsSets []types.NodeSet, nonValidatorsSets []types.NodeSet, genValidators []tmtypes.GenesisValidator) error {
+	genDoc, err := g.generate(validatorsSets, genValidators)
+	if err != nil {
+		return err
+	}
+
+	for _, ns := range append(validatorsSets, nonValidatorsSets...) {
+		if err := genDoc.SaveAs(ns.Tendermint.GenesisFilePath); err != nil {
+			return fmt.Errorf("failed to save genesis file: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func (g *Generator) Generate(validatorsSets []types.NodeSet, genValidators []tmtypes.GenesisValidator) (*bytes.Buffer, error) {
+	genDoc, err := g.generate(validatorsSets, genValidators)
+	if err != nil {
+		return nil, err
+	}
+
+	tempFileName := "genesis.json"
+
+	f, err := os.CreateTemp("", tempFileName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create temporary genesis file %q: %w", tempFileName, err)
+	}
+	defer func() {
+		f.Close()
+		os.Remove(f.Name())
+	}()
+
+	if err := genDoc.SaveAs(f.Name()); err != nil {
+		return nil, fmt.Errorf("failed to save genesis file: %w", err)
+	}
+
+	buffOut := bytes.NewBuffer(nil)
+	if _, err := io.Copy(buffOut, f); err != nil {
+		return nil, fmt.Errorf("failed to copy content of config file %q: %w", f.Name(), err)
+	}
+
+	return buffOut, nil
+}
+
+func (g *Generator) generate(nodeSets []types.NodeSet, genValidators []tmtypes.GenesisValidator) (*tmtypes.GenesisDoc, error) {
+	templatedOverride, err := g.ExecuteTemplate()
+	if err != nil {
+		return nil, err
+	}
+
+	var genDoc *tmtypes.GenesisDoc
+	var genState *genesis.GenesisState
+
+	for _, ns := range nodeSets {
+		updatedGenesis, err := g.updateGenesis(ns.Vega.HomeDir, ns.Tendermint.HomeDir, ns.Vega.NodeWalletPassFilePath)
+		if err != nil {
+			return nil, fmt.Errorf("failed to update genesis for %q from %q: %w", ns.Tendermint.HomeDir, ns.Vega.HomeDir, err)
+		}
+
+		doc, state, err := genesis.GenesisFromJSON(updatedGenesis.RawOutput)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get genesis from JSON: %w", err)
+		}
+
+		if genDoc == nil {
+			genDoc = doc
+			genState = state
+			continue
+		}
+
+		// Add validators to shared state
+		for _, v := range state.Validators {
+			genState.Validators[v.TmPubKey] = v
+		}
+	}
+
+	// Nothing to do, we can stop here
+	if genDoc == nil {
+		return nil, fmt.Errorf("failed to generate genesis for empty NodeSets")
+	}
+
+	// TODO should this be inside of template???
+	genDoc.Validators = genValidators
+
+	// TODO clean up this genesis merging mess...
+	if err := vgtm.AddAppStateToGenesis(genDoc, genState); err != nil {
+		return nil, err
+	}
+
+	genDocBytes, err := tmjson.Marshal(genDoc)
+	if err != nil {
+		return nil, err
+	}
+
+	b, err := mergeJSON(genDocBytes, templatedOverride.Bytes())
+	if err != nil {
+		return nil, fmt.Errorf("failed to override genesis json: %w", err)
+	}
+
+	mergedGenDoc, _, err := genesis.GenesisFromJSON(b)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get merged config from json: %w", err)
+	}
+
+	return mergedGenDoc, nil
 }
 
 func (g *Generator) updateGenesis(vegaHomePath, tendermintHomePath, nodeWalletPhraseFile string) (*updateGenesisOutput, error) {
@@ -82,75 +191,6 @@ func (g *Generator) updateGenesis(vegaHomePath, tendermintHomePath, nodeWalletPh
 	}
 
 	return &updateGenesisOutput{RawOutput: rawOut}, nil
-}
-
-func (g *Generator) Generate(validatorsSets []types.NodeSet, nonValidatorsSets []types.NodeSet, genValidators []tmtypes.GenesisValidator) error {
-	templatedOverride, err := g.executeTemplate()
-	if err != nil {
-		return err
-	}
-
-	var genDoc *tmtypes.GenesisDoc
-	var genState *genesis.GenesisState
-
-	for _, ns := range validatorsSets {
-		updatedGenesis, err := g.updateGenesis(ns.Vega.HomeDir, ns.Tendermint.HomeDir, ns.Vega.NodeWalletPassFilePath)
-		if err != nil {
-			return fmt.Errorf("failed to update genesis for %q from %q: %w", ns.Tendermint.HomeDir, ns.Vega.HomeDir, err)
-		}
-
-		doc, state, err := genesis.GenesisFromJSON(updatedGenesis.RawOutput)
-		if err != nil {
-			return fmt.Errorf("failed to get genesis from JSON: %w", err)
-		}
-
-		if genDoc == nil {
-			genDoc = doc
-			genState = state
-			continue
-		}
-
-		// Add validators to shared state
-		for _, v := range state.Validators {
-			genState.Validators[v.TmPubKey] = v
-		}
-	}
-
-	// Nothing to do, we can stop here
-	if genDoc == nil {
-		return nil
-	}
-
-	// TODO should this be inside of template???
-	genDoc.Validators = genValidators
-
-	// TODO clean up this genesis merging mess...
-	if err := vgtm.AddAppStateToGenesis(genDoc, genState); err != nil {
-		return err
-	}
-
-	genDocBytes, err := tmjson.Marshal(genDoc)
-	if err != nil {
-		return err
-	}
-
-	b, err := mergeJSON(genDocBytes, templatedOverride)
-	if err != nil {
-		return fmt.Errorf("failed to override genesis json: %w", err)
-	}
-
-	mergedGenDoc, _, err := genesis.GenesisFromJSON(b)
-	if err != nil {
-		return fmt.Errorf("failed to get merged config from json: %w", err)
-	}
-
-	for _, ns := range append(validatorsSets, nonValidatorsSets...) {
-		if err := mergedGenDoc.SaveAs(ns.Tendermint.GenesisFilePath); err != nil {
-			return fmt.Errorf("failed to save genesis file: %w", err)
-		}
-	}
-
-	return nil
 }
 
 func mergeJSON(dst, src []byte) ([]byte, error) {

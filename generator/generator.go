@@ -52,7 +52,7 @@ func New(conf *config.Config, genServices types.GeneratedServices) (*Generator, 
 	if err != nil {
 		return nil, fmt.Errorf("failed to create new vega config generator: %w", err)
 	}
-	genesisGen, err := genesis.NewGenerator(conf)
+	genesisGen, err := genesis.NewGenerator(conf, *conf.Network.GenesisTemplate)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create new genesis generator: %w", err)
 	}
@@ -118,7 +118,7 @@ func (g *Generator) Generate() (*types.GeneratedServices, error) {
 		return nil, err
 	}
 
-	if err := g.genesisGen.Generate(ns.validators, ns.nonValidators, g.tendermintGen.GenesisValidators()); err != nil {
+	if err := g.genesisGen.GenerateAndSave(ns.validators, ns.nonValidators, g.tendermintGen.GenesisValidators()); err != nil {
 		return nil, fmt.Errorf("failed to generate genesis: %w", err)
 	}
 
