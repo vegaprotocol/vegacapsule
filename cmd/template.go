@@ -40,7 +40,7 @@ func init() {
 		"Directory where the templated configs will be saved. If empty all will be printed to stdout",
 	)
 
-	templateCmd.MarkPersistentFlagRequired("path")
+	templateCmd.MarkPersistentFlagRequired("path") // nolint:errcheck
 }
 
 func outputTemplate(buff *bytes.Buffer, fileName string) error {
@@ -50,6 +50,7 @@ func outputTemplate(buff *bytes.Buffer, fileName string) error {
 		if err != nil {
 			return err
 		}
+		defer f.Close()
 
 		if _, err := f.Write(buff.Bytes()); err != nil {
 			return err

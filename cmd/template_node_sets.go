@@ -75,7 +75,7 @@ func init() {
 		"Allows to apply template to a specific node set",
 	)
 
-	templateNodeSetsCmd.MarkPersistentFlagRequired("type")
+	templateNodeSetsCmd.MarkPersistentFlagRequired("type") // nolint:errcheck
 }
 
 type templateFunc func(ns types.NodeSet, tmpl *template.Template) (*bytes.Buffer, error)

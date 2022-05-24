@@ -11,7 +11,7 @@ import (
 
 var templateNomadCmd = &cobra.Command{
 	Use:   "nomad",
-	Short: "Template Bomad job configuration for specific node set",
+	Short: "Template Nomad job configuration for specific node set",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		template, err := ioutil.ReadFile(templatePath)
 		if err != nil {
