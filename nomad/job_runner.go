@@ -274,15 +274,12 @@ func (r *JobRunner) runFaucet(ctx context.Context, binary string, conf *config.F
 	return j, nil
 }
 
-func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, generatedSvcs *types.GeneratedServices) (*types.NetworkJobs, error) {
-	g, ctx := errgroup.WithContext(gCtx)
-	result := &types.NetworkJobs{
-		NodesSetsJobIDs: map[string]bool{},
-		ExtraJobIDs:     map[string]bool{},
-	}
-	var lock sync.Mutex
+func (r *JobRunner) runDockerJobs(ctx context.Context, dockerConfigs []config.DockerConfig) ([]string, error) {
+	g, ctx := errgroup.WithContext(ctx)
+	jobIDs := make([]string, 0, len(dockerConfigs))
+	var jobIDsLock sync.Mutex
 
-	for _, dc := range conf.Network.PreStart.Docker {
+	for _, dc := range dockerConfigs {
 		// capture in the loop by copy
 		dc := dc
 		g.Go(func() error {
@@ -291,20 +288,40 @@ func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, gene
 				return fmt.Errorf("failed to run pre start job %s: %w", dc.Name, err)
 			}
 
-			lock.Lock()
-
-			result.ExtraJobIDs[*job.ID] = true
-			lock.Unlock()
+			jobIDsLock.Lock()
+			jobIDs = append(jobIDs, *job.ID)
+			jobIDsLock.Unlock()
 
 			return nil
 		})
 	}
+
 	if err := g.Wait(); err != nil {
-		return nil, fmt.Errorf("failed to wait for pre-start jobs: %w", err)
+		return nil, fmt.Errorf("failed to wait for docker jobs: %w", err)
+	}
+
+	return jobIDs, nil
+}
+
+func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, generatedSvcs *types.GeneratedServices) (*types.NetworkJobs, error) {
+	g, ctx := errgroup.WithContext(gCtx)
+
+	result := &types.NetworkJobs{
+		NodesSetsJobIDs: map[string]bool{},
+		ExtraJobIDs:     map[string]bool{},
+	}
+	var lock sync.Mutex
+
+	if conf.Network.PreStart != nil {
+		extraJobIDs, err := r.runDockerJobs(ctx, conf.Network.PreStart.Docker)
+		if err != nil {
+			return nil, fmt.Errorf("failed to run pre start jobs: %w", err)
+		}
+
+		result.AddExtraJobIDs(extraJobIDs)
 	}
 
 	// create new error group to be able call wait funcion again
-	g, ctx = errgroup.WithContext(gCtx)
 	if generatedSvcs.Faucet != nil {
 		g.Go(func() error {
 			job, err := r.runFaucet(ctx, *conf.VegaBinary, conf.Network.Faucet, generatedSvcs.Faucet)
@@ -353,6 +370,16 @@ func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, gene
 	if err := g.Wait(); err != nil {
 		return nil, fmt.Errorf("failed to start vega network: %w", err)
 	}
+
+	if conf.Network.PostStart != nil {
+		extraJobIDs, err := r.runDockerJobs(ctx, conf.Network.PostStart.Docker)
+		if err != nil {
+			return nil, fmt.Errorf("failed to run post start jobs: %w", err)
+		}
+
+		result.AddExtraJobIDs(extraJobIDs)
+	}
+
 	return result, nil
 }
 
