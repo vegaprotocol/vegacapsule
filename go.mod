@@ -1,6 +1,6 @@
 module code.vegaprotocol.io/vegacapsule
 
-go 1.17
+go 1.18
 
 require (
 	code.vegaprotocol.io/shared v0.0.0-20220321185018-3b5684b00533
