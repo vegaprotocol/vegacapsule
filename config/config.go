@@ -178,13 +178,13 @@ func (c *Config) loadAndValidateNodeConfigs() error {
 	mErr := utils.NewMultiError()
 
 	for i, nc := range c.Network.Nodes {
-		nc, err := c.loadAndValidateNomadJobTemplates(nc)
+		updatedNc, err := c.loadAndValidateNomadJobTemplates(nc)
 		if err != nil {
-			mErr.Add(fmt.Errorf("failed to validate nomad job template for %q: %w", nc.Name, err))
+			mErr.Add(fmt.Errorf("failed to validate nomad job template for %s: %w", nc.Name, err))
 			continue
 		}
 
-		c.Network.Nodes[i] = *nc
+		c.Network.Nodes[i] = *updatedNc
 	}
 
 	if mErr.HasAny() {
@@ -309,6 +309,7 @@ func DefaultConfig() (*Config, error) {
 		DataNodePrefix:       utils.StrPoint("data"),
 		WalletPrefix:         utils.StrPoint("wallet"),
 		FaucetPrefix:         utils.StrPoint("faucet"),
+		VegaBinary:           utils.StrPoint("vega"),
 	}, nil
 }
 
