@@ -66,7 +66,7 @@ export GONOSUMDB="code.vegaprotocol.io/*"
 3. Enter the directory and install from source
 ```bash
 cd data-node
-go install ./cmd/vega
+go install ./cmd/data-node
 ```
 4. Validate installation
 ```bash

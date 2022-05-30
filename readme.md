@@ -94,7 +94,7 @@ You can see all available commands calling the `vegacapsule --help` command.
 
 ```bash
 # Generate the network config files
-vegacapsule network generate -home-path=/var/tmp/veganetwork/testnetwork --config-path=net_confs/config.hcl
+vegacapsule network generate --home-path=/var/tmp/veganetwork/testnetwork --config-path=net_confs/config.hcl
 
 # Starts the network
 vegacapsule network start --home-path=/var/tmp/veganetwork/testnetwork
