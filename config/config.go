@@ -105,9 +105,12 @@ type NodeConfig struct {
 }
 
 type ConfigTemplates struct {
-	Vega       string `hcl:"vega"`
-	Tendermint string `hcl:"tendermint"`
-	DataNode   string `hcl:"data_node,optional"`
+	Vega           *string `hcl:"vega,optional"`
+	VegaFile       *string `hcl:"vega_file,optional"`
+	Tendermint     *string `hcl:"tendermint,optional"`
+	TendermintFile *string `hcl:"tendermint_file,optional"`
+	DataNode       *string `hcl:"data_node,optional"`
+	DataNodeFile   *string `hcl:"data_node_file,optional"`
 }
 
 func (c *Config) setAbsolutePaths() error {
@@ -184,6 +187,14 @@ func (c *Config) loadAndValidateNodeConfigs() error {
 			continue
 		}
 
+		updatedCt, err := c.loadAndValidateConfigTemplates(nc.ConfigTemplates)
+		if err != nil {
+			mErr.Add(fmt.Errorf("failed to validate node set config templates: %w", err))
+			continue
+		}
+
+		updatedNc.ConfigTemplates = *updatedCt
+
 		c.Network.Nodes[i] = *updatedNc
 	}
 
@@ -192,6 +203,60 @@ func (c *Config) loadAndValidateNodeConfigs() error {
 	}
 
 	return nil
+}
+
+func (c Config) loadAndValidateConfigTemplates(ct ConfigTemplates) (*ConfigTemplates, error) {
+	mErr := utils.NewMultiError()
+
+	if ct.Vega == nil && ct.VegaFile != nil {
+		tmpl, err := c.loadConfigTemplateFile("vega", *ct.VegaFile)
+		if err != nil {
+			mErr.Add(fmt.Errorf("failed to load Vega config template: %w", err))
+		} else {
+			ct.Vega = &tmpl
+			ct.VegaFile = nil
+		}
+	}
+
+	if ct.Tendermint == nil && ct.TendermintFile != nil {
+		tmpl, err := c.loadConfigTemplateFile("tendermint", *ct.TendermintFile)
+		if err != nil {
+			mErr.Add(fmt.Errorf("failed to load Tendermint config template: %w", err))
+		} else {
+			ct.Tendermint = &tmpl
+			ct.TendermintFile = nil
+		}
+	}
+
+	if ct.DataNode == nil && ct.DataNodeFile != nil {
+		tmpl, err := c.loadConfigTemplateFile("data_node", *ct.DataNodeFile)
+		if err != nil {
+			mErr.Add(fmt.Errorf("failed to load Data Node config template: %w", err))
+		} else {
+			ct.DataNode = &tmpl
+			ct.DataNodeFile = nil
+		}
+	}
+
+	if mErr.HasAny() {
+		return nil, mErr
+	}
+
+	return &ct, nil
+}
+
+func (c Config) loadConfigTemplateFile(name string, path string) (string, error) {
+	templateFile, err := utils.AbsPathWithPrefix(c.configDir, path)
+	if err != nil {
+		return "", fmt.Errorf("failed to get absolute file path %q: %w", path, err)
+	}
+
+	template, err := ioutil.ReadFile(templateFile)
+	if err != nil {
+		return "", fmt.Errorf("failed to read file %q: %w", templateFile, err)
+	}
+
+	return string(template), nil
 }
 
 func (c Config) loadAndValidateNomadJobTemplates(nc NodeConfig) (*NodeConfig, error) {

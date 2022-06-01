@@ -19,19 +19,27 @@ type configOverride struct {
 }
 
 func newConfigOverride(gen *Generator, n config.NodeConfig) (*configOverride, error) {
-	tendermintTmpl, err := tendermint.NewConfigTemplate(n.ConfigTemplates.Tendermint)
-	if err != nil {
-		return nil, err
+	var err error
+
+	var tendermintTmpl *template.Template
+	if n.ConfigTemplates.Tendermint != nil {
+		tendermintTmpl, err = tendermint.NewConfigTemplate(*n.ConfigTemplates.Tendermint)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	vegaTmpl, err := vega.NewConfigTemplate(n.ConfigTemplates.Vega)
-	if err != nil {
-		return nil, err
+	var vegaTmpl *template.Template
+	if n.ConfigTemplates.Vega != nil {
+		vegaTmpl, err = vega.NewConfigTemplate(*n.ConfigTemplates.Vega)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	var dataNodeTmpl *template.Template
 	if n.DataNodeBinary != "" {
-		dataNodeTmpl, err = datanode.NewConfigTemplate(n.ConfigTemplates.DataNode)
+		dataNodeTmpl, err = datanode.NewConfigTemplate(*n.ConfigTemplates.DataNode)
 		if err != nil {
 			return nil, err
 		}
@@ -56,7 +64,7 @@ func (co *configOverride) Overwrite(nc config.NodeConfig, ns types.NodeSet, fc *
 			return fmt.Errorf("failed to overwrite Vega config for id %d: %w", ns.Index, err)
 		}
 	}
-	if co.dataNodeTmpl != nil && ns.DataNode != nil {
+	if ns.DataNode != nil && co.dataNodeTmpl != nil {
 		if err := co.gen.dataNodeGen.OverwriteConfig(ns, co.dataNodeTmpl); err != nil {
 			return fmt.Errorf("failed to overwrite Data Node config for id %d: %w", ns.Index, err)
 		}

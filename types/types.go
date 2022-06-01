@@ -136,6 +136,7 @@ func (gs GeneratedServices) ListValidators() []VegaNodeOutput {
 		if nodeSet.Mode != NodeModeValidator {
 			continue
 		}
+
 		validators = append(validators, VegaNodeOutput{
 			VegaNode:     nodeSet.Vega,
 			NomadJobName: nodeSet.Name,

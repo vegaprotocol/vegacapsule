@@ -26,12 +26,19 @@ type Peer struct {
 	ID    string
 }
 
+type node struct {
+	name      string
+	groupName string
+	id        string
+	index     int
+}
+
 type ConfigGenerator struct {
 	conf    *config.Config
 	homeDir string
 
 	genValidators []tmtypes.GenesisValidator
-	nodeIDs       []string
+	nodes         []node
 }
 
 func newGenValidator(nodeDir string, config *tmconfig.Config) (*tmtypes.GenesisValidator, error) {
@@ -56,10 +63,15 @@ func NewConfigGenerator(conf *config.Config, generatedNodeSets []types.NodeSet) 
 		return nil, err
 	}
 
-	nodesIDs := make([]string, 0, len(generatedNodeSets))
+	nodes := make([]node, 0, len(generatedNodeSets))
 	genValidators := make([]tmtypes.GenesisValidator, 0, len(generatedNodeSets))
 	for _, tn := range generatedNodeSets {
-		nodesIDs = append(nodesIDs, tn.Tendermint.NodeID)
+		nodes = append(nodes, node{
+			name:      tn.Tendermint.Name,
+			groupName: tn.GroupName,
+			id:        tn.Tendermint.NodeID,
+			index:     tn.Index,
+		})
 
 		config := tmconfig.DefaultConfig()
 		config.SetRoot(tn.Tendermint.HomeDir)
@@ -74,7 +86,7 @@ func NewConfigGenerator(conf *config.Config, generatedNodeSets []types.NodeSet) 
 	return &ConfigGenerator{
 		conf:          conf,
 		homeDir:       homeDir,
-		nodeIDs:       nodesIDs,
+		nodes:         nodes,
 		genValidators: genValidators,
 	}, nil
 }
@@ -125,12 +137,20 @@ func (tg *ConfigGenerator) Initiate(index int, mode string) (*types.TendermintNo
 		return nil, fmt.Errorf("failed to get node key: %w", err)
 	}
 
-	tg.nodeIDs = append(tg.nodeIDs, string(nodeKey.ID()))
+	nodeID := string(nodeKey.ID())
+	nodeName := fmt.Sprintf("tendermint-%s-%d", mode, index)
+
+	tg.nodes = append(tg.nodes, node{
+		name:      nodeName,
+		groupName: "",
+		id:        nodeID,
+		index:     index,
+	})
 
 	initNode := &types.TendermintNode{
-		Name:            fmt.Sprintf("tendermint-%s-%d", mode, index),
+		Name:            nodeName,
 		HomeDir:         nodeDir,
-		NodeID:          string(nodeKey.ID()),
+		NodeID:          nodeID,
 		GenesisFilePath: config.BaseConfig.GenesisFile(),
 		BinaryPath:      *tg.conf.VegaBinary,
 	}
@@ -164,21 +184,4 @@ func (tg ConfigGenerator) configFilePath(nodeDir string) string {
 
 func (tg ConfigGenerator) originalConfigFilePath(nodeDir string) string {
 	return filepath.Join(nodeDir, "config", "config-original.toml")
-}
-
-func (tg ConfigGenerator) getNodePeers(index int) []Peer {
-	peers := []Peer{}
-
-	for nodeIdx, nodeId := range tg.nodeIDs {
-		if nodeIdx == index {
-			continue
-		}
-
-		peers = append(peers, Peer{
-			Index: nodeIdx,
-			ID:    nodeId,
-		})
-	}
-
-	return peers
 }
