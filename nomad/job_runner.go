@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strings"
 	"sync"
 
 	"code.vegaprotocol.io/vegacapsule/config"
@@ -13,7 +12,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/hashicorp/nomad/api"
-	"github.com/hashicorp/nomad/jobspec"
+	"github.com/hashicorp/nomad/jobspec2"
 )
 
 type JobRunner struct {
@@ -163,7 +162,13 @@ func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) (
 			continue
 		}
 
-		job, err := jobspec.Parse(strings.NewReader(*ns.NomadJobRaw))
+		job, err := jobspec2.ParseWithConfig(&jobspec2.ParseConfig{
+			Path:    "input.hcl",
+			Body:    []byte(*ns.NomadJobRaw),
+			ArgVars: []string{},
+			AllowFS: true,
+		})
+
 		if err != nil {
 			return nil, err
 		}

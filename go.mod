@@ -6,15 +6,12 @@ require (
 	code.vegaprotocol.io/shared v0.0.0-20220321185018-3b5684b00533
 	code.vegaprotocol.io/vega v0.50.3-0.20220502152631-dd3cfad66a88
 	github.com/Masterminds/sprig v2.22.0+incompatible
-	github.com/btcsuite/btcd v0.22.0-beta
-	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
 	github.com/ethereum/go-ethereum v1.10.16
+	github.com/hashicorp/hcl/v2 v2.9.2-0.20210407182552-eb14f8319bdc
 	github.com/hashicorp/nomad/api v0.0.0-20211119141705-873b0969e01e
 	github.com/imdario/mergo v0.3.12
-	github.com/miguelmota/go-ethereum-hdwallet v0.1.1
 	github.com/spf13/viper v1.10.1
 	github.com/tendermint/tendermint v0.34.15
-	github.com/tyler-smith/go-bip39 v1.1.0
 	github.com/zannen/toml v0.3.2
 	golang.org/x/oauth2 v0.0.0-20220309155454-6242fa91716a
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
@@ -31,9 +28,12 @@ require (
 	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/adrg/xdg v0.4.0 // indirect
 	github.com/agext/levenshtein v1.2.1 // indirect
+	github.com/apparentlymart/go-cidr v1.0.1 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect
+	github.com/bmatcuk/doublestar v1.1.5 // indirect
+	github.com/btcsuite/btcd v0.22.0-beta // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
@@ -66,11 +66,11 @@ require (
 	github.com/gtank/merlin v0.1.1 // indirect
 	github.com/gtank/ristretto255 v0.1.2 // indirect
 	github.com/hashicorp/cronexpr v1.1.1 // indirect
-	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
-	github.com/hashicorp/go-multierror v1.1.1 // indirect
+	github.com/hashicorp/go-cty-funcs v0.0.0-20200930094925-2721b1e36840 // indirect
 	github.com/hashicorp/go-rootcerts v1.0.2 // indirect
 	github.com/hashicorp/golang-lru v0.5.5-0.20210104140557-80c98217689d // indirect
+	github.com/hashicorp/hcl v1.0.1-0.20201016140508-a07e7d50bbee // indirect
 	github.com/holiman/uint256 v1.2.0 // indirect
 	github.com/huandu/xstrings v1.2.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
@@ -112,8 +112,10 @@ require (
 	github.com/tendermint/tm-db v0.6.6 // indirect
 	github.com/tklauser/go-sysconf v0.3.9 // indirect
 	github.com/tklauser/numcpus v0.3.0 // indirect
+	github.com/tyler-smith/go-bip39 v1.1.0 // indirect
 	github.com/vegaprotocol/go-slip10 v0.1.0 // indirect
 	github.com/zclconf/go-cty v1.8.0 // indirect
+	github.com/zclconf/go-cty-yaml v1.0.2 // indirect
 	go.etcd.io/bbolt v1.3.6 // indirect
 	go.nanomsg.org/mangos/v3 v3.2.1 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
@@ -138,8 +140,6 @@ require (
 require (
 	code.vegaprotocol.io/vegawallet v0.14.2-pre1.0.20220425142700-ee9cd43c568d
 	github.com/google/go-github/v43 v43.0.0
-	github.com/hashicorp/hcl v1.0.1-0.20201016140508-a07e7d50bbee // indirect
-	github.com/hashicorp/hcl/v2 v2.11.1
 	github.com/hashicorp/nomad v1.2.6
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
 	github.com/spf13/cobra v1.4.0
