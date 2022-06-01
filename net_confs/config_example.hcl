@@ -21,6 +21,14 @@ network "testnet" {
 
   }
 
+  post_start {
+
+    docker_service "ganache" {
+            
+    }
+
+  }
+
   genesis_template = <<EOH
 {
 	"app_state": {
