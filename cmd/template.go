@@ -10,17 +10,38 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type templateKindType string
+
+const (
+	vegaNodeSetTemplateType       templateKindType = "vega"
+	tendermintNodeSetTemplateType templateKindType = "tendermint"
+	dataNodeNodeSetTemplateType   templateKindType = "data-node"
+
+	genesisTemplateType templateKindType = "genesis"
+)
+
 var (
-	templatePath   string
-	withMerge      bool
-	templateOutDir string
+	templatePath          string
+	withMerge             bool
+	templateOutDir        string
+	templateUpdateNetwork bool
 )
 
 var templateCmd = &cobra.Command{
 	Use:   "template",
 	Short: "Allows to template genesis and various types of configurations",
-	Long: `Allows templating of genesis and nodes sets configurations like Vega, Tendermint, Nomad.
-	It's very useful for config templates debugging or continuous update on running Capsule network.`,
+	Long: `The function allows templating for genesis and node-sets configurations
+like Vega, Tendermint, and Nomad. It's useful for config templates debugging or
+continuous updates on running Capsule network.
+
+By default, the command prints generated templates to the stdout. If the "out-dir"
+flag is specified, the command saves generated templates to the given directory.
+
+If you have a network generated and running, you can update templates for all nodes
+by specifying the "update-network" flag.
+
+If you set the "update-network" flag, the command does not print to stdout or save
+it to the "out-dir" folder - files in the "network-home" are modified only.`,
 }
 
 func init() {
@@ -40,10 +61,33 @@ func init() {
 		"Directory where the templated configs will be saved. If empty all will be printed to stdout",
 	)
 
+	templateCmd.PersistentFlags().BoolVar(&templateUpdateNetwork,
+		"update-network",
+		false,
+		"Flag defines if previously generated configuration for network should be updated",
+	)
+
 	templateCmd.MarkPersistentFlagRequired("path") // nolint:errcheck
 }
 
-func outputTemplate(buff *bytes.Buffer, fileName string) error {
+// updateTemplateForNode writes given template to the given node
+func updateTemplateForNode(kind templateKindType, nodeHomePath string, buff *bytes.Buffer) error {
+	configTypeFilePathMap := map[templateKindType]string{
+		vegaNodeSetTemplateType:       "config/node/config.toml",
+		tendermintNodeSetTemplateType: "config/config.toml",
+		dataNodeNodeSetTemplateType:   "config/data-node/config.toml",
+		genesisTemplateType:           "config/genesis.json",
+	}
+
+	configFilePath, templateSupported := configTypeFilePathMap[kind]
+	if !templateSupported {
+		return fmt.Errorf("failed to update the %v template for node %s: template type not supported", kind, nodeHomePath)
+	}
+
+	return outputTemplate(buff, nodeHomePath, configFilePath, false)
+}
+
+func outputTemplate(buff *bytes.Buffer, templateOutDir, fileName string, writeToStdOut bool) error {
 	if len(templateOutDir) != 0 {
 		filePath := path.Join(templateOutDir, fileName)
 		f, err := utils.CreateFile(filePath)
@@ -57,6 +101,10 @@ func outputTemplate(buff *bytes.Buffer, fileName string) error {
 		}
 
 		log.Printf("Saving file to %q", filePath)
+		return nil
+	}
+
+	if !writeToStdOut {
 		return nil
 	}
 

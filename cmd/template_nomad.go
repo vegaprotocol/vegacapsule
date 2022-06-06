@@ -43,10 +43,16 @@ func init() {
 		"",
 		"Allows to apply template to a specific node set",
 	)
+
+	templateNomadCmd.PersistentFlags().StringVar(&nodeSetMode,
+		"nodeset-mode",
+		"",
+		"Allows to apply template to a specific node set type",
+	)
 }
 
 func templateNomad(templateRaw string, netState *state.NetworkState) error {
-	nodeSets, err := getNodeSetsByNames(netState)
+	nodeSets, err := filterNodesSets(netState, nodeSetName, nodeSetGroupName, nodeSetMode)
 	if err != nil {
 		return err
 	}
@@ -58,7 +64,7 @@ func templateNomad(templateRaw string, netState *state.NetworkState) error {
 		}
 
 		fileName := fmt.Sprintf("nomad-%s.hcl", ns.Name)
-		if err := outputTemplate(buff, fileName); err != nil {
+		if err := outputTemplate(buff, templateOutDir, fileName, true); err != nil {
 			return err
 		}
 	}

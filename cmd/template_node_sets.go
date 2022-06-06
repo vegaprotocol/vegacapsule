@@ -14,18 +14,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const (
-	vegaNodeSetTemplateType       = "vega"
-	tendermintNodeSetTemplateType = "tendermint"
-	dataNodeNodeSetTemplateType   = "datanode"
-)
-
 var (
 	nodeSetGroupName    string
 	nodeSetName         string
 	nodeSetTemplateType string
+	nodeSetMode         string
 
-	nodeSetTemplateTypes = []string{vegaNodeSetTemplateType, tendermintNodeSetTemplateType, dataNodeNodeSetTemplateType}
+	nodeSetTemplateTypes = []templateKindType{vegaNodeSetTemplateType, tendermintNodeSetTemplateType, dataNodeNodeSetTemplateType}
 )
 
 var templateNodeSetsCmd = &cobra.Command{
@@ -46,7 +41,7 @@ var templateNodeSetsCmd = &cobra.Command{
 			return networkNotBootstrappedErr("template node-sets")
 		}
 
-		return templateNodeSets(nodeSetTemplateType, string(template), networkState)
+		return templateNodeSets(templateKindType(nodeSetTemplateType), string(template), networkState)
 	},
 }
 
@@ -75,13 +70,19 @@ func init() {
 		"Allows to apply template to a specific node set",
 	)
 
+	templateNodeSetsCmd.PersistentFlags().StringVar(&nodeSetMode,
+		"nodeset-mode",
+		"",
+		"Allows to apply template to a specific node set types",
+	)
+
 	templateNodeSetsCmd.MarkPersistentFlagRequired("type") // nolint:errcheck
 }
 
 type templateFunc func(ns types.NodeSet, tmpl *template.Template) (*bytes.Buffer, error)
 
-func templateNodeSets(tmplType string, templateRaw string, netState *state.NetworkState) error {
-	nodeSets, err := getNodeSetsByNames(netState)
+func templateNodeSets(tmplType templateKindType, templateRaw string, netState *state.NetworkState) error {
+	nodeSets, err := filterNodesSets(netState, nodeSetName, nodeSetGroupName, nodeSetMode)
 	if err != nil {
 		return err
 	}
@@ -138,7 +139,7 @@ func templateNodeSets(tmplType string, templateRaw string, netState *state.Netwo
 
 func templateNodeSetConfig(
 	templateF, templateAndMergeF templateFunc,
-	tmplType string,
+	tmplType templateKindType,
 	template *template.Template,
 	nodeSets []types.NodeSet,
 ) error {
@@ -155,18 +156,24 @@ func templateNodeSetConfig(
 			return err
 		}
 
-		fileName := fmt.Sprintf("%s-%s.conf", tmplType, ns.Name)
-		if err := outputTemplate(buff, fileName); err != nil {
-			return err
+		if templateUpdateNetwork {
+			if err := updateTemplateForNode(tmplType, ns.Tendermint.HomeDir, buff); err != nil {
+				return fmt.Errorf("failed to update template for node %d: %w", ns.Index, err)
+			}
+		} else {
+			fileName := fmt.Sprintf("%s-%s.conf", tmplType, ns.Name)
+			if err := outputTemplate(buff, templateOutDir, fileName, true); err != nil {
+				return fmt.Errorf("failed to print generated template for node %d: %w", ns.Index, err)
+			}
 		}
 	}
 
 	return nil
 }
 
-func getNodeSetsByNames(netState *state.NetworkState) ([]types.NodeSet, error) {
-	if nodeSetGroupName == "" && nodeSetName == "" {
-		return nil, fmt.Errorf("either of 'nodeset-name' or 'nodeset-group-name' flags must be defined to template node set")
+func filterNodesSets(netState *state.NetworkState, nodeSetName, nodeSetGroupName, nodeSetMode string) ([]types.NodeSet, error) {
+	if nodeSetGroupName == "" && nodeSetName == "" && nodeSetMode == "" {
+		return nil, fmt.Errorf("either of 'nodeset-name', 'nodeset-group-name' or 'nodeset-mode' flags must be defined to template node set")
 	}
 
 	if nodeSetName != "" {
@@ -178,9 +185,18 @@ func getNodeSetsByNames(netState *state.NetworkState) ([]types.NodeSet, error) {
 		return []types.NodeSet{*ns}, nil
 	}
 
-	nodeSets := netState.GeneratedServices.GetNodeSetsByGroupName(nodeSetGroupName)
+	filters := []types.NodeSetFilter{}
+	if nodeSetGroupName != "" {
+		filters = append(filters, types.NodeSetFilterByGroupName(nodeSetGroupName))
+	}
+
+	if nodeSetMode != "" {
+		filters = append(filters, types.NodeSetFilterByMode(nodeSetMode))
+	}
+
+	nodeSets := types.FilterNodeSets(netState.GeneratedServices.NodeSets.ToSlice(), filters...)
 	if len(nodeSets) == 0 {
-		return nil, fmt.Errorf("node set group with name %q not found", nodeSetGroupName)
+		return nil, fmt.Errorf("node set group with given criteria [nodeset-name: '%s', nodeset-group-name: '%s', nodeset-mode: '%s'] not found", nodeSetName, nodeSetGroupName, nodeSetMode)
 	}
 
 	return nodeSets, nil

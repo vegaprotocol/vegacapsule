@@ -105,11 +105,51 @@ func (gs GeneratedServices) GetNodeSet(name string) (*NodeSet, error) {
 	return &ns, nil
 }
 
+type NodeSetFilter func(ns NodeSet) bool
+
+func NodeSetFilterByMode(mode string) NodeSetFilter {
+	return func(ns NodeSet) bool {
+		return ns.Mode == mode
+	}
+}
+
+func NodeSetFilterByGroupName(groupName string) NodeSetFilter {
+	return func(ns NodeSet) bool {
+		return ns.GroupName == groupName
+	}
+}
+
+func FilterNodeSets(nodeSets []NodeSet, filters ...NodeSetFilter) []NodeSet {
+	var out []NodeSet
+
+	for _, ns := range nodeSets {
+		func() {
+			for _, filterFunc := range filters {
+				if filterFunc == nil {
+					return
+				}
+
+				if !filterFunc(ns) {
+					return
+				}
+			}
+
+			out = append(out, ns)
+		}()
+	}
+
+	return out
+}
+
 func (gs GeneratedServices) GetNodeSetsByGroupName(groupName string) []NodeSet {
+	return FilterNodeSets(gs.NodeSets.ToSlice(), NodeSetFilterByGroupName(groupName))
+}
+
+func (gs GeneratedServices) GetNodeSetsByMode(mode string) []NodeSet {
 	var out []NodeSet
 
 	for _, ns := range gs.NodeSets {
-		if ns.GroupName == groupName {
+		if ns.Mode == mode {
 			out = append(out, ns)
 		}
 	}
