@@ -179,6 +179,12 @@ func (nj NetworkJobs) Exists(jobID string) bool {
 	return false
 }
 
+func (nj NetworkJobs) AddExtraJobIDs(ids []string) {
+	for _, id := range ids {
+		nj.ExtraJobIDs[id] = true
+	}
+}
+
 func (nj NetworkJobs) ToSlice() []string {
 	out := append(nj.NodesSetsJobIDs.ToSlice(), nj.ExtraJobIDs.ToSlice()...)
 
