@@ -37,7 +37,8 @@ type NetworkConfig struct {
 	Wallet              *WalletConfig  `hcl:"wallet,block"`
 	Faucet              *FaucetConfig  `hcl:"faucet,block"`
 
-	PreStart *PrestartConfig `hcl:"pre_start,block"`
+	PreStart  *PStartConfig `hcl:"pre_start,block"`
+	PostStart *PStartConfig `hcl:"post_start,block"`
 
 	Nodes                       []NodeConfig `hcl:"node_set,block"`
 	SmartContractsAddresses     *string      `hcl:"smart_contracts_addresses,optional"`
@@ -60,7 +61,7 @@ type EthereumConfig struct {
 	Endpoint  string `hcl:"endpoint"`
 }
 
-type PrestartConfig struct {
+type PStartConfig struct {
 	Docker []DockerConfig `hcl:"docker_service,block"`
 }
 
