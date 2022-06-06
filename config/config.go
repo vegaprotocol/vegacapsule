@@ -209,7 +209,7 @@ func (c Config) loadAndValidateConfigTemplates(ct ConfigTemplates) (*ConfigTempl
 	mErr := utils.NewMultiError()
 
 	if ct.Vega == nil && ct.VegaFile != nil {
-		tmpl, err := c.loadConfigTemplateFile("vega", *ct.VegaFile)
+		tmpl, err := c.loadConfigTemplateFile(*ct.VegaFile)
 		if err != nil {
 			mErr.Add(fmt.Errorf("failed to load Vega config template: %w", err))
 		} else {
@@ -219,7 +219,7 @@ func (c Config) loadAndValidateConfigTemplates(ct ConfigTemplates) (*ConfigTempl
 	}
 
 	if ct.Tendermint == nil && ct.TendermintFile != nil {
-		tmpl, err := c.loadConfigTemplateFile("tendermint", *ct.TendermintFile)
+		tmpl, err := c.loadConfigTemplateFile(*ct.TendermintFile)
 		if err != nil {
 			mErr.Add(fmt.Errorf("failed to load Tendermint config template: %w", err))
 		} else {
@@ -229,7 +229,7 @@ func (c Config) loadAndValidateConfigTemplates(ct ConfigTemplates) (*ConfigTempl
 	}
 
 	if ct.DataNode == nil && ct.DataNodeFile != nil {
-		tmpl, err := c.loadConfigTemplateFile("data_node", *ct.DataNodeFile)
+		tmpl, err := c.loadConfigTemplateFile(*ct.DataNodeFile)
 		if err != nil {
 			mErr.Add(fmt.Errorf("failed to load Data Node config template: %w", err))
 		} else {
@@ -245,7 +245,7 @@ func (c Config) loadAndValidateConfigTemplates(ct ConfigTemplates) (*ConfigTempl
 	return &ct, nil
 }
 
-func (c Config) loadConfigTemplateFile(name string, path string) (string, error) {
+func (c Config) loadConfigTemplateFile(path string) (string, error) {
 	templateFile, err := utils.AbsPathWithPrefix(c.configDir, path)
 	if err != nil {
 		return "", fmt.Errorf("failed to get absolute file path %q: %w", path, err)
