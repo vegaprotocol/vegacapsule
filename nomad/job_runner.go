@@ -372,7 +372,7 @@ func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, gene
 	}
 
 	if conf.Network.PostStart != nil {
-		extraJobIDs, err := r.runDockerJobs(ctx, conf.Network.PostStart.Docker)
+		extraJobIDs, err := r.runDockerJobs(gCtx, conf.Network.PostStart.Docker)
 		if err != nil {
 			return nil, fmt.Errorf("failed to run post start jobs: %w", err)
 		}
