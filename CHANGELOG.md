@@ -17,6 +17,7 @@
 - [108](https://github.com/vegaprotocol/vegacapsule/issues/108) Add templating commands support
 - [120](https://github.com/vegaprotocol/vegacapsule/pull/120) Add support for HCL2 in node-set job template
 - [114](https://github.com/vegaprotocol/vegacapsule/issues/114) Add support for post_start jobs
+- [131](https://github.com/vegaprotocol/vegacapsule/issues/131) Update network binaries: vega&data-node=v0.51.1, vegawallet=v0.15.1
 
 ### 🐛 Fixes
 - [117](https://github.com/vegaprotocol/vegacapsule/pull/117) - fix nil dereference panics in config
