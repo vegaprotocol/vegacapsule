@@ -16,6 +16,7 @@
 - [97](https://github.com/vegaprotocol/vegacapsule/issues/97) Add automatic binaries download and improve docs
 - [108](https://github.com/vegaprotocol/vegacapsule/issues/108) Add templating commands support
 - [114](https://github.com/vegaprotocol/vegacapsule/issues/114) Add support for post_start jobs
+- [131](https://github.com/vegaprotocol/vegacapsule/issues/131) Update network binaries: vega&data-node=v0.51.1, vegawallet=v0.15.1
 - [120](https://github.com/vegaprotocol/vegacapsule/pull/120) Add support for HCL2 in node-set job template
 - [122](https://github.com/vegaprotocol/vegacapsule/issues/122) Add support for sentry nodes and loading node sets templates from files
 
