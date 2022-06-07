@@ -19,9 +19,8 @@ type ConfigTemplateContext struct {
 	VegaNodePrefix       string
 	NodeNumber           int
 	NodesCount           int
-	NodeIDs              []string
-	NodePeers            []Peer
 	NodeSet              types.NodeSet
+	nodes                []node
 }
 
 func NewConfigTemplate(templateRaw string) (*template.Template, error) {
@@ -33,6 +32,77 @@ func NewConfigTemplate(templateRaw string) (*template.Template, error) {
 	return t, nil
 }
 
+func nodesByGroupNameLookup(nodes []node) map[string]struct{} {
+	m := map[string]struct{}{}
+	for _, n := range nodes {
+		m[n.groupName] = struct{}{}
+	}
+	return m
+}
+
+func (tc ConfigTemplateContext) NodePeersByGroupName(groupNames ...string) []Peer {
+	gns := nodesByGroupNameLookup(tc.nodes)
+
+	peers := []Peer{}
+	for _, node := range tc.nodes {
+		if node.index == tc.NodeSet.Index {
+			continue
+		}
+
+		if _, ok := gns[node.groupName]; !ok {
+			continue
+		}
+
+		peers = append(peers, Peer{
+			Index: node.index,
+			ID:    node.id,
+		})
+	}
+
+	return peers
+}
+
+func (tc ConfigTemplateContext) NodePeers() []Peer {
+	peers := []Peer{}
+	for _, node := range tc.nodes {
+		if node.index == tc.NodeSet.Index {
+			continue
+		}
+
+		peers = append(peers, Peer{
+			Index: node.index,
+			ID:    node.id,
+		})
+	}
+
+	return peers
+}
+
+func (tc ConfigTemplateContext) NodeIDsByGroupName(groupNames ...string) []string {
+	gns := nodesByGroupNameLookup(tc.nodes)
+
+	nodeIDs := make([]string, 0, len(tc.nodes))
+	for _, node := range tc.nodes {
+		if _, ok := gns[node.groupName]; !ok {
+			continue
+		}
+
+		nodeIDs = append(nodeIDs, node.id)
+	}
+
+	return nodeIDs
+}
+
+func (tc ConfigTemplateContext) NodeIDs() []string {
+	nodeIDs := make([]string, 0, len(tc.nodes))
+
+	for _, node := range tc.nodes {
+		nodeIDs = append(nodeIDs, node.id)
+	}
+
+	return nodeIDs
+}
+
 // TemplateConfig templates the provided template
 func (tg *ConfigGenerator) TemplateConfig(ns types.NodeSet, configTemplate *template.Template) (*bytes.Buffer, error) {
 	templateCtx := ConfigTemplateContext{
@@ -40,10 +110,9 @@ func (tg *ConfigGenerator) TemplateConfig(ns types.NodeSet, configTemplate *temp
 		TendermintNodePrefix: *tg.conf.TendermintNodePrefix,
 		VegaNodePrefix:       *tg.conf.VegaNodePrefix,
 		NodeNumber:           ns.Index,
-		NodesCount:           len(tg.nodeIDs),
-		NodeIDs:              tg.nodeIDs,
-		NodePeers:            tg.getNodePeers(ns.Index),
+		NodesCount:           len(tg.nodes),
 		NodeSet:              ns,
+		nodes:                tg.nodes,
 	}
 
 	buff := bytes.NewBuffer([]byte{})

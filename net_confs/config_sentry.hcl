@@ -59,27 +59,25 @@ EOT
   smart_contracts_addresses_file = "./public_smart_contracts_addresses.json"
 
   node_set "validators" {
-    count = 2
+    count = 3
     mode = "validator"
     node_wallet_pass = "n0d3w4ll3t-p4ssphr4e3"
     vega_wallet_pass = "w4ll3t-p4ssphr4e3"
     ethereum_wallet_pass = "ch41nw4ll3t-3th3r3um-p4ssphr4e3"
 
     config_templates {
-      vega_file = "./node_set_templates/default/vega_validators.tmpl"
-      tendermint_file = "./node_set_templates/default/tendermint_validators.tmpl"
+      vega_file = "./node_set_templates/sentry/vega_validators.tmpl"
+      tendermint_file = "./node_set_templates/sentry/tendermint_validators.tmpl"
     }
   }
 
-  node_set "full" {
-    count = 1
+  node_set "sentry" {
+    count = 5
     mode = "full"
-	  data_node_binary = "data-node"
 
     config_templates {
-      vega_file = "./node_set_templates/default/vega_full.tmpl"
-      tendermint_file = "./node_set_templates/default/tendermint_full.tmpl"
-      data_node_file = "./node_set_templates/default/data_node_full.tmpl"
+      tendermint_file = "./node_set_templates/sentry/tendermint_sentry.tmpl"
+      vega_file = "./node_set_templates/sentry/vega_sentry.tmpl"
     }
   }
 }

@@ -15,8 +15,9 @@
 - [60](https://github.com/vegaprotocol/vegacapsule/issues/60) Add support for running null chain network
 - [97](https://github.com/vegaprotocol/vegacapsule/issues/97) Add automatic binaries download and improve docs
 - [108](https://github.com/vegaprotocol/vegacapsule/issues/108) Add templating commands support
-- [120](https://github.com/vegaprotocol/vegacapsule/pull/120) Add support for HCL2 in node-set job template
 - [114](https://github.com/vegaprotocol/vegacapsule/issues/114) Add support for post_start jobs
+- [120](https://github.com/vegaprotocol/vegacapsule/pull/120) Add support for HCL2 in node-set job template
+- [122](https://github.com/vegaprotocol/vegacapsule/issues/122) Add support for sentry nodes and loading node sets templates from files
 
 ### 🐛 Fixes
 - [117](https://github.com/vegaprotocol/vegacapsule/pull/117) - fix nil dereference panics in config

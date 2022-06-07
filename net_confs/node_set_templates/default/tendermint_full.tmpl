@@ -1,4 +1,4 @@
-log_level = "debug"
+log_level = "info"
 
 proxy_app = "tcp://127.0.0.1:266{{.NodeNumber}}8"
 moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
@@ -16,15 +16,13 @@ moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
   max_packet_msg_payload_size = 4096
   pex = false
   allow_duplicate_ip = true
-
   persistent_peers = "{{- range $i, $peer := .NodePeers -}}
 	  {{- if ne $i 0 }},{{end -}}
 	  {{- $peer.ID}}@127.0.0.1:266{{$peer.Index}}6
   {{- end -}}"
 
-
 [mempool]
-  size = 20000
+  size = 10000
   cache_size = 20000
 
 [consensus]
