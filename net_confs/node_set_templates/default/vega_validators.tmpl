@@ -19,6 +19,9 @@
 [EvtForward]
 	Level = "Info"
 	RetryRate = "1s"
+	{{if .FaucetPublicKey}}
+	BlockchainQueueAllowlist = ["{{ .FaucetPublicKey }}"]
+	{{end}}
 
 [NodeWallet]
 	[NodeWallet.ETH]
@@ -28,8 +31,3 @@
 	[Processor.Ratelimit]
 		Requests = 10000
 		PerNBlocks = 1
-
-[Broker]
-  [Broker.Socket]
-    Port = 30{{.NodeNumber}}5
-    Enabled = false

@@ -12,12 +12,12 @@ import (
 func (g *Generator) initiateNodeSet(index int, n config.NodeConfig) (*types.NodeSet, error) {
 	initTNode, err := g.tendermintGen.Initiate(index, n.Mode)
 	if err != nil {
-		return nil, fmt.Errorf("failed to initiate Tendermit node id %d: %w", index, err)
+		return nil, fmt.Errorf("failed to initiate Tendermit node id %d for node set %s: %w", index, n.Name, err)
 	}
 
 	initVNode, err := g.vegaGen.Initiate(index, n.Mode, initTNode.HomeDir, n.NodeWalletPass, n.VegaWalletPass, n.EthereumWalletPass)
 	if err != nil {
-		return nil, fmt.Errorf("failed to initiate Vega node id %d: %w", index, err)
+		return nil, fmt.Errorf("failed to initiate Vega node id %d for node set %s: %w", index, n.Name, err)
 	}
 
 	var initDNode *types.DataNode
@@ -25,7 +25,7 @@ func (g *Generator) initiateNodeSet(index int, n config.NodeConfig) (*types.Node
 	if n.DataNodeBinary != "" {
 		node, err := g.dataNodeGen.Initiate(index, n.DataNodeBinary)
 		if err != nil {
-			return nil, fmt.Errorf("failed to initiate Data node id %d: %w", index, err)
+			return nil, fmt.Errorf("failed to initiate Data node id %d for node set %s: %w", index, n.Name, err)
 		}
 
 		initDNode = node
@@ -34,7 +34,7 @@ func (g *Generator) initiateNodeSet(index int, n config.NodeConfig) (*types.Node
 	nodeSet := &types.NodeSet{
 		GroupName:  n.Name,
 		Index:      index,
-		Name:       fmt.Sprintf("%s-nodeset-%s-%d", g.conf.Network.Name, n.Mode, index),
+		Name:       fmt.Sprintf("%s-nodeset-%s-%d-%s", g.conf.Network.Name, n.Name, index, n.Mode),
 		Mode:       n.Mode,
 		Vega:       *initVNode,
 		Tendermint: *initTNode,

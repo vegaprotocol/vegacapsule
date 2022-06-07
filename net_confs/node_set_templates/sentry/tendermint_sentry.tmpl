@@ -1,0 +1,45 @@
+{{- $port_base := 26000 -}}
+{{- $proxy_port := add $port_base 100 .NodeNumber -}}
+{{- $rpc_port := add $port_base 200 .NodeNumber -}}
+{{- $p2p_base_port := add $port_base 300 -}}
+{{- $p2p_port := add $p2p_base_port .NodeNumber -}}
+
+log_level = "info"
+
+proxy_app = "tcp://127.0.0.1:{{$proxy_port}}"
+moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
+
+[rpc]
+  laddr = "tcp://0.0.0.0:{{$rpc_port}}"
+  unsafe = true
+  cors_allowed_origins = ["*"]
+  cors-allowed-methods = ["HEAD", "GET", "POST", ]
+  cors-allowed-headers = ["Origin", "Accept", "Content-Type", "X-Requested-With", "X-Server-Time", ]
+
+[p2p]
+  laddr = "tcp://0.0.0.0:{{$p2p_port}}"
+  max_packet_msg_payload_size = 4096
+  allow_duplicate_ip = true
+
+  pex = true
+  addr_book_strict = false
+  double_sign_check_height = 10
+  persistent_peers = "{{- range $i, $peer := .NodePeersByGroupName "validators" "sentry" -}}
+	  {{- if ne $i 0 }},{{end -}}
+	  {{- $peer.ID}}@127.0.0.1:{{add $p2p_base_port $peer.Index}}
+  {{- end -}}"
+  unconditional_peer_ids = "{{- range $i, $id := .NodeIDsByGroupName "validators" "sentry" -}}
+	  {{- if ne $i 0 }},{{end -}}
+	  {{- $id }}
+  {{- end -}}"
+  private_peer_ids = "{{- range $i, $id := .NodeIDsByGroupName "validators" -}}
+	  {{- if ne $i 0 }},{{end -}}
+	  {{- $id }}
+  {{- end -}}"
+  
+[mempool]
+  size = 10000
+  cache_size = 20000
+
+[consensus]
+  skip_timeout_commit = false
