@@ -7,12 +7,12 @@ on:
     branches:
       - main
   pull_request:
-  
+
 permissions:
   contents: read
 jobs:
   golangci:
-    name: lint
+    name: unit-tests
     runs-on: ubuntu-latest
     steps:
       - name: Setup Go
@@ -26,3 +26,6 @@ jobs:
           GO111MODULE: on 
         run:
           go build -o vegacapsule .
+      - name: Run unit tests
+        run:
+          go test -v ./...
