@@ -40,9 +40,18 @@ type NetworkConfig struct {
 	PreStart  *PStartConfig `hcl:"pre_start,block"`
 	PostStart *PStartConfig `hcl:"post_start,block"`
 
-	Nodes                       []NodeConfig `hcl:"node_set,block"`
-	SmartContractsAddresses     *string      `hcl:"smart_contracts_addresses,optional"`
-	SmartContractsAddressesFile *string      `hcl:"smart_contracts_addresses_file,optional"`
+	Nodes []NodeConfig `hcl:"node_set,block"`
+
+	SmartContractsAddresses     *string `hcl:"smart_contracts_addresses,optional"`
+	SmartContractsAddressesFile *string `hcl:"smart_contracts_addresses_file,optional"`
+}
+
+type CommandRunner struct {
+	PathsMapping ConfigRemoteNetworkPathsMapping `hcl:"paths_mapping,block"`
+
+	Meta                 map[string]string `hcl:"meta,optional"`
+	NomadJobTemplate     *string           `hcl:"nomad_job_template,optional"`
+	NomadJobTemplateFile *string           `hcl:"nomad_job_template_file,optional"`
 }
 
 func (nc NetworkConfig) GetNodeConfig(name string) (*NodeConfig, error) {
@@ -120,6 +129,23 @@ type NodeConfig struct {
 	ConfigTemplates      ConfigTemplates `hcl:"config_templates,block"`
 	NomadJobTemplate     *string         `hcl:"nomad_job_template,optional"`
 	NomadJobTemplateFile *string         `hcl:"nomad_job_template_file,optional"`
+
+	// We may want to call some commands on the remote nodes. For some scenarios, We could
+	// use the network allocations to execute commands on the server — however, there's a
+	// set of commands that require a stopped network before running them. An example of
+	// the command that requires a stopped network is unsafe-reset-all. We may need a
+	// runner/helper to run commands for this kind of command. If the below section is
+	// not provided only local commands will be available :()
+	RemoteCommandRunner *CommandRunner `hcl:"remote_command_runner,block"`
+}
+
+type ConfigRemoteNetworkPathsMapping struct {
+	TendermintHome *string `hcl:"tendermint_home"`
+	VegaHome       *string `hcl:"vega_home"`
+	DataNodeHome   *string `hcl:"data_node_home,optional"`
+
+	VegaBinary     *string `hcl:"vega_binary"`
+	DataNodeBinary *string `hcl:"data_node_binary,optional"`
 }
 
 func (nc NodeConfig) Clone() (*NodeConfig, error) {
@@ -198,6 +224,14 @@ func (c *Config) Validate(configDir string) error {
 	}
 
 	c.configDir = configDir
+
+	if err := c.validateCommandRunnerConfig(); err != nil {
+		return fmt.Errorf("failed to validate command runner config: %w", err)
+	}
+
+	if err := c.loadRemoteCommandRunnerConfig(); err != nil {
+		return fmt.Errorf("failed to load command runner config files: %w", err)
+	}
 
 	if err := c.loadAndValidateGenesis(); err != nil {
 		return fmt.Errorf("failed to validate genesis: %w", err)
@@ -416,6 +450,62 @@ func (c *Config) loadAndValidatSetSmartContractsAddresses() error {
 	return nil
 }
 
+func (c Config) validateCommandRunnerConfig() error {
+	remoteConfigProvided := false
+
+	mErr := utils.NewMultiError()
+
+	for _, nodeConf := range c.Network.Nodes {
+		if remoteConfigProvided && nodeConf.RemoteCommandRunner == nil {
+			mErr.Add(fmt.Errorf("missing the `remote_command_runner` configuration for the \"%s\" node set:  the `remote_command_runner` configuration must be specified either for none or all nodes sets' configuration", nodeConf.Name))
+		}
+
+		if nodeConf.RemoteCommandRunner != nil {
+			remoteConfigProvided = true
+		}
+	}
+
+	// No remode command runner provided, no required further falidation. Network will not support remote commands
+	if !remoteConfigProvided {
+		return nil
+	}
+
+	for _, nodeConf := range c.Network.Nodes {
+		if err := nodeConf.RemoteCommandRunner.Validate(nodeConf.DataNodeBinary != ""); err != nil {
+			mErr.Add(fmt.Errorf("failed to validate the `remote_command_runner` for the \"%s\" node set: %w", nodeConf.Name, err))
+		}
+	}
+
+	if mErr.HasAny() {
+		return mErr
+	}
+
+	return nil
+}
+
+func (conf *Config) loadRemoteCommandRunnerConfig() error {
+	mErr := utils.NewMultiError()
+
+	for idx, nodeConf := range conf.Network.Nodes {
+		if utils.EmptyStrPoint(nodeConf.RemoteCommandRunner.NomadJobTemplate) && !utils.EmptyStrPoint(nodeConf.RemoteCommandRunner.NomadJobTemplateFile) {
+			tmpl, err := conf.loadConfigTemplateFile(*nodeConf.RemoteCommandRunner.NomadJobTemplateFile)
+
+			if err != nil {
+				mErr.Add(fmt.Errorf("failed to load remote command runner nomad template: %w", err))
+				continue
+			}
+			conf.Network.Nodes[idx].RemoteCommandRunner.NomadJobTemplate = &tmpl
+			conf.Network.Nodes[idx].RemoteCommandRunner.NomadJobTemplateFile = nil
+		}
+	}
+
+	if mErr.HasAny() {
+		return mErr
+	}
+
+	return nil
+}
+
 func (c Config) SmartContractsInfo() (*types.SmartContractsInfo, error) {
 	smartcontracts := &types.SmartContractsInfo{}
 
@@ -458,4 +548,39 @@ func DefaultNetworkHome() (string, error) {
 	}
 
 	return filepath.Join(capsuleHome, "testnet"), nil
+}
+
+func (runner CommandRunner) Validate(withDataNode bool) error {
+	if runner.NomadJobTemplate == nil && runner.NomadJobTemplateFile == nil {
+		return fmt.Errorf("either `nomad_job_template` or `nomad_job_template_file` must be specified for the remote command runner")
+	}
+
+	errorMsg := "the `remote_network_path_mapping` configuration is not fully specified: the \"%s\" field is missing"
+
+	if utils.EmptyStrPoint(runner.PathsMapping.VegaHome) {
+		return fmt.Errorf(errorMsg, "vega_home")
+	}
+
+	if utils.EmptyStrPoint(runner.PathsMapping.TendermintHome) {
+		return fmt.Errorf(errorMsg, "tendermint_home")
+	}
+
+	if utils.EmptyStrPoint(runner.PathsMapping.VegaBinary) {
+		return fmt.Errorf(errorMsg, "vega_binary")
+	}
+
+	// No data node is started, no need to provide data node paths mapping
+	if !withDataNode {
+		return nil
+	}
+
+	if utils.EmptyStrPoint(runner.PathsMapping.DataNodeHome) {
+		return fmt.Errorf(fmt.Sprintf("%s: field is required for non validator node", errorMsg), "data_node_home")
+	}
+
+	if utils.EmptyStrPoint(runner.PathsMapping.DataNodeBinary) {
+		return fmt.Errorf(fmt.Sprintf("%s: field is required for non validator node", errorMsg), "data_node_binary")
+	}
+
+	return nil
 }

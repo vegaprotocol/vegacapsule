@@ -95,6 +95,7 @@ func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
 					"--home", ns.Tendermint.HomeDir,
 				},
 			},
+			Meta: getDefaultTaskMeta(ns, types.TaskTendermint),
 			Resources: &api.Resources{
 				CPU:      utils.IntPoint(500),
 				MemoryMB: utils.IntPoint(512),
@@ -111,6 +112,7 @@ func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
 					"--nodewallet-passphrase-file", ns.Vega.NodeWalletPassFilePath,
 				},
 			},
+			Meta: getDefaultTaskMeta(ns, types.TaskVega),
 			Resources: &api.Resources{
 				CPU:      utils.IntPoint(500),
 				MemoryMB: utils.IntPoint(512),
@@ -128,6 +130,7 @@ func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
 					"--home", ns.DataNode.HomeDir,
 				},
 			},
+			Meta: getDefaultTaskMeta(ns, types.TaskDataNode),
 			Resources: &api.Resources{
 				CPU:      utils.IntPoint(500),
 				MemoryMB: utils.IntPoint(512),
@@ -197,6 +200,21 @@ func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) (
 	jobs := make([]*api.Job, 0, len(nodeSets))
 
 	for _, ns := range nodeSets {
+		if ns.RemoteCommandRunner != nil {
+			job, err := jobspec2.ParseWithConfig(&jobspec2.ParseConfig{
+				Path:    "command_runner.hcl",
+				Body:    []byte(ns.RemoteCommandRunner.NomadJobRaw),
+				ArgVars: []string{},
+				AllowFS: true,
+			})
+
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse command runner template: %w", err)
+			}
+
+			jobs = append(jobs, *job)
+		}
+
 		if ns.NomadJobRaw == nil {
 			log.Printf("adding node set %q with default Nomad job definition", ns.Name)
 
@@ -205,7 +223,7 @@ func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) (
 		}
 
 		job, err := jobspec2.ParseWithConfig(&jobspec2.ParseConfig{
-			Path:    "input.hcl",
+			Path:    "node_set.hcl",
 			Body:    []byte(*ns.NomadJobRaw),
 			ArgVars: []string{},
 			AllowFS: true,
@@ -523,4 +541,12 @@ func (r *JobRunner) StopJobs(ctx context.Context, jobIDs []string) error {
 	}
 
 	return g.Wait()
+}
+
+func getDefaultTaskMeta(ns types.NodeSet, appKind types.TaskKind) map[string]string {
+	return map[string]string{
+		"app-kind":   string(appKind),
+		"node-index": fmt.Sprintf("%d", ns.Index),
+		"mode":       ns.Mode,
+	}
 }

@@ -97,3 +97,7 @@ func StrPoint(s string) *string {
 func IntPoint(i int) *int {
 	return &i
 }
+
+func EmptyStrPoint(s *string) bool {
+	return s == nil || *s == ""
+}

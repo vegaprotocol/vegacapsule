@@ -1,6 +1,7 @@
 package generator
 
 import (
+	"bytes"
 	"fmt"
 	"sync"
 
@@ -54,6 +55,40 @@ func (g *Generator) initiateNodeSet(index int, nc config.NodeConfig) (*types.Nod
 		Vega:       *initVNode,
 		Tendermint: *initTNode,
 		DataNode:   initDNode,
+	}
+
+	// If mapping given, we want to create command runner
+	if n.RemoteCommandRunner != nil {
+		nodeSet.RemoteCommandRunner = &types.CommandRunner{
+			Name: fmt.Sprintf("%s-cmd-runner", nodeSet.Name),
+			Meta: n.RemoteCommandRunner.Meta,
+			PathsMapping: types.NetworkPathsMapping{
+				VegaBinary:     *n.RemoteCommandRunner.PathsMapping.VegaBinary,
+				VegaHome:       *n.RemoteCommandRunner.PathsMapping.VegaHome,
+				TendermintHome: *n.RemoteCommandRunner.PathsMapping.TendermintHome,
+
+				DataNodeBinary: n.RemoteCommandRunner.PathsMapping.DataNodeBinary,
+				DataNodeHome:   n.RemoteCommandRunner.PathsMapping.DataNodeHome,
+			},
+		}
+
+		var (
+			rawTemplate *bytes.Buffer
+			err         error
+		)
+		if n.RemoteCommandRunner.NomadJobTemplate != nil {
+			rawTemplate, err = nomad.GenerateTemplate(*n.RemoteCommandRunner.NomadJobTemplate, nodeSet)
+		} else if n.RemoteCommandRunner.NomadJobTemplateFile != nil {
+			rawTemplate, err = nomad.GenerateTemplateFromFile(*n.RemoteCommandRunner.NomadJobTemplateFile, nodeSet)
+		} else {
+			return nil, fmt.Errorf("either `nomad_job_template` or `nomad_job_template_file` must be specified for remote command runner")
+		}
+
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate nomad template for remote command runner: %w", err)
+		}
+
+		nodeSet.RemoteCommandRunner.NomadJobRaw = rawTemplate.String()
 	}
 
 	if n.NomadJobTemplate != nil {

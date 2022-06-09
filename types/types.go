@@ -35,6 +35,23 @@ type DataNode struct {
 	BinaryPath string
 }
 
+type NetworkPathsMapping struct {
+	TendermintHome string
+	VegaHome       string
+	DataNodeHome   *string `json:",omitempty"`
+
+	VegaBinary     string
+	DataNodeBinary *string `json:",omitempty"`
+}
+
+type CommandRunner struct {
+	Name        string
+	NomadJobRaw string
+	Meta        map[string]string
+
+	PathsMapping NetworkPathsMapping
+}
+
 type RawJobWithNomadJob struct {
 	RawJob   string
 	NomadJob *api.Job
@@ -46,15 +63,16 @@ type NomadJob struct {
 }
 
 type NodeSet struct {
-	GroupName       string
-	Name            string
-	Mode            string
-	Index           int
-	Vega            VegaNode
-	Tendermint      TendermintNode
-	DataNode        *DataNode
-	NomadJobRaw     *string `json:",omitempty"`
-	PreGenerateJobs []NomadJob
+	GroupName           string
+	Name                string
+	Mode                string
+	Index               int
+	Vega                VegaNode
+	Tendermint          TendermintNode
+	DataNode            *DataNode
+	NomadJobRaw         *string        `json:",omitempty"`
+	RemoteCommandRunner *CommandRunner `json:",omitempty"`
+	PreGenerateJobs     []NomadJob
 }
 
 // PreGenerateJobsIDs returns pre gen jobs ids per specific node set
@@ -115,6 +133,7 @@ type GeneratedServices struct {
 	Faucet          *Faucet
 	NodeSets        NodeSetMap
 	PreGenerateJobs []NomadJob
+	CommandRunners  []*CommandRunner
 }
 
 func NewGeneratedServices(w *Wallet, f *Faucet, ns []NodeSet) *GeneratedServices {
@@ -318,4 +337,12 @@ const (
 	NodeModeFull                = "full"
 	NodeWalletChainTypeVega     = "vega"
 	NodeWalletChainTypeEthereum = "ethereum"
+)
+
+type TaskKind string
+
+const (
+	TaskTendermint TaskKind = "tendermint"
+	TaskVega       TaskKind = "vega"
+	TaskDataNode   TaskKind = "data-node"
 )
