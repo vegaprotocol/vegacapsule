@@ -17,10 +17,6 @@ plugin "docker" {
 		}
 	}
 }
-client {
-	cpu_total_compute = 11000
-	memory_total_mb = 10000
-}
 `
 
 func templateConfig() (string, error) {
