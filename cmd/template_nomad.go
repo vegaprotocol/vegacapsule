@@ -58,7 +58,7 @@ func templateNomad(templateRaw string, netState *state.NetworkState) error {
 	}
 
 	for _, ns := range nodeSets {
-		buff, err := nomad.GenerateTemplate(templateRaw, ns)
+		buff, err := nomad.GenerateNodeSetTemplate(templateRaw, ns)
 		if err != nil {
 			return err
 		}

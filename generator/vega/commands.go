@@ -95,6 +95,30 @@ func (vg ConfigGenerator) generateNodeWallet(homePath string, nodeWalletPhraseFi
 	return out, nil
 }
 
+func (vg ConfigGenerator) importEthereumNodeWallet(
+	homePath, nodeWalletPhraseFile, ethereumWalletAddrClef string,
+) (*importNodeWalletOutput, error) {
+	args := []string{
+		"nodewallet",
+		"--home", homePath,
+		"--passphrase-file", nodeWalletPhraseFile,
+		"import",
+		"--output", "json",
+		"--chain", "ethereum",
+		"--clef-account-address", ethereumWalletAddrClef,
+		"--eth.clef-address", "http://127.0.0.1:8550", // @TODO this should be passed down from config
+	}
+
+	log.Printf("Importing tenderming wallet: %v", args)
+
+	nwo := &importNodeWalletOutput{}
+	if _, err := utils.ExecuteBinary(*vg.conf.VegaBinary, args, nwo); err != nil {
+		return nil, err
+	}
+
+	return nwo, nil
+}
+
 func (vg ConfigGenerator) importTendermintNodeWallet(homePath string, nodeWalletPhraseFile string, tendermintHomePath string) (*importNodeWalletOutput, error) {
 	args := []string{
 		"nodewallet",

@@ -24,7 +24,7 @@ moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
   pex = true
   addr_book_strict = false
   double_sign_check_height = 10
-  persistent_peers = "{{- range $i, $peer := .NodePeersByGroupName "validators" "sentry" -}}
+  persistent_peers = "{{- range $i, $peer := .NodePeersByGroupName "validator-1" "sentry-1" -}}
 	  {{- if ne $i 0 }},{{end -}}
 	  {{- $peer.ID}}@127.0.0.1:{{add $p2p_base_port $peer.Index}}
   {{- end -}}"

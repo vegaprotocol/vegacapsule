@@ -7,6 +7,7 @@ import (
 
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/generator"
+	"code.vegaprotocol.io/vegacapsule/nomad"
 	"code.vegaprotocol.io/vegacapsule/state"
 	"code.vegaprotocol.io/vegacapsule/types"
 	"code.vegaprotocol.io/vegacapsule/utils"
@@ -71,7 +72,14 @@ func netGenerate(state state.NetworkState, force bool) (*state.NetworkState, err
 
 	log.Println("generating network")
 
-	gen, err := generator.New(state.Config, types.GeneratedServices{})
+	nomadClient, err := nomad.NewClient(nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create nomad client: %w", err)
+	}
+
+	nomadRunner := nomad.NewJobRunner(nomadClient)
+
+	gen, err := generator.New(state.Config, types.GeneratedServices{}, nomadRunner)
 	if err != nil {
 		return nil, err
 	}

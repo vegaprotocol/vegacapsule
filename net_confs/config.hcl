@@ -61,12 +61,20 @@ EOT
   node_set "validators" {
     count = 2
     mode = "validator"
+    
+    pre_generate {
+      nomad_job "clef" {
+        job_template_file = "../jobs/clef.tmpl"
+      }
+    }
+
     node_wallet_pass = "n0d3w4ll3t-p4ssphr4e3"
     vega_wallet_pass = "w4ll3t-p4ssphr4e3"
     ethereum_wallet_pass = "ch41nw4ll3t-3th3r3um-p4ssphr4e3"
-
+    ethereum_wallet_address_clef = "0xeb7caa7ecdada49978502652c2b361be4fd3119a"
+    
     config_templates {
-      vega_file = "./node_set_templates/default/vega_validators.tmpl"
+      vega_file = "./node_set_templates/default/vega_validators_clef.tmpl"
       tendermint_file = "./node_set_templates/default/tendermint_validators.tmpl"
     }
   }

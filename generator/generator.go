@@ -1,6 +1,7 @@
 package generator
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -14,6 +15,7 @@ import (
 	"code.vegaprotocol.io/vegacapsule/generator/wallet"
 	"code.vegaprotocol.io/vegacapsule/types"
 	"code.vegaprotocol.io/vegacapsule/utils"
+	"github.com/hashicorp/nomad/api"
 )
 
 type nodeSets struct {
@@ -33,6 +35,10 @@ func (ns nodeSets) GetAllByGroupName(groupName string) []types.NodeSet {
 	return out
 }
 
+type jobRunner interface {
+	RunRawNomadJobs(ctx context.Context, rawJobs []string) ([]*api.Job, error)
+}
+
 type Generator struct {
 	conf          *config.Config
 	tendermintGen *tendermint.ConfigGenerator
@@ -41,9 +47,10 @@ type Generator struct {
 	genesisGen    *genesis.Generator
 	walletGen     *wallet.ConfigGenerator
 	faucetGen     *faucet.ConfigGenerator
+	jobRunner     jobRunner
 }
 
-func New(conf *config.Config, genServices types.GeneratedServices) (*Generator, error) {
+func New(conf *config.Config, genServices types.GeneratedServices, jobRunner jobRunner) (*Generator, error) {
 	tendermintGen, err := tendermint.NewConfigGenerator(conf, genServices.NodeSets.ToSlice())
 	if err != nil {
 		return nil, fmt.Errorf("failed to create new tendermint config generator: %w", err)
@@ -77,6 +84,7 @@ func New(conf *config.Config, genServices types.GeneratedServices) (*Generator, 
 		dataNodeGen:   dataNodeGen,
 		walletGen:     walletGen,
 		faucetGen:     faucetGen,
+		jobRunner:     jobRunner,
 	}, nil
 }
 
