@@ -1,0 +1,40 @@
+job "{{ .Name }}-{{ .Index }}" {
+  datacenters = ["dc1"]
+
+  group "clef-node" {
+    network {
+      port "http" {
+        to = 8550
+        static = 855{{ .Index }}
+      }
+    }
+
+    task "wait-for-clef" {
+      lifecycle {
+        hook = "prestart"
+        sidecar = false
+      }
+
+      driver = "raw_exec"
+      config {
+        command = "sh"
+        args = ["-c", "n=0; until [ \"$n\" -ge 10 ]; do nc -z localhost 855{{ .Index }} && break; n=$((n+1)); sleep 1; done"]
+      }
+    }
+
+    task "clef-node" {
+      driver = "docker"
+
+      config {
+        image = "vegaprotocol/clef"
+        auth_soft_fail = true
+        ports = ["http"]
+      }
+
+      resources {
+        cpu    = 500
+        memory = 512
+      }
+    }
+  }
+}

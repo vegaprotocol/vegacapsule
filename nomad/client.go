@@ -110,10 +110,10 @@ func (n *Client) Run(job *api.Job) (bool, error) {
 	return false, nil
 }
 
-func (n *Client) RunAndWait(ctx context.Context, job api.Job) error {
+func (n *Client) RunAndWait(ctx context.Context, job *api.Job) error {
 	jobs := n.API.Jobs()
 
-	_, _, err := jobs.Register(&job, nil)
+	_, _, err := jobs.Register(job, nil)
 	if err != nil {
 		return fmt.Errorf("error running jobs: %w", err)
 	}

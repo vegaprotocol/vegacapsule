@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"code.vegaprotocol.io/vegacapsule/generator"
+	"code.vegaprotocol.io/vegacapsule/nomad"
 	"code.vegaprotocol.io/vegacapsule/state"
 	"code.vegaprotocol.io/vegacapsule/types"
 	"github.com/spf13/cobra"
@@ -73,7 +74,14 @@ func init() {
 }
 
 func nodesAddNode(state state.NetworkState, baseOneNode string) (*types.NodeSet, error) {
-	gen, err := generator.New(state.Config, *state.GeneratedServices)
+	nomadClient, err := nomad.NewClient(nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create nomad client: %w", err)
+	}
+
+	nomadRunner := nomad.NewJobRunner(nomadClient)
+
+	gen, err := generator.New(state.Config, *state.GeneratedServices, nomadRunner)
 	if err != nil {
 		return nil, err
 	}

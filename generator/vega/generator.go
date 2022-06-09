@@ -31,7 +31,11 @@ func NewConfigGenerator(conf *config.Config) (*ConfigGenerator, error) {
 	}, nil
 }
 
-func (vg ConfigGenerator) Initiate(index int, mode, tendermintHome, nodeWalletPass, vegaWalletPass, ethereumWalletPass string) (*types.VegaNode, error) {
+func (vg ConfigGenerator) Initiate(
+	index int,
+	mode, tendermintHome, nodeWalletPass,
+	vegaWalletPass, ethereumWalletPass, ethereumWalletAddrClef string,
+) (*types.VegaNode, error) {
 	nodeDir := vg.nodeDir(index)
 
 	if err := os.MkdirAll(nodeDir, os.ModePerm); err != nil {
@@ -69,7 +73,14 @@ func (vg ConfigGenerator) Initiate(index int, mode, tendermintHome, nodeWalletPa
 		return initNode, nil
 	}
 
-	nodeWalletInfo, err := vg.initiateValidatorWallets(nodeDir, tendermintHome, vegaWalletPass, ethereumWalletPass, nodeWalletPassFilePath)
+	nodeWalletInfo, err := vg.initiateValidatorWallets(
+		nodeDir,
+		tendermintHome,
+		vegaWalletPass,
+		ethereumWalletPass,
+		nodeWalletPassFilePath,
+		ethereumWalletAddrClef,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +91,11 @@ func (vg ConfigGenerator) Initiate(index int, mode, tendermintHome, nodeWalletPa
 	return initNode, nil
 }
 
-func (vg ConfigGenerator) initiateValidatorWallets(nodeDir, tendermintHome, vegaWalletPass, ethereumWalletPass, nodeWalletPassFilePath string) (*types.NodeWalletInfo, error) {
+func (vg ConfigGenerator) initiateValidatorWallets(
+	nodeDir, tendermintHome, vegaWalletPass,
+	ethereumWalletPass, nodeWalletPassFilePath,
+	ethereumWalletAddrClef string,
+) (*types.NodeWalletInfo, error) {
 	walletPassFilePath := path.Join(nodeDir, "vega-wallet-pass.txt")
 	ethereumPassFilePath := path.Join(nodeDir, "ethereum-vega-wallet-pass.txt")
 
@@ -104,15 +119,34 @@ func (vg ConfigGenerator) initiateValidatorWallets(nodeDir, tendermintHome, vega
 	}
 	log.Printf("node wallet import out: %#v", vegaImportOut)
 
-	ethOut, err := vg.generateNodeWallet(nodeDir, nodeWalletPassFilePath, ethereumPassFilePath, types.NodeWalletChainTypeEthereum)
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate %q wallet: %w", types.NodeWalletChainTypeEthereum, err)
+	nwi := &types.NodeWalletInfo{
+		VegaWalletRecoveryPhrase: vegaOut.Wallet.RecoveryPhrase,
+		VegaWalletPublicKey:      vegaOut.Key.Public,
 	}
-	log.Printf("ethereum wallet out: %#v", ethOut)
 
-	ethKey, err := ethereum.DescribeKeyPair(ethOut.WalletFilePath, ethereumWalletPass)
-	if err != nil {
-		return nil, fmt.Errorf("failed to obtain thereum address for the wallet '%s': %w", ethOut.WalletFilePath, err)
+	if ethereumWalletAddrClef != "" {
+		ethOut, err := vg.importEthereumNodeWallet(nodeDir, nodeWalletPassFilePath, ethereumWalletAddrClef)
+		if err != nil {
+			return nil, fmt.Errorf("failed to import %q wallet: %w", types.NodeWalletChainTypeEthereum, err)
+		}
+		log.Printf("ethereum wallet out: %#v", ethOut)
+
+		nwi.EthereumAddress = ethereumWalletAddrClef
+		nwi.EthereumClefUsed = true
+	} else {
+		ethOut, err := vg.generateNodeWallet(nodeDir, nodeWalletPassFilePath, ethereumPassFilePath, types.NodeWalletChainTypeEthereum)
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate %q wallet: %w", types.NodeWalletChainTypeEthereum, err)
+		}
+		log.Printf("ethereum wallet out: %#v", ethOut)
+
+		ethKey, err := ethereum.DescribeKeyPair(ethOut.WalletFilePath, ethereumWalletPass)
+		if err != nil {
+			return nil, fmt.Errorf("failed to obtain thereum address for the wallet '%s': %w", ethOut.WalletFilePath, err)
+		}
+
+		nwi.EthereumAddress = ethKey.Address
+		nwi.EthereumPrivateKey = ethKey.PrivateKey
 	}
 
 	tmtOut, err := vg.importTendermintNodeWallet(nodeDir, nodeWalletPassFilePath, tendermintHome)
@@ -122,12 +156,7 @@ func (vg ConfigGenerator) initiateValidatorWallets(nodeDir, tendermintHome, vega
 
 	log.Printf("tendermint wallet out: %#v", tmtOut)
 
-	return &types.NodeWalletInfo{
-		VegaWalletRecoveryPhrase: vegaOut.Wallet.RecoveryPhrase,
-		VegaWalletPublicKey:      vegaOut.Key.Public,
-		EthereumAddress:          ethKey.Address,
-		EthereumPrivateKey:       ethKey.PrivateKey,
-	}, nil
+	return nwi, nil
 }
 
 func (vg ConfigGenerator) nodeDir(i int) string {

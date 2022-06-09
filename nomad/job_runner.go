@@ -74,14 +74,14 @@ func (r *JobRunner) runDockerJob(ctx context.Context, conf config.DockerConfig) 
 		},
 	}
 
-	if err := r.client.RunAndWait(ctx, *j); err != nil {
+	if err := r.client.RunAndWait(ctx, j); err != nil {
 		return nil, fmt.Errorf("failed to run nomad docker job: %w", err)
 	}
 
 	return j, nil
 }
 
-func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) api.Job {
+func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
 	tasks := make([]*api.Task, 0, 3)
 	tasks = append(tasks,
 		&api.Task{
@@ -135,7 +135,7 @@ func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) api.Job {
 		})
 	}
 
-	return api.Job{
+	return &api.Job{
 		ID:          utils.StrPoint(ns.Name),
 		Datacenters: []string{"dc1"},
 		TaskGroups: []*api.TaskGroup{
@@ -151,8 +151,38 @@ func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) api.Job {
 	}
 }
 
-func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) ([]api.Job, error) {
-	jobs := make([]api.Job, 0, len(nodeSets))
+func (r *JobRunner) RunRawNomadJobs(ctx context.Context, rawJobs []string) ([]*api.Job, error) {
+	jobs := make([]*api.Job, 0, len(rawJobs))
+
+	eg := new(errgroup.Group)
+	for _, rj := range rawJobs {
+		rj := rj
+
+		eg.Go(func() error {
+			job, err := jobspec2.ParseWithConfig(&jobspec2.ParseConfig{
+				Path:    "input.hcl",
+				Body:    []byte(rj),
+				ArgVars: []string{},
+				AllowFS: true,
+			})
+			if err != nil {
+				return fmt.Errorf("failed to parse Nomad job: %w", err)
+			}
+
+			return r.client.RunAndWait(ctx, job)
+		})
+	}
+
+	if err := eg.Wait(); err != nil {
+		return nil, fmt.Errorf("failed to wait for Nomad jobs: %w", err)
+	}
+
+	return jobs, nil
+
+}
+
+func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) ([]*api.Job, error) {
+	jobs := make([]*api.Job, 0, len(nodeSets))
 
 	for _, ns := range nodeSets {
 		if ns.NomadJobRaw == nil {
@@ -175,7 +205,7 @@ func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) (
 
 		log.Printf("adding node set %q with custom Nomad job definition", ns.Name)
 
-		jobs = append(jobs, *job)
+		jobs = append(jobs, job)
 	}
 
 	eg := new(errgroup.Group)
@@ -231,7 +261,7 @@ func (r *JobRunner) runWallet(ctx context.Context, conf *config.WalletConfig, wa
 		},
 	}
 
-	if err := r.client.RunAndWait(ctx, *j); err != nil {
+	if err := r.client.RunAndWait(ctx, j); err != nil {
 		return nil, fmt.Errorf("failed to run the wallet job: %w", err)
 	}
 
@@ -272,7 +302,7 @@ func (r *JobRunner) runFaucet(ctx context.Context, binary string, conf *config.F
 		},
 	}
 
-	if err := r.client.RunAndWait(ctx, *j); err != nil {
+	if err := r.client.RunAndWait(ctx, j); err != nil {
 		return nil, fmt.Errorf("failed to wait for faucet job: %w", err)
 	}
 

@@ -34,14 +34,15 @@ type DataNode struct {
 }
 
 type NodeSet struct {
-	GroupName   string
-	Name        string
-	Mode        string
-	Index       int
-	Vega        VegaNode
-	Tendermint  TendermintNode
-	DataNode    *DataNode
-	NomadJobRaw *string `json:",omitempty"`
+	GroupName          string
+	Name               string
+	Mode               string
+	Index              int
+	Vega               VegaNode
+	Tendermint         TendermintNode
+	DataNode           *DataNode
+	NomadJobRaw        *string `json:",omitempty"`
+	PreGenerateJobsIDs []string
 }
 
 type Wallet struct {
@@ -246,6 +247,7 @@ func (nj NetworkJobs) ToSlice() []string {
 
 type NodeWalletInfo struct {
 	EthereumAddress          string
+	EthereumClefUsed         bool
 	EthereumPrivateKey       string
 	VegaWalletPublicKey      string
 	VegaWalletRecoveryPhrase string

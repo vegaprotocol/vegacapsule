@@ -69,6 +69,7 @@ type StaticPort struct {
 	To    int `hcl:"to,optional"`
 	Value int `hcl:"value"`
 }
+
 type DockerConfig struct {
 	Name         string            `hcl:"name,label"`
 	Image        string            `hcl:"image"`
@@ -91,14 +92,29 @@ type FaucetConfig struct {
 	Template string `hcl:"template,optional"`
 }
 
+type NomadConfig struct {
+	Name            string  `hcl:"name,label"`
+	JobTemplate     *string `hcl:"job_template,optional"`
+	JobTemplateFile *string `hcl:"job_template_file,optional"`
+}
+
+type PreGenerate struct {
+	Nomad []NomadConfig `hcl:"nomad_job,block"`
+}
+
 type NodeConfig struct {
-	Name               string `hcl:"name,label"`
-	Mode               string `hcl:"mode"`
-	Count              int    `hcl:"count"`
-	NodeWalletPass     string `hcl:"node_wallet_pass,optional"`
-	EthereumWalletPass string `hcl:"ethereum_wallet_pass,optional"`
-	VegaWalletPass     string `hcl:"vega_wallet_pass,optional"`
-	DataNodeBinary     string `hcl:"data_node_binary,optional"`
+	Name  string `hcl:"name,label"`
+	Mode  string `hcl:"mode"`
+	Count int    `hcl:"count"`
+
+	PreGenerate *PreGenerate `hcl:"pre_generate,block"`
+
+	NodeWalletPass            string `hcl:"node_wallet_pass,optional"`
+	EthereumWalletPass        string `hcl:"ethereum_wallet_pass,optional"`
+	EthereumWalletAddressClef string `hcl:"ethereum_wallet_address_clef,optional"`
+	VegaWalletPass            string `hcl:"vega_wallet_pass,optional"`
+
+	DataNodeBinary string `hcl:"data_node_binary,optional"`
 
 	ConfigTemplates      ConfigTemplates `hcl:"config_templates,block"`
 	NomadJobTemplate     *string         `hcl:"nomad_job_template,optional"`
@@ -196,6 +212,15 @@ func (c *Config) loadAndValidateNodeConfigs() error {
 
 		updatedNc.ConfigTemplates = *updatedCt
 
+		if nc.PreGenerate != nil {
+			updatedPreGen, err := c.loadAndValidatePreGenerate(*nc.PreGenerate)
+			if err != nil {
+				return err
+			}
+
+			updatedNc.PreGenerate = updatedPreGen
+		}
+
 		c.Network.Nodes[i] = *updatedNc
 	}
 
@@ -204,6 +229,32 @@ func (c *Config) loadAndValidateNodeConfigs() error {
 	}
 
 	return nil
+}
+
+func (c Config) loadAndValidatePreGenerate(preGen PreGenerate) (*PreGenerate, error) {
+	mErr := utils.NewMultiError()
+
+	for i, nc := range preGen.Nomad {
+		if nc.JobTemplate == nil && nc.JobTemplateFile != nil {
+			tmpl, err := c.loadConfigTemplateFile(*nc.JobTemplateFile)
+			if err != nil {
+				mErr.Add(fmt.Errorf("failed to load pre generate nomad template file for %s: %w", nc.Name, err))
+
+				continue
+			}
+
+			nc.JobTemplate = &tmpl
+			nc.JobTemplateFile = nil
+
+			preGen.Nomad[i] = nc
+		}
+	}
+
+	if mErr.HasAny() {
+		return nil, mErr
+	}
+
+	return &preGen, nil
 }
 
 func (c Config) loadAndValidateConfigTemplates(ct ConfigTemplates) (*ConfigTemplates, error) {
