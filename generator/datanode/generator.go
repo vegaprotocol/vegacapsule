@@ -45,8 +45,8 @@ func (dng *ConfigGenerator) Initiate(index int, dataNodeBinary string) (*types.D
 	}
 	log.Println(string(b))
 
-	confFilePath := dng.configFilePath(nodeDir)
-	origConFilePath := dng.originalConfigFilePath(nodeDir)
+	confFilePath := ConfigFilePath(nodeDir)
+	origConFilePath := originalConfigFilePath(nodeDir)
 
 	if err := utils.CopyFile(confFilePath, origConFilePath); err != nil {
 		return nil, fmt.Errorf("failed to copy initiated config from %q to %q: %w", confFilePath, origConFilePath, err)
@@ -66,10 +66,10 @@ func (dng ConfigGenerator) nodeDir(i int) string {
 	return filepath.Join(dng.homeDir, nodeDirName)
 }
 
-func (dng ConfigGenerator) configFilePath(nodeDir string) string {
+func ConfigFilePath(nodeDir string) string {
 	return filepath.Join(nodeDir, "config", "data-node", "config.toml")
 }
 
-func (dng ConfigGenerator) originalConfigFilePath(nodeDir string) string {
+func originalConfigFilePath(nodeDir string) string {
 	return filepath.Join(nodeDir, "config", "data-node", "original-config.toml")
 }

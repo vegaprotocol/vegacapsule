@@ -11,6 +11,7 @@ require (
 	github.com/hashicorp/nomad/api v0.0.0-20211119141705-873b0969e01e
 	github.com/imdario/mergo v0.3.12
 	github.com/spf13/viper v1.10.1
+	github.com/stretchr/testify v1.7.1
 	github.com/tendermint/tendermint v0.34.15
 	github.com/zannen/toml v0.3.2
 	golang.org/x/oauth2 v0.0.0-20220309155454-6242fa91716a
@@ -40,6 +41,7 @@ require (
 	github.com/confio/ics23/go v0.6.3 // indirect
 	github.com/cosmos/go-bip39 v0.0.0-20180819234021-555e2067c45d // indirect
 	github.com/cosmos/iavl v0.15.3 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/deckarep/golang-set v1.8.0 // indirect
 	github.com/dgraph-io/badger/v2 v2.2007.3 // indirect
 	github.com/dgraph-io/ristretto v0.0.3-0.20200630154024-f66de99634de // indirect
@@ -90,6 +92,7 @@ require (
 	github.com/pelletier/go-toml v1.9.4 // indirect
 	github.com/petermattis/goid v0.0.0-20180202154549-b0b1615b78e5 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_golang v1.12.1 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.32.1 // indirect
@@ -135,6 +138,7 @@ require (
 	gopkg.in/ini.v1 v1.66.3 // indirect
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
+	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
 
 require (

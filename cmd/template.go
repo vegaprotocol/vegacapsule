@@ -8,6 +8,11 @@ import (
 
 	"code.vegaprotocol.io/vegacapsule/utils"
 	"github.com/spf13/cobra"
+
+	datanodegen "code.vegaprotocol.io/vegacapsule/generator/datanode"
+	genesisgen "code.vegaprotocol.io/vegacapsule/generator/genesis"
+	tmgen "code.vegaprotocol.io/vegacapsule/generator/tendermint"
+	vegagen "code.vegaprotocol.io/vegacapsule/generator/vega"
 )
 
 type templateKindType string
@@ -40,8 +45,8 @@ flag is specified, the command saves generated templates to the given directory.
 If you have a network generated and running, you can update templates for all nodes
 by specifying the "update-network" flag.
 
-If you set the "update-network" flag, the command does not print to stdout or save
-it to the "out-dir" folder - files in the "network-home" are modified only.`,
+If you set the "update-network" flag, the command does not print a template to stdout
+or save it to the "out-dir" folder - files in the "network-home" are modified only.`,
 }
 
 func init() {
@@ -73,10 +78,10 @@ func init() {
 // updateTemplateForNode writes given template to the given node
 func updateTemplateForNode(kind templateKindType, nodeHomePath string, buff *bytes.Buffer) error {
 	configTypeFilePathMap := map[templateKindType]string{
-		vegaNodeSetTemplateType:       "config/node/config.toml",
-		tendermintNodeSetTemplateType: "config/config.toml",
-		dataNodeNodeSetTemplateType:   "config/data-node/config.toml",
-		genesisTemplateType:           "config/genesis.json",
+		vegaNodeSetTemplateType:       vegagen.ConfigFilePath(""),
+		tendermintNodeSetTemplateType: tmgen.ConfigFilePath(""),
+		dataNodeNodeSetTemplateType:   datanodegen.ConfigFilePath(""),
+		genesisTemplateType:           genesisgen.ConfigFilePath(""),
 	}
 
 	configFilePath, templateSupported := configTypeFilePathMap[kind]

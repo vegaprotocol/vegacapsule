@@ -31,6 +31,15 @@ var templateGenesisCmd = &cobra.Command{
 
 		return templateGenesis(string(template), networkState)
 	},
+	Example: `
+# Print the genesis generated from given template to stdout
+vegacapsule template genesis --path net_confs/genesis.tmpl
+
+# Save the genesis generated from given template to the './tpl-out' folder
+vegacapsule template genesis --path net_confs/genesis.tmpl --out-dir ./tpl-out
+
+# Update the genesis on the previously generated network
+go run main.go template genesis --path net_confs/genesis.tmpl --update-network`,
 }
 
 func init() {

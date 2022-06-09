@@ -79,7 +79,7 @@ func (vg *ConfigGenerator) TemplateAndMergeConfig(ns types.NodeSet, fc *types.Fa
 		return nil, err
 	}
 
-	if err := vg.mergeAndSaveConfig(ns, buff, vg.originalConfigFilePath(ns.Vega.HomeDir), f.Name()); err != nil {
+	if err := vg.mergeAndSaveConfig(ns, buff, originalConfigFilePath(ns.Vega.HomeDir), f.Name()); err != nil {
 		return nil, err
 	}
 
@@ -97,7 +97,7 @@ func (vg ConfigGenerator) OverwriteConfig(ns types.NodeSet, fc *types.Faucet, co
 		return err
 	}
 
-	configFilePath := vg.configFilePath(ns.Vega.HomeDir)
+	configFilePath := ConfigFilePath(ns.Vega.HomeDir)
 	return vg.mergeAndSaveConfig(ns, buff, configFilePath, configFilePath)
 }
 

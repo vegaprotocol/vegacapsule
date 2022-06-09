@@ -122,8 +122,8 @@ func (tg *ConfigGenerator) Initiate(index int, mode string) (*types.TendermintNo
 	}
 	log.Println(string(b))
 
-	confFilePath := tg.configFilePath(nodeDir)
-	origConFilePath := tg.originalConfigFilePath(nodeDir)
+	confFilePath := ConfigFilePath(nodeDir)
+	origConFilePath := originalConfigFilePath(nodeDir)
 
 	if err := utils.CopyFile(confFilePath, origConFilePath); err != nil {
 		return nil, fmt.Errorf("failed to copy initiated config from %q to %q: %w", confFilePath, origConFilePath, err)
@@ -178,10 +178,10 @@ func (tg ConfigGenerator) nodeDir(i int) string {
 	return filepath.Join(tg.homeDir, nodeDirName)
 }
 
-func (tg ConfigGenerator) configFilePath(nodeDir string) string {
+func ConfigFilePath(nodeDir string) string {
 	return filepath.Join(nodeDir, "config", "config.toml")
 }
 
-func (tg ConfigGenerator) originalConfigFilePath(nodeDir string) string {
+func originalConfigFilePath(nodeDir string) string {
 	return filepath.Join(nodeDir, "config", "config-original.toml")
 }

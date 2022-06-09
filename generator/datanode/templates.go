@@ -64,7 +64,13 @@ func (dng *ConfigGenerator) TemplateAndMergeConfig(ns types.NodeSet, configTempl
 		return nil, err
 	}
 
-	if err := dng.mergeAndSaveConfig(ns, buff, dng.originalConfigFilePath(ns.DataNode.HomeDir), f.Name()); err != nil {
+	// Sometimes the DataNode field may be nil. Especiall when you want to template the data-node config
+	// with merge for the validator node.
+	if ns.DataNode == nil {
+		return nil, fmt.Errorf("failed to merge and save data node configuration: data node is not initialized properly")
+	}
+
+	if err := dng.mergeAndSaveConfig(ns, buff, originalConfigFilePath(ns.DataNode.HomeDir), f.Name()); err != nil {
 		return nil, err
 	}
 
@@ -82,7 +88,7 @@ func (dng ConfigGenerator) OverwriteConfig(ns types.NodeSet, configTemplate *tem
 		return err
 	}
 
-	configFilePath := dng.configFilePath(ns.DataNode.HomeDir)
+	configFilePath := ConfigFilePath(ns.DataNode.HomeDir)
 	return dng.mergeAndSaveConfig(ns, buff, configFilePath, configFilePath)
 }
 

@@ -29,30 +29,30 @@ var templateNomadCmd = &cobra.Command{
 
 		return templateNomad(string(template), networkState)
 	},
+	Example: `
+# Generate the nomad configuration for multiple node sets #1
+vegacapsule template nomad --path .../node_set.tmpl --nodeset-group-name validators,full
+
+# Generate the nomad configuration for multiple node sets #2
+vegacapsule template nomad --path .../node_set.tmpl --nodeset-group-name validators --nodeset-group-name full`,
 }
 
 func init() {
-	templateNomadCmd.PersistentFlags().StringVar(&nodeSetGroupName,
+	templateNomadCmd.PersistentFlags().StringSliceVar(&nodeSetsGroupsNames,
 		"nodeset-group-name",
-		"",
+		[]string{},
 		"Allows to apply template to all node sets in a specific group",
 	)
 
-	templateNomadCmd.PersistentFlags().StringVar(&nodeSetName,
+	templateNomadCmd.PersistentFlags().StringSliceVar(&nodeSetsNames,
 		"nodeset-name",
-		"",
+		[]string{},
 		"Allows to apply template to a specific node set",
-	)
-
-	templateNomadCmd.PersistentFlags().StringVar(&nodeSetMode,
-		"nodeset-mode",
-		"",
-		"Allows to apply template to a specific node set type",
 	)
 }
 
 func templateNomad(templateRaw string, netState *state.NetworkState) error {
-	nodeSets, err := filterNodesSets(netState, nodeSetName, nodeSetGroupName, nodeSetMode)
+	nodeSets, err := filterNodesSets(netState, nodeSetsNames, nodeSetsGroupsNames)
 	if err != nil {
 		return err
 	}

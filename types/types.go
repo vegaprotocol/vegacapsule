@@ -107,9 +107,25 @@ func (gs GeneratedServices) GetNodeSet(name string) (*NodeSet, error) {
 
 type NodeSetFilter func(ns NodeSet) bool
 
-func NodeSetFilterByMode(mode string) NodeSetFilter {
+func NodeSetFilterByNames(names []string) NodeSetFilter {
 	return func(ns NodeSet) bool {
-		return ns.Mode == mode
+		for _, expectedName := range names {
+			if ns.Name == expectedName {
+				return true
+			}
+		}
+		return false
+	}
+}
+
+func NodeSetFilterByGroupNames(names []string) NodeSetFilter {
+	return func(ns NodeSet) bool {
+		for _, expectedName := range names {
+			if ns.GroupName == expectedName {
+				return true
+			}
+		}
+		return false
 	}
 }
 
@@ -143,18 +159,6 @@ func FilterNodeSets(nodeSets []NodeSet, filters ...NodeSetFilter) []NodeSet {
 
 func (gs GeneratedServices) GetNodeSetsByGroupName(groupName string) []NodeSet {
 	return FilterNodeSets(gs.NodeSets.ToSlice(), NodeSetFilterByGroupName(groupName))
-}
-
-func (gs GeneratedServices) GetNodeSetsByMode(mode string) []NodeSet {
-	var out []NodeSet
-
-	for _, ns := range gs.NodeSets {
-		if ns.Mode == mode {
-			out = append(out, ns)
-		}
-	}
-
-	return out
 }
 
 func (gs GeneratedServices) GetValidators() []NodeSet {
