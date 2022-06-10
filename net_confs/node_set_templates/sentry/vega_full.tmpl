@@ -1,0 +1,41 @@
+{{- $tm_port_base := 26000 -}}
+{{- $tm_proxy_port := add $tm_port_base 100 .NodeNumber -}}
+{{- $tm_rpc_port := add $tm_port_base 200 .NodeNumber -}}
+
+{{- $port_base := 3000 -}}
+
+[Admin]
+  [Admin.Server]
+    SocketPath = "/tmp/vega-{{.NodeNumber}}.sock"
+    Enabled = true
+
+[API]
+	Port = 30{{.NodeNumber}}2
+	[API.REST]
+			Port = 30{{.NodeNumber}}3
+
+[Blockchain]
+	[Blockchain.Tendermint]
+		ClientAddr = "tcp://127.0.0.1:{{$tm_rpc_port}}"
+		ServerAddr = "0.0.0.0"
+		ServerPort = {{$tm_proxy_port}}
+	[Blockchain.Null]
+		Port = 31{{.NodeNumber}}1
+
+[Broker]
+  [Broker.Socket]
+    Port = 30{{.NodeNumber}}5
+    Enabled = true
+    
+[EvtForward]
+	Level = "Info"
+	RetryRate = "1s"
+
+[NodeWallet]
+	[NodeWallet.ETH]
+		Address = "{{.ETHEndpoint}}"
+
+[Processor]
+	[Processor.Ratelimit]
+		Requests = 10000
+		PerNBlocks = 1
