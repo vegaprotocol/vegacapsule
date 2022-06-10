@@ -58,7 +58,7 @@ EOT
   genesis_template_file = "./genesis.tmpl"
   smart_contracts_addresses_file = "./public_smart_contracts_addresses.json"
 
-  ## We want 3 validator nodes that will each have a set of sentry nodes
+  ## We want 3 validator nodes with one having a set of sentry nodes
   ## which is why we must define them all separately.
   node_set "validator-0" {
     count = 1
