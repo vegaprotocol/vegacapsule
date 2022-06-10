@@ -34,7 +34,8 @@ func NewConfigGenerator(conf *config.Config) (*ConfigGenerator, error) {
 func (vg ConfigGenerator) Initiate(
 	index int,
 	mode, tendermintHome, nodeWalletPass,
-	vegaWalletPass, ethereumWalletPass, ethereumWalletAddrClef string,
+	vegaWalletPass, ethereumWalletPass string,
+	clefConf *config.ClefConfig,
 ) (*types.VegaNode, error) {
 	nodeDir := vg.nodeDir(index)
 
@@ -79,7 +80,7 @@ func (vg ConfigGenerator) Initiate(
 		vegaWalletPass,
 		ethereumWalletPass,
 		nodeWalletPassFilePath,
-		ethereumWalletAddrClef,
+		clefConf,
 	)
 	if err != nil {
 		return nil, err
@@ -93,8 +94,8 @@ func (vg ConfigGenerator) Initiate(
 
 func (vg ConfigGenerator) initiateValidatorWallets(
 	nodeDir, tendermintHome, vegaWalletPass,
-	ethereumWalletPass, nodeWalletPassFilePath,
-	ethereumWalletAddrClef string,
+	ethereumWalletPass, nodeWalletPassFilePath string,
+	clefConf *config.ClefConfig,
 ) (*types.NodeWalletInfo, error) {
 	walletPassFilePath := path.Join(nodeDir, "vega-wallet-pass.txt")
 	ethereumPassFilePath := path.Join(nodeDir, "ethereum-vega-wallet-pass.txt")
@@ -124,15 +125,15 @@ func (vg ConfigGenerator) initiateValidatorWallets(
 		VegaWalletPublicKey:      vegaOut.Key.Public,
 	}
 
-	if ethereumWalletAddrClef != "" {
-		ethOut, err := vg.importEthereumNodeWallet(nodeDir, nodeWalletPassFilePath, ethereumWalletAddrClef)
+	if clefConf != nil {
+		ethOut, err := vg.importEthereumClefNodeWallet(nodeDir, nodeWalletPassFilePath, clefConf)
 		if err != nil {
 			return nil, fmt.Errorf("failed to import %q wallet: %w", types.NodeWalletChainTypeEthereum, err)
 		}
 		log.Printf("ethereum wallet out: %#v", ethOut)
 
-		nwi.EthereumAddress = ethereumWalletAddrClef
-		nwi.EthereumClefUsed = true
+		nwi.EthereumAddress = clefConf.AccountAddress
+		nwi.EthereumClefRPCAddress = clefConf.ClefRPCAddr
 	} else {
 		ethOut, err := vg.generateNodeWallet(nodeDir, nodeWalletPassFilePath, ethereumPassFilePath, types.NodeWalletChainTypeEthereum)
 		if err != nil {

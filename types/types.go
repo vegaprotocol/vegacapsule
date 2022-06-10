@@ -247,8 +247,8 @@ func (nj NetworkJobs) ToSlice() []string {
 
 type NodeWalletInfo struct {
 	EthereumAddress          string
-	EthereumClefUsed         bool
 	EthereumPrivateKey       string
+	EthereumClefRPCAddress   string
 	VegaWalletPublicKey      string
 	VegaWalletRecoveryPhrase string
 }

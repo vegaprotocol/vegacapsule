@@ -109,16 +109,22 @@ type NodeConfig struct {
 
 	PreGenerate *PreGenerate `hcl:"pre_generate,block"`
 
-	NodeWalletPass            string `hcl:"node_wallet_pass,optional"`
-	EthereumWalletPass        string `hcl:"ethereum_wallet_pass,optional"`
-	EthereumWalletAddressClef string `hcl:"ethereum_wallet_address_clef,optional"`
-	VegaWalletPass            string `hcl:"vega_wallet_pass,optional"`
+	ClefWallet *ClefConfig `hcl:"clef_wallet,block"`
+
+	NodeWalletPass     string `hcl:"node_wallet_pass,optional"`
+	EthereumWalletPass string `hcl:"ethereum_wallet_pass,optional"`
+	VegaWalletPass     string `hcl:"vega_wallet_pass,optional"`
 
 	DataNodeBinary string `hcl:"data_node_binary,optional"`
 
 	ConfigTemplates      ConfigTemplates `hcl:"config_templates,block"`
 	NomadJobTemplate     *string         `hcl:"nomad_job_template,optional"`
 	NomadJobTemplateFile *string         `hcl:"nomad_job_template_file,optional"`
+}
+
+type ClefConfig struct {
+	AccountAddress string `hcl:"ethereum_account_address"`
+	ClefRPCAddr    string `hcl:"clef_rpc_address"`
 }
 
 type ConfigTemplates struct {
