@@ -121,7 +121,12 @@ func (g *Generator) generate(nodeSets []types.NodeSet, genValidators []tmtypes.G
 	var genState *genesis.GenesisState
 
 	for _, ns := range nodeSets {
-		updatedGenesis, err := g.updateGenesis(ns.Vega.HomeDir, ns.Tendermint.HomeDir, ns.Vega.NodeWalletPassFilePath)
+		updatedGenesis, err := g.updateGenesis(
+			ns.Vega.HomeDir,
+			ns.Tendermint.HomeDir,
+			ns.Vega.NodeWalletPassFilePath,
+			ns.Vega.NodeWalletInfo.EthereumClefRPCAddress,
+		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to update genesis for %q from %q: %w", ns.Tendermint.HomeDir, ns.Vega.HomeDir, err)
 		}
@@ -174,7 +179,10 @@ func (g *Generator) generate(nodeSets []types.NodeSet, genValidators []tmtypes.G
 	return mergedGenDoc, nil
 }
 
-func (g *Generator) updateGenesis(vegaHomePath, tendermintHomePath, nodeWalletPhraseFile string) (*updateGenesisOutput, error) {
+func (g *Generator) updateGenesis(
+	vegaHomePath, tendermintHomePath,
+	nodeWalletPhraseFile, ethereumClefRPCAddress string,
+) (*updateGenesisOutput, error) {
 	args := []string{
 		"genesis",
 		"--home", vegaHomePath,
@@ -182,6 +190,10 @@ func (g *Generator) updateGenesis(vegaHomePath, tendermintHomePath, nodeWalletPh
 		"update",
 		"--tm-home", tendermintHomePath,
 		"--dry-run",
+	}
+
+	if ethereumClefRPCAddress != "" {
+		args = append(args, "--eth.clef-address", ethereumClefRPCAddress)
 	}
 
 	log.Printf("Updating genesis with: %s %v", g.vegaBinary, args)

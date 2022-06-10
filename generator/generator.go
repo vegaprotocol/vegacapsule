@@ -144,10 +144,17 @@ func (g *Generator) Generate() (*types.GeneratedServices, error) {
 }
 
 func (g *Generator) AddNodeSet(index int, nc config.NodeConfig, ns types.NodeSet, fc *types.Faucet) (*types.NodeSet, error) {
+	preGenJobIDs, err := g.startPreGenerateJobs(nc, index)
+	if err != nil {
+		return nil, err
+	}
+
 	initNodeSet, err := g.initiateNodeSet(index, nc)
 	if err != nil {
 		return nil, err
 	}
+
+	initNodeSet.PreGenerateJobsIDs = preGenJobIDs
 
 	co, err := newConfigOverride(g, nc)
 	if err != nil {

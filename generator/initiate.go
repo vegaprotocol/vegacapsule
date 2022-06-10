@@ -1,7 +1,6 @@
 package generator
 
 import (
-	"context"
 	"fmt"
 
 	"code.vegaprotocol.io/vegacapsule/config"
@@ -23,7 +22,7 @@ func (g *Generator) initiateNodeSet(index int, n config.NodeConfig) (*types.Node
 		n.NodeWalletPass,
 		n.VegaWalletPass,
 		n.EthereumWalletPass,
-		n.EthereumWalletAddressClef,
+		n.ClefWallet,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initiate Vega node id %d for node set %s: %w", index, n.Name, err)
@@ -69,14 +68,11 @@ func (g *Generator) initiateNodeSets() (*nodeSets, error) {
 
 	var index int
 	for _, n := range g.conf.Network.Nodes {
+		// @TODO - this could be run in pararel to speed things up
 		for i := 0; i < n.Count; i++ {
-			templates, err := g.templatePreGenerateJobs(n.PreGenerate, index)
+			preGenJobIDs, err := g.startPreGenerateJobs(n, index)
 			if err != nil {
-				return nil, fmt.Errorf("failed to template pre generate jobs for node set %q-%q: %w", n.Name, index, err)
-			}
-			preGenJobIDs, err := g.startNomadJobs(templates)
-			if err != nil {
-				return nil, fmt.Errorf("failed to start pre generate jobs for node set %s-%d: %w", n.Name, index, err)
+				return nil, err
 			}
 
 			nodeSet, err := g.initiateNodeSet(index, n)
@@ -100,49 +96,6 @@ func (g *Generator) initiateNodeSets() (*nodeSets, error) {
 		validators:    validatorsSet,
 		nonValidators: nonValidatorsSet,
 	}, nil
-}
-
-func (g *Generator) templatePreGenerateJobs(preGenConf *config.PreGenerate, index int) ([]string, error) {
-	if preGenConf == nil {
-		return []string{}, nil
-	}
-
-	jobTemplates := make([]string, 0, len(preGenConf.Nomad))
-	for _, nc := range preGenConf.Nomad {
-		if nc.JobTemplate == nil {
-			continue
-		}
-
-		template, err := nomad.GeneratePreGenerateTemplate(*nc.JobTemplate, nomad.PreGenerateTemplateCtx{
-			Name:  nc.Name,
-			Index: index,
-		})
-		if err != nil {
-			return nil, fmt.Errorf("failed to template nomad job for pre generate %q: %w", nc.Name, err)
-		}
-
-		jobTemplates = append(jobTemplates, template.String())
-	}
-
-	return jobTemplates, nil
-}
-
-func (g *Generator) startNomadJobs(rawNomadJobs []string) ([]string, error) {
-	if len(rawNomadJobs) == 0 {
-		return rawNomadJobs, nil
-	}
-
-	jobs, err := g.jobRunner.RunRawNomadJobs(context.Background(), rawNomadJobs)
-	if err != nil {
-		return nil, fmt.Errorf("failed to run node set pre generate job: %w", err)
-	}
-
-	jobIDs := make([]string, 0, len(jobs))
-	for _, j := range jobs {
-		jobIDs = append(jobIDs, *j.ID)
-	}
-
-	return jobIDs, nil
 }
 
 func (g *Generator) initAndConfigureFaucet(conf *config.FaucetConfig) (*types.Faucet, error) {
