@@ -35,9 +35,13 @@
 - [131](https://github.com/vegaprotocol/vegacapsule/issues/131) Update network binaries: vega&data-node=v0.51.1, vegawallet=v0.15.1
 - [120](https://github.com/vegaprotocol/vegacapsule/pull/120) Add support for HCL2 in node-set job template
 - [122](https://github.com/vegaprotocol/vegacapsule/issues/122) Add support for sentry nodes and loading node sets templates from files
+<<<<<<< HEAD
 - [124](https://github.com/vegaprotocol/vegacapsule/issues/124) Allow updating network configurations with templating after network is generated
 - [139](https://github.com/vegaprotocol/vegacapsule/issues/139) Allow non validator nodes to be iterated during wallet configuration
 - [136](https://github.com/vegaprotocol/vegacapsule/issues/136) New templates for a sentry node with data node setup
+=======
+- [134](https://github.com/vegaprotocol/vegacapsule/issues/134) Add support for Clef and allow templating of some node set config fields
+>>>>>>> 57adcc1 (feat: update changelog)
 
 ### 🐛 Fixes
 - [117](https://github.com/vegaprotocol/vegacapsule/pull/117) - fix nil dereference panics in config
