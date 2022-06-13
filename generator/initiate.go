@@ -9,7 +9,12 @@ import (
 	"code.vegaprotocol.io/vegacapsule/types"
 )
 
-func (g *Generator) initiateNodeSet(index int, n config.NodeConfig) (*types.NodeSet, error) {
+func (g *Generator) initiateNodeSet(index int, nc config.NodeConfig) (*types.NodeSet, error) {
+	n, err := templateNodeConfig(index, nc)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute node config templates for %s: %w", nc.Name, err)
+	}
+
 	initTNode, err := g.tendermintGen.Initiate(index, n.Mode, n.Name)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initiate Tendermit node id %d for node set %s: %w", index, n.Name, err)
