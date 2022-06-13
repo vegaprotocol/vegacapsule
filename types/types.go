@@ -105,16 +105,60 @@ func (gs GeneratedServices) GetNodeSet(name string) (*NodeSet, error) {
 	return &ns, nil
 }
 
-func (gs GeneratedServices) GetNodeSetsByGroupName(groupName string) []NodeSet {
+type NodeSetFilter func(ns NodeSet) bool
+
+func NodeSetFilterByNames(names []string) NodeSetFilter {
+	return func(ns NodeSet) bool {
+		for _, expectedName := range names {
+			if ns.Name == expectedName {
+				return true
+			}
+		}
+		return false
+	}
+}
+
+func NodeSetFilterByGroupNames(names []string) NodeSetFilter {
+	return func(ns NodeSet) bool {
+		for _, expectedName := range names {
+			if ns.GroupName == expectedName {
+				return true
+			}
+		}
+		return false
+	}
+}
+
+func NodeSetFilterByGroupName(groupName string) NodeSetFilter {
+	return func(ns NodeSet) bool {
+		return ns.GroupName == groupName
+	}
+}
+
+func FilterNodeSets(nodeSets []NodeSet, filters ...NodeSetFilter) []NodeSet {
 	var out []NodeSet
 
-	for _, ns := range gs.NodeSets {
-		if ns.GroupName == groupName {
+	for _, ns := range nodeSets {
+		func() {
+			for _, filterFunc := range filters {
+				if filterFunc == nil {
+					return
+				}
+
+				if !filterFunc(ns) {
+					return
+				}
+			}
+
 			out = append(out, ns)
-		}
+		}()
 	}
 
 	return out
+}
+
+func (gs GeneratedServices) GetNodeSetsByGroupName(groupName string) []NodeSet {
+	return FilterNodeSets(gs.NodeSets.ToSlice(), NodeSetFilterByGroupName(groupName))
 }
 
 func (gs GeneratedServices) GetValidators() []NodeSet {

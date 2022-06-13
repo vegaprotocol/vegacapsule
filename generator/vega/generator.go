@@ -49,8 +49,8 @@ func (vg ConfigGenerator) Initiate(index int, mode, tendermintHome, nodeWalletPa
 		return nil, fmt.Errorf("failed to initiate vega node: %w", err)
 	}
 
-	confFilePath := vg.configFilePath(nodeDir)
-	origConFilePath := vg.originalConfigFilePath(nodeDir)
+	confFilePath := ConfigFilePath(nodeDir)
+	origConFilePath := originalConfigFilePath(nodeDir)
 
 	if err := utils.CopyFile(confFilePath, origConFilePath); err != nil {
 		return nil, fmt.Errorf("failed to copy initiated config from %q to %q: %w", confFilePath, origConFilePath, err)
@@ -135,10 +135,10 @@ func (vg ConfigGenerator) nodeDir(i int) string {
 	return filepath.Join(vg.homeDir, nodeDirName)
 }
 
-func (vg ConfigGenerator) configFilePath(nodeDir string) string {
+func ConfigFilePath(nodeDir string) string {
 	return filepath.Join(nodeDir, "config", "node", "config.toml")
 }
 
-func (vg ConfigGenerator) originalConfigFilePath(nodeDir string) string {
+func originalConfigFilePath(nodeDir string) string {
 	return filepath.Join(nodeDir, "config", "node", "config-original.toml")
 }

@@ -142,7 +142,7 @@ func (tg *ConfigGenerator) TemplateAndMergeConfig(ns types.NodeSet, configTempla
 		return nil, err
 	}
 
-	if err := tg.mergeAndSaveConfig(ns, buff, tg.originalConfigFilePath(ns.Tendermint.HomeDir), f.Name()); err != nil {
+	if err := tg.mergeAndSaveConfig(ns, buff, originalConfigFilePath(ns.Tendermint.HomeDir), f.Name()); err != nil {
 		return nil, err
 	}
 
@@ -160,7 +160,7 @@ func (tg *ConfigGenerator) OverwriteConfig(ns types.NodeSet, configTemplate *tem
 		return err
 	}
 
-	configFilePath := tg.configFilePath(ns.Tendermint.HomeDir)
+	configFilePath := ConfigFilePath(ns.Tendermint.HomeDir)
 	return tg.mergeAndSaveConfig(ns, buff, configFilePath, configFilePath)
 }
 
