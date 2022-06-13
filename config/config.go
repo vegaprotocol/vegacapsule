@@ -252,6 +252,10 @@ func (c *Config) loadAndValidateNodeSets() error {
 	return nil
 }
 
+// func (c Config) templateString(index int) (string, error) {
+
+// }
+
 func (c Config) loadAndValidatePreGenerate(preGen PreGenerate) (*PreGenerate, error) {
 	mErr := utils.NewMultiError()
 
