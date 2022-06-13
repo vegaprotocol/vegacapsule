@@ -109,11 +109,11 @@ type NodeConfig struct {
 
 	PreGenerate *PreGenerate `hcl:"pre_generate,block"`
 
-	ClefWallet *ClefConfig `hcl:"clef_wallet,block"`
+	ClefWallet *ClefConfig `hcl:"clef_wallet,block" template:""`
 
-	NodeWalletPass     string `hcl:"node_wallet_pass,optional"`
-	EthereumWalletPass string `hcl:"ethereum_wallet_pass,optional"`
-	VegaWalletPass     string `hcl:"vega_wallet_pass,optional"`
+	NodeWalletPass     string `hcl:"node_wallet_pass,optional" template:""`
+	EthereumWalletPass string `hcl:"ethereum_wallet_pass,optional" template:""`
+	VegaWalletPass     string `hcl:"vega_wallet_pass,optional" template:""`
 
 	DataNodeBinary string `hcl:"data_node_binary,optional"`
 
@@ -123,8 +123,8 @@ type NodeConfig struct {
 }
 
 type ClefConfig struct {
-	AccountAddress string `hcl:"ethereum_account_address"`
-	ClefRPCAddr    string `hcl:"clef_rpc_address"`
+	AccountAddress string `hcl:"ethereum_account_address" template:""`
+	ClefRPCAddr    string `hcl:"clef_rpc_address" template:""`
 }
 
 type ConfigTemplates struct {
@@ -189,7 +189,7 @@ func (c *Config) Validate(configDir string) error {
 		return fmt.Errorf("failed to validate genesis: %w", err)
 	}
 
-	if err := c.loadAndValidateNodeConfigs(); err != nil {
+	if err := c.loadAndValidateNodeSets(); err != nil {
 		return fmt.Errorf("failed to validate node configs: %w", err)
 	}
 
@@ -200,7 +200,7 @@ func (c *Config) Validate(configDir string) error {
 	return nil
 }
 
-func (c *Config) loadAndValidateNodeConfigs() error {
+func (c *Config) loadAndValidateNodeSets() error {
 	mErr := utils.NewMultiError()
 
 	for i, nc := range c.Network.Nodes {
@@ -221,6 +221,7 @@ func (c *Config) loadAndValidateNodeConfigs() error {
 		if nc.PreGenerate != nil {
 			updatedPreGen, err := c.loadAndValidatePreGenerate(*nc.PreGenerate)
 			if err != nil {
+				mErr.Add(fmt.Errorf("failed to validate node set pre generate templates: %w", err))
 				return err
 			}
 
@@ -236,6 +237,10 @@ func (c *Config) loadAndValidateNodeConfigs() error {
 
 	return nil
 }
+
+// func (c Config) templateString(index int) (string, error) {
+
+// }
 
 func (c Config) loadAndValidatePreGenerate(preGen PreGenerate) (*PreGenerate, error) {
 	mErr := utils.NewMultiError()
