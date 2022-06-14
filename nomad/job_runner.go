@@ -347,6 +347,8 @@ func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, gene
 	}
 	var lock sync.Mutex
 
+	result.AddExtraJobIDs(generatedSvcs.PreGenerateJobsIDs)
+
 	if conf.Network.PreStart != nil {
 		extraJobIDs, err := r.runDockerJobs(ctx, conf.Network.PreStart.Docker)
 		if err != nil {

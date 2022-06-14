@@ -3,6 +3,7 @@ package generator
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/generator/nomad"
@@ -62,4 +63,11 @@ func (g *Generator) startNomadJobs(rawNomadJobs []string) ([]string, error) {
 	}
 
 	return jobIDs, nil
+}
+
+func (g *Generator) stopNomadJobs() error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
+	defer cancel()
+
+	return g.jobRunner.StopNetwork(ctx, nil, false)
 }
