@@ -149,19 +149,24 @@ func (g *Generator) AddNodeSet(index int, nc config.NodeConfig, ns types.NodeSet
 		return nil, err
 	}
 
-	initNodeSet, err := g.initiateNodeSet(index, nc)
+	cnc, err := nc.Clone()
+	if err != nil {
+		return nil, fmt.Errorf("failed to clode node config for %q: %w", nc.Name, err)
+	}
+
+	initNodeSet, err := g.initiateNodeSet(index, *cnc)
 	if err != nil {
 		return nil, err
 	}
 
 	initNodeSet.PreGenerateJobsIDs = preGenJobIDs
 
-	co, err := newConfigOverride(g, nc)
+	co, err := newConfigOverride(g, *cnc)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := co.Overwrite(nc, *initNodeSet, fc); err != nil {
+	if err := co.Overwrite(*cnc, *initNodeSet, fc); err != nil {
 		return nil, err
 	}
 

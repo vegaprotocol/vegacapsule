@@ -2,11 +2,13 @@ package generator
 
 import (
 	"fmt"
+	"sync"
 
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/generator/nomad"
 	"code.vegaprotocol.io/vegacapsule/generator/wallet"
 	"code.vegaprotocol.io/vegacapsule/types"
+	"golang.org/x/sync/errgroup"
 )
 
 func (g *Generator) initiateNodeSet(index int, nc config.NodeConfig) (*types.NodeSet, error) {
@@ -68,33 +70,50 @@ func (g *Generator) initiateNodeSet(index int, nc config.NodeConfig) (*types.Nod
 }
 
 func (g *Generator) initiateNodeSets() (*nodeSets, error) {
+	var mut sync.Mutex
 	validatorsSet := []types.NodeSet{}
 	nonValidatorsSet := []types.NodeSet{}
 
+	var eg errgroup.Group
 	var index int
 	for _, n := range g.conf.Network.Nodes {
-		// @TODO - this could be run in pararel to speed things up
 		for i := 0; i < n.Count; i++ {
-			preGenJobIDs, err := g.startPreGenerateJobs(n, index)
+			nc, err := n.Clone()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("failed to clode node config for %q: %w", n.Name, err)
 			}
+			indexc := index
 
-			nodeSet, err := g.initiateNodeSet(index, n)
-			if err != nil {
-				return nil, err
-			}
+			eg.Go(func() error {
+				preGenJobIDs, err := g.startPreGenerateJobs(*nc, indexc)
+				if err != nil {
+					return err
+				}
 
-			nodeSet.PreGenerateJobsIDs = preGenJobIDs
+				nodeSet, err := g.initiateNodeSet(indexc, *nc)
+				if err != nil {
+					return err
+				}
 
-			if n.Mode == types.NodeModeValidator {
-				validatorsSet = append(validatorsSet, *nodeSet)
-			} else {
-				nonValidatorsSet = append(nonValidatorsSet, *nodeSet)
-			}
+				nodeSet.PreGenerateJobsIDs = preGenJobIDs
+
+				mut.Lock()
+				if nc.Mode == types.NodeModeValidator {
+					validatorsSet = append(validatorsSet, *nodeSet)
+				} else {
+					nonValidatorsSet = append(nonValidatorsSet, *nodeSet)
+				}
+				mut.Unlock()
+
+				return nil
+			})
 
 			index++
 		}
+	}
+
+	if err := eg.Wait(); err != nil {
+		return nil, err
 	}
 
 	return &nodeSets{

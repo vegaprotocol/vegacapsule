@@ -53,7 +53,6 @@ func templateStruct(v reflect.Value, templateFunc func(templateRaw string) (*byt
 	v = reflect.Indirect(v)
 	switch v.Kind() {
 	case reflect.String:
-
 		buff, err := templateFunc(v.String())
 		if err != nil {
 			return err
