@@ -152,6 +152,7 @@ func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
 }
 
 func (r *JobRunner) RunRawNomadJobs(ctx context.Context, rawJobs []string) ([]*api.Job, error) {
+	var mut sync.Mutex
 	jobs := make([]*api.Job, 0, len(rawJobs))
 
 	eg := new(errgroup.Group)
@@ -169,7 +170,15 @@ func (r *JobRunner) RunRawNomadJobs(ctx context.Context, rawJobs []string) ([]*a
 				return fmt.Errorf("failed to parse Nomad job: %w", err)
 			}
 
-			return r.client.RunAndWait(ctx, job)
+			if err := r.client.RunAndWait(ctx, job); err != nil {
+				return err
+			}
+
+			mut.Lock()
+			jobs = append(jobs, job)
+			mut.Unlock()
+
+			return nil
 		})
 	}
 
