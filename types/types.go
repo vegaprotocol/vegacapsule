@@ -230,6 +230,10 @@ func (nj NetworkJobs) Exists(jobID string) bool {
 }
 
 func (nj NetworkJobs) AddExtraJobIDs(ids []string) {
+	if nj.ExtraJobIDs == nil {
+		nj.ExtraJobIDs = JobIDMap{}
+	}
+
 	for _, id := range ids {
 		nj.ExtraJobIDs[id] = true
 	}
