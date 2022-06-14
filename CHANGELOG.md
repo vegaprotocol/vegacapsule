@@ -21,6 +21,7 @@
 - [122](https://github.com/vegaprotocol/vegacapsule/issues/122) Add support for sentry nodes and loading node sets templates from files
 - [124](https://github.com/vegaprotocol/vegacapsule/issues/124) Allow updating network configurations with templating after network is generated
 - [139](https://github.com/vegaprotocol/vegacapsule/issues/139) Allow non validator nodes to be iterated during wallet configuration
+- [142](https://github.com/vegaprotocol/vegacapsule/issues/142) Allow NodeHomeDir to be used as an expansion in vega node config
 
 ### 🐛 Fixes
 - [117](https://github.com/vegaprotocol/vegacapsule/pull/117) - fix nil dereference panics in config

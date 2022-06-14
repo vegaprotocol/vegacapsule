@@ -25,6 +25,7 @@ type ConfigTemplateContext struct {
 	FaucetPublicKey      string
 	NodeNumber           int
 	NodeSet              types.NodeSet
+	NodeHomeDir          string
 }
 
 func NewConfigTemplate(templateRaw string) (*template.Template, error) {
@@ -46,6 +47,7 @@ func (vg ConfigGenerator) TemplateConfig(ns types.NodeSet, fc *types.Faucet, con
 		NodeMode:             ns.Mode,
 		NodeNumber:           ns.Index,
 		NodeSet:              ns,
+		NodeHomeDir:          vg.nodeDir(ns.Index),
 	}
 
 	if fc != nil {
