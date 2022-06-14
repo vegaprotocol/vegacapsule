@@ -122,6 +122,20 @@ type NodeConfig struct {
 	NomadJobTemplateFile *string         `hcl:"nomad_job_template_file,optional"`
 }
 
+func (nc NodeConfig) Clone() (*NodeConfig, error) {
+	origJSON, err := json.Marshal(nc)
+	if err != nil {
+		return nil, err
+	}
+
+	clone := NodeConfig{}
+	if err = json.Unmarshal(origJSON, &clone); err != nil {
+		return nil, err
+	}
+
+	return &clone, nil
+}
+
 type ClefConfig struct {
 	AccountAddress string `hcl:"ethereum_account_address" template:""`
 	ClefRPCAddr    string `hcl:"clef_rpc_address" template:""`
