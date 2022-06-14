@@ -37,6 +37,7 @@ func (ns nodeSets) GetAllByGroupName(groupName string) []types.NodeSet {
 
 type jobRunner interface {
 	RunRawNomadJobs(ctx context.Context, rawJobs []string) ([]*api.Job, error)
+	StopNetwork(ctx context.Context, jobs *types.NetworkJobs, nodesOnly bool) error
 }
 
 type Generator struct {
@@ -106,7 +107,7 @@ func (g *Generator) configureNodeSets(nss *nodeSets, fc *types.Faucet) error {
 	return nil
 }
 
-func (g *Generator) Generate() (*types.GeneratedServices, error) {
+func (g *Generator) Generate() (genSvc *types.GeneratedServices, err error) {
 	var fc *types.Faucet
 	if g.conf.Network.Faucet != nil {
 		initFaucet, err := g.initAndConfigureFaucet(g.conf.Network.Faucet)
@@ -121,6 +122,13 @@ func (g *Generator) Generate() (*types.GeneratedServices, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	defer func() {
+		// Stop pre-generate jobs
+		if err != nil {
+			g.stopNomadJobs()
+		}
+	}()
 
 	if err := g.configureNodeSets(ns, fc); err != nil {
 		return nil, err
@@ -148,6 +156,13 @@ func (g *Generator) AddNodeSet(index int, nc config.NodeConfig, ns types.NodeSet
 	if err != nil {
 		return nil, err
 	}
+
+	defer func() {
+		// Stop pre-generate jobs
+		if err != nil {
+			g.stopNomadJobs()
+		}
+	}()
 
 	cnc, err := nc.Clone()
 	if err != nil {

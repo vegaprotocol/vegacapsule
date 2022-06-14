@@ -79,22 +79,26 @@ func (nm NodeSetMap) ToSlice() []NodeSet {
 }
 
 type GeneratedServices struct {
-	Wallet   *Wallet
-	Faucet   *Faucet
-	NodeSets NodeSetMap
+	Wallet             *Wallet
+	Faucet             *Faucet
+	NodeSets           NodeSetMap
+	PreGenerateJobsIDs []string
 }
 
 func NewGeneratedServices(w *Wallet, f *Faucet, ns []NodeSet) *GeneratedServices {
 	nsm := NodeSetMap{}
+	preGenJobsIDs := []string{}
 
 	for _, ns := range ns {
 		nsm[ns.Name] = ns
+		preGenJobsIDs = append(preGenJobsIDs, ns.PreGenerateJobsIDs...)
 	}
 
 	return &GeneratedServices{
-		Wallet:   w,
-		Faucet:   f,
-		NodeSets: nsm,
+		Wallet:             w,
+		Faucet:             f,
+		NodeSets:           nsm,
+		PreGenerateJobsIDs: preGenJobsIDs,
 	}
 }
 
