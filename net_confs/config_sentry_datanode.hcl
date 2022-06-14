@@ -59,7 +59,6 @@ EOT
   smart_contracts_addresses_file = "./public_smart_contracts_addresses.json"
 
   ## We want 3 validator nodes with one having a set of sentry nodes
-  ## which is why we must define them all separately.
   node_set "validator-0" {
     count = 1
     mode = "validator"
@@ -73,21 +72,9 @@ EOT
     }
   }
 
-  node_set "validator-1" {
-    count = 1
-    mode = "validator"
-    node_wallet_pass = "n0d3w4ll3t-p4ssphr4e3"
-    vega_wallet_pass = "w4ll3t-p4ssphr4e3"
-    ethereum_wallet_pass = "ch41nw4ll3t-3th3r3um-p4ssphr4e3"
-
-    config_templates {
-      vega_file = "./node_set_templates/sentry/vega_validators.tmpl"
-      tendermint_file = "./node_set_templates/sentry/tendermint_validators.tmpl"
-    }
-  }
-
-  node_set "validator-2" {
-    count = 1
+  ## Two others with no sentry nodes for now
+  node_set "validators" {
+    count = 2
     mode = "validator"
     node_wallet_pass = "n0d3w4ll3t-p4ssphr4e3"
     vega_wallet_pass = "w4ll3t-p4ssphr4e3"

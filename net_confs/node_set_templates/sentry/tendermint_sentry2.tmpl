@@ -32,7 +32,7 @@ moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
 	  {{- if ne $i 0 }},{{end -}}
 	  {{- $id }}
   {{- end -}}"
-  private_peer_ids = "{{- range $i, $id := .NodeIDsByGroupName "validator-1" -}}
+  private_peer_ids = "{{- range $i, $id := .NodeIDsByGroupName "validator-0" -}}
 	  {{- if ne $i 0 }},{{end -}}
 	  {{- $id }}
   {{- end -}}"
