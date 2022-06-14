@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"path/filepath"
 	"text/template"
 
 	"code.vegaprotocol.io/vegacapsule/config"
@@ -213,4 +214,8 @@ func mergeJSON(dst, src []byte) ([]byte, error) {
 	}
 
 	return b, nil
+}
+
+func ConfigFilePath(nodeDir string) string {
+	return filepath.Join(nodeDir, "config", "genesis.json")
 }

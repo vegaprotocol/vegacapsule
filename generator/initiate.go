@@ -91,13 +91,13 @@ func (g *Generator) initAndConfigureFaucet(conf *config.FaucetConfig) (*types.Fa
 	return initFaucet, nil
 }
 
-func (g *Generator) initAndConfigureWallet(conf *config.WalletConfig, validatorsSet []types.NodeSet) (*types.Wallet, error) {
+func (g *Generator) initAndConfigureWallet(conf *config.WalletConfig, validatorsSet, nonValidatorSet []types.NodeSet) (*types.Wallet, error) {
 	walletConfTemplate, err := wallet.NewConfigTemplate(g.conf.Network.Wallet.Template)
 	if err != nil {
 		return nil, err
 	}
 
-	initWallet, err := g.walletGen.InitiateWithNetworkConfig(g.conf.Network.Wallet, validatorsSet, walletConfTemplate)
+	initWallet, err := g.walletGen.InitiateWithNetworkConfig(g.conf.Network.Wallet, validatorsSet, nonValidatorSet, walletConfTemplate)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initate wallet: %w", err)
 	}

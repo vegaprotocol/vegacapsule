@@ -14,18 +14,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const (
-	vegaNodeSetTemplateType       = "vega"
-	tendermintNodeSetTemplateType = "tendermint"
-	dataNodeNodeSetTemplateType   = "datanode"
-)
-
 var (
-	nodeSetGroupName    string
-	nodeSetName         string
+	nodeSetsGroupsNames []string
+	nodeSetsNames       []string
 	nodeSetTemplateType string
 
-	nodeSetTemplateTypes = []string{vegaNodeSetTemplateType, tendermintNodeSetTemplateType, dataNodeNodeSetTemplateType}
+	nodeSetTemplateTypes = []templateKindType{vegaNodeSetTemplateType, tendermintNodeSetTemplateType, dataNodeNodeSetTemplateType}
 )
 
 var templateNodeSetsCmd = &cobra.Command{
@@ -46,8 +40,30 @@ var templateNodeSetsCmd = &cobra.Command{
 			return networkNotBootstrappedErr("template node-sets")
 		}
 
-		return templateNodeSets(nodeSetTemplateType, string(template), networkState)
+		return templateNodeSets(templateKindType(nodeSetTemplateType), string(template), networkState)
 	},
+	SilenceUsage: true,
+	Example: `
+# Generate the vega template
+vegacapsule template node-sets --type vega --path .../vega_validators.tmpl--nodeset-group-name validators
+
+# Generate the tendermint template
+vegacapsule template node-sets --type tendermint --path .../tendermint_validators.tmpl --nodeset-group-name validators
+
+# Generate the vega template
+vegacapsule template node-sets --type data-node --path .../data-node_full.tmpl --nodeset-group-name full
+
+# Generate the configuration for multiple node sets #1
+vegacapsule template node-sets --type vega --path .../vega_common.tmpl --nodeset-group-name validators,full
+
+# Generate the configuration for multiple node sets #2
+vegacapsule template node-sets --type vega --path .../vega_common.tmpl --nodeset-group-name validators --nodeset-group-name full
+
+# Generate the configuration for particular vega node
+vegacapsule template node-sets --type vega --path .../vega_validator.tmpl --nodeset-name testnet-nodeset-validators-0-validator
+
+# Update prebiously generated network configuration with merge to current configuration
+main.go template node-sets --type vega --path .../vega_common.tmpl --nodeset-group-name validators,full --with-merge --update-network`,
 }
 
 func init() {
@@ -63,16 +79,16 @@ func init() {
 		"Defines whether the templated config should be merged with the originally initiated one",
 	)
 
-	templateNodeSetsCmd.PersistentFlags().StringVar(&nodeSetGroupName,
+	templateNodeSetsCmd.PersistentFlags().StringSliceVar(&nodeSetsGroupsNames,
 		"nodeset-group-name",
-		"",
-		"Allows to apply template to all node sets in a specific group",
+		[]string{},
+		"Allows to apply template to all node sets in a specific groups, Flag takes a coma separated list of strings.",
 	)
 
-	templateNodeSetsCmd.PersistentFlags().StringVar(&nodeSetName,
+	templateNodeSetsCmd.PersistentFlags().StringSliceVar(&nodeSetsNames,
 		"nodeset-name",
-		"",
-		"Allows to apply template to a specific node set",
+		[]string{},
+		"Allows to apply template to a specific node sets. Flag takes a coma separated list of strings",
 	)
 
 	templateNodeSetsCmd.MarkPersistentFlagRequired("type") // nolint:errcheck
@@ -80,8 +96,8 @@ func init() {
 
 type templateFunc func(ns types.NodeSet, tmpl *template.Template) (*bytes.Buffer, error)
 
-func templateNodeSets(tmplType string, templateRaw string, netState *state.NetworkState) error {
-	nodeSets, err := getNodeSetsByNames(netState)
+func templateNodeSets(tmplType templateKindType, templateRaw string, netState *state.NetworkState) error {
+	nodeSets, err := filterNodesSets(netState, nodeSetsNames, nodeSetsGroupsNames)
 	if err != nil {
 		return err
 	}
@@ -138,7 +154,7 @@ func templateNodeSets(tmplType string, templateRaw string, netState *state.Netwo
 
 func templateNodeSetConfig(
 	templateF, templateAndMergeF templateFunc,
-	tmplType string,
+	tmplType templateKindType,
 	template *template.Template,
 	nodeSets []types.NodeSet,
 ) error {
@@ -155,32 +171,38 @@ func templateNodeSetConfig(
 			return err
 		}
 
-		fileName := fmt.Sprintf("%s-%s.conf", tmplType, ns.Name)
-		if err := outputTemplate(buff, fileName); err != nil {
-			return err
+		if templateUpdateNetwork {
+			if err := updateTemplateForNode(tmplType, ns.Tendermint.HomeDir, buff); err != nil {
+				return fmt.Errorf("failed to update template for node %d: %w", ns.Index, err)
+			}
+		} else {
+			fileName := fmt.Sprintf("%s-%s.conf", tmplType, ns.Name)
+			if err := outputTemplate(buff, templateOutDir, fileName, true); err != nil {
+				return fmt.Errorf("failed to print generated template for node %d: %w", ns.Index, err)
+			}
 		}
 	}
 
 	return nil
 }
 
-func getNodeSetsByNames(netState *state.NetworkState) ([]types.NodeSet, error) {
-	if nodeSetGroupName == "" && nodeSetName == "" {
-		return nil, fmt.Errorf("either of 'nodeset-name' or 'nodeset-group-name' flags must be defined to template node set")
+func filterNodesSets(netState *state.NetworkState, nodeSetsNames, nodeSetsGroupsNames []string) ([]types.NodeSet, error) {
+	if len(nodeSetsGroupsNames) == 0 && len(nodeSetsNames) == 0 {
+		return nil, fmt.Errorf("either of 'nodeset-name', 'nodeset-group-name' flags must be defined to template node set")
 	}
 
-	if nodeSetName != "" {
-		ns, err := netState.GeneratedServices.GetNodeSet(nodeSetName)
-		if err != nil {
-			return nil, err
-		}
-
-		return []types.NodeSet{*ns}, nil
+	filters := []types.NodeSetFilter{}
+	if len(nodeSetsNames) > 0 {
+		filters = append(filters, types.NodeSetFilterByNames(nodeSetsNames))
 	}
 
-	nodeSets := netState.GeneratedServices.GetNodeSetsByGroupName(nodeSetGroupName)
+	if len(nodeSetsGroupsNames) > 0 {
+		filters = append(filters, types.NodeSetFilterByGroupNames(nodeSetsGroupsNames))
+	}
+
+	nodeSets := types.FilterNodeSets(netState.GeneratedServices.NodeSets.ToSlice(), filters...)
 	if len(nodeSets) == 0 {
-		return nil, fmt.Errorf("node set group with name %q not found", nodeSetGroupName)
+		return nil, fmt.Errorf("node set group with given criteria [names: '%v', groups-names: '%v'] not found", nodeSetsNames, nodeSetsGroupsNames)
 	}
 
 	return nodeSets, nil
