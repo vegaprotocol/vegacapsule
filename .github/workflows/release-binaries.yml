@@ -18,6 +18,8 @@ jobs:
       GOOS: linux
       GOARCH: ${{ matrix.arch }}
       CGO_ENABLED: 0
+      GOPROXY: "${{ secrets.GOPROXY }}"
+      GO111MODULE: on 
     steps:
       - name: Set up Go
         uses: actions/setup-go@v2
@@ -29,7 +31,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Get dependencies
-        run: go get -v -t -d ./...
+        run: go mod vendor
 
       - name: Run tests
         if: ${{ env.GOARCH == 'amd64' }}
