@@ -29,7 +29,7 @@ Host = "0.0.0.0"
 
 [API]
   [API.GRPC]
-    Hosts = [{{range $i, $v := .Validators}}{{if ne $i 0}},{{end}}"127.0.0.1:30{{$i}}2"{{end}}]
+    Hosts = [{{range $i, $v := .NonValidators}}{{if eq $v.GroupName "sentry"}}{{if ne $i 1}},{{end}}"127.0.0.1:30{{$v.Index}}2"{{end}}{{end}}]
     Retries = 5
 EOT
   }
