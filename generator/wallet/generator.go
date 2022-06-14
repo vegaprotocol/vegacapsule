@@ -23,6 +23,7 @@ type ConfigTemplateContext struct {
 	DataNodePrefix       string
 	WalletPrefix         string
 	Validators           []types.NodeSet
+	NonValidators        []types.NodeSet
 }
 
 func NewConfigTemplate(templateRaw string) (*template.Template, error) {
@@ -51,7 +52,7 @@ func NewConfigGenerator(conf *config.Config) (*ConfigGenerator, error) {
 	}, nil
 }
 
-func (cg *ConfigGenerator) InitiateWithNetworkConfig(conf *config.WalletConfig, validators []types.NodeSet, configTemplate *template.Template) (*types.Wallet, error) {
+func (cg *ConfigGenerator) InitiateWithNetworkConfig(conf *config.WalletConfig, validators, nonValidators []types.NodeSet, configTemplate *template.Template) (*types.Wallet, error) {
 	if err := os.MkdirAll(cg.homeDir, os.ModePerm); err != nil {
 		return nil, err
 	}
@@ -61,7 +62,7 @@ func (cg *ConfigGenerator) InitiateWithNetworkConfig(conf *config.WalletConfig, 
 		return nil, fmt.Errorf("failed to initiate wallet %s: %w", conf.Name, err)
 	}
 
-	if err := cg.generateNetworkConfig(validators, configTemplate); err != nil {
+	if err := cg.generateNetworkConfig(validators, nonValidators, configTemplate); err != nil {
 		return nil, fmt.Errorf("failed to generate network config %q: %w", cg.configFilePath(), err)
 	}
 
@@ -80,7 +81,7 @@ func (cg *ConfigGenerator) InitiateWithNetworkConfig(conf *config.WalletConfig, 
 	}, nil
 }
 
-func (cg ConfigGenerator) generateNetworkConfig(validators []types.NodeSet, configTemplate *template.Template) error {
+func (cg ConfigGenerator) generateNetworkConfig(validators, nonValidators []types.NodeSet, configTemplate *template.Template) error {
 	templateCtx := ConfigTemplateContext{
 		Prefix:               *cg.conf.Prefix,
 		TendermintNodePrefix: *cg.conf.TendermintNodePrefix,
@@ -88,6 +89,7 @@ func (cg ConfigGenerator) generateNetworkConfig(validators []types.NodeSet, conf
 		DataNodePrefix:       *cg.conf.DataNodePrefix,
 		WalletPrefix:         *cg.conf.VegaNodePrefix,
 		Validators:           validators,
+		NonValidators:        nonValidators,
 	}
 
 	buff := bytes.NewBuffer([]byte{})
