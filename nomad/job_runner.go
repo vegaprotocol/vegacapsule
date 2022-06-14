@@ -95,7 +95,6 @@ func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
 					"--home", ns.Tendermint.HomeDir,
 				},
 			},
-			Meta: getDefaultTaskMeta(ns, types.TaskTendermint),
 			Resources: &api.Resources{
 				CPU:      utils.IntPoint(500),
 				MemoryMB: utils.IntPoint(512),
@@ -112,7 +111,6 @@ func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
 					"--nodewallet-passphrase-file", ns.Vega.NodeWalletPassFilePath,
 				},
 			},
-			Meta: getDefaultTaskMeta(ns, types.TaskVega),
 			Resources: &api.Resources{
 				CPU:      utils.IntPoint(500),
 				MemoryMB: utils.IntPoint(512),
@@ -130,7 +128,6 @@ func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
 					"--home", ns.DataNode.HomeDir,
 				},
 			},
-			Meta: getDefaultTaskMeta(ns, types.TaskDataNode),
 			Resources: &api.Resources{
 				CPU:      utils.IntPoint(500),
 				MemoryMB: utils.IntPoint(512),
@@ -213,29 +210,43 @@ func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) (
 			}
 
 			jobs = append(jobs, *job)
+			jobsStates = append(jobsStates, types.NetworkJobState{
+				Name:    *job.ID,
+				Running: true, // TODO: Is this assumption correct?
+				Kind:    types.JobCommandRunner,
+			})
 		}
 
+		var jobName string
 		if ns.NomadJobRaw == nil {
 			log.Printf("adding node set %q with default Nomad job definition", ns.Name)
 
-			jobs = append(jobs, r.defaultNodeSetJob(ns))
-			continue
+			job := r.defaultNodeSetJob(ns)
+			jobs = append(jobs, job)
+			jobName = *job.ID
+		} else {
+			log.Printf("adding node set %q with custom Nomad job definition", ns.Name)
+			var err error
+			job, err := jobspec2.ParseWithConfig(&jobspec2.ParseConfig{
+				Path:    "node_set.hcl",
+				Body:    []byte(*ns.NomadJobRaw),
+				ArgVars: []string{},
+				AllowFS: true,
+			})
+
+			if err != nil {
+				return nil, err
+			}
+
+			jobs = append(jobs, *job)
+			jobName = *job.ID
 		}
 
-		job, err := jobspec2.ParseWithConfig(&jobspec2.ParseConfig{
-			Path:    "node_set.hcl",
-			Body:    []byte(*ns.NomadJobRaw),
-			ArgVars: []string{},
-			AllowFS: true,
+		jobsStates = append(jobsStates, types.NetworkJobState{
+			Name:    jobName,
+			Running: true, // TODO: Is this assumption correct?
+			Kind:    types.JobNodeSet,
 		})
-
-		if err != nil {
-			return nil, err
-		}
-
-		log.Printf("adding node set %q with custom Nomad job definition", ns.Name)
-
-		jobs = append(jobs, job)
 	}
 
 	eg := new(errgroup.Group)
@@ -251,7 +262,7 @@ func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) (
 		return nil, fmt.Errorf("failed to wait for node sets: %w", err)
 	}
 
-	return jobs, nil
+	return jobsStates, nil
 }
 
 func (r *JobRunner) runWallet(ctx context.Context, conf *config.WalletConfig, wallet *types.Wallet) (*api.Job, error) {
@@ -372,20 +383,21 @@ func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, gene
 	g, ctx := errgroup.WithContext(gCtx)
 
 	result := &types.NetworkJobs{
-		NodesSetsJobIDs: map[string]bool{},
-		ExtraJobIDs:     map[string]bool{},
+		NodesSetsJobs:      types.JobIDMap{},
+		ExtraJobs:          types.JobIDMap{},
+		CommandRunnersJobs: types.JobIDMap{},
 	}
 	var lock sync.Mutex
 
 	result.AddExtraJobIDs(generatedSvcs.PreGenerateJobsIDs())
 
 	if conf.Network.PreStart != nil {
-		extraJobIDs, err := r.runDockerJobs(ctx, conf.Network.PreStart.Docker)
+		ExtraJobs, err := r.runDockerJobs(ctx, conf.Network.PreStart.Docker)
 		if err != nil {
 			return nil, fmt.Errorf("failed to run pre start jobs: %w", err)
 		}
 
-		result.AddExtraJobIDs(extraJobIDs)
+		result.AddExtraJobs(ExtraJobs, types.JobPreStart)
 	}
 
 	// create new error group to be able call wait funcion again
@@ -397,7 +409,11 @@ func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, gene
 			}
 
 			lock.Lock()
-			result.FaucetJobID = *job.ID
+			result.FaucetJob = types.NetworkJobState{
+				Name:    *job.ID,
+				Running: true,
+				Kind:    types.JobFaucet,
+			}
 			lock.Unlock()
 
 			return nil
@@ -412,7 +428,11 @@ func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, gene
 			}
 
 			lock.Lock()
-			result.WalletJobID = *job.ID
+			result.WalletJob = types.NetworkJobState{
+				Name:    *job.ID,
+				Kind:    types.JobWallet,
+				Running: true,
+			}
 			lock.Unlock()
 
 			return nil
@@ -427,7 +447,7 @@ func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, gene
 
 		lock.Lock()
 		for _, job := range jobs {
-			result.NodesSetsJobIDs[*job.ID] = true
+			result.Append(job)
 		}
 		lock.Unlock()
 
@@ -439,12 +459,12 @@ func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, gene
 	}
 
 	if conf.Network.PostStart != nil {
-		extraJobIDs, err := r.runDockerJobs(gCtx, conf.Network.PostStart.Docker)
+		ExtraJobs, err := r.runDockerJobs(gCtx, conf.Network.PostStart.Docker)
 		if err != nil {
 			return nil, fmt.Errorf("failed to run post start jobs: %w", err)
 		}
 
-		result.AddExtraJobIDs(extraJobIDs)
+		result.AddExtraJobs(ExtraJobs, types.JobPostStart)
 	}
 
 	return result, nil
@@ -487,9 +507,9 @@ func (r *JobRunner) StopNetwork(ctx context.Context, jobs *types.NetworkJobs, no
 
 	allJobs := []string{}
 	if !nodesOnly {
-		allJobs = append(jobs.ExtraJobIDs.ToSlice(), jobs.WalletJobID, jobs.FaucetJobID)
+		allJobs = append(jobs.ExtraJobs.ToSlice(), jobs.WalletJob.Name, jobs.FaucetJob.Name)
 	}
-	allJobs = append(allJobs, jobs.NodesSetsJobIDs.ToSlice()...)
+	allJobs = append(allJobs, jobs.NodesSetsJobs.ToSlice()...)
 	g, ctx := errgroup.WithContext(ctx)
 	for _, jobName := range allJobs {
 		if jobName == "" {
@@ -504,7 +524,6 @@ func (r *JobRunner) StopNetwork(ctx context.Context, jobs *types.NetworkJobs, no
 			}
 			return nil
 		})
-
 	}
 
 	if err := g.Wait(); err != nil {
@@ -541,12 +560,4 @@ func (r *JobRunner) StopJobs(ctx context.Context, jobIDs []string) error {
 	}
 
 	return g.Wait()
-}
-
-func getDefaultTaskMeta(ns types.NodeSet, appKind types.TaskKind) map[string]string {
-	return map[string]string{
-		"app-kind":   string(appKind),
-		"node-index": fmt.Sprintf("%d", ns.Index),
-		"mode":       ns.Mode,
-	}
 }

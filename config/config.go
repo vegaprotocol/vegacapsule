@@ -49,9 +49,8 @@ type NetworkConfig struct {
 type CommandRunner struct {
 	PathsMapping ConfigRemoteNetworkPathsMapping `hcl:"paths_mapping,block"`
 
-	Meta                 map[string]string `hcl:"meta,optional"`
-	NomadJobTemplate     *string           `hcl:"nomad_job_template,optional"`
-	NomadJobTemplateFile *string           `hcl:"nomad_job_template_file,optional"`
+	NomadJobTemplate     *string `hcl:"nomad_job_template,optional"`
+	NomadJobTemplateFile *string `hcl:"nomad_job_template_file,optional"`
 }
 
 func (nc NetworkConfig) GetNodeConfig(name string) (*NodeConfig, error) {

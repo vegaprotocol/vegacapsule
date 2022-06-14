@@ -72,7 +72,7 @@ func nodesStopNode(ctx context.Context, state state.NetworkState, name string, s
 		return nil, fmt.Errorf("failed to stop nomad job %q: %w", name, err)
 	}
 
-	delete(state.RunningJobs.NodesSetsJobIDs, name)
+	delete(state.RunningJobs.NodesSetsJobs, name)
 
 	log.Printf("stopping %s node set success", name)
 	return &state, nil

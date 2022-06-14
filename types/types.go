@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sort"
 
+	"code.vegaprotocol.io/vegacapsule/utils"
 	"github.com/hashicorp/nomad/api"
 )
 
@@ -47,7 +48,6 @@ type NetworkPathsMapping struct {
 type CommandRunner struct {
 	Name        string
 	NomadJobRaw string
-	Meta        map[string]string
 
 	PathsMapping NetworkPathsMapping
 }
@@ -256,7 +256,13 @@ func (gs GeneratedServices) ListValidators() []VegaNodeOutput {
 	return validators
 }
 
-type JobIDMap map[string]bool
+type NetworkJobState struct {
+	Name    string
+	Kind    JobKind
+	Running bool
+}
+
+type JobIDMap map[string]NetworkJobState
 
 func (jm JobIDMap) ToSlice() []string {
 	slice := make([]string, 0, len(jm))
@@ -266,49 +272,80 @@ func (jm JobIDMap) ToSlice() []string {
 	return slice
 }
 
+type NetworkJobsFilter func(nj NetworkJobs) NetworkJobs
+
 type NetworkJobs struct {
-	NodesSetsJobIDs JobIDMap
-	ExtraJobIDs     JobIDMap
-	FaucetJobID     string
-	WalletJobID     string
+	CommandRunnersJobs JobIDMap
+	NodesSetsJobs      JobIDMap
+	ExtraJobs          JobIDMap
+	FaucetJob          NetworkJobState
+	WalletJob          NetworkJobState
+}
+
+func (nj NetworkJobs) Filter(filters []NetworkJobsFilter) NetworkJobs {
+	result := nj
+
+	for _, filter := range filters {
+		result = filter(result)
+	}
+
+	return result
+}
+
+func (nj *NetworkJobs) Append(job NetworkJobState) {
+	switch job.Kind {
+	case JobNodeSet:
+		nj.NodesSetsJobs[job.Name] = job
+	case JobCommandRunner:
+		nj.CommandRunnersJobs[job.Name] = job
+	case JobWallet:
+		nj.WalletJob = job
+	case JobFaucet:
+		nj.FaucetJob = job
+	default:
+		nj.ExtraJobs[job.Name] = job
+	}
 }
 
 func (nj NetworkJobs) Exists(jobID string) bool {
-	if _, ok := nj.NodesSetsJobIDs[jobID]; ok {
+	if _, ok := nj.NodesSetsJobs[jobID]; ok {
 		return true
 	}
-	if _, ok := nj.ExtraJobIDs[jobID]; ok {
+	if _, ok := nj.ExtraJobs[jobID]; ok {
 		return true
 	}
-	if nj.FaucetJobID == jobID {
+	if _, ok := nj.CommandRunnersJobs[jobID]; ok {
 		return true
 	}
-	if nj.WalletJobID == jobID {
+	if nj.FaucetJob.Name == jobID {
+		return true
+	}
+	if nj.WalletJob.Name == jobID {
 		return true
 	}
 
 	return false
 }
 
-func (nj NetworkJobs) AddExtraJobIDs(ids []string) {
-	if nj.ExtraJobIDs == nil {
-		nj.ExtraJobIDs = JobIDMap{}
-	}
-
+func (nj NetworkJobs) AddExtraJobs(ids []string, kind JobKind) {
 	for _, id := range ids {
-		nj.ExtraJobIDs[id] = true
+		nj.ExtraJobs[id] = NetworkJobState{
+			Name:    id,
+			Running: true,
+			Kind:    kind,
+		}
 	}
 }
 
 func (nj NetworkJobs) ToSlice() []string {
-	out := append(nj.NodesSetsJobIDs.ToSlice(), nj.ExtraJobIDs.ToSlice()...)
+	out := append(nj.NodesSetsJobs.ToSlice(), nj.ExtraJobs.ToSlice()...)
 
-	if nj.FaucetJobID != "" {
-		out = append(out, nj.FaucetJobID)
+	if nj.FaucetJob.Name != "" {
+		out = append(out, nj.FaucetJob.Name)
 	}
 
-	if nj.WalletJobID != "" {
-		out = append(out, nj.WalletJobID)
+	if nj.WalletJob.Name != "" {
+		out = append(out, nj.WalletJob.Name)
 	}
 
 	return out
@@ -339,10 +376,55 @@ const (
 	NodeWalletChainTypeEthereum = "ethereum"
 )
 
-type TaskKind string
+type JobKind string
 
 const (
-	TaskTendermint TaskKind = "tendermint"
-	TaskVega       TaskKind = "vega"
-	TaskDataNode   TaskKind = "data-node"
+	JobNodeSet       JobKind = "node-set"
+	JobCommandRunner JobKind = "command-runner"
+	JobPreStart      JobKind = "pre-start"
+	JobPostStart     JobKind = "post-start"
+	JobFaucet        JobKind = "faucet"
+	JobWallet        JobKind = "wallet"
 )
+
+func FilterNetworkJobsByJobKindIn(kinds []JobKind) NetworkJobsFilter {
+	return func(nj NetworkJobs) NetworkJobs {
+		result := NetworkJobs{}
+
+		for _, kind := range kinds {
+			switch kind {
+			case JobNodeSet:
+				result.NodesSetsJobs = nj.NodesSetsJobs
+			case JobCommandRunner:
+				result.CommandRunnersJobs = nj.CommandRunnersJobs
+			case JobWallet:
+				result.WalletJob = nj.WalletJob
+			case JobFaucet:
+				result.FaucetJob = nj.FaucetJob
+			default:
+				for jobName, job := range nj.ExtraJobs {
+					if job.Kind != kind {
+						continue
+					}
+					result.ExtraJobs[jobName] = job
+				}
+			}
+		}
+
+		return result
+	}
+}
+
+func FilterNetworkJobsByJobKindNotIn(notWantedKinds []JobKind) NetworkJobsFilter {
+	allJobsKinds := []JobKind{JobNodeSet, JobCommandRunner, JobPreStart, JobPostStart, JobFaucet, JobWallet}
+
+	wantedKinds := []JobKind{}
+	for _, kind := range allJobsKinds {
+		if utils.IndexInSlice(notWantedKinds, kind) == -1 {
+			wantedKinds = append(wantedKinds, kind)
+		}
+	}
+
+	return FilterNetworkJobsByJobKindIn(wantedKinds)
+
+}

@@ -61,7 +61,6 @@ func (g *Generator) initiateNodeSet(index int, nc config.NodeConfig) (*types.Nod
 	if n.RemoteCommandRunner != nil {
 		nodeSet.RemoteCommandRunner = &types.CommandRunner{
 			Name: fmt.Sprintf("%s-cmd-runner", nodeSet.Name),
-			Meta: n.RemoteCommandRunner.Meta,
 			PathsMapping: types.NetworkPathsMapping{
 				VegaBinary:     *n.RemoteCommandRunner.PathsMapping.VegaBinary,
 				VegaHome:       *n.RemoteCommandRunner.PathsMapping.VegaHome,

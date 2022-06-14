@@ -93,7 +93,7 @@ func filterJobIDsForLogs(jobs types.NetworkJobs, nodeSetsOnly bool, jobID string
 	}
 
 	if nodeSetsOnly {
-		return jobs.NodesSetsJobIDs.ToSlice(), nil
+		return jobs.NodesSetsJobs.ToSlice(), nil
 	}
 
 	return jobs.ToSlice(), nil

@@ -63,12 +63,14 @@ func nodesStartNode(ctx context.Context, state state.NetworkState, name string) 
 		return nil, fmt.Errorf("failed to start node set %q pre generate jobs: %w", nodeSet.Name, err)
 	}
 
-	res, err := nomadRunner.RunNodeSets(ctx, []types.NodeSet{*nodeSet})
+	runningJobsStates, err := nomadRunner.RunNodeSets(ctx, []types.NodeSet{*nodeSet})
 	if err != nil {
 		return nil, fmt.Errorf("failed to start nomad node set %q : %w", nodeSet.Name, err)
 	}
 
-	state.RunningJobs.NodesSetsJobIDs[*res[0].ID] = true
+	for _, job := range runningJobsStates {
+		state.RunningJobs.Append(job)
+	}
 
 	log.Printf("starting %s node set success", name)
 	return &state, nil

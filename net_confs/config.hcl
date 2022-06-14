@@ -74,11 +74,6 @@ EOT
     remote_command_runner {
       nomad_job_template_file = "./node_set_templates/command_runner.hcl"
 
-      meta = {
-        "key-1" = "val1"
-        "key2" = "val2"
-      }
-
       paths_mapping {
         tendermint_home = "/Users/daniel/.vegacapsule/testnet/tendermint/node0/"
         vega_home = "/Users/daniel/.vegacapsule/testnet/vega/node0/"
@@ -102,11 +97,6 @@ EOT
 
     remote_command_runner {
       nomad_job_template_file = "./node_set_templates/command_runner.hcl"
-
-      meta = {
-        "key-1" = "val1"
-        "key2" = "val2"
-      }
 
       paths_mapping {
         tendermint_home = "/Users/daniel/.vegacapsule/testnet/tendermint/node1/"

@@ -23,7 +23,7 @@ func (ns *NetworkState) Empty() bool {
 }
 
 func (ns *NetworkState) Running() bool {
-	return !ns.Empty() && ns.RunningJobs != nil && len(ns.RunningJobs.NodesSetsJobIDs) != 0
+	return !ns.Empty() && ns.RunningJobs != nil && len(ns.RunningJobs.NodesSetsJobs) != 0
 }
 
 func (ns NetworkState) Persist() error {

@@ -7,12 +7,6 @@ job "{{ .RemoteCommandRunner.Name }}-t" {
 
   group "command-runner" {
     task "runner" {
-      meta {
-        {{ range $metakey, $metaval := .RemoteCommandRunner.Meta }}
-        {{ $metakey }} = "{{ $metaval }}"
-        {{ end }}
-      }
-
       driver = "raw_exec"
 
       config {
