@@ -35,26 +35,16 @@ var nodesUnsafeResetAllCmd = &cobra.Command{
 				netState.GeneratedServices.NodeSets.ToSlice(),
 			)
 		} else {
-			nomadClient, err := nomad.NewClient(nil)
+			var nomadClient *nomad.Client
+			nomadClient, err = nomad.NewClient(nil)
 			if err != nil {
 				return fmt.Errorf("failed to create nomad client: %w", err)
 			}
 
 			commandRunner := nomad.NewCommandRunner(nomadClient)
-			cmdResult, err = commandRunner.Execute(
-				context.Background(),
-				"{{ .VegaBinary }}",
-				[]string{
-					"unsafe_reset_all",
-					"--home", "{{ .VegaHome }}",
-				},
-				netState.GeneratedServices.NodeSets.ToSlice())
-
-			if err != nil {
-				return err
-			}
-
+			cmdResult, err = commandRunner.NetworkUnsafeResetAll(context.Background(), netState.GeneratedServices.NodeSets.ToSlice())
 		}
+
 		if err != nil {
 			return fmt.Errorf("failed to reset node sets: %w", err)
 		}

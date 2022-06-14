@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"strings"
-	"text/template"
 
 	"code.vegaprotocol.io/vegacapsule/types"
 	"github.com/hashicorp/nomad/api"
@@ -17,114 +16,71 @@ const (
 	NomadStateRunning = "running"
 )
 
-type CommandRunner struct {
+type CommandExecutor struct {
 	allocationsClient *api.Allocations
-}
-
-type command struct {
-	binary string
-	args   []string
-}
-
-func (cmd *command) ToSlice() []string {
-	return append([]string{cmd.binary}, cmd.args...)
 }
 
 type remoteCommandRunnerDetails struct {
 	NodeSet    types.NodeSet
 	Allocation *api.Allocation
 	TaskID     string
-	Command    command
 }
 
-func NewCommandRunner(client *Client) *CommandRunner {
-	return &CommandRunner{
+type commandCallback func(pathsMapping types.NetworkPathsMapping) []string
+
+func NewCommandRunner(client *Client) *CommandExecutor {
+	return &CommandExecutor{
 		allocationsClient: client.API.Allocations(),
 	}
 }
 
-func (runner *CommandRunner) Execute(ctx context.Context, binary string, args []string, nodeSets []types.NodeSet) (io.Reader, error) {
+func (runner *CommandExecutor) executeCallbacks(ctx context.Context, cmdCallbacks []commandCallback, nodeSets []types.NodeSet) (io.Reader, error) {
 	allocations, err := runner.filterCommandRunnerAllocations(nodeSets)
 	if err != nil {
 		return nil, fmt.Errorf("failed to filter command runner alocations: %w", err)
 	}
 
-	for idx, allocationDetails := range allocations {
-		command, err := remoteCommandForNodeSet(allocationDetails.NodeSet, binary, args)
-		if err != nil {
-			return nil, fmt.Errorf("failed to prepare command for nodeset \"%s\": %w", allocationDetails.NodeSet.Name, err)
-		}
-
-		allocations[idx].Command = *command
-	}
-
 	var result bytes.Buffer
 	buffWriter := bufio.NewWriter(&result)
-	// buffReader := bufio.NewReader(&result)
+
 	// TODO: Parallel below executions
 	// The exec call blocks until command terminates (or an error occurs), and returns the exit code.
 	for _, allocationDetails := range allocations {
-		buffWriter.WriteString(fmt.Sprintf(
-			"\nRunning the %v command for the\"%s\" node set\n",
-			allocationDetails.Command.ToSlice(), allocationDetails.NodeSet.Name))
-		exitCode, err := runner.allocationsClient.Exec(ctx,
-			allocationDetails.Allocation,
-			allocationDetails.TaskID,
-			false,
-			allocationDetails.Command.ToSlice(),
-			strings.NewReader(""),
-			buffWriter,
-			buffWriter,
-			nil,
-			&api.QueryOptions{},
-		)
+		for _, cmdCallback := range cmdCallbacks {
+			command := cmdCallback(allocationDetails.NodeSet.RemoteCommandRunner.PathsMapping)
 
-		if err != nil {
-			return nil, fmt.Errorf("execution of %v failed for the \"%s\" node-set with exitcode \"%d\": %w",
-				allocationDetails.Command.ToSlice(), allocationDetails.NodeSet.Name, exitCode, err)
+			if _, err := buffWriter.WriteString(fmt.Sprintf(
+				"\nRunning the %v command for the\"%s\" node set\n",
+				command, allocationDetails.NodeSet.Name)); err != nil {
+
+				return nil, fmt.Errorf("failed to write message to the out buffer: %w", err)
+			}
+
+			exitCode, err := runner.allocationsClient.Exec(ctx,
+				allocationDetails.Allocation,
+				allocationDetails.TaskID,
+				false,
+				command,
+				strings.NewReader(""),
+				buffWriter,
+				buffWriter,
+				nil,
+				&api.QueryOptions{},
+			)
+
+			if err != nil {
+				return nil, fmt.Errorf("execution of %v failed for the \"%s\" node-set with exitcode \"%d\": %w",
+					command, allocationDetails.NodeSet.Name, exitCode, err)
+			}
 		}
 	}
 	buffWriter.Flush()
 	reader := strings.NewReader(result.String())
+
 	return reader, nil
 }
 
-func remoteCommandForNodeSet(nodeSet types.NodeSet, binary string, args []string) (*command, error) {
-	newBinary, err := applyPathsMappingToString(nodeSet.RemoteCommandRunner.PathsMapping, binary)
-	if err != nil {
-		return nil, fmt.Errorf("failed to apply paths mapping for binary(\"%s\"): %w", binary, err)
-	}
-
-	newArgs := []string{}
-	for _, oldArg := range args {
-		arg, err := applyPathsMappingToString(nodeSet.RemoteCommandRunner.PathsMapping, oldArg)
-		if err != nil {
-			return nil, fmt.Errorf("failed to apply paths mapping for one of the arguments(\"%s\"): %w", oldArg, err)
-		}
-		newArgs = append(newArgs, arg)
-	}
-
-	return &command{
-		binary: newBinary,
-		args:   newArgs,
-	}, nil
-}
-
-func applyPathsMappingToString(mapping types.NetworkPathsMapping, arg string) (string, error) {
-	tmpl, err := template.New("cmdArg").Parse(arg)
-	if err != nil {
-		return "", fmt.Errorf("failed to parse argument: %w", err)
-	}
-
-	buff := bytes.NewBufferString("")
-	if err = tmpl.Execute(buff, mapping); err != nil {
-		return "", fmt.Errorf("failed to execute templating for string \"%s\": %w", arg, err)
-	}
-
-	return buff.String(), nil
-}
-
-func (runner *CommandRunner) filterCommandRunnerAllocations(nodeSets []types.NodeSet) ([]*remoteCommandRunnerDetails, error) {
+func (runner *CommandExecutor) filterCommandRunnerAllocations(nodeSets []types.NodeSet) ([]*remoteCommandRunnerDetails, error) {
 	if err := validateNodeSets(nodeSets); err != nil {
 		return nil, fmt.Errorf("failed to run command on remote nomad cluster: %w", err)
 	}
@@ -147,7 +103,7 @@ func (runner *CommandRunner) filterCommandRunnerAllocations(nodeSets []types.Nod
 	return result, nil
 }
 
-func (runner *CommandRunner) getRemoteCommandRunnerDetails(allocationList []*api.AllocationListStub, nodeSet types.NodeSet) (*remoteCommandRunnerDetails, error) {
+func (runner *CommandExecutor) getRemoteCommandRunnerDetails(allocationList []*api.AllocationListStub, nodeSet types.NodeSet) (*remoteCommandRunnerDetails, error) {
 	var foundAllocationStub *api.AllocationListStub
 
 	for _, allocStub := range allocationList {
