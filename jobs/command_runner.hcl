@@ -1,4 +1,4 @@
-job "{{ .RemoteCommandRunner.Name }}-t" {
+job "{{ .RemoteCommandRunner.Name }}" {
   // Currently impossible to wildcard datacenters so we have to list all our DCs
   // Ref: https://github.com/hashicorp/nomad/issues/9024
   datacenters = [

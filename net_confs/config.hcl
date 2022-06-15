@@ -59,7 +59,7 @@ EOT
   smart_contracts_addresses_file = "./public_smart_contracts_addresses.json"
 
   node_set "validators" {
-    count = 1
+    count = 2
     mode = "validator"
   
     node_wallet_pass = "n0d3w4ll3t-p4ssphr4e3"
@@ -70,16 +70,6 @@ EOT
       vega_file = "./node_set_templates/default/vega_validators.tmpl"
       tendermint_file = "./node_set_templates/default/tendermint_validators.tmpl"
     }
-
-    remote_command_runner {
-      nomad_job_template_file = "./node_set_templates/command_runner.hcl"
-
-      paths_mapping {
-        tendermint_home = "/Users/daniel/.vegacapsule/testnet/tendermint/node0/"
-        vega_home = "/Users/daniel/.vegacapsule/testnet/vega/node0/"
-        vega_binary = "/Users/daniel/go/bin/vega"
-      }
-    }
   }
 
   node_set "full" {
@@ -87,25 +77,10 @@ EOT
     mode = "full"
 	  data_node_binary = "data-node"
 
-
-
     config_templates {
       vega_file = "./node_set_templates/default/vega_full.tmpl"
       tendermint_file = "./node_set_templates/default/tendermint_full.tmpl"
       data_node_file = "./node_set_templates/default/data_node_full.tmpl"
-    }
-
-    remote_command_runner {
-      nomad_job_template_file = "./node_set_templates/command_runner.hcl"
-
-      paths_mapping {
-        tendermint_home = "/Users/daniel/.vegacapsule/testnet/tendermint/node1/"
-        vega_home = "/Users/daniel/.vegacapsule/testnet/vega/node1/"
-        vega_binary = "/Users/daniel/go/bin/vega"
-
-        data_node_home = "/Users/daniel/.vegacapsule/testnet/data/node1/"
-        data_node_binary = "/Users/daniel/go/bin/data-node"
-      }
     }
   }
 }
