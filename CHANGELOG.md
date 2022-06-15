@@ -1,6 +1,22 @@
 # Changelog
 
-## Unreleased (0.1.0)
+## Unreleased (v0.2.0)
+
+### 🚨 Breaking changes
+- [](https://github.com/vegaprotocol/vegacapsule/issues/xxxx) -
+
+### 🗑️ Deprecation
+- [](https://github.com/vegaprotocol/vegacapsule/issues/xxxx) -
+
+### 🛠 Improvements
+- [](https://github.com/vegaprotocol/vegacapsule/issues/xxxx) -
+
+### 🐛 Fixes
+- [](https://github.com/vegaprotocol/vegacapsule/issues/xxxx) -
+
+
+
+## v0.1.0
 
 ### 🚨 Breaking changes
 - [](https://github.com/vegaprotocol/vegacapsule/issues/xxxx) -
@@ -20,8 +36,6 @@
 - [120](https://github.com/vegaprotocol/vegacapsule/pull/120) Add support for HCL2 in node-set job template
 - [122](https://github.com/vegaprotocol/vegacapsule/issues/122) Add support for sentry nodes and loading node sets templates from files
 - [124](https://github.com/vegaprotocol/vegacapsule/issues/124) Allow updating network configurations with templating after network is generated
-- [139](https://github.com/vegaprotocol/vegacapsule/issues/139) Allow non validator nodes to be iterated during wallet configuration
-- [142](https://github.com/vegaprotocol/vegacapsule/issues/142) Allow NodeHomeDir to be used as an expansion in vega node config
 
 ### 🐛 Fixes
 - [117](https://github.com/vegaprotocol/vegacapsule/pull/117) - fix nil dereference panics in config
