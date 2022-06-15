@@ -455,13 +455,15 @@ func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, gene
 	})
 
 	if err := g.Wait(); err != nil {
-		return nil, fmt.Errorf("failed to start vega network: %w", err)
+		// return result even if job failed to save current network state
+		return result, fmt.Errorf("failed to start vega network: %w", err)
 	}
 
 	if conf.Network.PostStart != nil {
 		ExtraJobs, err := r.runDockerJobs(gCtx, conf.Network.PostStart.Docker)
 		if err != nil {
-			return nil, fmt.Errorf("failed to run post start jobs: %w", err)
+			// return result even if job failed to save current network state
+			return result, fmt.Errorf("failed to run post start jobs: %w", err)
 		}
 
 		result.AddExtraJobs(ExtraJobs, types.JobPostStart)

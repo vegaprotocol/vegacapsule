@@ -42,7 +42,6 @@ var nodesAddCmd = &cobra.Command{
 			if err != nil {
 				return fmt.Errorf("failed start node: %w", err)
 			}
-
 		}
 
 		if err := networkState.Persist(); err != nil {

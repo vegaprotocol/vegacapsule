@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"os"
 
 	"code.vegaprotocol.io/vegacapsule/commands"
@@ -30,11 +31,13 @@ var nodesUnsafeResetAllCmd = &cobra.Command{
 		var cmdResult io.Reader
 
 		if !remoteResetState {
+			log.Print("Running unsafe-reset-all on local machine")
 			cmdResult, err = commands.ResetNodeSetsData(
 				*netState.Config.VegaBinary,
 				netState.GeneratedServices.NodeSets.ToSlice(),
 			)
 		} else {
+			log.Print("Running unsafe-reset-all on remote cluster")
 			var nomadClient *nomad.Client
 			nomadClient, err = nomad.NewClient(nil)
 			if err != nil {
