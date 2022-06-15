@@ -126,7 +126,9 @@ func (g *Generator) Generate() (genSvc *types.GeneratedServices, err error) {
 	defer func() {
 		// Stop pre-generate jobs
 		if err != nil {
-			g.stopNomadJobs()
+			if err := g.stopNomadJobs(); err != nil {
+				log.Printf("Failed to stop Nomad jobs: %s", err)
+			}
 		}
 	}()
 
@@ -160,7 +162,9 @@ func (g *Generator) AddNodeSet(index int, nc config.NodeConfig, ns types.NodeSet
 	defer func() {
 		// Stop pre-generate jobs
 		if err != nil {
-			g.stopNomadJobs()
+			if err := g.stopNomadJobs(); err != nil {
+				log.Printf("Failed to stop Nomad jobs: %s", err)
+			}
 		}
 	}()
 
