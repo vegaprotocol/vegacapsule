@@ -18,12 +18,12 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v3
         with:
-          go-version: '1.17.0'
+          go-version: '1.18.0'
       - uses: actions/checkout@v3
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
-          version: v1.43 # Since 1.44 there is a bug in metalint(used in most of linters) on linux machines
+          version: v1.46.2
           args: --config .golangci.yaml --verbose
         env:
           GOPROXY: "${{ secrets.GOPROXY }}"
