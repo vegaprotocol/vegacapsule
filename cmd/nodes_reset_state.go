@@ -64,6 +64,6 @@ func init() {
 	nodesUnsafeResetAllCmd.PersistentFlags().BoolVar(&remoteResetState,
 		"remote",
 		false,
-		"Determines, whether the command should be executed locally or remotelly",
+		"Determines, whether the command should be executed locally or remotely",
 	)
 }

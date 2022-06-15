@@ -383,9 +383,9 @@ func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, gene
 	g, ctx := errgroup.WithContext(gCtx)
 
 	result := &types.NetworkJobs{
-		NodesSetsJobs:      types.JobIDMap{},
-		ExtraJobs:          types.JobIDMap{},
-		CommandRunnersJobs: types.JobIDMap{},
+		NodesSetsJobs:      types.JobStateMap{},
+		ExtraJobs:          types.JobStateMap{},
+		CommandRunnersJobs: types.JobStateMap{},
 	}
 	var lock sync.Mutex
 
@@ -497,28 +497,20 @@ func (r *JobRunner) stopAllJobs(ctx context.Context) error {
 	return nil
 }
 
-func (r *JobRunner) StopNetwork(ctx context.Context, jobs *types.NetworkJobs, nodesOnly bool) error {
+func (r *JobRunner) StopNetwork(ctx context.Context, jobs []types.NetworkJobState) error {
 	// no jobs, no network started
-	if jobs == nil {
-		if !nodesOnly {
-			return r.stopAllJobs(ctx)
-		}
+	if len(jobs) == 0 {
+		return r.stopAllJobs(ctx)
 
-		return nil
 	}
 
-	allJobs := []string{}
-	if !nodesOnly {
-		allJobs = append(jobs.ExtraJobs.ToSlice(), jobs.WalletJob.Name, jobs.FaucetJob.Name)
-	}
-	allJobs = append(allJobs, jobs.NodesSetsJobs.ToSlice()...)
 	g, ctx := errgroup.WithContext(ctx)
-	for _, jobName := range allJobs {
-		if jobName == "" {
+	for _, jobState := range jobs {
+		if jobState.Name == "" {
 			continue
 		}
 		// Explicitly copy name
-		jobName := jobName
+		jobName := jobState.Name
 
 		g.Go(func() error {
 			if _, err := r.client.Stop(ctx, jobName, true); err != nil {

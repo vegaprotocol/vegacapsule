@@ -77,10 +77,6 @@ func (g *Generator) initiateNodeSet(index int, nc config.NodeConfig) (*types.Nod
 		)
 		if n.RemoteCommandRunner.NomadJobTemplate != nil {
 			rawTemplate, err = nomad.GenerateTemplate(*n.RemoteCommandRunner.NomadJobTemplate, nodeSet)
-		} else if n.RemoteCommandRunner.NomadJobTemplateFile != nil {
-			rawTemplate, err = nomad.GenerateTemplateFromFile(*n.RemoteCommandRunner.NomadJobTemplateFile, nodeSet)
-		} else {
-			return nil, fmt.Errorf("either `nomad_job_template` or `nomad_job_template_file` must be specified for remote command runner")
 		}
 
 		if err != nil {

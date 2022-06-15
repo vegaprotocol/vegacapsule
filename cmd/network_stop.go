@@ -7,11 +7,13 @@ import (
 
 	"code.vegaprotocol.io/vegacapsule/nomad"
 	"code.vegaprotocol.io/vegacapsule/state"
+	"code.vegaprotocol.io/vegacapsule/types"
 	"github.com/spf13/cobra"
 )
 
 var (
-	stopNodesOnly bool
+	stopNodesOnly      bool
+	stopWithCmdRunners bool
 )
 
 var netStopCmd = &cobra.Command{
@@ -41,6 +43,11 @@ func init() {
 		false,
 		"Stops all nodes running in the network.",
 	)
+	netStopCmd.PersistentFlags().BoolVar(&stopWithCmdRunners,
+		"with-command-runners",
+		false,
+		"If this flag is passed command-runner jobs are also stopped",
+	)
 }
 
 func netStop(ctx context.Context, state *state.NetworkState) error {
@@ -51,9 +58,20 @@ func netStop(ctx context.Context, state *state.NetworkState) error {
 		return fmt.Errorf("failed to create nomad client: %w", err)
 	}
 
-	nomadRunner := nomad.NewJobRunner(nomadClient)
+	jobFilters := []types.NetworkJobsFilter{}
 
-	if err := nomadRunner.StopNetwork(ctx, state.RunningJobs, stopNodesOnly); err != nil {
+	if stopNodesOnly {
+		jobFilters = append(jobFilters, types.FilterNetworkJobsByJobKindIn([]types.JobKind{types.JobNodeSet}))
+	}
+
+	if !stopWithCmdRunners {
+		jobFilters = append(jobFilters, types.FilterNetworkJobsByJobKindNotIn([]types.JobKind{types.JobCommandRunner}))
+	}
+
+	jobs := state.RunningJobs.Filter(jobFilters).ToSlice()
+
+	nomadRunner := nomad.NewJobRunner(nomadClient)
+	if err := nomadRunner.StopNetwork(ctx, jobs); err != nil {
 		return fmt.Errorf("failed to stop nomad network: %w", err)
 	}
 

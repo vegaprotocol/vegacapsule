@@ -464,7 +464,7 @@ func (c Config) validateCommandRunnerConfig() error {
 		}
 	}
 
-	// No remode command runner provided, no required further falidation. Network will not support remote commands
+	// No remode command runner provided, no required further validation. Network will not support remote commands
 	if !remoteConfigProvided {
 		return nil
 	}
@@ -486,6 +486,10 @@ func (conf *Config) loadRemoteCommandRunnerConfig() error {
 	mErr := utils.NewMultiError()
 
 	for idx, nodeConf := range conf.Network.Nodes {
+		if nodeConf.RemoteCommandRunner == nil {
+			continue
+		}
+
 		if utils.EmptyStrPoint(nodeConf.RemoteCommandRunner.NomadJobTemplate) && !utils.EmptyStrPoint(nodeConf.RemoteCommandRunner.NomadJobTemplateFile) {
 			tmpl, err := conf.loadConfigTemplateFile(*nodeConf.RemoteCommandRunner.NomadJobTemplateFile)
 

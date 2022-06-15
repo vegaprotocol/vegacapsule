@@ -51,7 +51,7 @@ func init() {
 func nodesStopNode(ctx context.Context, state state.NetworkState, name string, stopPreGen bool) (*state.NetworkState, error) {
 	log.Printf("stopping %s node set", name)
 
-	ns, err := state.GeneratedServices.GetNodeSet(name)
+	nodeSet, err := state.GeneratedServices.GetNodeSet(name)
 	if err != nil {
 		return nil, err
 	}
@@ -73,6 +73,9 @@ func nodesStopNode(ctx context.Context, state state.NetworkState, name string, s
 	}
 
 	delete(state.RunningJobs.NodesSetsJobs, name)
+	if nodeSet.RemoteCommandRunner != nil {
+		delete(state.RunningJobs.CommandRunnersJobs, nodeSet.RemoteCommandRunner.Name)
+	}
 
 	log.Printf("stopping %s node set success", name)
 	return &state, nil

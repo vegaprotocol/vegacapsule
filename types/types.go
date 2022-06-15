@@ -262,9 +262,9 @@ type NetworkJobState struct {
 	Running bool
 }
 
-type JobIDMap map[string]NetworkJobState
+type JobStateMap map[string]NetworkJobState
 
-func (jm JobIDMap) ToSlice() []string {
+func (jm JobStateMap) ToSliceNames() []string {
 	slice := make([]string, 0, len(jm))
 	for id := range jm {
 		slice = append(slice, id)
@@ -272,12 +272,21 @@ func (jm JobIDMap) ToSlice() []string {
 	return slice
 }
 
+func (jm JobStateMap) ToSlice() []NetworkJobState {
+	slice := []NetworkJobState{}
+	for _, job := range jm {
+		slice = append(slice, job)
+	}
+
+	return slice
+}
+
 type NetworkJobsFilter func(nj NetworkJobs) NetworkJobs
 
 type NetworkJobs struct {
-	CommandRunnersJobs JobIDMap
-	NodesSetsJobs      JobIDMap
-	ExtraJobs          JobIDMap
+	CommandRunnersJobs JobStateMap
+	NodesSetsJobs      JobStateMap
+	ExtraJobs          JobStateMap
 	FaucetJob          NetworkJobState
 	WalletJob          NetworkJobState
 }
@@ -290,6 +299,21 @@ func (nj NetworkJobs) Filter(filters []NetworkJobsFilter) NetworkJobs {
 	}
 
 	return result
+}
+
+func (nj NetworkJobs) ToSlice() []NetworkJobState {
+	resources := append(nj.NodesSetsJobs.ToSlice(), nj.CommandRunnersJobs.ToSlice()...)
+	resources = append(resources, nj.ExtraJobs.ToSlice()...)
+
+	if nj.FaucetJob.Name != "" {
+		resources = append(resources, nj.FaucetJob)
+	}
+
+	if nj.WalletJob.Name != "" {
+		resources = append(resources, nj.WalletJob)
+	}
+
+	return resources
 }
 
 func (nj *NetworkJobs) Append(job NetworkJobState) {
@@ -337,15 +361,11 @@ func (nj NetworkJobs) AddExtraJobs(ids []string, kind JobKind) {
 	}
 }
 
-func (nj NetworkJobs) ToSlice() []string {
-	out := append(nj.NodesSetsJobs.ToSlice(), nj.ExtraJobs.ToSlice()...)
+func (nj NetworkJobs) ToSliceNames() []string {
+	out := []string{}
 
-	if nj.FaucetJob.Name != "" {
-		out = append(out, nj.FaucetJob.Name)
-	}
-
-	if nj.WalletJob.Name != "" {
-		out = append(out, nj.WalletJob.Name)
+	for _, job := range nj.ToSlice() {
+		out = append(out, job.Name)
 	}
 
 	return out
@@ -389,7 +409,9 @@ const (
 
 func FilterNetworkJobsByJobKindIn(kinds []JobKind) NetworkJobsFilter {
 	return func(nj NetworkJobs) NetworkJobs {
-		result := NetworkJobs{}
+		result := NetworkJobs{
+			ExtraJobs: JobStateMap{},
+		}
 
 		for _, kind := range kinds {
 			switch kind {
