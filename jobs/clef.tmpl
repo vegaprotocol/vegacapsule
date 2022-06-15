@@ -9,19 +9,6 @@ job "{{ .Name }}-{{ .Index }}" {
       }
     }
 
-    task "wait-for-clef" {
-      lifecycle {
-        hook = "prestart"
-        sidecar = false
-      }
-
-      driver = "raw_exec"
-      config {
-        command = "sh"
-        args = ["-c", "n=0; until [ \"$n\" -ge 10 ]; do nc -z localhost 855{{ .Index }} && break; n=$((n+1)); sleep 1; done"]
-      }
-    }
-
     task "clef-node" {
       driver = "docker"
 
