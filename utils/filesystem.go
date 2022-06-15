@@ -93,3 +93,15 @@ func unzipFile(f *zip.File, destination string) error {
 	}
 	return nil
 }
+
+func CpAndChmodxFile(source, destination string) error {
+	if err := CopyFile(source, destination); err != nil {
+		return fmt.Errorf("failed to copy file %q to %q: %w", source, destination, err)
+	}
+
+	if err := os.Chmod(destination, 0700); err != nil {
+		return fmt.Errorf("failed to chmod 0700 file %q: %w", destination, err)
+	}
+
+	return nil
+}

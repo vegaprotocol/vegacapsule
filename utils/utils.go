@@ -7,6 +7,8 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+
+	"golang.org/x/sync/errgroup"
 )
 
 func ExecuteBinary(binaryPath string, args []string, v interface{}) ([]byte, error) {
@@ -39,6 +41,23 @@ func BinaryAbsPath(p string) (string, error) {
 	}
 
 	return AbsPath(lPath)
+}
+
+// Returns and error if given binaries are not accesible trough PATH
+func BinariesAccessible(binaries ...string) error {
+	var eg errgroup.Group
+
+	for _, bin := range binaries {
+		bin := bin
+		eg.Go(func() error {
+			if _, err := BinaryAbsPath(bin); err != nil {
+				return err
+			}
+			return nil
+		})
+	}
+
+	return eg.Wait()
 }
 
 func AbsPath(p string) (string, error) {
