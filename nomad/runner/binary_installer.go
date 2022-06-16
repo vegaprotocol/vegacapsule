@@ -55,7 +55,7 @@ func installNomadBinary(localBinPath, binInstallPath string) (err error) {
 	log.Printf("Nomad binary was not found in. Installing from: %s", url)
 
 	c := http.Client{
-		Timeout: time.Second * 20,
+		Timeout: time.Second * 120,
 	}
 	resp, err := c.Get(url)
 	if err != nil {
