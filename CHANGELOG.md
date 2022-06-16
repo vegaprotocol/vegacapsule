@@ -10,6 +10,8 @@
 
 ### 🛠 Improvements
 - [145](https://github.com/vegaprotocol/vegacapsule/issues/145) Update Nomad version and allow Nomad to be installed to PATH
+- [134](https://github.com/vegaprotocol/vegacapsule/issues/134) Add support for Clef and allow templating of some node set config fields
+- [139](https://github.com/vegaprotocol/vegacapsule/issues/139) Allow non validator nodes to be iterated during wallet configuration
 
 ### 🐛 Fixes
 - [](https://github.com/vegaprotocol/vegacapsule/issues/xxxx) -
@@ -37,11 +39,14 @@
 - [122](https://github.com/vegaprotocol/vegacapsule/issues/122) Add support for sentry nodes and loading node sets templates from files
 <<<<<<< HEAD
 - [124](https://github.com/vegaprotocol/vegacapsule/issues/124) Allow updating network configurations with templating after network is generated
+<<<<<<< HEAD
 - [139](https://github.com/vegaprotocol/vegacapsule/issues/139) Allow non validator nodes to be iterated during wallet configuration
 - [136](https://github.com/vegaprotocol/vegacapsule/issues/136) New templates for a sentry node with data node setup
 =======
 - [134](https://github.com/vegaprotocol/vegacapsule/issues/134) Add support for Clef and allow templating of some node set config fields
 >>>>>>> 57adcc1 (feat: update changelog)
+=======
+>>>>>>> c3e9e8c (feat: fix comments)
 
 ### 🐛 Fixes
 - [117](https://github.com/vegaprotocol/vegacapsule/pull/117) - fix nil dereference panics in config
