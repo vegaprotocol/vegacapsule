@@ -105,7 +105,7 @@ EOT
     mode = "full"
 
     config_templates {
-      tendermint_file = "./node_set_templates/sentry/tendermint_sentry2.tmpl"
+      tendermint_file = "./node_set_templates/sentry/tendermint_sentry_datanode.tmpl"
       vega_file = "./node_set_templates/sentry/vega_sentry.tmpl"
     }
   }
