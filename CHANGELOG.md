@@ -1,6 +1,22 @@
 # Changelog
 
-## Unreleased (0.1.0)
+## Unreleased (v0.2.0)
+
+### 🚨 Breaking changes
+- [](https://github.com/vegaprotocol/vegacapsule/issues/xxxx) -
+
+### 🗑️ Deprecation
+- [](https://github.com/vegaprotocol/vegacapsule/issues/xxxx) -
+
+### 🛠 Improvements
+- [](https://github.com/vegaprotocol/vegacapsule/issues/xxxx) -
+
+### 🐛 Fixes
+- [](https://github.com/vegaprotocol/vegacapsule/issues/xxxx) -
+
+
+
+## v0.1.0
 
 ### 🚨 Breaking changes
 - [](https://github.com/vegaprotocol/vegacapsule/issues/xxxx) -
