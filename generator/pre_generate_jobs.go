@@ -73,5 +73,5 @@ func (g *Generator) stopNomadJobs() error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
-	return g.jobRunner.StopNetwork(ctx, nil, false)
+	return g.jobRunner.StopNetwork(ctx, nil)
 }

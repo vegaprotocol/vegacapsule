@@ -48,9 +48,7 @@ type NetworkConfig struct {
 
 type CommandRunner struct {
 	PathsMapping ConfigRemoteNetworkPathsMapping `hcl:"paths_mapping,block"`
-
-	NomadJobTemplate     *string `hcl:"nomad_job_template,optional"`
-	NomadJobTemplateFile *string `hcl:"nomad_job_template_file,optional"`
+	Nomad        NomadConfig                     `hcl:"nomad_job,block"`
 }
 
 func (nc NetworkConfig) GetNodeConfig(name string) (*NodeConfig, error) {
@@ -490,15 +488,15 @@ func (conf *Config) loadRemoteCommandRunnerConfig() error {
 			continue
 		}
 
-		if utils.EmptyStrPoint(nodeConf.RemoteCommandRunner.NomadJobTemplate) && !utils.EmptyStrPoint(nodeConf.RemoteCommandRunner.NomadJobTemplateFile) {
-			tmpl, err := conf.loadConfigTemplateFile(*nodeConf.RemoteCommandRunner.NomadJobTemplateFile)
+		if utils.EmptyStrPoint(nodeConf.RemoteCommandRunner.Nomad.JobTemplate) && !utils.EmptyStrPoint(nodeConf.RemoteCommandRunner.Nomad.JobTemplateFile) {
+			tmpl, err := conf.loadConfigTemplateFile(*nodeConf.RemoteCommandRunner.Nomad.JobTemplateFile)
 
 			if err != nil {
 				mErr.Add(fmt.Errorf("failed to load remote command runner nomad template: %w", err))
 				continue
 			}
-			conf.Network.Nodes[idx].RemoteCommandRunner.NomadJobTemplate = &tmpl
-			conf.Network.Nodes[idx].RemoteCommandRunner.NomadJobTemplateFile = nil
+			conf.Network.Nodes[idx].RemoteCommandRunner.Nomad.JobTemplate = &tmpl
+			conf.Network.Nodes[idx].RemoteCommandRunner.Nomad.JobTemplateFile = nil
 		}
 	}
 
@@ -554,8 +552,8 @@ func DefaultNetworkHome() (string, error) {
 }
 
 func (runner CommandRunner) Validate(withDataNode bool) error {
-	if runner.NomadJobTemplate == nil && runner.NomadJobTemplateFile == nil {
-		return fmt.Errorf("either `nomad_job_template` or `nomad_job_template_file` must be specified for the remote command runner")
+	if runner.Nomad.JobTemplate == nil && runner.Nomad.JobTemplateFile == nil {
+		return fmt.Errorf("either `nomad_job.job_template` or `nomad_job.job_template_file` must be specified for the remote command runner")
 	}
 
 	errorMsg := "the `remote_network_path_mapping` configuration is not fully specified: the \"%s\" field is missing"

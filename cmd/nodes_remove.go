@@ -7,6 +7,7 @@ import (
 	"code.vegaprotocol.io/vegacapsule/generator"
 	"code.vegaprotocol.io/vegacapsule/nomad"
 	"code.vegaprotocol.io/vegacapsule/state"
+	"code.vegaprotocol.io/vegacapsule/types"
 	"github.com/spf13/cobra"
 )
 
@@ -23,7 +24,16 @@ var nodesRemoveCmd = &cobra.Command{
 			return networkNotBootstrappedErr("nodes remove")
 		}
 
-		updatedNetworkState, err := nodesStopNode(context.Background(), *networkState, nodeName, true)
+		nodeSet, err := networkState.GeneratedServices.GetNodeSet(nodeName)
+		if err != nil {
+			return err
+		}
+
+		filters := []types.NetworkJobsFilter{
+			types.FilterNetworkJobsByNames(nodeSet.JobsIDs()),
+		}
+
+		updatedNetworkState, err := nodesStopNode(context.Background(), *networkState, nodeName, filters)
 		if err != nil {
 			return fmt.Errorf("failed stop node: %w", err)
 		}
@@ -60,8 +70,6 @@ func nodesRemoveNode(state state.NetworkState, name string) (*state.NetworkState
 	if err := gen.RemoveNodeSet(*nodeSet); err != nil {
 		return nil, err
 	}
-
-	delete(state.GeneratedServices.NodeSets, nodeSet.Name)
 
 	return &state, nil
 }

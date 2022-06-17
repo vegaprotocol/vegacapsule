@@ -193,8 +193,9 @@ func (r *JobRunner) RunRawNomadJobs(ctx context.Context, rawJobs []string) ([]ty
 
 }
 
-func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) ([]*api.Job, error) {
+func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) ([]types.NetworkJobState, error) {
 	jobs := make([]*api.Job, 0, len(nodeSets))
+	jobsStates := []types.NetworkJobState{}
 
 	for _, ns := range nodeSets {
 		if ns.RemoteCommandRunner != nil {
@@ -209,7 +210,7 @@ func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) (
 				return nil, fmt.Errorf("failed to parse command runner template: %w", err)
 			}
 
-			jobs = append(jobs, *job)
+			jobs = append(jobs, job)
 			jobsStates = append(jobsStates, types.NetworkJobState{
 				Name:    *job.ID,
 				Running: true, // TODO: Is this assumption correct?
@@ -238,7 +239,7 @@ func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) (
 				return nil, err
 			}
 
-			jobs = append(jobs, *job)
+			jobs = append(jobs, job)
 			jobName = *job.ID
 		}
 
@@ -389,7 +390,7 @@ func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, gene
 	}
 	var lock sync.Mutex
 
-	result.AddExtraJobIDs(generatedSvcs.PreGenerateJobsIDs())
+	result.AddExtraJobs(generatedSvcs.PreGenerateJobsIDs(), types.JobPreStart)
 
 	if conf.Network.PreStart != nil {
 		ExtraJobs, err := r.runDockerJobs(ctx, conf.Network.PreStart.Docker)

@@ -75,8 +75,8 @@ func (g *Generator) initiateNodeSet(index int, nc config.NodeConfig) (*types.Nod
 			rawTemplate *bytes.Buffer
 			err         error
 		)
-		if n.RemoteCommandRunner.NomadJobTemplate != nil {
-			rawTemplate, err = nomad.GenerateTemplate(*n.RemoteCommandRunner.NomadJobTemplate, nodeSet)
+		if n.RemoteCommandRunner.Nomad.JobTemplate != nil {
+			rawTemplate, err = nomad.GenerateNodeSetTemplate(*n.RemoteCommandRunner.Nomad.JobTemplate, nodeSet)
 		}
 
 		if err != nil {

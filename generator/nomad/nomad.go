@@ -8,7 +8,7 @@ import (
 	"github.com/Masterminds/sprig"
 )
 
-func GenerateTemplate[T any](templateRaw string, context T) (*bytes.Buffer, error) {
+func GenerateNodeSetTemplate[T any](templateRaw string, context T) (*bytes.Buffer, error) {
 	t, err := template.New("nomad_job.hcl").Funcs(sprig.TxtFuncMap()).Parse(templateRaw)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse template config for nomad job: %w", err)

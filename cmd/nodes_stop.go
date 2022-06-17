@@ -7,6 +7,7 @@ import (
 
 	"code.vegaprotocol.io/vegacapsule/nomad"
 	"code.vegaprotocol.io/vegacapsule/state"
+	"code.vegaprotocol.io/vegacapsule/types"
 	"github.com/spf13/cobra"
 )
 
@@ -25,7 +26,24 @@ var nodesStopCmd = &cobra.Command{
 			return networkNotBootstrappedErr("nodes stop")
 		}
 
-		updatedNetworkState, err := nodesStopNode(context.Background(), *networkState, nodeName, stopWithPreGenenerate)
+		nodeSet, err := networkState.GeneratedServices.GetNodeSet(nodeName)
+		if err != nil {
+			return err
+		}
+
+		wantedNamesToStop := []string{nodeSet.Name}
+		if stopWithPreGenenerate {
+			wantedNamesToStop = append(wantedNamesToStop, nodeSet.PreGenerateJobsIDs()...)
+		}
+		if stopWithCmdRunners {
+			wantedNamesToStop = append(wantedNamesToStop, nodeSet.RemoteCommandRunner.Name)
+		}
+
+		filters := []types.NetworkJobsFilter{
+			types.FilterNetworkJobsByNames(wantedNamesToStop),
+		}
+
+		updatedNetworkState, err := nodesStopNode(context.Background(), *networkState, nodeName, filters)
 		if err != nil {
 			return fmt.Errorf("failed stop node: %w", err)
 		}
@@ -45,36 +63,35 @@ func init() {
 		true,
 		"Whether or not the pre-generate jobs should be also stopped",
 	)
+	nodesStopCmd.PersistentFlags().BoolVar(&stopWithCmdRunners,
+		"with-command-runners",
+		false,
+		"Whether or not the command-runner job should be also stopped",
+	)
 	nodesStopCmd.MarkFlagRequired("name")
 }
 
-func nodesStopNode(ctx context.Context, state state.NetworkState, name string, stopPreGen bool) (*state.NetworkState, error) {
-	log.Printf("stopping %s node set", name)
+func nodesStopNode(ctx context.Context, state state.NetworkState, name string, jobsFilters []types.NetworkJobsFilter) (*state.NetworkState, error) {
+	log.Printf("stopping the %s node set", name)
 
-	nodeSet, err := state.GeneratedServices.GetNodeSet(name)
-	if err != nil {
-		return nil, err
-	}
-
+	jobs := state.RunningJobs.Filter(jobsFilters)
 	nomadClient, err := nomad.NewClient(nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create nomad client: %w", err)
 	}
 
-	nomadRunner := nomad.NewJobRunner(nomadClient)
-
-	toRemove := []string{name}
-	if stopPreGen {
-		toRemove = append(toRemove, ns.PreGenerateJobsIDs()...)
+	if len(jobs.ToSlice()) == 0 {
+		return nil, fmt.Errorf("given node set is not running")
 	}
 
-	if err := nomadRunner.StopJobs(ctx, toRemove); err != nil {
+	nomadRunner := nomad.NewJobRunner(nomadClient)
+
+	if err := nomadRunner.StopJobs(ctx, jobs.ToSliceNames()); err != nil {
 		return nil, fmt.Errorf("failed to stop nomad job %q: %w", name, err)
 	}
 
-	delete(state.RunningJobs.NodesSetsJobs, name)
-	if nodeSet.RemoteCommandRunner != nil {
-		delete(state.RunningJobs.CommandRunnersJobs, nodeSet.RemoteCommandRunner.Name)
+	for _, job := range jobs.ToSlice() {
+		state.RunningJobs.RemoveJob(job)
 	}
 
 	log.Printf("stopping %s node set success", name)

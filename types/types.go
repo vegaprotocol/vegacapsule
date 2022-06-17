@@ -85,6 +85,17 @@ func (ns NodeSet) PreGenerateJobsIDs() []string {
 	return preGenJobsIDs
 }
 
+func (ns NodeSet) JobsIDs() []string {
+	result := []string{ns.Name}
+	result = append(result, ns.PreGenerateJobsIDs()...)
+
+	if ns.RemoteCommandRunner != nil {
+		result = append(result, ns.RemoteCommandRunner.Name)
+	}
+
+	return result
+}
+
 // PreGenerateRawJobs returns pre gen jobs per specific node set
 func (ns NodeSet) PreGenerateRawJobs() []string {
 	preGenJobs := make([]string, 0, len(ns.PreGenerateJobs))
@@ -291,6 +302,14 @@ type NetworkJobs struct {
 	WalletJob          NetworkJobState
 }
 
+func NewNetworkJobs() NetworkJobs {
+	return NetworkJobs{
+		CommandRunnersJobs: JobStateMap{},
+		NodesSetsJobs:      JobStateMap{},
+		ExtraJobs:          JobStateMap{},
+	}
+}
+
 func (nj NetworkJobs) Filter(filters []NetworkJobsFilter) NetworkJobs {
 	result := nj
 
@@ -328,6 +347,21 @@ func (nj *NetworkJobs) Append(job NetworkJobState) {
 		nj.FaucetJob = job
 	default:
 		nj.ExtraJobs[job.Name] = job
+	}
+}
+
+func (nj *NetworkJobs) RemoveJob(job NetworkJobState) {
+	switch job.Kind {
+	case JobNodeSet:
+		delete(nj.NodesSetsJobs, job.Name)
+	case JobCommandRunner:
+		delete(nj.CommandRunnersJobs, job.Name)
+	case JobWallet:
+		nj.WalletJob = NetworkJobState{}
+	case JobFaucet:
+		nj.FaucetJob = NetworkJobState{}
+	default:
+		delete(nj.ExtraJobs, job.Name)
 	}
 }
 
@@ -405,6 +439,7 @@ const (
 	JobPostStart     JobKind = "post-start"
 	JobFaucet        JobKind = "faucet"
 	JobWallet        JobKind = "wallet"
+	JobPreGenerate   JobKind = "pre-generate"
 )
 
 func FilterNetworkJobsByJobKindIn(kinds []JobKind) NetworkJobsFilter {
@@ -448,5 +483,20 @@ func FilterNetworkJobsByJobKindNotIn(notWantedKinds []JobKind) NetworkJobsFilter
 	}
 
 	return FilterNetworkJobsByJobKindIn(wantedKinds)
+}
 
+func FilterNetworkJobsByNames(wantedNames []string) NetworkJobsFilter {
+	return func(nj NetworkJobs) NetworkJobs {
+		result := NewNetworkJobs()
+
+		for _, job := range nj.ToSlice() {
+			if utils.IndexInSlice(wantedNames, job.Name) == -1 {
+				continue
+			}
+
+			result.Append(job)
+		}
+
+		return result
+	}
 }
