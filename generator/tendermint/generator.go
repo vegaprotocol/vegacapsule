@@ -95,7 +95,7 @@ func (tg ConfigGenerator) HomeDir() string {
 	return tg.homeDir
 }
 
-func (tg *ConfigGenerator) Initiate(index int, mode string) (*types.TendermintNode, error) {
+func (tg *ConfigGenerator) Initiate(index int, mode, groupName string) (*types.TendermintNode, error) {
 	nodeDir := tg.nodeDir(index)
 
 	if err := os.MkdirAll(nodeDir, os.ModePerm); err != nil {
@@ -142,7 +142,7 @@ func (tg *ConfigGenerator) Initiate(index int, mode string) (*types.TendermintNo
 
 	tg.nodes = append(tg.nodes, node{
 		name:      nodeName,
-		groupName: "",
+		groupName: groupName,
 		id:        nodeID,
 		index:     index,
 	})

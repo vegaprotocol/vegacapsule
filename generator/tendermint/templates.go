@@ -32,10 +32,15 @@ func NewConfigTemplate(templateRaw string) (*template.Template, error) {
 	return t, nil
 }
 
-func nodesByGroupNameLookup(nodes []node) map[string]struct{} {
-	m := map[string]struct{}{}
+func nodesByGroupNameLookup(nodes []node) map[string][]node {
+	m := map[string][]node{}
 	for _, n := range nodes {
-		m[n.groupName] = struct{}{}
+		if _, ok := m[n.groupName]; !ok {
+			m[n.groupName] = []node{n}
+			continue
+		}
+
+		m[n.groupName] = append(m[n.groupName], n)
 	}
 	return m
 }
@@ -44,19 +49,22 @@ func (tc ConfigTemplateContext) NodePeersByGroupName(groupNames ...string) []Pee
 	gns := nodesByGroupNameLookup(tc.nodes)
 
 	peers := []Peer{}
-	for _, node := range tc.nodes {
-		if node.index == tc.NodeSet.Index {
+	for _, groupName := range groupNames {
+		nodes, ok := gns[groupName]
+		if !ok {
 			continue
 		}
 
-		if _, ok := gns[node.groupName]; !ok {
-			continue
-		}
+		for _, node := range nodes {
+			if node.index == tc.NodeSet.Index {
+				continue
+			}
 
-		peers = append(peers, Peer{
-			Index: node.index,
-			ID:    node.id,
-		})
+			peers = append(peers, Peer{
+				Index: node.index,
+				ID:    node.id,
+			})
+		}
 	}
 
 	return peers
@@ -82,12 +90,15 @@ func (tc ConfigTemplateContext) NodeIDsByGroupName(groupNames ...string) []strin
 	gns := nodesByGroupNameLookup(tc.nodes)
 
 	nodeIDs := make([]string, 0, len(tc.nodes))
-	for _, node := range tc.nodes {
-		if _, ok := gns[node.groupName]; !ok {
+	for _, groupName := range groupNames {
+		nodes, ok := gns[groupName]
+		if !ok {
 			continue
 		}
 
-		nodeIDs = append(nodeIDs, node.id)
+		for _, node := range nodes {
+			nodeIDs = append(nodeIDs, node.id)
+		}
 	}
 
 	return nodeIDs
