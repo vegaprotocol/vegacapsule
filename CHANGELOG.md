@@ -9,7 +9,7 @@
 - [](https://github.com/vegaprotocol/vegacapsule/issues/xxxx) -
 
 ### 🛠 Improvements
-- [](https://github.com/vegaprotocol/vegacapsule/issues/xxxx) -
+- [145](https://github.com/vegaprotocol/vegacapsule/issues/145) Update Nomad version and allow Nomad to be installed to PATH
 
 ### 🐛 Fixes
 - [](https://github.com/vegaprotocol/vegacapsule/issues/xxxx) -
@@ -36,7 +36,8 @@
 - [120](https://github.com/vegaprotocol/vegacapsule/pull/120) Add support for HCL2 in node-set job template
 - [122](https://github.com/vegaprotocol/vegacapsule/issues/122) Add support for sentry nodes and loading node sets templates from files
 - [124](https://github.com/vegaprotocol/vegacapsule/issues/124) Allow updating network configurations with templating after network is generated
-- [145](https://github.com/vegaprotocol/vegacapsule/issues/145) Update Nomad version and allow Nomad to be installed to PATH
+- [139](https://github.com/vegaprotocol/vegacapsule/issues/139) Allow non validator nodes to be iterated during wallet configuration
+- [136](https://github.com/vegaprotocol/vegacapsule/issues/136) New templates for a sentry node with data node setup
 
 ### 🐛 Fixes
 - [117](https://github.com/vegaprotocol/vegacapsule/pull/117) - fix nil dereference panics in config

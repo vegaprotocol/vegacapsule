@@ -10,7 +10,7 @@ import (
 )
 
 func (g *Generator) initiateNodeSet(index int, n config.NodeConfig) (*types.NodeSet, error) {
-	initTNode, err := g.tendermintGen.Initiate(index, n.Mode)
+	initTNode, err := g.tendermintGen.Initiate(index, n.Mode, n.Name)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initiate Tendermit node id %d for node set %s: %w", index, n.Name, err)
 	}
