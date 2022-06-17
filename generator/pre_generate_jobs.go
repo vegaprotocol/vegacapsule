@@ -7,19 +7,20 @@ import (
 
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/generator/nomad"
+	"code.vegaprotocol.io/vegacapsule/types"
 )
 
-func (g *Generator) startPreGenerateJobs(n config.NodeConfig, index int) ([]string, error) {
+func (g *Generator) startPreGenerateJobs(n config.NodeConfig, index int) ([]types.NomadJob, error) {
 	templates, err := g.templatePreGenerateJobs(n.PreGenerate, index)
 	if err != nil {
 		return nil, fmt.Errorf("failed to template pre generate jobs for node set %q-%q: %w", n.Name, index, err)
 	}
-	preGenJobIDs, err := g.startNomadJobs(templates)
+	preGenJobs, err := g.startNomadJobs(templates)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start pre generate jobs for node set %s-%d: %w", n.Name, index, err)
 	}
 
-	return preGenJobIDs, nil
+	return preGenJobs, nil
 }
 
 func (g *Generator) templatePreGenerateJobs(preGenConf *config.PreGenerate, index int) ([]string, error) {
@@ -47,9 +48,9 @@ func (g *Generator) templatePreGenerateJobs(preGenConf *config.PreGenerate, inde
 	return jobTemplates, nil
 }
 
-func (g *Generator) startNomadJobs(rawNomadJobs []string) ([]string, error) {
+func (g *Generator) startNomadJobs(rawNomadJobs []string) ([]types.NomadJob, error) {
 	if len(rawNomadJobs) == 0 {
-		return rawNomadJobs, nil
+		return nil, nil
 	}
 
 	jobs, err := g.jobRunner.RunRawNomadJobs(context.Background(), rawNomadJobs)
@@ -57,9 +58,12 @@ func (g *Generator) startNomadJobs(rawNomadJobs []string) ([]string, error) {
 		return nil, fmt.Errorf("failed to run node set pre generate job: %w", err)
 	}
 
-	jobIDs := make([]string, 0, len(jobs))
+	jobIDs := make([]types.NomadJob, 0, len(jobs))
 	for _, j := range jobs {
-		jobIDs = append(jobIDs, *j.ID)
+		jobIDs = append(jobIDs, types.NomadJob{
+			ID:          *j.NomadJob.ID,
+			NomadJobRaw: j.RawJob,
+		})
 	}
 
 	return jobIDs, nil
