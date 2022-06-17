@@ -13,12 +13,16 @@
 - [145](https://github.com/vegaprotocol/vegacapsule/issues/145) Update Nomad version and allow Nomad to be installed to PATH
 - [134](https://github.com/vegaprotocol/vegacapsule/issues/134) Add support for Clef and allow templating of some node set config fields
 - [139](https://github.com/vegaprotocol/vegacapsule/issues/139) Allow non validator nodes to be iterated during wallet configuration
+<<<<<<< HEAD
 - [125](https://github.com/vegaprotocol/vegacapsule/issues/125) Update network state when `--update-network` flag is passed to the `template nomad` cmd
 - [149](https://github.com/vegaprotocol/vegacapsule/issues/149) Update sentry config to reflect correct architecture
 - [128](https://github.com/vegaprotocol/vegacapsule/issues/128) Add support for remote network commands and implement remote unsafe_reset_all
 - [191](https://github.com/vegaprotocol/vegacapsule/issues/191) Support built-in Tendermint application and version 0.35.8
 - [194](https://github.com/vegaprotocol/vegacapsule/issues/194) Set `skip-timeout-commit` value to true to reduce block times
 - [75](https://github.com/vegaprotocol/vegacapsule/issues/75) Add support to import pre-generated keys into vegacapsule network
+=======
+- [125](https://github.com/vegaprotocol/vegacapsule/issues/125) update network state when `--update-network` flag is passed to the `template nomad` cmd
+>>>>>>> 352aa92 (feat: update Nomad version and install Nomad bin to PATH (#145))
 
 ### 🐛 Fixes
 - [167](https://github.com/vegaprotocol/vegacapsule/issues/167) Fix validators filter in tendermint generator
