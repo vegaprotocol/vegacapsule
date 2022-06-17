@@ -18,7 +18,7 @@ func capsuleHome() (string, error) {
 	return filepath.Join(homeDir, ".vegacapsule"), nil
 }
 
-func StartAgent(configPath string) error {
+func StartAgent(configPath, binPath string) error {
 	switch runtime.GOOS {
 	case "darwin", "windows", "linux":
 	default:
@@ -31,7 +31,7 @@ func StartAgent(configPath string) error {
 	}
 
 	if _, err := exec.LookPath(nomadBinary); err != nil {
-		if err := installNomadBinary(nomadBinary); err != nil {
+		if err := installNomadBinary(nomadBinary, binPath); err != nil {
 			return fmt.Errorf("failed to install nomad binary: %w", err)
 		}
 	}

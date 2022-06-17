@@ -47,11 +47,9 @@ var installBinariesCmd = &cobra.Command{
 			}
 		}
 
-		if len(installPath) == 0 {
-			installPath = os.Getenv("GOBIN")
-			if len(installPath) == 0 {
-				return fmt.Errorf("GOBIN environment variable has not been found - please set install-path flag instead")
-			}
+		installPath, err := getInstallPath(installPath)
+		if err != nil {
+			return err
 		}
 
 		info, err := os.Lstat(installPath)
@@ -67,12 +65,25 @@ var installBinariesCmd = &cobra.Command{
 			return fmt.Errorf("failed to install dependencies: %w", err)
 		}
 
-		if err := testBinariesAccessibility(vegaBinName, vegaWalletBinName, dataNodeBin); err != nil {
+		if err := utils.BinariesAccessible(vegaBinName, vegaWalletBinName, dataNodeBin); err != nil {
 			return fmt.Errorf("failed to lookup installed binaries, please check %q is in $PATH: %w", installPath, err)
 		}
 
 		return nil
 	},
+}
+
+func getInstallPath(installPath string) (string, error) {
+	if len(installPath) != 0 {
+		return installPath, nil
+	}
+
+	installPath = os.Getenv("GOBIN")
+	if len(installPath) == 0 {
+		return "", fmt.Errorf("GOBIN environment variable has not been found - please set install-path flag instead")
+	}
+
+	return installPath, nil
 }
 
 func init() {
@@ -171,33 +182,11 @@ func installDependencies(githubToken, installPath string) error {
 	return eg.Wait()
 }
 
-func testBinariesAccessibility(binaries ...string) error {
-	var eg errgroup.Group
-
-	for _, bin := range binaries {
-		bin := bin
-		eg.Go(func() error {
-			if _, err := utils.BinaryAbsPath(bin); err != nil {
-				return err
-			}
-			return nil
-		})
-	}
-
-	return eg.Wait()
-}
-
 func cpAndChmodxFile(source, destination string) error {
-	if err := utils.CopyFile(source, destination); err != nil {
-		return fmt.Errorf("failed to copy file %q to %q: %w", source, destination, err)
+	if err := utils.CpAndChmodxFile(source, destination); err != nil {
+		return err
 	}
-
-	if err := os.Chmod(destination, 0700); err != nil {
-		return fmt.Errorf("failed to chmod 0700 file %q: %w", destination, err)
-	}
-
 	log.Printf("Successfully copied from %q to %q", source, destination)
-
 	return nil
 }
 

@@ -9,7 +9,7 @@
 - [](https://github.com/vegaprotocol/vegacapsule/issues/xxxx) -
 
 ### 🛠 Improvements
-- [](https://github.com/vegaprotocol/vegacapsule/issues/xxxx) -
+- [145](https://github.com/vegaprotocol/vegacapsule/issues/145) Update Nomad version and allow Nomad to be installed to PATH
 
 ### 🐛 Fixes
 - [](https://github.com/vegaprotocol/vegacapsule/issues/xxxx) -
