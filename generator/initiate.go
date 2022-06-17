@@ -85,7 +85,7 @@ func (g *Generator) initiateNodeSets() (*nodeSets, error) {
 			indexc := index
 
 			eg.Go(func() error {
-				preGenJobIDs, err := g.startPreGenerateJobs(*nc, indexc)
+				preGenJobs, err := g.startPreGenerateJobs(*nc, indexc)
 				if err != nil {
 					return err
 				}
@@ -95,7 +95,7 @@ func (g *Generator) initiateNodeSets() (*nodeSets, error) {
 					return err
 				}
 
-				nodeSet.PreGenerateJobsIDs = preGenJobIDs
+				nodeSet.PreGenerateJobs = preGenJobs
 
 				mut.Lock()
 				if nc.Mode == types.NodeModeValidator {

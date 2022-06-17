@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"code.vegaprotocol.io/vegacapsule/types"
-	"github.com/hashicorp/nomad/api"
 )
 
 type VoidJobRunner struct{}
@@ -18,7 +17,7 @@ func (r *VoidJobRunner) printCaveat() {
 	fmt.Println("Caveat: using void nomad job runner")
 }
 
-func (r *VoidJobRunner) RunRawNomadJobs(ctx context.Context, rawJobs []string) ([]*api.Job, error) {
+func (r *VoidJobRunner) RunRawNomadJobs(ctx context.Context, rawJobs []string) ([]types.RawJobWithNomadJob, error) {
 	r.printCaveat()
 	return nil, nil
 }

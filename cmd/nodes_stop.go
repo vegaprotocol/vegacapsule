@@ -65,7 +65,7 @@ func nodesStopNode(ctx context.Context, state state.NetworkState, name string, s
 
 	toRemove := []string{name}
 	if stopPreGen {
-		toRemove = append(toRemove, ns.PreGenerateJobsIDs...)
+		toRemove = append(toRemove, ns.PreGenerateJobsIDs()...)
 	}
 
 	if err := nomadRunner.StopJobs(ctx, toRemove); err != nil {

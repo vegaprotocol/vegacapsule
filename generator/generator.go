@@ -15,7 +15,6 @@ import (
 	"code.vegaprotocol.io/vegacapsule/generator/wallet"
 	"code.vegaprotocol.io/vegacapsule/types"
 	"code.vegaprotocol.io/vegacapsule/utils"
-	"github.com/hashicorp/nomad/api"
 )
 
 type nodeSets struct {
@@ -36,7 +35,7 @@ func (ns nodeSets) GetAllByGroupName(groupName string) []types.NodeSet {
 }
 
 type jobRunner interface {
-	RunRawNomadJobs(ctx context.Context, rawJobs []string) ([]*api.Job, error)
+	RunRawNomadJobs(ctx context.Context, rawJobs []string) ([]types.RawJobWithNomadJob, error)
 	StopNetwork(ctx context.Context, jobs *types.NetworkJobs, nodesOnly bool) error
 }
 
@@ -154,7 +153,7 @@ func (g *Generator) Generate() (genSvc *types.GeneratedServices, err error) {
 }
 
 func (g *Generator) AddNodeSet(index int, nc config.NodeConfig, ns types.NodeSet, fc *types.Faucet) (*types.NodeSet, error) {
-	preGenJobIDs, err := g.startPreGenerateJobs(nc, index)
+	preGenJobs, err := g.startPreGenerateJobs(nc, index)
 	if err != nil {
 		return nil, err
 	}
@@ -178,7 +177,7 @@ func (g *Generator) AddNodeSet(index int, nc config.NodeConfig, ns types.NodeSet
 		return nil, err
 	}
 
-	initNodeSet.PreGenerateJobsIDs = preGenJobIDs
+	initNodeSet.PreGenerateJobs = preGenJobs
 
 	co, err := newConfigOverride(g, *cnc)
 	if err != nil {

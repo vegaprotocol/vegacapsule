@@ -67,7 +67,7 @@ EOT
     ethereum_wallet_pass = "ch41nw4ll3t-3th3r3um-p4ssphr4e3"
     
     config_templates {
-      vega_file = "./node_set_templates/default/vega_validators_clef.tmpl"
+      vega_file = "./node_set_templates/default/vega_validators.tmpl"
       tendermint_file = "./node_set_templates/default/tendermint_validators.tmpl"
     }
   }

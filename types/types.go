@@ -3,6 +3,8 @@ package types
 import (
 	"fmt"
 	"sort"
+
+	"github.com/hashicorp/nomad/api"
 )
 
 type VegaNodeOutput struct {
@@ -33,16 +35,46 @@ type DataNode struct {
 	BinaryPath string
 }
 
+type RawJobWithNomadJob struct {
+	RawJob   string
+	NomadJob *api.Job
+}
+
+type NomadJob struct {
+	ID          string
+	NomadJobRaw string
+}
+
 type NodeSet struct {
-	GroupName          string
-	Name               string
-	Mode               string
-	Index              int
-	Vega               VegaNode
-	Tendermint         TendermintNode
-	DataNode           *DataNode
-	NomadJobRaw        *string `json:",omitempty"`
-	PreGenerateJobsIDs []string
+	GroupName       string
+	Name            string
+	Mode            string
+	Index           int
+	Vega            VegaNode
+	Tendermint      TendermintNode
+	DataNode        *DataNode
+	NomadJobRaw     *string `json:",omitempty"`
+	PreGenerateJobs []NomadJob
+}
+
+// PreGenerateJobsIDs returns pre gen jobs ids per specific node set
+func (ns NodeSet) PreGenerateJobsIDs() []string {
+	preGenJobsIDs := make([]string, 0, len(ns.PreGenerateJobs))
+	for _, preGenJob := range ns.PreGenerateJobs {
+		preGenJobsIDs = append(preGenJobsIDs, preGenJob.ID)
+	}
+
+	return preGenJobsIDs
+}
+
+// PreGenerateRawJobs returns pre gen jobs per specific node set
+func (ns NodeSet) PreGenerateRawJobs() []string {
+	preGenJobs := make([]string, 0, len(ns.PreGenerateJobs))
+	for _, preGenJob := range ns.PreGenerateJobs {
+		preGenJobs = append(preGenJobs, preGenJob.NomadJobRaw)
+	}
+
+	return preGenJobs
 }
 
 type Wallet struct {
@@ -79,26 +111,26 @@ func (nm NodeSetMap) ToSlice() []NodeSet {
 }
 
 type GeneratedServices struct {
-	Wallet             *Wallet
-	Faucet             *Faucet
-	NodeSets           NodeSetMap
-	PreGenerateJobsIDs []string
+	Wallet          *Wallet
+	Faucet          *Faucet
+	NodeSets        NodeSetMap
+	PreGenerateJobs []NomadJob
 }
 
 func NewGeneratedServices(w *Wallet, f *Faucet, ns []NodeSet) *GeneratedServices {
 	nsm := NodeSetMap{}
-	preGenJobsIDs := []string{}
+	preGenJobs := []NomadJob{}
 
 	for _, ns := range ns {
 		nsm[ns.Name] = ns
-		preGenJobsIDs = append(preGenJobsIDs, ns.PreGenerateJobsIDs...)
+		preGenJobs = append(preGenJobs, ns.PreGenerateJobs...)
 	}
 
 	return &GeneratedServices{
-		Wallet:             w,
-		Faucet:             f,
-		NodeSets:           nsm,
-		PreGenerateJobsIDs: preGenJobsIDs,
+		Wallet:          w,
+		Faucet:          f,
+		NodeSets:        nsm,
+		PreGenerateJobs: preGenJobs,
 	}
 }
 
@@ -108,6 +140,16 @@ func (gs GeneratedServices) GetNodeSet(name string) (*NodeSet, error) {
 		return nil, fmt.Errorf("node set with name %q not found", name)
 	}
 	return &ns, nil
+}
+
+// PreGenerateJobsIDs returns pre gen jobs ids across all node sets
+func (gs GeneratedServices) PreGenerateJobsIDs() []string {
+	preGenJobsIDs := make([]string, 0, len(gs.PreGenerateJobs))
+	for _, preGenJob := range gs.PreGenerateJobs {
+		preGenJobsIDs = append(preGenJobsIDs, preGenJob.ID)
+	}
+
+	return preGenJobsIDs
 }
 
 type NodeSetFilter func(ns NodeSet) bool

@@ -151,9 +151,9 @@ func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
 	}
 }
 
-func (r *JobRunner) RunRawNomadJobs(ctx context.Context, rawJobs []string) ([]*api.Job, error) {
+func (r *JobRunner) RunRawNomadJobs(ctx context.Context, rawJobs []string) ([]types.RawJobWithNomadJob, error) {
 	var mut sync.Mutex
-	jobs := make([]*api.Job, 0, len(rawJobs))
+	jobs := make([]types.RawJobWithNomadJob, 0, len(rawJobs))
 
 	eg := new(errgroup.Group)
 	for _, rj := range rawJobs {
@@ -175,7 +175,10 @@ func (r *JobRunner) RunRawNomadJobs(ctx context.Context, rawJobs []string) ([]*a
 			}
 
 			mut.Lock()
-			jobs = append(jobs, job)
+			jobs = append(jobs, types.RawJobWithNomadJob{
+				RawJob:   rj,
+				NomadJob: job,
+			})
 			mut.Unlock()
 
 			return nil
@@ -356,7 +359,7 @@ func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, gene
 	}
 	var lock sync.Mutex
 
-	result.AddExtraJobIDs(generatedSvcs.PreGenerateJobsIDs)
+	result.AddExtraJobIDs(generatedSvcs.PreGenerateJobsIDs())
 
 	if conf.Network.PreStart != nil {
 		extraJobIDs, err := r.runDockerJobs(ctx, conf.Network.PreStart.Docker)
