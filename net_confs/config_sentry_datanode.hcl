@@ -29,7 +29,7 @@ Host = "0.0.0.0"
 
 [API]
   [API.GRPC]
-    Hosts = [{{range $i, $v := .NonValidators}}{{if eq $v.GroupName "sentry"}}{{if ne $i 1}},{{end}}"127.0.0.1:30{{$v.Index}}2"{{end}}{{end}}]
+    Hosts = [{{range $i, $v := .NonValidators}}{{if eq $v.GroupName "sentry-0" "sentry-1" "sentry-2"}}{{if ne $i 0}},{{end}}"127.0.0.1:30{{$v.Index}}2"{{end}}{{end}}]
     Retries = 5
 EOT
   }
@@ -58,7 +58,7 @@ EOT
   genesis_template_file = "./genesis.tmpl"
   smart_contracts_addresses_file = "./public_smart_contracts_addresses.json"
 
-  ## We want 3 validator nodes with one having a set of sentry nodes
+  ## We want 3 validator nodes with each having 2 sentry nodes
   node_set "validator-0" {
     count = 1
     mode = "validator"
@@ -71,10 +71,20 @@ EOT
       tendermint_file = "./node_set_templates/sentry/tendermint_validators.tmpl"
     }
   }
+  node_set "validator-1" {
+    count = 1
+    mode = "validator"
+    node_wallet_pass = "n0d3w4ll3t-p4ssphr4e3"
+    vega_wallet_pass = "w4ll3t-p4ssphr4e3"
+    ethereum_wallet_pass = "ch41nw4ll3t-3th3r3um-p4ssphr4e3"
 
-  ## Two others with no sentry nodes for now
-  node_set "validators" {
-    count = 2
+    config_templates {
+      vega_file = "./node_set_templates/sentry/vega_validators.tmpl"
+      tendermint_file = "./node_set_templates/sentry/tendermint_validators.tmpl"
+    }
+  }
+  node_set "validator-2" {
+    count = 1
     mode = "validator"
     node_wallet_pass = "n0d3w4ll3t-p4ssphr4e3"
     vega_wallet_pass = "w4ll3t-p4ssphr4e3"
@@ -86,29 +96,38 @@ EOT
     }
   }
 
-  ## One non validator node with a data node
-  node_set "data-node" {
-    count = 1
+  ## Create 2 sentry nodes (each with a data-node) for each validator
+  node_set "sentry-0" {
+    count = 2
     mode = "full"
 	  data_node_binary = "data-node"
 
     config_templates {
-      vega_file = "./node_set_templates/sentry/vega_full.tmpl"
-      tendermint_file = "./node_set_templates/sentry/tendermint_full.tmpl"
+      tendermint_file = "./node_set_templates/sentry/tendermint_sentry-0.tmpl"
+      vega_file = "./node_set_templates/sentry/vega_sentry.tmpl"
       data_node_file = "./node_set_templates/sentry/data_node_full.tmpl"
     }
   }
-
-  ## Create a set of sentry nodes to protect a single validator instance
-  node_set "sentry" {
-    count = 3
+  node_set "sentry-1" {
+    count = 2
     mode = "full"
+	  data_node_binary = "data-node"
 
     config_templates {
-      tendermint_file = "./node_set_templates/sentry/tendermint_sentry_datanode.tmpl"
+      tendermint_file = "./node_set_templates/sentry/tendermint_sentry-1.tmpl"
       vega_file = "./node_set_templates/sentry/vega_sentry.tmpl"
+      data_node_file = "./node_set_templates/sentry/data_node_full.tmpl"
     }
   }
+  node_set "sentry-2" {
+    count = 2
+    mode = "full"
+	  data_node_binary = "data-node"
 
-
+    config_templates {
+      tendermint_file = "./node_set_templates/sentry/tendermint_sentry-2.tmpl"
+      vega_file = "./node_set_templates/sentry/vega_sentry.tmpl"
+      data_node_file = "./node_set_templates/sentry/data_node_full.tmpl"
+    }
+  }
 }
