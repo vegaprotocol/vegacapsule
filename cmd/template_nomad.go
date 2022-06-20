@@ -81,7 +81,7 @@ func templateNomad(templateRaw string, netState *state.NetworkState, templateOut
 		}
 
 		newNetworkState = updateNomadTemplateInTheNetworkState(newNetworkState, ns, buff)
-		// When updating network we want to print logs only not templates
+		// Don not print template when updating network
 		if updateNetwork {
 			continue
 		}
