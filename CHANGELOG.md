@@ -14,6 +14,7 @@
 - [134](https://github.com/vegaprotocol/vegacapsule/issues/134) Add support for Clef and allow templating of some node set config fields
 - [139](https://github.com/vegaprotocol/vegacapsule/issues/139) Allow non validator nodes to be iterated during wallet configuration
 - [125](https://github.com/vegaprotocol/vegacapsule/issues/125) - update network state when `--update-network` flag is passed to the `template nomad` cmd
+- [149](https://github.com/vegaprotocol/vegacapsule/issues/149) Update sentry config to reflect correct architecture
 
 ### 🐛 Fixes
 - [](https://github.com/vegaprotocol/vegacapsule/issues/xxxx) -
