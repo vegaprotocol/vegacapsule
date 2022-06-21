@@ -338,14 +338,23 @@ func (nj NetworkJobs) ToSlice() []NetworkJobState {
 func (nj *NetworkJobs) Append(job NetworkJobState) {
 	switch job.Kind {
 	case JobNodeSet:
+		if nj.NodesSetsJobs == nil {
+			nj.NodesSetsJobs = JobStateMap{}
+		}
 		nj.NodesSetsJobs[job.Name] = job
 	case JobCommandRunner:
+		if nj.CommandRunnersJobs == nil {
+			nj.CommandRunnersJobs = JobStateMap{}
+		}
 		nj.CommandRunnersJobs[job.Name] = job
 	case JobWallet:
 		nj.WalletJob = job
 	case JobFaucet:
 		nj.FaucetJob = job
 	default:
+		if nj.ExtraJobs == nil {
+			nj.ExtraJobs = JobStateMap{}
+		}
 		nj.ExtraJobs[job.Name] = job
 	}
 }
@@ -385,13 +394,13 @@ func (nj NetworkJobs) Exists(jobID string) bool {
 	return false
 }
 
-func (nj NetworkJobs) AddExtraJobs(ids []string, kind JobKind) {
+func (nj *NetworkJobs) AddExtraJobs(ids []string, kind JobKind) {
 	for _, id := range ids {
-		nj.ExtraJobs[id] = NetworkJobState{
+		nj.Append(NetworkJobState{
 			Name:    id,
 			Running: true,
 			Kind:    kind,
-		}
+		})
 	}
 }
 

@@ -68,7 +68,10 @@ func netStop(ctx context.Context, state *state.NetworkState) error {
 		jobFilters = append(jobFilters, types.FilterNetworkJobsByJobKindNotIn([]types.JobKind{types.JobCommandRunner}))
 	}
 
-	jobs := state.RunningJobs.Filter(jobFilters).ToSlice()
+	var jobs []types.NetworkJobState
+	if state.RunningJobs != nil {
+		jobs = state.RunningJobs.Filter(jobFilters).ToSlice()
+	}
 
 	nomadRunner := nomad.NewJobRunner(nomadClient)
 	if err := nomadRunner.StopNetwork(ctx, jobs); err != nil {
