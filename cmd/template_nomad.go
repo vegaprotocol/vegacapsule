@@ -1,11 +1,15 @@
 package cmd
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
+	"log"
 
 	"code.vegaprotocol.io/vegacapsule/generator/nomad"
 	"code.vegaprotocol.io/vegacapsule/state"
+	"code.vegaprotocol.io/vegacapsule/types"
+	"code.vegaprotocol.io/vegacapsule/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -27,7 +31,19 @@ var templateNomadCmd = &cobra.Command{
 			return networkNotBootstrappedErr("template nomad")
 		}
 
-		return templateNomad(string(template), networkState)
+		updatedNetworkState, err := templateNomad(string(template), networkState, templateOutDir, templateUpdateNetwork)
+		if err != nil {
+			return fmt.Errorf("failed to template nomad jobs for nodes ets: %w", err)
+		}
+
+		if templateUpdateNetwork {
+			log.Printf("Updating nomad template in the network state")
+			if err := updatedNetworkState.Persist(); err != nil {
+				return fmt.Errorf("failed to save network state: %w", err)
+			}
+		}
+
+		return nil
 	},
 	Example: `
 # Generate the nomad configuration for multiple node sets #1
@@ -51,23 +67,42 @@ func init() {
 	)
 }
 
-func templateNomad(templateRaw string, netState *state.NetworkState) error {
+func templateNomad(templateRaw string, netState *state.NetworkState, templateOutDir string, updateNetwork bool) (*state.NetworkState, error) {
 	nodeSets, err := filterNodesSets(netState, nodeSetsNames, nodeSetsGroupsNames)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
+	newNetworkState := *netState
 	for _, ns := range nodeSets {
 		buff, err := nomad.GenerateNodeSetTemplate(templateRaw, ns)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
+		newNetworkState = updateNomadTemplateInTheNetworkState(newNetworkState, ns, buff)
+		// Don not print template when updating network
+		if updateNetwork {
+			continue
+		}
 		fileName := fmt.Sprintf("nomad-%s.hcl", ns.Name)
 		if err := outputTemplate(buff, templateOutDir, fileName, true); err != nil {
-			return err
+			return nil, err
 		}
 	}
 
-	return nil
+	return &newNetworkState, nil
+}
+
+func updateNomadTemplateInTheNetworkState(netState state.NetworkState, modifiedNodeSet types.NodeSet, templateRaw *bytes.Buffer) state.NetworkState {
+	for idx, ns := range netState.GeneratedServices.NodeSets {
+		if ns.Name != modifiedNodeSet.Name || ns.Index != modifiedNodeSet.Index {
+			continue
+		}
+		ns.NomadJobRaw = utils.StrPoint(templateRaw.String())
+
+		netState.GeneratedServices.NodeSets[idx] = ns
+	}
+
+	return netState
 }
