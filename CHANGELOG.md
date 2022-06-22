@@ -9,6 +9,7 @@
 - [](https://github.com/vegaprotocol/vegacapsule/issues/xxxx) -
 
 ### 🛠 Improvements
+- [164](https://github.com/vegaprotocol/vegacapsule/issues/164) - Update contributor information
 - [145](https://github.com/vegaprotocol/vegacapsule/issues/145) Update Nomad version and allow Nomad to be installed to PATH
 - [134](https://github.com/vegaprotocol/vegacapsule/issues/134) Add support for Clef and allow templating of some node set config fields
 - [139](https://github.com/vegaprotocol/vegacapsule/issues/139) Allow non validator nodes to be iterated during wallet configuration
