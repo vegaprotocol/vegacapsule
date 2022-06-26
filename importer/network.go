@@ -134,6 +134,10 @@ func ImportDataIntoNetworkValidators(state state.NetworkState, networkData Netwo
 		state.GeneratedServices.NodeSets[idx] = *newNodeSet
 	}
 
+	if err := updateGenesis(state); err != nil {
+		errs.Add(fmt.Errorf("failed to import genesis for network: %w", err))
+	}
+
 	if errs.HasAny() {
 		return nil, errs
 	}
