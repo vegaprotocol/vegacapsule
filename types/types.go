@@ -314,8 +314,10 @@ type SmartContractsInfo struct {
 }
 
 const (
-	NodeModeValidator           = "validator"
-	NodeModeFull                = "full"
-	NodeWalletChainTypeVega     = "vega"
-	NodeWalletChainTypeEthereum = "ethereum"
+	NodeModeValidator = "validator"
+	NodeModeFull      = "full"
+
+	NodeWalletChainTypeTendermint = "tendermint"
+	NodeWalletChainTypeVega       = "vega"
+	NodeWalletChainTypeEthereum   = "ethereum"
 )
