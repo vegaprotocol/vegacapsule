@@ -41,4 +41,5 @@ func init() {
 	networkCmd.AddCommand(netBootstrapCmd)
 	networkCmd.AddCommand(netGenerateCmd)
 	networkCmd.AddCommand(netLogsCmd)
+	networkCmd.AddCommand(netImportCmd)
 }
