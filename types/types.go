@@ -359,6 +359,12 @@ func (nj *NetworkJobs) Append(job NetworkJobState) {
 	}
 }
 
+func (nj *NetworkJobs) RemoveJobs(jobs []NetworkJobState) {
+	for _, job := range jobs {
+		nj.RemoveJob(job)
+	}
+}
+
 func (nj *NetworkJobs) RemoveJob(job NetworkJobState) {
 	switch job.Kind {
 	case JobNodeSet:
