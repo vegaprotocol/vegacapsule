@@ -15,16 +15,10 @@ const (
 )
 
 type NodeImportData struct {
-	NodeIndex string `json:"node_index"`
-
-	EthereumPrivateKey string `json:"ethereum_private_key"`
-
+	NodeIndex                     string `json:"node_index"`
+	EthereumPrivateKey            string `json:"ethereum_private_key"`
 	TendermintValidatorPrivateKey string `json:"tendermint_validator_private_key"`
-	TendermintValidatorPublicKey  string `json:"tendermint_validator_public_key"`
-	TendermintValidatorAddress    string `json:"tendermint_validator_address"`
-	TendermintValidatorNodeID     string `json:"tendermint_validator_node_id"`
-
-	TendermintNodePrivateKey string `json:"tendermint_node_private_key"`
+	TendermintNodePrivateKey      string `json:"tendermint_node_private_key"`
 
 	VegaRecoveryPhrase string `json:"vega_recovery_phrase"`
 }
@@ -34,25 +28,36 @@ type NetworkImportdata []NodeImportData
 func importNodeData(nodeSet types.NodeSet, data NodeImportData) (*types.NodeSet, error) {
 	ethereumKeystorePath := filepath.Join(nodeSet.Vega.HomeDir, "wallets", "ethereum")
 	ethereumKeystorePassFilePath := filepath.Join(nodeSet.Vega.HomeDir, "ethereum-vega-wallet-pass.txt")
+
+	tendermintValidatorKey, err := decodeTendermintPrivateKey(data.TendermintValidatorPrivateKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode private tendermint validator key: %w", err)
+	}
+
+	tendermintNodeKey, err := decodeTendermintPrivateKey(data.TendermintNodePrivateKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode private tendermint validator key: %w", err)
+	}
+
 	importedEthereumKey, err := importPrivateKeyIntoKeystore(data.EthereumPrivateKey, ethereumKeystorePassFilePath, ethereumKeystorePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to import private ethereum key into node keystore")
 	}
 
 	err = importTendermintPrivateValidator(nodeSet.Tendermint.HomeDir, tendermintPrivateValidatorData{
-		Address:    data.TendermintValidatorAddress,
-		PublicKey:  data.TendermintValidatorPublicKey,
-		PrivateKey: data.TendermintValidatorPrivateKey,
+		Address:    tendermintValidatorKey.NodeID,
+		PublicKey:  tendermintValidatorKey.PublicKey,
+		PrivateKey: tendermintValidatorKey.PrivateKey,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to import the tendermint validator private data")
 	}
 
-	if err := importTendermintNodeKey(nodeSet.Tendermint.HomeDir, data.TendermintNodePrivateKey); err != nil {
+	if err := importTendermintNodeKey(nodeSet.Tendermint.HomeDir, tendermintNodeKey.PrivateKey); err != nil {
 		return nil, fmt.Errorf("failed to import the tendermint node private key")
 	}
 
-	if err := verifyTendermintNode(nodeSet.Vega.BinaryPath, nodeSet.Tendermint.HomeDir, data.TendermintValidatorNodeID); err != nil {
+	if err := verifyTendermintNode(nodeSet.Vega.BinaryPath, nodeSet.Tendermint.HomeDir, tendermintNodeKey.NodeID); err != nil {
 		return nil, fmt.Errorf("failed to verify imported tendermint node: %w", err)
 	}
 
@@ -63,7 +68,7 @@ func importNodeData(nodeSet types.NodeSet, data NodeImportData) (*types.NodeSet,
 	defer os.Remove(recoveryPhraseTempFilePath)
 
 	vegaWalletPassFilePath := filepath.Join(nodeSet.Vega.HomeDir, "vega-wallet-pass.txt")
-	vegaWalletFilePath, err := createIsolatedVegaWallet("vega", isolatedVegaWallet{
+	vegaWallet, err := createIsolatedVegaWallet("vega", isolatedVegaWallet{
 		VegaHomePath:           nodeSet.Vega.HomeDir,
 		RecoveryPhraseFilePath: recoveryPhraseTempFilePath,
 		VegaWalletPassFilePath: vegaWalletPassFilePath,
@@ -82,7 +87,7 @@ func importNodeData(nodeSet types.NodeSet, data NodeImportData) (*types.NodeSet,
 		EthKeystoreFilePath:     importedEthereumKey.keystoreFilePath,
 		EthKeystorePassFilePath: ethereumKeystorePassFilePath,
 
-		VegaWalletFilePath:     vegaWalletFilePath,
+		VegaWalletFilePath:     vegaWallet.WalletFilePath,
 		VegaWalletPassFilePath: vegaWalletPassFilePath,
 	}
 
@@ -92,7 +97,7 @@ func importNodeData(nodeSet types.NodeSet, data NodeImportData) (*types.NodeSet,
 
 	nodeSet.Vega.NodeWalletInfo.EthereumAddress = importedEthereumKey.ethereumAddress
 	nodeSet.Vega.NodeWalletInfo.EthereumPrivateKey = data.EthereumPrivateKey
-	// nodeSet.Vega.NodeWalletInfo.VegaWalletPublicKey = ... // TODO: Fix it
+	nodeSet.Vega.NodeWalletInfo.VegaWalletPublicKey = vegaWallet.WalletPublicKey
 	nodeSet.Vega.NodeWalletInfo.VegaWalletRecoveryPhrase = data.VegaRecoveryPhrase
 
 	return &nodeSet, nil

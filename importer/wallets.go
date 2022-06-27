@@ -23,12 +23,17 @@ type isolatedVegaWallet struct {
 	IsolatedWalletName     string
 }
 
-func createIsolatedVegaWallet(vegaBinary string, data isolatedVegaWallet, force bool) (string, error) {
+type isolatedWalletOutput struct {
+	WalletFilePath  string
+	WalletPublicKey string
+}
+
+func createIsolatedVegaWallet(vegaBinary string, data isolatedVegaWallet, force bool) (*isolatedWalletOutput, error) {
 	vegaWalletFilePath := filepath.Join(data.VegaHomePath, "data", "wallets", data.IsolatedWalletName)
 
 	if force {
 		if err := os.RemoveAll(vegaWalletFilePath); err != nil {
-			return "", fmt.Errorf("failed to remove existing vega wallet: %w", err)
+			return nil, fmt.Errorf("failed to remove existing vega wallet: %w", err)
 		}
 	}
 
@@ -42,12 +47,20 @@ func createIsolatedVegaWallet(vegaBinary string, data isolatedVegaWallet, force 
 		"--wallet", data.IsolatedWalletName,
 	}
 
-	out, err := utils.ExecuteBinary(vegaBinary, args, nil)
-	if err != nil {
-		return "", fmt.Errorf("failed to create isolated vega wallet: %w", err)
+	importOut := &struct {
+		Key struct {
+			Public string `json:"publicKey"`
+		} `json:"key"`
+	}{}
+
+	if _, err := utils.ExecuteBinary(vegaBinary, args, importOut); err != nil {
+		return nil, fmt.Errorf("failed to create isolated vega wallet: %w", err)
 	}
-	_ = out // TODO: Fix it
-	return vegaWalletFilePath, nil
+
+	return &isolatedWalletOutput{
+		WalletFilePath:  vegaWalletFilePath,
+		WalletPublicKey: importOut.Key.Public,
+	}, nil
 }
 
 type importNodeWalletInput struct {
