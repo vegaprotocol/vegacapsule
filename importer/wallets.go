@@ -219,7 +219,7 @@ func importPrivateKeyIntoKeystore(privateKeyHex, passwordFilePath, keystorePath 
 
 	return &importedEthereumKeystoreInfo{
 		ethereumAddress:  ethAccount.Address.Hex(),
-		keystoreFilePath: filepath.Join(keystorePath, ethAccount.URL.Path),
+		keystoreFilePath: ethAccount.URL.Path,
 	}, nil
 }
 

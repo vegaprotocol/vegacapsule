@@ -3,6 +3,7 @@ package importer
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 
@@ -12,6 +13,7 @@ import (
 )
 
 func updateGenesis(netState state.NetworkState) error {
+	log.Println("update genesis file for the network")
 	gen, err := genesis.NewGenerator(netState.Config, *netState.Config.Network.GenesisTemplate)
 	if err != nil {
 		return err
@@ -26,9 +28,11 @@ func updateGenesis(netState state.NetworkState) error {
 	if err != nil {
 		return fmt.Errorf("failed to generate new genesis; %w", err)
 	}
+	log.Println("...update genesis file for the network finished")
 
 	for _, nodeSet := range netState.GeneratedServices.NodeSets {
 		genesisPath := filepath.Join(nodeSet.Tendermint.HomeDir, "config", "genesis.json")
+		log.Printf("write new genesis to the %s file\n", genesisPath)
 		if err := os.RemoveAll(genesisPath); err != nil {
 			return fmt.Errorf("failed to remove old genesis.json: %w", err)
 		}
