@@ -73,6 +73,11 @@ func netStop(ctx context.Context, state *state.NetworkState) error {
 		jobs = state.RunningJobs.Filter(jobFilters).ToSlice()
 	}
 
+	if len(jobs) == 0 && stopNodesOnly {
+		log.Println("All nodes are already stopped")
+		return nil
+	}
+
 	nomadRunner := nomad.NewJobRunner(nomadClient)
 	if err := nomadRunner.StopNetwork(ctx, jobs); err != nil {
 		return fmt.Errorf("failed to stop nomad network: %w", err)

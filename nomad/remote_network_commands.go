@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"code.vegaprotocol.io/vegacapsule/types"
+	"code.vegaprotocol.io/vegacapsule/utils"
 )
 
 func (runner *CommandExecutor) Execute(ctx context.Context, binary string, args []string, nodeSets []types.NodeSet) (io.Reader, error) {
@@ -35,5 +36,18 @@ func (runner *CommandExecutor) NetworkUnsafeResetAll(ctx context.Context, nodeSe
 		}
 	}
 
-	return runner.executeCallbacks(ctx, []commandCallback{vegaResetCommand, tendermintResetCommand}, nodeSets)
+	dataNodeResetCommand := func(mapping types.NetworkPathsMapping) []string {
+		// No data node is running on the node
+		if utils.EmptyStrPoint(mapping.DataNodeBinary) || utils.EmptyStrPoint(mapping.DataNodeHome) {
+			return nil
+		}
+
+		return []string{
+			*mapping.DataNodeBinary,
+			"unsafe_reset_all",
+			"--home", *mapping.DataNodeHome,
+		}
+	}
+
+	return runner.executeCallbacks(ctx, []commandCallback{vegaResetCommand, tendermintResetCommand, dataNodeResetCommand}, nodeSets)
 }

@@ -49,6 +49,11 @@ func (runner *CommandExecutor) executeCallbacks(ctx context.Context, cmdCallback
 		for _, cmdCallback := range cmdCallbacks {
 			command := cmdCallback(allocationDetails.NodeSet.RemoteCommandRunner.PathsMapping)
 
+			// No command given for some logic conditions
+			if command == nil {
+				continue
+			}
+
 			if _, err := buffWriter.WriteString(fmt.Sprintf(
 				"\nRunning the %v command for the\"%s\" node set\n",
 				command, allocationDetails.NodeSet.Name)); err != nil {
