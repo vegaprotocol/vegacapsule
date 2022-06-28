@@ -34,6 +34,23 @@ type NetworkImportdata []NodeImportData
 func importNodeData(nodeSet types.NodeSet, data NodeImportData) (*types.NodeSet, error) {
 	ethereumKeystorePath := filepath.Join(nodeSet.Vega.HomeDir, "wallets", "ethereum")
 	ethereumKeystorePassFilePath := filepath.Join(nodeSet.Vega.HomeDir, "ethereum-vega-wallet-pass.txt")
+<<<<<<< HEAD
+=======
+
+	log.Println("... preparing tendermint validator keys")
+	tendermintValidatorKey, err := decodeTendermintPrivateKey(data.TendermintValidatorPrivateKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode private tendermint validator key: %w", err)
+	}
+
+	log.Println("... preparing tendermint node keys")
+	tendermintNodeKey, err := decodeTendermintPrivateKey(data.TendermintNodePrivateKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode private tendermint validator key: %w", err)
+	}
+
+	log.Println("... importing ethereum private wallet")
+>>>>>>> 6af27fc (feat: improve description for network import command)
 	importedEthereumKey, err := importPrivateKeyIntoKeystore(data.EthereumPrivateKey, ethereumKeystorePassFilePath, ethereumKeystorePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to import private ethereum key into node keystore")
