@@ -19,6 +19,44 @@ var (
 var netImportCmd = &cobra.Command{
 	Use:   "import",
 	Short: "Import pre-generated keys into the network",
+	Long: `The command takes a set of keys for vega nodes and imports them to the previously generated network.
+
+Required values for each node to import keys to the network:
+
+- Node Index - counted from 0
+- Tendermint validator private key
+- Tendermint node private key
+- Ethereum private key
+- Vega recovery phrase
+
+Example content of the file with data to import:
+
+  [
+    {
+      "node_index": "1",
+      "ethereum_private_key": "someValue ...",
+      "tendermint_validator_private_key": "someValue ...",
+      "tendermint_node_private_key": "someValue ...",
+      "vega_recovery_phrase": "some value ..."
+    },
+	{
+      "node_index": "1",
+      "ethereum_private_key": "someValue ...",
+      "tendermint_validator_private_key": "someValue ...",
+      "tendermint_node_private_key": "someValue ...",
+      "vega_recovery_phrase": "some value ..."
+    },
+    {
+      "node_index": "1",
+      "ethereum_private_key": "someValue ...",
+      "tendermint_validator_private_key": "someValue ...",
+      "tendermint_node_private_key": "someValue ...",
+      "vega_recovery_phrase": "some value ..."
+    },
+	...
+  ]
+	`,
+	SilenceUsage: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		netState, err := state.LoadNetworkState(homePath)
 		if err != nil {

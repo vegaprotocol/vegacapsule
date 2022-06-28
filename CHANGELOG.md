@@ -17,6 +17,7 @@
 - [149](https://github.com/vegaprotocol/vegacapsule/issues/149) Update sentry config to reflect correct architecture
 - [191](https://github.com/vegaprotocol/vegacapsule/issues/191) Support built-in Tendermint application and version 0.35.8
 - [194](https://github.com/vegaprotocol/vegacapsule/issues/194) Set `skip-timeout-commit` value to true to reduce block times
+- [75](https://github.com/vegaprotocol/vegacapsule/issues/75) Add support to import pre-generated keys into vegacapsule network
 
 ### 🐛 Fixes
 - [167](https://github.com/vegaprotocol/vegacapsule/issues/167) Fix validators filter in tendermint generator

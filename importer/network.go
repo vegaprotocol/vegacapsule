@@ -37,21 +37,18 @@ func importNodeData(nodeSet types.NodeSet, data NodeImportData) (*types.NodeSet,
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode private tendermint validator key: %w", err)
 	}
-	log.Printf("... > %#v", tendermintValidatorKey)
 
 	log.Println("... preparing tendermint node keys")
 	tendermintNodeKey, err := decodeTendermintPrivateKey(data.TendermintNodePrivateKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode private tendermint validator key: %w", err)
 	}
-	log.Printf("... > %#v", tendermintNodeKey)
 
 	log.Println("... importing ethereum private wallet")
 	importedEthereumKey, err := importPrivateKeyIntoKeystore(data.EthereumPrivateKey, ethereumKeystorePassFilePath, ethereumKeystorePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to import private ethereum key into node keystore")
 	}
-	log.Printf("... > %#v", importedEthereumKey)
 
 	log.Println("... import tendermint validator keys")
 	err = importTendermintPrivateValidator(nodeSet.Tendermint.HomeDir, tendermintPrivateValidatorData{
@@ -90,7 +87,6 @@ func importNodeData(nodeSet types.NodeSet, data NodeImportData) (*types.NodeSet,
 	if err != nil {
 		return nil, fmt.Errorf("failed to create isolated vega wallet: %w", err)
 	}
-	log.Printf("... > %#v", vegaWallet)
 
 	log.Println("... add imported wallets to the nodewallet")
 	nodeWalletPassFile := filepath.Join(nodeSet.Vega.HomeDir, "node-vega-wallet-pass.txt")
