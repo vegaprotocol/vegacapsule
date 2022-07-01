@@ -95,6 +95,10 @@ func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
 					"--home", ns.Tendermint.HomeDir,
 				},
 			},
+			RestartPolicy: &api.RestartPolicy{
+				Attempts: utils.IntPoint(0),
+				Mode:     utils.StrPoint("fail"),
+			},
 			Resources: &api.Resources{
 				CPU:      utils.IntPoint(500),
 				MemoryMB: utils.IntPoint(512),
@@ -110,6 +114,10 @@ func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
 					"--home", ns.Vega.HomeDir,
 					"--nodewallet-passphrase-file", ns.Vega.NodeWalletPassFilePath,
 				},
+			},
+			RestartPolicy: &api.RestartPolicy{
+				Attempts: utils.IntPoint(0),
+				Mode:     utils.StrPoint("fail"),
 			},
 			Resources: &api.Resources{
 				CPU:      utils.IntPoint(500),
@@ -127,6 +135,10 @@ func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
 					"node",
 					"--home", ns.DataNode.HomeDir,
 				},
+			},
+			RestartPolicy: &api.RestartPolicy{
+				Attempts: utils.IntPoint(0),
+				Mode:     utils.StrPoint("fail"),
 			},
 			Resources: &api.Resources{
 				CPU:      utils.IntPoint(500),
@@ -190,7 +202,6 @@ func (r *JobRunner) RunRawNomadJobs(ctx context.Context, rawJobs []string) ([]ty
 	}
 
 	return jobs, nil
-
 }
 
 func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) ([]*api.Job, error) {
@@ -210,7 +221,6 @@ func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) (
 			ArgVars: []string{},
 			AllowFS: true,
 		})
-
 		if err != nil {
 			return nil, err
 		}
@@ -262,6 +272,10 @@ func (r *JobRunner) runWallet(ctx context.Context, conf *config.WalletConfig, wa
 								"--output", "json",
 								"--home", wallet.HomeDir,
 							},
+						},
+						RestartPolicy: &api.RestartPolicy{
+							Attempts: utils.IntPoint(0),
+							Mode:     utils.StrPoint("fail"),
 						},
 						Resources: &api.Resources{
 							CPU:      utils.IntPoint(500),
