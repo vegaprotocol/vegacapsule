@@ -18,7 +18,7 @@ type ConfigGenerator struct {
 }
 
 func NewConfigGenerator(conf *config.Config) (*ConfigGenerator, error) {
-	homeDir, err := filepath.Abs(path.Join(*conf.OutputDir, *conf.DataNodePrefix))
+	homeDir, err := conf.StandarizePath(path.Join(*conf.OutputDir, *conf.DataNodePrefix))
 	if err != nil {
 		return nil, err
 	}

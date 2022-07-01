@@ -65,7 +65,7 @@ func newGenValidator(nodeDir string, config *tmconfig.Config) (*tmtypes.GenesisV
 }
 
 func NewConfigGenerator(conf *config.Config, generatedNodeSets []types.NodeSet) (*ConfigGenerator, error) {
-	homeDir, err := filepath.Abs(path.Join(*conf.OutputDir, *conf.TendermintNodePrefix))
+	homeDir, err := conf.StandarizePath(path.Join(*conf.OutputDir, *conf.TendermintNodePrefix))
 	if err != nil {
 		return nil, err
 	}
