@@ -11,7 +11,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var nodeName string
+var (
+	nodeName  string
+	nodeNames *[]string
+)
 
 var nodesStartCmd = &cobra.Command{
 	Use:   "start",
@@ -26,7 +29,7 @@ var nodesStartCmd = &cobra.Command{
 			return networkNotBootstrappedErr("nodes start")
 		}
 
-		updatedNetworkState, err := nodesStartNode(context.Background(), *networkState, nodeName)
+		updatedNetworkState, err := nodesStartNode(context.Background(), *networkState, *nodeNames)
 		if err != nil {
 			return fmt.Errorf("failed start node: %w", err)
 		}
@@ -36,20 +39,24 @@ var nodesStartCmd = &cobra.Command{
 }
 
 func init() {
-	nodesStartCmd.PersistentFlags().StringVar(&nodeName,
+	nodeNames = nodesStartCmd.PersistentFlags().StringSlice(
 		"name",
-		"",
+		[]string{},
 		"Name of the node tha should be started",
 	)
 	nodesStartCmd.MarkFlagRequired("name")
 }
 
-func nodesStartNode(ctx context.Context, state state.NetworkState, name string) (*state.NetworkState, error) {
-	log.Printf("starting %s node set", name)
+func nodesStartNode(ctx context.Context, state state.NetworkState, names []string) (*state.NetworkState, error) {
+	nodeSets := []types.NodeSet{}
 
-	nodeSet, err := state.GeneratedServices.GetNodeSet(name)
-	if err != nil {
-		return nil, err
+	for _, n := range names {
+		log.Printf("starting %s node set", n)
+		nodeSet, err := state.GeneratedServices.GetNodeSet(n)
+		if err != nil {
+			return nil, err
+		}
+		nodeSets = append(nodeSets, *nodeSet)
 	}
 
 	nomadClient, err := nomad.NewClient(nil)
@@ -59,17 +66,19 @@ func nodesStartNode(ctx context.Context, state state.NetworkState, name string) 
 
 	nomadRunner := nomad.NewJobRunner(nomadClient)
 
-	if _, err := nomadRunner.RunRawNomadJobs(ctx, nodeSet.PreGenerateRawJobs()); err != nil {
-		return nil, fmt.Errorf("failed to start node set %q pre generate jobs: %w", nodeSet.Name, err)
+	for _, nodeSet := range nodeSets {
+		if _, err := nomadRunner.RunRawNomadJobs(ctx, nodeSet.PreGenerateRawJobs()); err != nil {
+			return nil, fmt.Errorf("failed to start node set %q pre generate jobs: %w", nodeSet.Name, err)
+		}
 	}
 
-	res, err := nomadRunner.RunNodeSets(ctx, []types.NodeSet{*nodeSet})
+	res, err := nomadRunner.RunNodeSets(ctx, nodeSets)
 	if err != nil {
-		return nil, fmt.Errorf("failed to start nomad node set %q : %w", nodeSet.Name, err)
+		return nil, fmt.Errorf("failed to start nomad node set: %w", err)
 	}
 
 	state.RunningJobs.NodesSetsJobIDs[*res[0].ID] = true
 
-	log.Printf("starting %s node set success", name)
+	log.Printf("starting nodes set success")
 	return &state, nil
 }

@@ -38,7 +38,7 @@ var nodesAddCmd = &cobra.Command{
 		networkState.GeneratedServices.NodeSets[newNodeSet.Name] = *newNodeSet
 
 		if startNode {
-			networkState, err = nodesStartNode(context.Background(), *networkState, newNodeSet.Name)
+			networkState, err = nodesStartNode(context.Background(), *networkState, []string{newNodeSet.Name})
 			if err != nil {
 				return fmt.Errorf("failed start node: %w", err)
 			}
