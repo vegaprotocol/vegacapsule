@@ -82,7 +82,7 @@ EOT
         to = 80
       }
       env = {
-        NX_VEGA_ENV = "TESTNET"
+        NX_VEGA_ENV = "CUSTOM"
         NX_ETHEREUM_PROVIDER_URL = "http://localhost:8545"
         NX_ETHERSCAN_URL = "https://ropsten.etherscan.io" # TODO would be nice to sidecar a basic ETH block explorer pointing at local ganache node
         NX_FAIRGROUND = "false"
