@@ -65,6 +65,16 @@ type PStartConfig struct {
 	Docker []DockerConfig `hcl:"docker_service,block"`
 }
 
+func (p *PStartConfig) absPaths(configDir string) error {
+	for i := range p.Docker {
+		if err := p.Docker[i].absPaths(configDir); err != nil {
+			return fmt.Errorf("failed to set pstart abs paths: %w", err)
+		}
+	}
+
+	return nil
+}
+
 type StaticPort struct {
 	To    int `hcl:"to,optional"`
 	Value int `hcl:"value"`
@@ -78,6 +88,22 @@ type DockerConfig struct {
 	Env          map[string]string `hcl:"env,optional"`
 	StaticPort   *StaticPort       `hcl:"static_port,block"`
 	AuthSoftFail bool              `hcl:"auth_soft_fail,optional"`
+	Volumes      []string          `hcl:"volumes,optional"`
+}
+
+func (d *DockerConfig) absPaths(configDir string) error {
+	for i := range d.Volumes {
+		if !filepath.IsAbs(d.Volumes[i]) {
+			configFile, err := utils.AbsPathWithPrefix(configDir, d.Volumes[i])
+			if err != nil {
+				return fmt.Errorf("failed to get absolute file path: %w", err)
+			}
+
+			d.Volumes[i] = configFile
+		}
+	}
+
+	return nil
 }
 
 type WalletConfig struct {
@@ -187,6 +213,20 @@ func (c *Config) setAbsolutePaths() error {
 			return err
 		}
 		c.Network.Nodes[idx].DataNodeBinary = dataNodeBinPath
+	}
+
+	// Pre start
+	if c.Network.PreStart != nil {
+		if err := c.Network.PreStart.absPaths(c.configDir); err != nil {
+			return fmt.Errorf("failed to set pre start abs paths: %w", err)
+		}
+	}
+
+	// Post start
+	if c.Network.PostStart != nil {
+		if err := c.Network.PostStart.absPaths(c.configDir); err != nil {
+			return fmt.Errorf("failed to set post start abs paths: %w", err)
+		}
 	}
 
 	return nil
@@ -440,14 +480,14 @@ func DefaultConfig() (*Config, error) {
 
 	return &Config{
 		OutputDir:            &outputDir,
-		Prefix:               utils.StrPoint("st-local"),
-		NodeDirPrefix:        utils.StrPoint("node"),
-		TendermintNodePrefix: utils.StrPoint("tendermint"),
-		VegaNodePrefix:       utils.StrPoint("vega"),
-		DataNodePrefix:       utils.StrPoint("data"),
-		WalletPrefix:         utils.StrPoint("wallet"),
-		FaucetPrefix:         utils.StrPoint("faucet"),
-		VegaBinary:           utils.StrPoint("vega"),
+		Prefix:               utils.ToPointer("st-local"),
+		NodeDirPrefix:        utils.ToPointer("node"),
+		TendermintNodePrefix: utils.ToPointer("tendermint"),
+		VegaNodePrefix:       utils.ToPointer("vega"),
+		DataNodePrefix:       utils.ToPointer("data"),
+		WalletPrefix:         utils.ToPointer("wallet"),
+		FaucetPrefix:         utils.ToPointer("faucet"),
+		VegaBinary:           utils.ToPointer("vega"),
 	}, nil
 }
 

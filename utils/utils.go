@@ -90,10 +90,6 @@ func VegaNodeHomePath(networkHomePath string, nodeIdx int) string {
 	return filepath.Join(networkHomePath, "vega", fmt.Sprintf("node%d", nodeIdx))
 }
 
-func StrPoint(s string) *string {
-	return &s
-}
-
-func IntPoint(i int) *int {
-	return &i
+func ToPointer[T any](x T) *T {
+	return &x
 }
