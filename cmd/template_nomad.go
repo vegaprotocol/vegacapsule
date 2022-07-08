@@ -6,11 +6,12 @@ import (
 	"io/ioutil"
 	"log"
 
+	"github.com/spf13/cobra"
+
 	"code.vegaprotocol.io/vegacapsule/generator/nomad"
 	"code.vegaprotocol.io/vegacapsule/state"
 	"code.vegaprotocol.io/vegacapsule/types"
 	"code.vegaprotocol.io/vegacapsule/utils"
-	"github.com/spf13/cobra"
 )
 
 var templateNomadCmd = &cobra.Command{
@@ -99,7 +100,7 @@ func updateNomadTemplateInTheNetworkState(netState state.NetworkState, modifiedN
 		if ns.Name != modifiedNodeSet.Name || ns.Index != modifiedNodeSet.Index {
 			continue
 		}
-		ns.NomadJobRaw = utils.StrPoint(templateRaw.String())
+		ns.NomadJobRaw = utils.ToPointer(templateRaw.String())
 
 		netState.GeneratedServices.NodeSets[idx] = ns
 	}

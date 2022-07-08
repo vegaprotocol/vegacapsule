@@ -48,8 +48,8 @@ func (r *JobRunner) runDockerJob(ctx context.Context, conf config.DockerConfig) 
 					},
 				},
 				RestartPolicy: &api.RestartPolicy{
-					Attempts: utils.IntPoint(0),
-					Mode:     utils.StrPoint("fail"),
+					Attempts: utils.ToPointer(0),
+					Mode:     utils.ToPointer("fail"),
 				},
 				Name: &conf.Name,
 				Tasks: []*api.Task{
@@ -62,11 +62,12 @@ func (r *JobRunner) runDockerJob(ctx context.Context, conf config.DockerConfig) 
 							"args":           conf.Args,
 							"ports":          portLabels,
 							"auth_soft_fail": conf.AuthSoftFail,
+							"volumes":        conf.Volumes,
 						},
 						Env: conf.Env,
 						Resources: &api.Resources{
-							CPU:      utils.IntPoint(500),
-							MemoryMB: utils.IntPoint(768),
+							CPU:      utils.ToPointer(500),
+							MemoryMB: utils.ToPointer(768),
 						},
 					},
 				},
@@ -96,8 +97,8 @@ func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
 				},
 			},
 			Resources: &api.Resources{
-				CPU:      utils.IntPoint(500),
-				MemoryMB: utils.IntPoint(512),
+				CPU:      utils.ToPointer(500),
+				MemoryMB: utils.ToPointer(512),
 			},
 		},
 		&api.Task{
@@ -112,8 +113,8 @@ func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
 				},
 			},
 			Resources: &api.Resources{
-				CPU:      utils.IntPoint(500),
-				MemoryMB: utils.IntPoint(512),
+				CPU:      utils.ToPointer(500),
+				MemoryMB: utils.ToPointer(512),
 			},
 		})
 
@@ -129,22 +130,22 @@ func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
 				},
 			},
 			Resources: &api.Resources{
-				CPU:      utils.IntPoint(500),
-				MemoryMB: utils.IntPoint(512),
+				CPU:      utils.ToPointer(500),
+				MemoryMB: utils.ToPointer(512),
 			},
 		})
 	}
 
 	return &api.Job{
-		ID:          utils.StrPoint(ns.Name),
+		ID:          utils.ToPointer(ns.Name),
 		Datacenters: []string{"dc1"},
 		TaskGroups: []*api.TaskGroup{
 			{
 				RestartPolicy: &api.RestartPolicy{
-					Attempts: utils.IntPoint(0),
-					Mode:     utils.StrPoint("fail"),
+					Attempts: utils.ToPointer(0),
+					Mode:     utils.ToPointer("fail"),
 				},
-				Name:  utils.StrPoint("vega"),
+				Name:  utils.ToPointer("vega"),
 				Tasks: tasks,
 			},
 		},
@@ -243,10 +244,10 @@ func (r *JobRunner) runWallet(ctx context.Context, conf *config.WalletConfig, wa
 		TaskGroups: []*api.TaskGroup{
 			{
 				RestartPolicy: &api.RestartPolicy{
-					Attempts: utils.IntPoint(0),
-					Mode:     utils.StrPoint("fail"),
+					Attempts: utils.ToPointer(0),
+					Mode:     utils.ToPointer("fail"),
 				},
-				Name: utils.StrPoint("vega"),
+				Name: utils.ToPointer("vega"),
 				Tasks: []*api.Task{
 					{
 						Name:   "wallet-1",
@@ -264,8 +265,8 @@ func (r *JobRunner) runWallet(ctx context.Context, conf *config.WalletConfig, wa
 							},
 						},
 						Resources: &api.Resources{
-							CPU:      utils.IntPoint(500),
-							MemoryMB: utils.IntPoint(512),
+							CPU:      utils.ToPointer(500),
+							MemoryMB: utils.ToPointer(512),
 						},
 					},
 				},
@@ -287,8 +288,8 @@ func (r *JobRunner) runFaucet(ctx context.Context, binary string, conf *config.F
 		TaskGroups: []*api.TaskGroup{
 			{
 				RestartPolicy: &api.RestartPolicy{
-					Attempts: utils.IntPoint(0),
-					Mode:     utils.StrPoint("fail"),
+					Attempts: utils.ToPointer(0),
+					Mode:     utils.ToPointer("fail"),
 				},
 				Name: &conf.Name,
 				Tasks: []*api.Task{
@@ -305,8 +306,8 @@ func (r *JobRunner) runFaucet(ctx context.Context, binary string, conf *config.F
 							},
 						},
 						Resources: &api.Resources{
-							CPU:      utils.IntPoint(500),
-							MemoryMB: utils.IntPoint(512),
+							CPU:      utils.ToPointer(500),
+							MemoryMB: utils.ToPointer(512),
 						},
 					},
 				},
