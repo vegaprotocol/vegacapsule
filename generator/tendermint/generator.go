@@ -73,6 +73,10 @@ func NewConfigGenerator(conf *config.Config, generatedNodeSets []types.NodeSet) 
 			index:     tn.Index,
 		})
 
+
+		if tn.Mode != types.NodeModeValidator {
+			continue
+		}
 		config := tmconfig.DefaultConfig()
 		config.SetRoot(tn.Tendermint.HomeDir)
 		genValidator, err := newGenValidator(tn.Tendermint.HomeDir, config)
