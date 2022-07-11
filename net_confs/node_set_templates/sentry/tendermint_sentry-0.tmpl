@@ -24,11 +24,11 @@ moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
   pex = true
   addr_book_strict = false
   double_sign_check_height = 10
-  persistent_peers = "{{- range $i, $peer := .NodePeersByGroupName "sentry" -}}
+  persistent_peers = "{{- range $i, $peer := .NodePeersByGroupName "validator-0" "sentry-0" -}}
 	  {{- if ne $i 0 }},{{end -}}
 	  {{- $peer.ID}}@127.0.0.1:{{add $p2p_base_port $peer.Index}}
   {{- end -}}"
-  unconditional_peer_ids = "{{- range $i, $id := .NodeIDsByGroupName "sentry" -}}
+  unconditional_peer_ids = "{{- range $i, $id := .NodeIDsByGroupName "validator-0" "sentry-0" -}}
 	  {{- if ne $i 0 }},{{end -}}
 	  {{- $id }}
   {{- end -}}"

@@ -17,6 +17,7 @@ docker version
 - Clone Capsule repository
 ```bash
 git clone git@github.com:vegaprotocol/vegacapsule.git
+git config --global url."git@github.com:vegaprotocol".insteadOf "https://github.com/vegaprotocol"
 cd vegacapsule
 ```
 - Turn off GONOSUMDB for private vega repositories
