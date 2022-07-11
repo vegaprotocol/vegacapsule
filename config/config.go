@@ -65,9 +65,9 @@ type PStartConfig struct {
 	Docker []DockerConfig `hcl:"docker_service,block"`
 }
 
-func (p *PStartConfig) absPaths(configDir string) error {
+func (p *PStartConfig) setAbsPaths(configDir string) error {
 	for i := range p.Docker {
-		if err := p.Docker[i].absPaths(configDir); err != nil {
+		if err := p.Docker[i].setAbsPaths(configDir); err != nil {
 			return fmt.Errorf("failed to set pstart abs paths: %w", err)
 		}
 	}
@@ -91,12 +91,12 @@ type DockerConfig struct {
 	Volumes      []string          `hcl:"volumes,optional"`
 }
 
-func (d *DockerConfig) absPaths(configDir string) error {
+func (d *DockerConfig) setAbsPaths(configDir string) error {
 	for i := range d.Volumes {
 		if !filepath.IsAbs(d.Volumes[i]) {
 			configFile, err := utils.AbsPathWithPrefix(configDir, d.Volumes[i])
 			if err != nil {
-				return fmt.Errorf("failed to get absolute file path: %w", err)
+				return fmt.Errorf("failed to get absolute file path for %q: %w", d.Volumes[i], err)
 			}
 
 			d.Volumes[i] = configFile
@@ -217,14 +217,14 @@ func (c *Config) setAbsolutePaths() error {
 
 	// Pre start
 	if c.Network.PreStart != nil {
-		if err := c.Network.PreStart.absPaths(c.configDir); err != nil {
+		if err := c.Network.PreStart.setAbsPaths(c.configDir); err != nil {
 			return fmt.Errorf("failed to set pre start abs paths: %w", err)
 		}
 	}
 
 	// Post start
 	if c.Network.PostStart != nil {
-		if err := c.Network.PostStart.absPaths(c.configDir); err != nil {
+		if err := c.Network.PostStart.setAbsPaths(c.configDir); err != nil {
 			return fmt.Errorf("failed to set post start abs paths: %w", err)
 		}
 	}

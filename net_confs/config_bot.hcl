@@ -52,9 +52,6 @@ EOT
         to = 8545
       }
       auth_soft_fail = true
-      volumes = [
-        "./net_confs/docker:/config"
-      ]
     }
   }
 
