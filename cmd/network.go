@@ -31,7 +31,11 @@ var networkCmd = &cobra.Command{
 	vegacapsule network start -home-path=/var/tmp/veganetwork/testnetwork
 	
 	# Destroy the network
-	vegacapsule network destroy -home-path=/var/tmp/veganetwork/testnetwork`,
+	vegacapsule network destroy -home-path=/var/tmp/veganetwork/testnetwork
+
+	#Import pre-generated keys for the network nodes
+	vegacapsule network keys import -home-path=/var/tmp/veganetwork/testnetwork -
+	`,
 }
 
 func init() {
@@ -41,5 +45,5 @@ func init() {
 	networkCmd.AddCommand(netBootstrapCmd)
 	networkCmd.AddCommand(netGenerateCmd)
 	networkCmd.AddCommand(netLogsCmd)
-	networkCmd.AddCommand(netImportCmd)
+	networkCmd.AddCommand(keysCmd)
 }

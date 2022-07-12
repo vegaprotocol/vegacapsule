@@ -28,7 +28,7 @@ func updateGenesis(netState state.NetworkState) error {
 	if err != nil {
 		return fmt.Errorf("failed to generate new genesis; %w", err)
 	}
-	log.Println("...update genesis file for the network finished")
+	log.Println("...genesis generated")
 
 	for _, nodeSet := range netState.GeneratedServices.NodeSets {
 		genesisPath := filepath.Join(nodeSet.Tendermint.HomeDir, "config", "genesis.json")

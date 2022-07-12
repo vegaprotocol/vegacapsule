@@ -12,14 +12,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	networkImportDataFilePath string
-)
-
-var netImportCmd = &cobra.Command{
-	Use:   "import",
-	Short: "Import pre-generated keys into the network",
-	Long: `The command takes a set of keys for vega nodes and imports them to the previously generated network.
+const networkKeysImportDescription = `The command takes a set of keys for vega nodes and imports them to the previously generated network.
 
 Required values for each node to import keys to the network:
 
@@ -54,8 +47,16 @@ Example content of the file with data to import:
       "vega_recovery_phrase": "some value ..."
     },
 	...
-  ]
-	`,
+  ]`
+
+var (
+	networkImportDataFilePath string
+)
+
+var netKeysImportCmd = &cobra.Command{
+	Use:          "import",
+	Short:        "Import pre-generated keys into the network",
+	Long:         networkKeysImportDescription,
 	SilenceUsage: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		netState, err := state.LoadNetworkState(homePath)
@@ -68,12 +69,12 @@ Example content of the file with data to import:
 		}
 
 		if netState.Running() {
-			return fmt.Errorf("the network must be stopped before network data is imported")
+			return fmt.Errorf("the network must be stopped before the keys are imported")
 		}
 
 		updatedNetState, err := netImport(context.Background(), *netState, networkImportDataFilePath)
 		if err != nil {
-			return fmt.Errorf("failed to start network: %w", err)
+			return fmt.Errorf("failed to import network keys: %w", err)
 		}
 
 		return updatedNetState.Persist()
@@ -81,12 +82,12 @@ Example content of the file with data to import:
 }
 
 func init() {
-	netImportCmd.PersistentFlags().StringVar(&networkImportDataFilePath,
-		"network-data-path",
+	netKeysImportCmd.PersistentFlags().StringVar(&networkImportDataFilePath,
+		"keys-file-path",
 		"",
-		"Path to the file, that includes entire network information",
+		"Path to the file, that includes network keys data",
 	)
-	netImportCmd.MarkFlagRequired("network-data-path")
+	netKeysImportCmd.MarkFlagRequired("keys-file-path")
 }
 
 func netImport(ctx context.Context, state state.NetworkState, dataFilePath string) (*state.NetworkState, error) {
