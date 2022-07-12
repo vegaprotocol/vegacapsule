@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"code.vegaprotocol.io/vegacapsule/ethereum"
 	"code.vegaprotocol.io/vegacapsule/state"
 	"code.vegaprotocol.io/vegacapsule/types"
 	"code.vegaprotocol.io/vegacapsule/utils"
@@ -15,7 +16,7 @@ const (
 	defaultVegaIsolatedWalletName = "imported-wallet"
 )
 
-type NodeImportData struct {
+type NodeWalletsData struct {
 	NodeIndex                     string `json:"node_index"`
 	EthereumPrivateKey            string `json:"ethereum_private_key"`
 	TendermintValidatorPrivateKey string `json:"tendermint_validator_private_key"`
@@ -24,28 +25,28 @@ type NodeImportData struct {
 	VegaRecoveryPhrase string `json:"vega_recovery_phrase"`
 }
 
-type NetworkImportdata []NodeImportData
+type NetworkImportdata []NodeWalletsData
 
-func importNodeData(nodeSet types.NodeSet, data NodeImportData) (*types.NodeSet, error) {
+func importNodeData(nodeSet types.NodeSet, data NodeWalletsData) (*types.NodeSet, error) {
 	log.Printf("import data for the \"%s\" node", nodeSet.Name)
 
 	ethereumKeystorePath := filepath.Join(nodeSet.Vega.HomeDir, "wallets", "ethereum")
 	ethereumKeystorePassFilePath := filepath.Join(nodeSet.Vega.HomeDir, "ethereum-vega-wallet-pass.txt")
 
 	log.Println("... preparing tendermint validator keys")
-	tendermintValidatorKey, err := decodeTendermintPrivateKey(data.TendermintValidatorPrivateKey)
+	tendermintValidatorKey, err := decodeBase64TendermintPrivateKey(data.TendermintValidatorPrivateKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode private tendermint validator key: %w", err)
 	}
 
 	log.Println("... preparing tendermint node keys")
-	tendermintNodeKey, err := decodeTendermintPrivateKey(data.TendermintNodePrivateKey)
+	tendermintNodeKey, err := decodeBase64TendermintPrivateKey(data.TendermintNodePrivateKey)
 	if err != nil {
-		return nil, fmt.Errorf("failed to decode private tendermint validator key: %w", err)
+		return nil, fmt.Errorf("failed to decode private tendermint node key: %w", err)
 	}
 
 	log.Println("... importing ethereum private wallet")
-	importedEthereumKey, err := importPrivateKeyIntoKeystore(data.EthereumPrivateKey, ethereumKeystorePassFilePath, ethereumKeystorePath)
+	importedKeystore, err := ethereum.ImportPrivateKeyIntoKeystore(data.EthereumPrivateKey, ethereumKeystorePassFilePath, ethereumKeystorePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to import private ethereum key into node keystore")
 	}
@@ -95,7 +96,7 @@ func importNodeData(nodeSet types.NodeSet, data NodeImportData) (*types.NodeSet,
 		TendermintHomePath: nodeSet.Tendermint.HomeDir,
 		PassphraseFilePath: nodeWalletPassFile,
 
-		EthKeystoreFilePath:     importedEthereumKey.keystoreFilePath,
+		EthKeystoreFilePath:     importedKeystore.FilePath,
 		EthKeystorePassFilePath: ethereumKeystorePassFilePath,
 
 		VegaWalletFilePath:     vegaWallet.WalletFilePath,
@@ -108,7 +109,7 @@ func importNodeData(nodeSet types.NodeSet, data NodeImportData) (*types.NodeSet,
 
 	log.Println("... update vegacapsule state")
 
-	nodeSet.Vega.NodeWalletInfo.EthereumAddress = importedEthereumKey.ethereumAddress
+	nodeSet.Vega.NodeWalletInfo.EthereumAddress = importedKeystore.KeyPair.Address
 	nodeSet.Vega.NodeWalletInfo.EthereumPrivateKey = data.EthereumPrivateKey
 	nodeSet.Vega.NodeWalletInfo.VegaWalletPublicKey = vegaWallet.WalletPublicKey
 	nodeSet.Vega.NodeWalletInfo.VegaWalletRecoveryPhrase = data.VegaRecoveryPhrase
@@ -118,7 +119,7 @@ func importNodeData(nodeSet types.NodeSet, data NodeImportData) (*types.NodeSet,
 	return &nodeSet, nil
 }
 
-func getNodeImportDataForNodeIdx(nodeIdx int, networkData NetworkImportdata) *NodeImportData {
+func getNodeWalletsDataForNodeIdx(nodeIdx int, networkData NetworkImportdata) *NodeWalletsData {
 	for _, nodeData := range networkData {
 		if fmt.Sprintf("%d", nodeIdx) == nodeData.NodeIndex {
 			return &nodeData
@@ -136,7 +137,7 @@ func ImportDataIntoNetworkValidators(state state.NetworkState, networkData Netwo
 			continue
 		}
 
-		nodeData := getNodeImportDataForNodeIdx(nodeSet.Index, networkData)
+		nodeData := getNodeWalletsDataForNodeIdx(nodeSet.Index, networkData)
 		if nodeData == nil {
 			errs.Add(fmt.Errorf("failed to import data for the %s node set: missing import data for the %d node in given set",
 				nodeSet.Name,

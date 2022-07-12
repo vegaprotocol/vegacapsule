@@ -14,7 +14,7 @@ type tendermintKey struct {
 	NodeID     string
 }
 
-func decodeTendermintPrivateKey(privateKey string) (*tendermintKey, error) {
+func decodeBase64TendermintPrivateKey(privateKey string) (*tendermintKey, error) {
 	var privKey ed25519.PrivKey
 
 	privKey, err := base64.StdEncoding.DecodeString(privateKey)
