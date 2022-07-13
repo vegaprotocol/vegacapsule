@@ -195,3 +195,11 @@ func ConfigFilePath(nodeDir string) string {
 func originalConfigFilePath(nodeDir string) string {
 	return filepath.Join(nodeDir, "config", "config-original.toml")
 }
+
+func NodeKeyFilePath(nodeDir string) string {
+	return filepath.Join(nodeDir, "config", "node_key.json")
+}
+
+func PrivValidatorFilePath(nodeDir string) string {
+	return filepath.Join(nodeDir, "config", "priv_validator_key.json")
+}
