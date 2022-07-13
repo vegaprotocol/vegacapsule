@@ -48,11 +48,12 @@ func DescribeKeyPair(keyFilePath, password string) (*KeyPair, error) {
 }
 
 type KeyStore struct {
-	FilePath string
-	KeyPair  KeyPair
+	FilePath         string
+	PasswordFilePath string
+	KeyPair          KeyPair
 }
 
-func ImportPrivateKeyIntoKeystore(privateKeyHex, passwordFilePath, keystorePath string) (*KeyStore, error) {
+func ImportPrivateKeyIntoKeystore(privateKeyHex, passwordFilePath string, keystorePath string) (*KeyStore, error) {
 	privateKeyHex = strings.TrimPrefix(privateKeyHex, "0x")
 	ecdsaKey, err := crypto.HexToECDSA(privateKeyHex)
 	if err != nil {
@@ -81,7 +82,8 @@ func ImportPrivateKeyIntoKeystore(privateKeyHex, passwordFilePath, keystorePath 
 			return nil, fmt.Errorf("the ethereum private key has been imporeted in the past but keystore file cannot be found: %w", err)
 		}
 		return &KeyStore{
-			FilePath: filepath.Join(keystorePath, accountFileName),
+			FilePath:         filepath.Join(keystorePath, accountFileName),
+			PasswordFilePath: passwordFilePath,
 			KeyPair: KeyPair{
 				PrivateKey: privateKeyHex,
 				Address:    ethAccount.Address.Hex(),
@@ -90,7 +92,8 @@ func ImportPrivateKeyIntoKeystore(privateKeyHex, passwordFilePath, keystorePath 
 	}
 
 	return &KeyStore{
-		FilePath: ethAccount.URL.Path,
+		FilePath:         ethAccount.URL.Path,
+		PasswordFilePath: passwordFilePath,
 		KeyPair: KeyPair{
 			PrivateKey: privateKeyHex,
 			Address:    ethAccount.Address.Hex(),

@@ -14,6 +14,8 @@ import (
 	"code.vegaprotocol.io/vegacapsule/utils"
 )
 
+const defaultIsolatedWalletName = "created-wallet"
+
 type ConfigGenerator struct {
 	conf    *config.Config
 	homeDir string
@@ -108,7 +110,7 @@ func (vg ConfigGenerator) initiateValidatorWallets(
 		return nil, fmt.Errorf("failed to write ethereum wallet passphrase to file: %w", err)
 	}
 
-	vegaOut, err := vg.createWallet(nodeDir, "created-wallet", walletPassFilePath)
+	vegaOut, err := vg.createWallet(nodeDir, defaultIsolatedWalletName, walletPassFilePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create vega wallet: %w", err)
 	}
@@ -121,6 +123,8 @@ func (vg ConfigGenerator) initiateValidatorWallets(
 	log.Printf("node wallet import out: %#v", vegaImportOut)
 
 	nwi := &types.NodeWalletInfo{
+		VegaWalletName:           defaultIsolatedWalletName,
+		VegaWalletPassFilePath:   walletPassFilePath,
 		VegaWalletRecoveryPhrase: vegaOut.Wallet.RecoveryPhrase,
 		VegaWalletPublicKey:      vegaOut.Key.Public,
 	}
@@ -148,6 +152,7 @@ func (vg ConfigGenerator) initiateValidatorWallets(
 
 		nwi.EthereumAddress = ethKey.Address
 		nwi.EthereumPrivateKey = ethKey.PrivateKey
+		nwi.EthereumPassFilePath = ethereumPassFilePath
 	}
 
 	tmtOut, err := vg.importTendermintNodeWallet(nodeDir, nodeWalletPassFilePath, tendermintHome)
@@ -171,4 +176,12 @@ func ConfigFilePath(nodeDir string) string {
 
 func originalConfigFilePath(nodeDir string) string {
 	return filepath.Join(nodeDir, "config", "node", "config-original.toml")
+}
+
+func IsolatedWalletPath(nodeDir, waleltName string) string {
+	return filepath.Join(nodeDir, "data", "wallets", waleltName)
+}
+
+func EthereumWalletPath(nodeDir string) string {
+	return filepath.Join(nodeDir, "wallets", "ethereum")
 }

@@ -2,10 +2,7 @@ package importer
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
-	"os"
-	"path/filepath"
 
 	"code.vegaprotocol.io/vegacapsule/generator/genesis"
 	"code.vegaprotocol.io/vegacapsule/generator/tendermint"
@@ -24,23 +21,11 @@ func updateGenesis(netState state.NetworkState) error {
 		return err
 	}
 
-	buff, err := gen.Generate(netState.GeneratedServices.GetValidators(), tendermintGen.GenesisValidators())
-	if err != nil {
-		return fmt.Errorf("failed to generate new genesis; %w", err)
+	log.Println("generating and saving genesis")
+	if err := gen.GenerateAndSave(netState.GeneratedServices.GetValidators(), netState.GeneratedServices.GetNonValidators(), tendermintGen.GenesisValidators()); err != nil {
+		return fmt.Errorf("failed generating and saving genesis: %w", err)
 	}
-	log.Println("...genesis generated")
-
-	for _, nodeSet := range netState.GeneratedServices.NodeSets {
-		genesisPath := filepath.Join(nodeSet.Tendermint.HomeDir, "config", "genesis.json")
-		log.Printf("write new genesis to the %s file\n", genesisPath)
-		if err := os.RemoveAll(genesisPath); err != nil {
-			return fmt.Errorf("failed to remove old genesis.json: %w", err)
-		}
-
-		if err := ioutil.WriteFile(genesisPath, buff.Bytes(), 0644); err != nil {
-			return fmt.Errorf("failed to new write genesis.json: %w", err)
-		}
-	}
+	log.Println("done")
 
 	return nil
 }
