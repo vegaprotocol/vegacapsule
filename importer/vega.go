@@ -2,27 +2,25 @@ package importer
 
 import (
 	"fmt"
+	"log"
 	"os"
-	"path/filepath"
 
+	vegagen "code.vegaprotocol.io/vegacapsule/generator/vega"
 	"code.vegaprotocol.io/vegacapsule/types"
 	"code.vegaprotocol.io/vegacapsule/utils"
 )
 
-type isolatedVegaWallet struct {
-	VegaHomePath           string
-	RecoveryPhraseFilePath string
-	VegaWalletPassFilePath string
-	IsolatedWalletName     string
-}
+const (
+	defaultVegaIsolatedWalletName = "imported-wallet"
+)
 
-type isolatedWalletOutput struct {
+type createIsolatedVegaWalletOutput struct {
 	WalletFilePath  string
 	WalletPublicKey string
 }
 
-func createIsolatedVegaWallet(vegaBinary string, data isolatedVegaWallet, force bool) (*isolatedWalletOutput, error) {
-	vegaWalletFilePath := filepath.Join(data.VegaHomePath, "data", "wallets", data.IsolatedWalletName)
+func createIsolatedVegaWallet(nodeSet types.NodeSet, recoveryPhraseFilePath string, isolatedWalletName string, force bool) (*createIsolatedVegaWalletOutput, error) {
+	vegaWalletFilePath := vegagen.IsolatedWalletPath(nodeSet.Vega.HomeDir, isolatedWalletName)
 
 	if force {
 		if err := os.RemoveAll(vegaWalletFilePath); err != nil {
@@ -32,12 +30,12 @@ func createIsolatedVegaWallet(vegaBinary string, data isolatedVegaWallet, force 
 
 	args := []string{
 		"wallet", "import",
-		"--home", data.VegaHomePath,
+		"--home", nodeSet.Vega.HomeDir,
 		"--no-version-check",
 		"--output", "json",
-		"--recovery-phrase-file", data.RecoveryPhraseFilePath,
-		"--passphrase-file", data.VegaWalletPassFilePath,
-		"--wallet", data.IsolatedWalletName,
+		"--recovery-phrase-file", recoveryPhraseFilePath,
+		"--passphrase-file", nodeSet.Vega.NodeWalletInfo.VegaWalletPassFilePath,
+		"--wallet", isolatedWalletName,
 	}
 
 	importOut := &struct {
@@ -46,66 +44,42 @@ func createIsolatedVegaWallet(vegaBinary string, data isolatedVegaWallet, force 
 		} `json:"key"`
 	}{}
 
-	if _, err := utils.ExecuteBinary(vegaBinary, args, importOut); err != nil {
+	if _, err := utils.ExecuteBinary(nodeSet.Vega.BinaryPath, args, importOut); err != nil {
 		return nil, fmt.Errorf("failed to create isolated vega wallet: %w", err)
 	}
 
-	return &isolatedWalletOutput{
+	return &createIsolatedVegaWalletOutput{
 		WalletFilePath:  vegaWalletFilePath,
 		WalletPublicKey: importOut.Key.Public,
 	}, nil
 }
 
-type importNodeWalletInput struct {
-	VegaHomePath       string
-	TendermintHomePath string
-	PassphraseFilePath string
-
-	EthKeystoreFilePath     string
-	EthKeystorePassFilePath string
-
-	VegaWalletFilePath     string
-	VegaWalletPassFilePath string
-}
-
-func importVegaNodeWallet(vegaBinary string, data importNodeWalletInput) error {
-	tmImportArgs := []string{
-		"nodewallet", "import", "--force",
-		"--home", data.VegaHomePath,
-		"--chain", types.NodeWalletChainTypeTendermint,
-		"--passphrase-file", data.PassphraseFilePath,
-		"--output", "json",
-		"--tendermint-home", data.TendermintHomePath,
+func createAndImportVegaWallet(nodeSet types.NodeSet, recoveryPhrase string) (*createIsolatedVegaWalletOutput, error) {
+	log.Println("... create isolated vega wallet from given recovery passphrase")
+	recoveryPhraseTempFilePath, err := createTempFile(recoveryPhrase)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create temporary file for vega recovery phrase: %w", err)
 	}
-	if _, err := utils.ExecuteBinary(vegaBinary, tmImportArgs, nil); err != nil {
-		return fmt.Errorf("failed to import tendermint to vega nodewallet: %w", err)
+	defer os.Remove(recoveryPhraseTempFilePath)
+
+	createIsolatedVegaWalletOutput, err := createIsolatedVegaWallet(nodeSet, recoveryPhraseTempFilePath, defaultVegaIsolatedWalletName, true)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create isolated vega wallet: %w", err)
 	}
 
-	ethImportArgs := []string{
-		"nodewallet", "import", "--force",
-		"--home", data.VegaHomePath,
-		"--chain", types.NodeWalletChainTypeEthereum,
-		"--passphrase-file", data.PassphraseFilePath,
-		"--output", "json",
-		"--wallet-passphrase-file", data.EthKeystorePassFilePath,
-		"--wallet-path", data.EthKeystoreFilePath,
-	}
-	if _, err := utils.ExecuteBinary(vegaBinary, ethImportArgs, nil); err != nil {
-		return fmt.Errorf("failed to import ethereum to vega nodewallet: %w", err)
-	}
-
+	log.Println("... adding isolated vega wallet to the nodewallet")
 	vegaImpotyArgs := []string{
 		"nodewallet", "import", "--force",
-		"--home", data.VegaHomePath,
+		"--home", nodeSet.Vega.HomeDir,
 		"--chain", types.NodeWalletChainTypeVega,
-		"--passphrase-file", data.PassphraseFilePath,
+		"--passphrase-file", nodeSet.Vega.NodeWalletPassFilePath,
 		"--output", "json",
-		"--wallet-passphrase-file", data.VegaWalletPassFilePath,
-		"--wallet-path", data.VegaWalletFilePath,
+		"--wallet-passphrase-file", nodeSet.Vega.NodeWalletInfo.VegaWalletPassFilePath,
+		"--wallet-path", createIsolatedVegaWalletOutput.WalletFilePath,
 	}
-	if _, err := utils.ExecuteBinary(vegaBinary, vegaImpotyArgs, nil); err != nil {
-		return fmt.Errorf("failed to import ethereum to vega nodewallet: %w", err)
+	if _, err := utils.ExecuteBinary(nodeSet.Vega.BinaryPath, vegaImpotyArgs, nil); err != nil {
+		return nil, fmt.Errorf("failed to import ethereum to vega nodewallet: %w", err)
 	}
 
-	return nil
+	return createIsolatedVegaWalletOutput, nil
 }

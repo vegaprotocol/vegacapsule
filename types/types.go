@@ -18,8 +18,9 @@ type VegaNode struct {
 	Mode                   string
 	HomeDir                string
 	NodeWalletPassFilePath string
-	NodeWalletInfo         *NodeWalletInfo `json:",omitempty"`
-	BinaryPath             string
+
+	NodeWalletInfo *NodeWalletInfo `json:",omitempty"`
+	BinaryPath     string
 }
 
 type TendermintNode struct {
@@ -260,6 +261,18 @@ func (gs GeneratedServices) GetValidators() []NodeSet {
 	return out
 }
 
+func (gs GeneratedServices) GetNonValidators() []NodeSet {
+	var out []NodeSet
+
+	for _, ns := range gs.NodeSets {
+		if ns.Mode != NodeModeValidator {
+			out = append(out, ns)
+		}
+	}
+
+	return out
+}
+
 func (gs GeneratedServices) ListValidators() []VegaNodeOutput {
 	var validators []VegaNodeOutput
 
@@ -376,11 +389,15 @@ func (jm JobStateMap) RemoveJobs(jobs []NetworkJobState) {
 }
 
 type NodeWalletInfo struct {
-	EthereumAddress          string
-	EthereumPrivateKey       string
-	EthereumClefRPCAddress   string
+	EthereumPassFilePath   string
+	EthereumAddress        string
+	EthereumPrivateKey     string
+	EthereumClefRPCAddress string
+
 	VegaWalletPublicKey      string
 	VegaWalletRecoveryPhrase string
+	VegaWalletName           string
+	VegaWalletPassFilePath   string
 }
 
 type SmartContractsInfo struct {
