@@ -59,7 +59,7 @@ EOT
   smart_contracts_addresses_file = "./public_smart_contracts_addresses.json"
 
   node_set "validators" {
-    count = 1
+    count = 2
     mode = "validator"
     node_wallet_pass = "n0d3w4ll3t-p4ssphr4e3"
     vega_wallet_pass = "w4ll3t-p4ssphr4e3"
@@ -71,14 +71,14 @@ EOT
     }
 
     remote_command_runner {
-      nomad_job "this" {
+      nomad_job "command-runner" {
         job_template_file = "../jobs/command_runner.hcl"
       }
 
       paths_mapping {
-        tendermint_home = "/Users/daniel/.vegacapsule/testnet/tendermint/node0/"
-        vega_home = "/Users/daniel/.vegacapsule/testnet/vega/node0/"
-        vega_binary = "/Users/daniel/go/bin/vega"
+        tendermint_home = "{{ .Tendermint.HomeDir }}"
+        vega_home = "{{ .Vega.HomeDir }}"
+        vega_binary = "{{ .Vega.BinaryPath }}"
       }
     }
   }
@@ -97,17 +97,17 @@ EOT
     }
 
     remote_command_runner {
-      nomad_job "this" {
+      nomad_job "command-runner" {
         job_template_file = "../jobs/command_runner.hcl"
       }
 
       paths_mapping {
-        tendermint_home = "/Users/daniel/.vegacapsule/testnet/tendermint/node1/"
-        vega_home = "/Users/daniel/.vegacapsule/testnet/vega/node1/"
-        vega_binary = "/Users/daniel/go/bin/vega"
+        tendermint_home = "{{ .Tendermint.HomeDir }}"
+        vega_home = "{{ .Vega.HomeDir }}"
+        vega_binary = "{{ .Vega.BinaryPath }}"
 
-        data_node_home = "/Users/daniel/.vegacapsule/testnet/data/node1/"
-        data_node_binary = "/Users/daniel/go/bin/data-node"
+        data_node_home = "{{ .DataNode.HomeDir }}"
+        data_node_binary = "{{ .DataNode.BinaryPath }}"
       }
     }
   }

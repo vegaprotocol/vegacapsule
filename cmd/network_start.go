@@ -11,16 +11,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const defaultTimeout = 300
+const defaultTimeout = 300 * time.Second
 
 var (
-	timeout uint64
+	timeout time.Duration
 )
 
 var netStartCmd = &cobra.Command{
 	Use:   "start",
 	Short: "Starts existing network",
-	RunE: func(cmd *cobra.Command, args []string) (err error) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		netState, err := state.LoadNetworkState(homePath)
 		if err != nil {
 			return err
@@ -30,28 +30,11 @@ var netStartCmd = &cobra.Command{
 			return networkNotBootstrappedErr("start")
 		}
 
-		saveState := func(updatedNetState *state.NetworkState) {
-			if updatedNetState == nil {
-				return
-			}
-
-			log.Printf("saving network state to the file")
-			saveErr := updatedNetState.Persist()
-			if saveErr != nil {
-				log.Printf("failed to save network state: %s", err)
-			}
-
-			// do not shadow the original error as it is more important
-			if err == nil {
-				err = saveErr
-			}
-		}
-
-		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
 		defer cancel()
 		updatedNetState, err := netStart(ctx, *netState)
 		// We want state saved even if the network is not started properly
-		defer saveState(updatedNetState)
+		defer saveNetworkState(updatedNetState)
 		if err != nil {
 			return fmt.Errorf("failed to start network: %w", err)
 		}
@@ -61,10 +44,10 @@ var netStartCmd = &cobra.Command{
 }
 
 func init() {
-	netStartCmd.PersistentFlags().Uint64Var(&timeout,
+	netStartCmd.PersistentFlags().DurationVar(&timeout,
 		"timeout",
 		defaultTimeout,
-		"Timeout in seconds",
+		"Network start timeout",
 	)
 }
 
@@ -79,7 +62,7 @@ func netStart(ctx context.Context, state state.NetworkState) (*state.NetworkStat
 	nomadRunner := nomad.NewJobRunner(nomadClient)
 
 	res, err := nomadRunner.StartNetwork(ctx, state.Config, state.GeneratedServices)
-	// if network state returned, save it in current state
+	// if network state returned, save it in current state regardless of an error
 	if res != nil {
 		state.RunningJobs = res
 	}

@@ -39,11 +39,9 @@ var nodesStopCmd = &cobra.Command{
 			wantedNamesToStop = append(wantedNamesToStop, nodeSet.RemoteCommandRunner.Name)
 		}
 
-		filters := []types.NetworkJobsFilter{
-			types.FilterNetworkJobsByNames(wantedNamesToStop),
-		}
+		jobs := networkState.RunningJobs.GetByNames(wantedNamesToStop)
 
-		updatedNetworkState, err := nodesStopNode(context.Background(), *networkState, nodeName, filters)
+		updatedNetworkState, err := nodesStopNode(context.Background(), *networkState, nodeName, jobs, false)
 		if err != nil {
 			return fmt.Errorf("failed stop node: %w", err)
 		}
@@ -71,16 +69,19 @@ func init() {
 	nodesStopCmd.MarkFlagRequired("name")
 }
 
-func nodesStopNode(ctx context.Context, state state.NetworkState, name string, jobsFilters []types.NetworkJobsFilter) (*state.NetworkState, error) {
+func nodesStopNode(ctx context.Context, state state.NetworkState, name string, jobs types.JobStateMap, ignoreIfStopped bool) (*state.NetworkState, error) {
 	log.Printf("stopping the %s node set", name)
 
-	jobs := state.RunningJobs.Filter(jobsFilters)
 	nomadClient, err := nomad.NewClient(nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create nomad client: %w", err)
 	}
 
 	if len(jobs.ToSlice()) == 0 {
+		if ignoreIfStopped {
+			return &state, nil
+		}
+
 		return nil, fmt.Errorf("given node set is not running")
 	}
 
@@ -90,8 +91,8 @@ func nodesStopNode(ctx context.Context, state state.NetworkState, name string, j
 		return nil, fmt.Errorf("failed to stop nomad job %q: %w", name, err)
 	}
 
-	for _, job := range jobs.ToSlice() {
-		state.RunningJobs.RemoveJob(job)
+	for _, job := range jobs {
+		state.RunningJobs.RemoveJobs([]types.NetworkJobState{job})
 	}
 
 	log.Printf("stopping %s node set success", name)

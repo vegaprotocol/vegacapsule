@@ -8,6 +8,7 @@ import (
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/generator/nomad"
 	"code.vegaprotocol.io/vegacapsule/types"
+	"code.vegaprotocol.io/vegacapsule/utils"
 )
 
 func (g *Generator) startPreGenerateJobs(n config.NodeConfig, index int) ([]types.NomadJob, error) {
@@ -34,7 +35,7 @@ func (g *Generator) templatePreGenerateJobs(preGenConf *config.PreGenerate, inde
 			continue
 		}
 
-		template, err := nomad.GeneratePreGenerateTemplate(*nc.JobTemplate, nomad.PreGenerateTemplateCtx{
+		template, err := utils.GenerateTemplate(*nc.JobTemplate, nomad.PreGenerateTemplateCtx{
 			Name:  nc.Name,
 			Index: index,
 		})

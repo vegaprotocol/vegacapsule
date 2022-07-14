@@ -37,7 +37,7 @@ var netLogsCmd = &cobra.Command{
 			return networkNotRunningErr("net logs")
 		}
 
-		jobIDs, err := filterJobIDsForLogs(*netState.RunningJobs, logsOnlyNodeSets, jobID)
+		jobIDs, err := filterJobIDsForLogs(netState.RunningJobs.Clone(), logsOnlyNodeSets, jobID)
 		if err != nil {
 			return err
 		}
@@ -83,7 +83,7 @@ func init() {
 	)
 }
 
-func filterJobIDsForLogs(jobs types.NetworkJobs, nodeSetsOnly bool, jobID string) ([]string, error) {
+func filterJobIDsForLogs(jobs types.JobStateMap, nodeSetsOnly bool, jobID string) ([]string, error) {
 	if jobID != "" {
 		if !jobs.Exists(jobID) {
 			return nil, fmt.Errorf("job %q not found", jobID)
@@ -93,7 +93,7 @@ func filterJobIDsForLogs(jobs types.NetworkJobs, nodeSetsOnly bool, jobID string
 	}
 
 	if nodeSetsOnly {
-		return jobs.NodesSetsJobs.ToSliceNames(), nil
+		return jobs.GetByKind(types.JobNodeSet).ToSliceNames(), nil
 	}
 
 	return jobs.ToSliceNames(), nil

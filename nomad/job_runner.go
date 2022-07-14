@@ -207,7 +207,7 @@ func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) (
 			})
 
 			if err != nil {
-				return nil, fmt.Errorf("failed to parse command runner template: %w", err)
+				return nil, fmt.Errorf("failed to parse command runner template for node set %s: %w", ns.Name, err)
 			}
 
 			jobs = append(jobs, job)
@@ -380,17 +380,13 @@ func (r *JobRunner) runDockerJobs(ctx context.Context, dockerConfigs []config.Do
 	return jobIDs, nil
 }
 
-func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, generatedSvcs *types.GeneratedServices) (*types.NetworkJobs, error) {
+func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, generatedSvcs *types.GeneratedServices) (types.JobStateMap, error) {
 	g, ctx := errgroup.WithContext(gCtx)
 
-	result := &types.NetworkJobs{
-		NodesSetsJobs:      types.JobStateMap{},
-		ExtraJobs:          types.JobStateMap{},
-		CommandRunnersJobs: types.JobStateMap{},
-	}
+	result := types.JobStateMap{}
 	var lock sync.Mutex
 
-	result.AddExtraJobs(generatedSvcs.PreGenerateJobsIDs(), types.JobPreStart)
+	result.CreateAndAppendJobs(generatedSvcs.PreGenerateJobsIDs(), types.JobPreStart)
 
 	if conf.Network.PreStart != nil {
 		ExtraJobs, err := r.runDockerJobs(ctx, conf.Network.PreStart.Docker)
@@ -398,7 +394,7 @@ func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, gene
 			return nil, fmt.Errorf("failed to run pre start jobs: %w", err)
 		}
 
-		result.AddExtraJobs(ExtraJobs, types.JobPreStart)
+		result.CreateAndAppendJobs(ExtraJobs, types.JobPreStart)
 	}
 
 	// create new error group to be able call wait funcion again
@@ -410,11 +406,11 @@ func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, gene
 			}
 
 			lock.Lock()
-			result.FaucetJob = types.NetworkJobState{
+			result.Append(types.NetworkJobState{
 				Name:    *job.ID,
 				Running: true,
 				Kind:    types.JobFaucet,
-			}
+			})
 			lock.Unlock()
 
 			return nil
@@ -429,13 +425,12 @@ func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, gene
 			}
 
 			lock.Lock()
-			result.WalletJob = types.NetworkJobState{
+			result.Append(types.NetworkJobState{
 				Name:    *job.ID,
 				Kind:    types.JobWallet,
 				Running: true,
-			}
+			})
 			lock.Unlock()
-
 			return nil
 		})
 	}
@@ -461,13 +456,13 @@ func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, gene
 	}
 
 	if conf.Network.PostStart != nil {
-		ExtraJobs, err := r.runDockerJobs(gCtx, conf.Network.PostStart.Docker)
+		extraJobsIDs, err := r.runDockerJobs(gCtx, conf.Network.PostStart.Docker)
 		if err != nil {
 			// return result even if job failed to save current network state
 			return result, fmt.Errorf("failed to run post start jobs: %w", err)
 		}
 
-		result.AddExtraJobs(ExtraJobs, types.JobPostStart)
+		result.CreateAndAppendJobs(extraJobsIDs, types.JobPostStart)
 	}
 
 	return result, nil

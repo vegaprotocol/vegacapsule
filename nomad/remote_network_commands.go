@@ -9,13 +9,13 @@ import (
 )
 
 func (runner *CommandExecutor) Execute(ctx context.Context, binary string, args []string, nodeSets []types.NodeSet) (io.Reader, error) {
-	command := []commandCallback{
+	command := []command{
 		func(pathsMapping types.NetworkPathsMapping) []string {
 			return append([]string{binary}, args...)
 		},
 	}
 
-	return runner.executeCallbacks(ctx, command, nodeSets)
+	return runner.executeCommands(ctx, command, nodeSets)
 }
 
 func (runner *CommandExecutor) NetworkUnsafeResetAll(ctx context.Context, nodeSets []types.NodeSet) (io.Reader, error) {
@@ -49,5 +49,5 @@ func (runner *CommandExecutor) NetworkUnsafeResetAll(ctx context.Context, nodeSe
 		}
 	}
 
-	return runner.executeCallbacks(ctx, []commandCallback{vegaResetCommand, tendermintResetCommand, dataNodeResetCommand}, nodeSets)
+	return runner.executeCommands(ctx, []command{vegaResetCommand, tendermintResetCommand, dataNodeResetCommand}, nodeSets)
 }

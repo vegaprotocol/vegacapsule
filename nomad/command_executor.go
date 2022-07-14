@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"code.vegaprotocol.io/vegacapsule/types"
+	"code.vegaprotocol.io/vegacapsule/utils"
 	"github.com/hashicorp/nomad/api"
 )
 
@@ -26,7 +27,7 @@ type remoteCommandRunnerDetails struct {
 	TaskID     string
 }
 
-type commandCallback func(pathsMapping types.NetworkPathsMapping) []string
+type command func(pathsMapping types.NetworkPathsMapping) []string
 
 func NewCommandRunner(client *Client) *CommandExecutor {
 	return &CommandExecutor{
@@ -34,8 +35,8 @@ func NewCommandRunner(client *Client) *CommandExecutor {
 	}
 }
 
-func (runner *CommandExecutor) executeCallbacks(ctx context.Context, cmdCallbacks []commandCallback, nodeSets []types.NodeSet) (io.Reader, error) {
-	allocations, err := runner.filterCommandRunnerAllocations(nodeSets)
+func (runner *CommandExecutor) executeCommands(ctx context.Context, commands []command, nodeSets []types.NodeSet) (io.Reader, error) {
+	allocations, err := runner.getCommandRunnerAllocations(nodeSets)
 	if err != nil {
 		return nil, fmt.Errorf("failed to filter command runner alocations: %w", err)
 	}
@@ -46,8 +47,8 @@ func (runner *CommandExecutor) executeCallbacks(ctx context.Context, cmdCallback
 	// TODO: Parallel below executions
 	// The exec call blocks until command terminates (or an error occurs), and returns the exit code.
 	for _, allocationDetails := range allocations {
-		for _, cmdCallback := range cmdCallbacks {
-			command := cmdCallback(allocationDetails.NodeSet.RemoteCommandRunner.PathsMapping)
+		for _, cmdFunc := range commands {
+			command := cmdFunc(allocationDetails.NodeSet.RemoteCommandRunner.PathsMapping)
 
 			// No command given for some logic conditions
 			if command == nil {
@@ -85,7 +86,7 @@ func (runner *CommandExecutor) executeCallbacks(ctx context.Context, cmdCallback
 	return reader, nil
 }
 
-func (runner *CommandExecutor) filterCommandRunnerAllocations(nodeSets []types.NodeSet) ([]*remoteCommandRunnerDetails, error) {
+func (runner *CommandExecutor) getCommandRunnerAllocations(nodeSets []types.NodeSet) ([]*remoteCommandRunnerDetails, error) {
 	if err := validateNodeSets(nodeSets); err != nil {
 		return nil, fmt.Errorf("failed to run command on remote nomad cluster: %w", err)
 	}
@@ -157,10 +158,16 @@ func (runner *CommandExecutor) getRemoteCommandRunnerDetails(allocationList []*a
 }
 
 func validateNodeSets(nodeSets []types.NodeSet) error {
+	mErr := utils.NewMultiError()
+
 	for _, nodeSet := range nodeSets {
 		if nodeSet.RemoteCommandRunner == nil {
-			return fmt.Errorf("the remote command runner is not specified for one or more node sets")
+			mErr.Add(fmt.Errorf("the remote command runner is not specified for the %s node set", nodeSet.Name))
 		}
+	}
+
+	if mErr.HasAny() {
+		return mErr
 	}
 
 	return nil

@@ -139,6 +139,16 @@ func (nm NodeSetMap) ToSlice() []NodeSet {
 	return slice
 }
 
+func (nm NodeSetMap) GetByIndex(index int) *NodeSet {
+	for _, ns := range nm {
+		if ns.Index == index {
+			return &ns
+		}
+	}
+
+	return nil
+}
+
 type GeneratedServices struct {
 	Wallet          *Wallet
 	Faucet          *Faucet
@@ -292,132 +302,77 @@ func (jm JobStateMap) ToSlice() []NetworkJobState {
 	return slice
 }
 
-type NetworkJobsFilter func(nj NetworkJobs) NetworkJobs
-
-type NetworkJobs struct {
-	CommandRunnersJobs JobStateMap
-	NodesSetsJobs      JobStateMap
-	ExtraJobs          JobStateMap
-	FaucetJob          NetworkJobState
-	WalletJob          NetworkJobState
+func (jm JobStateMap) Append(job NetworkJobState) {
+	jm[job.Name] = job
 }
 
-func NewNetworkJobs() NetworkJobs {
-	return NetworkJobs{
-		CommandRunnersJobs: JobStateMap{},
-		NodesSetsJobs:      JobStateMap{},
-		ExtraJobs:          JobStateMap{},
+func (jm JobStateMap) Exists(jobID string) bool {
+	_, jobExists := jm[jobID]
+
+	return jobExists
+}
+
+func (jm JobStateMap) CreateAndAppendJobs(ids []string, kind JobKind) {
+	for _, id := range ids {
+		jm.Append(NetworkJobState{
+			Name:    id,
+			Kind:    kind,
+			Running: true,
+		})
 	}
 }
 
-func (nj NetworkJobs) Filter(filters []NetworkJobsFilter) NetworkJobs {
-	result := nj
+func (jm JobStateMap) GetByKind(kind JobKind) JobStateMap {
+	result := JobStateMap{}
 
-	for _, filter := range filters {
-		result = filter(result)
+	for _, job := range jm {
+		if job.Kind == kind {
+			result.Append(job)
+		}
 	}
 
 	return result
 }
 
-func (nj NetworkJobs) ToSlice() []NetworkJobState {
-	resources := append(nj.NodesSetsJobs.ToSlice(), nj.CommandRunnersJobs.ToSlice()...)
-	resources = append(resources, nj.ExtraJobs.ToSlice()...)
+func (jm JobStateMap) RemoveByKind(kind JobKind) JobStateMap {
+	result := JobStateMap{}
 
-	if nj.FaucetJob.Name != "" {
-		resources = append(resources, nj.FaucetJob)
+	for _, job := range jm {
+		if job.Kind == kind {
+			continue
+		}
+
+		result.Append(job)
 	}
 
-	if nj.WalletJob.Name != "" {
-		resources = append(resources, nj.WalletJob)
-	}
-
-	return resources
+	return result
 }
 
-func (nj *NetworkJobs) Append(job NetworkJobState) {
-	switch job.Kind {
-	case JobNodeSet:
-		if nj.NodesSetsJobs == nil {
-			nj.NodesSetsJobs = JobStateMap{}
+func (jm JobStateMap) GetByNames(names []string) JobStateMap {
+	result := JobStateMap{}
+	for _, job := range jm {
+		if utils.IndexInSlice(names, job.Name) != -1 {
+			result.Append(job)
 		}
-		nj.NodesSetsJobs[job.Name] = job
-	case JobCommandRunner:
-		if nj.CommandRunnersJobs == nil {
-			nj.CommandRunnersJobs = JobStateMap{}
-		}
-		nj.CommandRunnersJobs[job.Name] = job
-	case JobWallet:
-		nj.WalletJob = job
-	case JobFaucet:
-		nj.FaucetJob = job
-	default:
-		if nj.ExtraJobs == nil {
-			nj.ExtraJobs = JobStateMap{}
-		}
-		nj.ExtraJobs[job.Name] = job
 	}
+
+	return result
 }
 
-func (nj *NetworkJobs) RemoveJobs(jobs []NetworkJobState) {
+func (jm JobStateMap) Clone() JobStateMap {
+	result := JobStateMap{}
+
+	for _, job := range jm {
+		result[job.Name] = job
+	}
+
+	return result
+}
+
+func (jm JobStateMap) RemoveJobs(jobs []NetworkJobState) {
 	for _, job := range jobs {
-		nj.RemoveJob(job)
+		delete(jm, job.Name)
 	}
-}
-
-func (nj *NetworkJobs) RemoveJob(job NetworkJobState) {
-	switch job.Kind {
-	case JobNodeSet:
-		delete(nj.NodesSetsJobs, job.Name)
-	case JobCommandRunner:
-		delete(nj.CommandRunnersJobs, job.Name)
-	case JobWallet:
-		nj.WalletJob = NetworkJobState{}
-	case JobFaucet:
-		nj.FaucetJob = NetworkJobState{}
-	default:
-		delete(nj.ExtraJobs, job.Name)
-	}
-}
-
-func (nj NetworkJobs) Exists(jobID string) bool {
-	if _, ok := nj.NodesSetsJobs[jobID]; ok {
-		return true
-	}
-	if _, ok := nj.ExtraJobs[jobID]; ok {
-		return true
-	}
-	if _, ok := nj.CommandRunnersJobs[jobID]; ok {
-		return true
-	}
-	if nj.FaucetJob.Name == jobID {
-		return true
-	}
-	if nj.WalletJob.Name == jobID {
-		return true
-	}
-
-	return false
-}
-
-func (nj *NetworkJobs) AddExtraJobs(ids []string, kind JobKind) {
-	for _, id := range ids {
-		nj.Append(NetworkJobState{
-			Name:    id,
-			Running: true,
-			Kind:    kind,
-		})
-	}
-}
-
-func (nj NetworkJobs) ToSliceNames() []string {
-	out := []string{}
-
-	for _, job := range nj.ToSlice() {
-		out = append(out, job.Name)
-	}
-
-	return out
 }
 
 type NodeWalletInfo struct {
@@ -456,62 +411,3 @@ const (
 	JobWallet        JobKind = "wallet"
 	JobPreGenerate   JobKind = "pre-generate"
 )
-
-func FilterNetworkJobsByJobKindIn(kinds []JobKind) NetworkJobsFilter {
-	return func(nj NetworkJobs) NetworkJobs {
-		result := NetworkJobs{
-			ExtraJobs: JobStateMap{},
-		}
-
-		for _, kind := range kinds {
-			switch kind {
-			case JobNodeSet:
-				result.NodesSetsJobs = nj.NodesSetsJobs
-			case JobCommandRunner:
-				result.CommandRunnersJobs = nj.CommandRunnersJobs
-			case JobWallet:
-				result.WalletJob = nj.WalletJob
-			case JobFaucet:
-				result.FaucetJob = nj.FaucetJob
-			default:
-				for jobName, job := range nj.ExtraJobs {
-					if job.Kind != kind {
-						continue
-					}
-					result.ExtraJobs[jobName] = job
-				}
-			}
-		}
-
-		return result
-	}
-}
-
-func FilterNetworkJobsByJobKindNotIn(notWantedKinds []JobKind) NetworkJobsFilter {
-	allJobsKinds := []JobKind{JobNodeSet, JobCommandRunner, JobPreStart, JobPostStart, JobFaucet, JobWallet}
-
-	wantedKinds := []JobKind{}
-	for _, kind := range allJobsKinds {
-		if utils.IndexInSlice(notWantedKinds, kind) == -1 {
-			wantedKinds = append(wantedKinds, kind)
-		}
-	}
-
-	return FilterNetworkJobsByJobKindIn(wantedKinds)
-}
-
-func FilterNetworkJobsByNames(wantedNames []string) NetworkJobsFilter {
-	return func(nj NetworkJobs) NetworkJobs {
-		result := NewNetworkJobs()
-
-		for _, job := range nj.ToSlice() {
-			if utils.IndexInSlice(wantedNames, job.Name) == -1 {
-				continue
-			}
-
-			result.Append(job)
-		}
-
-		return result
-	}
-}

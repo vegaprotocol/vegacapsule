@@ -63,19 +63,14 @@ func netStop(ctx context.Context, state state.NetworkState) (*state.NetworkState
 		return nil, fmt.Errorf("failed to create nomad client: %w", err)
 	}
 
-	jobFilters := []types.NetworkJobsFilter{}
+	jobs := state.RunningJobs.Clone()
 
 	if stopNodesOnly {
-		jobFilters = append(jobFilters, types.FilterNetworkJobsByJobKindIn([]types.JobKind{types.JobNodeSet}))
+		jobs = jobs.GetByKind(types.JobNodeSet)
 	}
 
 	if !stopWithCmdRunners {
-		jobFilters = append(jobFilters, types.FilterNetworkJobsByJobKindNotIn([]types.JobKind{types.JobCommandRunner}))
-	}
-
-	var jobs []types.NetworkJobState
-	if state.RunningJobs != nil {
-		jobs = state.RunningJobs.Filter(jobFilters).ToSlice()
+		jobs = jobs.RemoveByKind(types.JobCommandRunner)
 	}
 
 	if len(jobs) == 0 && stopNodesOnly {
@@ -84,11 +79,11 @@ func netStop(ctx context.Context, state state.NetworkState) (*state.NetworkState
 	}
 
 	nomadRunner := nomad.NewJobRunner(nomadClient)
-	if err := nomadRunner.StopNetwork(ctx, jobs); err != nil {
+	if err := nomadRunner.StopNetwork(ctx, jobs.ToSlice()); err != nil {
 		return nil, fmt.Errorf("failed to stop nomad network: %w", err)
 	}
 
-	state.RunningJobs.RemoveJobs(jobs)
+	state.RunningJobs.RemoveJobs(jobs.ToSlice())
 	log.Println("stopping network success")
 	return &state, nil
 }

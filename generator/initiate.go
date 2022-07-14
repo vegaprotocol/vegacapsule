@@ -1,14 +1,13 @@
 package generator
 
 import (
-	"bytes"
 	"fmt"
 	"sync"
 
 	"code.vegaprotocol.io/vegacapsule/config"
-	"code.vegaprotocol.io/vegacapsule/generator/nomad"
 	"code.vegaprotocol.io/vegacapsule/generator/wallet"
 	"code.vegaprotocol.io/vegacapsule/types"
+	"code.vegaprotocol.io/vegacapsule/utils"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -59,35 +58,15 @@ func (g *Generator) initiateNodeSet(index int, nc config.NodeConfig) (*types.Nod
 
 	// If mapping given, we want to create command runner
 	if n.RemoteCommandRunner != nil {
-		nodeSet.RemoteCommandRunner = &types.CommandRunner{
-			Name: fmt.Sprintf("%s-cmd-runner", nodeSet.Name),
-			PathsMapping: types.NetworkPathsMapping{
-				VegaBinary:     *n.RemoteCommandRunner.PathsMapping.VegaBinary,
-				VegaHome:       *n.RemoteCommandRunner.PathsMapping.VegaHome,
-				TendermintHome: *n.RemoteCommandRunner.PathsMapping.TendermintHome,
-
-				DataNodeBinary: n.RemoteCommandRunner.PathsMapping.DataNodeBinary,
-				DataNodeHome:   n.RemoteCommandRunner.PathsMapping.DataNodeHome,
-			},
-		}
-
-		var (
-			rawTemplate *bytes.Buffer
-			err         error
-		)
-		if n.RemoteCommandRunner.Nomad.JobTemplate != nil {
-			rawTemplate, err = nomad.GenerateNodeSetTemplate(*n.RemoteCommandRunner.Nomad.JobTemplate, nodeSet)
-		}
-
+		cmdRunner, err := g.initRemoteCommandRunner(*n.RemoteCommandRunner, nodeSet)
 		if err != nil {
-			return nil, fmt.Errorf("failed to generate nomad template for remote command runner: %w", err)
+			return nil, fmt.Errorf("failed initialising command runner: %w", err)
 		}
-
-		nodeSet.RemoteCommandRunner.NomadJobRaw = rawTemplate.String()
+		nodeSet.RemoteCommandRunner = cmdRunner
 	}
 
 	if n.NomadJobTemplate != nil {
-		nodeJob, err := nomad.GenerateNodeSetTemplate(*n.NomadJobTemplate, *nodeSet)
+		nodeJob, err := utils.GenerateTemplate(*n.NomadJobTemplate, *nodeSet)
 		if err != nil {
 			return nil, err
 		}
@@ -173,4 +152,67 @@ func (g *Generator) initAndConfigureWallet(conf *config.WalletConfig, validators
 	}
 
 	return initWallet, nil
+}
+
+func (g Generator) initRemoteCommandRunner(commandRunnerConfig config.CommandRunner, nodeSet *types.NodeSet) (*types.CommandRunner, error) {
+	mErr := utils.NewMultiError()
+
+	vegaBinaryPath, err := utils.GenerateTemplate(*commandRunnerConfig.PathsMapping.VegaBinary, *nodeSet)
+	if err != nil {
+		mErr.Add(fmt.Errorf("failed to template vega binary path in the command runner config: %w", err))
+	}
+
+	vegaHomePath, err := utils.GenerateTemplate(*commandRunnerConfig.PathsMapping.VegaHome, *nodeSet)
+	if err != nil {
+		mErr.Add(fmt.Errorf("failed to template vega home path in the command runner config: %w", err))
+	}
+
+	tendermintHomePath, err := utils.GenerateTemplate(*commandRunnerConfig.PathsMapping.TendermintHome, *nodeSet)
+	if err != nil {
+		mErr.Add(fmt.Errorf("failed to template tendermint home path in the command runner config: %w", err))
+	}
+
+	remoteCommandRunner := &types.CommandRunner{
+		Name: fmt.Sprintf("%s-cmd-runner", nodeSet.Name),
+		PathsMapping: types.NetworkPathsMapping{
+			VegaBinary:     vegaBinaryPath.String(),
+			VegaHome:       vegaHomePath.String(),
+			TendermintHome: tendermintHomePath.String(),
+		},
+	}
+
+	if commandRunnerConfig.PathsMapping.DataNodeBinary != nil {
+		dataNodeBinaryPath, err := utils.GenerateTemplate(*commandRunnerConfig.PathsMapping.DataNodeBinary, *nodeSet)
+		if err != nil {
+			mErr.Add(fmt.Errorf("failed to template data-node binary path in the command runner config: %w", err))
+		}
+		remoteCommandRunner.PathsMapping.DataNodeBinary = utils.StrPoint(dataNodeBinaryPath.String())
+	}
+
+	if commandRunnerConfig.PathsMapping.DataNodeHome != nil {
+		dataNodeHomePath, err := utils.GenerateTemplate(*commandRunnerConfig.PathsMapping.DataNodeHome, *nodeSet)
+		if err != nil {
+			mErr.Add(fmt.Errorf("failed to template data-node home path in the command runner config: %w", err))
+		}
+		remoteCommandRunner.PathsMapping.DataNodeHome = utils.StrPoint(dataNodeHomePath.String())
+
+	}
+
+	// set remote command runner to pass the most recent informations to the template generator
+	nodeSet.RemoteCommandRunner = remoteCommandRunner
+	if commandRunnerConfig.Nomad.JobTemplate != nil {
+		rawTemplate, err := utils.GenerateTemplate(*commandRunnerConfig.Nomad.JobTemplate, nodeSet)
+
+		remoteCommandRunner.NomadJobRaw = rawTemplate.String()
+
+		if err != nil {
+			mErr.Add(fmt.Errorf("failed to generate nomad template for remote command runner: %w", err))
+		}
+	}
+
+	if mErr.HasAny() {
+		return nil, mErr
+	}
+
+	return remoteCommandRunner, nil
 }
