@@ -26,5 +26,4 @@ jobs:
           version: v1.46.2
           args: --config .golangci.yaml --verbose
         env:
-          GOPROXY: "${{ secrets.GOPROXY }}"
           GO111MODULE: on 
