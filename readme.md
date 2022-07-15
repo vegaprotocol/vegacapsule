@@ -20,10 +20,6 @@ git clone git@github.com:vegaprotocol/vegacapsule.git
 git config --global url."git@github.com:vegaprotocol".insteadOf "https://github.com/vegaprotocol"
 cd vegacapsule
 ```
-- Turn off GONOSUMDB for private vega repositories
-```bash
-export GONOSUMDB="code.vegaprotocol.io/*"
-```
 - Build Capsule from source
 ```bash
 go install
