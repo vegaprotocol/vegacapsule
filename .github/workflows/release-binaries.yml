@@ -18,7 +18,6 @@ jobs:
       GOOS: linux
       GOARCH: ${{ matrix.arch }}
       CGO_ENABLED: 0
-      GOPROXY: "${{ secrets.GOPROXY }}"
       GO111MODULE: on 
     steps:
       - name: Set up Go
