@@ -202,7 +202,9 @@ func (tg *ConfigGenerator) mergeAndSaveConfig(
 
 	// save
 	conf.SetRoot(ns.Tendermint.HomeDir)
-	tmconfig.WriteConfigFile(saveConfigPath, conf)
+	if err := tmconfig.WriteConfigFile(ns.Tendermint.HomeDir, conf); err != nil {
+		return fmt.Errorf("failed to save Tendermint config: %w", err)
+	}
 
 	return nil
 }
