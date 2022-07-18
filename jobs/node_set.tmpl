@@ -3,24 +3,6 @@ job "{{ .Name }}" {
 
   group "vega-node" {
 
-    task "{{ .Tendermint.Name }}" {
-      driver = "raw_exec"
-
-      config {
-        command = "{{ .Tendermint.BinaryPath }}"
-        args = [
-          "tm",
-          "node",
-          "--home", "{{ .Tendermint.HomeDir }}",
-        ]
-      }
-
-      resources {
-        cpu    = 500
-        memory = 512
-      }
-    }
-
     task "{{ .Vega.Name }}" {
       driver = "raw_exec"
 
@@ -29,6 +11,7 @@ job "{{ .Name }}" {
         args = [
           "node",
           "--home", "{{ .Vega.HomeDir }}",
+          "--tendermint-home", "{{ .Tendermint.HomeDir }}"
           "--nodewallet-passphrase-file", "{{ .Vega.NodeWalletPassFilePath }}",
         ]
       }
