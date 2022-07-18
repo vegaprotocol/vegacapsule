@@ -108,17 +108,23 @@ var ethereumMultisigSetupCmd = &cobra.Command{
 			return fmt.Errorf("failed to create ethereum client: %w", err)
 		}
 
-		validatorsKeyPairs := getValidatorsEthKeyPairs(netState.GeneratedServices.ListValidators())
+		validatorsKeyPairs := getSigners(netState.GeneratedServices.ListValidators())
 		return client.InitMultisig(ctx, *smartcontracts, validatorsKeyPairs)
 	},
 }
 
-func getValidatorsEthKeyPairs(nodes []types.VegaNodeOutput) []ethereum.KeyPair {
-	result := make([]ethereum.KeyPair, len(nodes))
+func getSigners(nodes []types.VegaNodeOutput) []ethereum.Signer {
+	result := make([]ethereum.Signer, len(nodes))
+
 	for idx, node := range nodes {
-		result[idx] = ethereum.KeyPair{
-			Address:    node.VegaNode.NodeWalletInfo.EthereumAddress,
-			PrivateKey: node.VegaNode.NodeWalletInfo.EthereumPrivateKey,
+		result[idx] = ethereum.Signer{
+			HomeAddress:        node.VegaNode.HomeDir,
+			WalletPassFilePath: node.NodeWalletPassFilePath,
+			ClefRPCAddress:     node.VegaNode.NodeWalletInfo.EthereumClefRPCAddress,
+			KeyPair: ethereum.KeyPair{
+				Address:    node.VegaNode.NodeWalletInfo.EthereumAddress,
+				PrivateKey: node.VegaNode.NodeWalletInfo.EthereumPrivateKey,
+			},
 		}
 	}
 

@@ -16,13 +16,20 @@ type KeyPair struct {
 	PrivateKey string
 }
 
-type KeyPairList []KeyPair
+type Signer struct {
+	HomeAddress        string
+	WalletPassFilePath string
+	ClefRPCAddress     string
+	KeyPair            KeyPair
+}
 
-func (l KeyPairList) PrivateKeys() []string {
+type SignersList []Signer
+
+func (l SignersList) EthPrivateKeys() []string {
 	result := make([]string, len(l))
 
-	for idx, keyPair := range l {
-		result[idx] = keyPair.PrivateKey
+	for idx, validator := range l {
+		result[idx] = validator.KeyPair.PrivateKey
 	}
 
 	return result
