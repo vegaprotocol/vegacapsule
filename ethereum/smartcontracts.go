@@ -6,7 +6,7 @@ import (
 	"log"
 	"math/big"
 
-	"code.vegaprotocol.io/vega/bridges/multisig"
+	multisig "code.vegaprotocol.io/vega/contracts/multisig_control"
 	"code.vegaprotocol.io/vegacapsule/types"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -18,7 +18,7 @@ type EthereumClient struct {
 	client  *ethclient.Client
 	chainID int64
 
-	multisig *multisig.MultiSigControl
+	multisig *multisig.MultisigControl
 
 	vegaBinary string
 	vegaHome   string
@@ -63,7 +63,7 @@ func NewEthereumClient(ctx context.Context, params EthereumClientParameters) (*E
 		return nil, fmt.Errorf("failed to create ethereum client: the multisig smart contract address is not set, please uptate it in the network configuration")
 	}
 
-	multisigControl, err := multisig.NewMultiSigControl(common.HexToAddress(params.SmartcontractsInfo.MultisigControl.EthereumAddress), client)
+	multisigControl, err := multisig.NewMultisigControl(common.HexToAddress(params.SmartcontractsInfo.MultisigControl.EthereumAddress), client)
 	if err != nil {
 		return nil, fmt.Errorf("failed creating multisig control: %w", err)
 	}
@@ -119,7 +119,7 @@ func (ec EthereumClient) InitMultisig(ctx context.Context, smartcontracts types.
 	return nil
 }
 
-func (ec EthereumClient) createMultiSigControlSession(ctx context.Context, ownerKeyPair KeyPair) (*multisig.MultiSigControlSession, error) {
+func (ec EthereumClient) createMultiSigControlSession(ctx context.Context, ownerKeyPair KeyPair) (*multisig.MultisigControlSession, error) {
 	privateKey, err := crypto.HexToECDSA(ownerKeyPair.PrivateKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert multisig owner private key hash into ECDSA: %w", err)
@@ -130,7 +130,7 @@ func (ec EthereumClient) createMultiSigControlSession(ctx context.Context, owner
 		return nil, fmt.Errorf("failed to create multisig authentication: %w", err)
 	}
 
-	session := &multisig.MultiSigControlSession{
+	session := &multisig.MultisigControlSession{
 		Contract: ec.multisig,
 		CallOpts: bind.CallOpts{
 			From:    common.HexToAddress(ownerKeyPair.Address),
@@ -142,7 +142,7 @@ func (ec EthereumClient) createMultiSigControlSession(ctx context.Context, owner
 	return session, nil
 }
 
-func (ec EthereumClient) multisigSetThreshold(ctx context.Context, session *multisig.MultiSigControlSession, newThreshold int, signers KeyPairList) error {
+func (ec EthereumClient) multisigSetThreshold(ctx context.Context, session *multisig.MultisigControlSession, newThreshold int, signers KeyPairList) error {
 	currentThreshold, err := session.GetCurrentThreshold()
 	if err != nil {
 		return fmt.Errorf("failed to get current multisig threshold: %w", err)
@@ -183,7 +183,7 @@ func (ec EthereumClient) multisigSetThreshold(ctx context.Context, session *mult
 	return nil
 }
 
-func (ec EthereumClient) multisigAddSigners(ctx context.Context, session *multisig.MultiSigControlSession, validators KeyPairList, signers KeyPairList) error {
+func (ec EthereumClient) multisigAddSigners(ctx context.Context, session *multisig.MultisigControlSession, validators KeyPairList, signers KeyPairList) error {
 	signersCount, err := session.GetValidSignerCount()
 	if err != nil {
 		return fmt.Errorf("failed to get number of signers for multisig: %w", err)
@@ -237,7 +237,7 @@ func (ec EthereumClient) multisigAddSigners(ctx context.Context, session *multis
 	return nil
 }
 
-func (ec EthereumClient) multisigRemoveSigner(ctx context.Context, session *multisig.MultiSigControlSession, oldSigner string, signers KeyPairList) error {
+func (ec EthereumClient) multisigRemoveSigner(ctx context.Context, session *multisig.MultisigControlSession, oldSigner string, signers KeyPairList) error {
 	validSigner, err := session.IsValidSigner(common.HexToAddress(oldSigner))
 	if err != nil {
 		return fmt.Errorf("failed to check signer: %w", err)
@@ -281,7 +281,7 @@ func (ec EthereumClient) multisigRemoveSigner(ctx context.Context, session *mult
 	return nil
 }
 
-func (ec EthereumClient) getSessionNonce(session *multisig.MultiSigControlSession) (*big.Int, error) {
+func (ec EthereumClient) getSessionNonce(session *multisig.MultisigControlSession) (*big.Int, error) {
 	nonce, err := ec.client.PendingNonceAt(context.Background(), session.CallOpts.From)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get multisig owner nonce: %w", err)
