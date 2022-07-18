@@ -6,7 +6,7 @@ network "testnet" {
     network_id = "1441"
     endpoint   = "http://127.0.0.1:8545/"
   }
-  
+
   faucet "faucet-1" {
 	  wallet_pass = "f4uc3tw4ll3t-v3g4-p4ssphr4e3"
 
@@ -19,7 +19,7 @@ EOT
 
   wallet "wallet-1" {
     binary = "vegawallet"
-    
+
     template = <<-EOT
 Name = "DV"
 Level = "info"
@@ -37,7 +37,7 @@ EOT
   pre_start {}
 
   genesis_template_file = "./genesis.tmpl"
-  
+
   node_set "validators" {
     count = 1
     mode = "validator"
@@ -58,7 +58,7 @@ EOT
   [Admin.Server]
     SocketPath = "/tmp/vega-{{.NodeNumber}}.sock"
     Enabled = true
-	
+
 [API]
 	Port = 30{{.NodeNumber}}2
 	[API.REST]
@@ -105,9 +105,9 @@ EOT
 // ============================
 
 	  tendermint = <<-EOT
-log_level = "info"
+log-level = "info"
 
-proxy_app = "tcp://127.0.0.1:266{{.NodeNumber}}8"
+proxy-app = "tcp://127.0.0.1:266{{.NodeNumber}}8"
 moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
 
 [rpc]
@@ -116,12 +116,12 @@ moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
 
 [p2p]
   laddr = "tcp://0.0.0.0:266{{.NodeNumber}}6"
-  addr_book_strict = false
-  max_packet_msg_payload_size = 4096
+  addr-book-strict = false
+  max_packet-msg-payload-size = 4096
   pex = false
-  allow_duplicate_ip = true
+  allow-duplicate-ip = true
 
-  persistent_peers = "{{- range $i, $peer := .NodePeers -}}
+  persistent-peers = "{{- range $i, $peer := .NodePeers -}}
 	  {{- if ne $i 0 }},{{end -}}
 	  {{- $peer.ID}}@127.0.0.1:266{{$peer.Index}}6
   {{- end -}}"
@@ -129,10 +129,10 @@ moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
 
 [mempool]
   size = 10000
-  cache_size = 20000
+  cache-size = 20000
 
 [consensus]
-  skip_timeout_commit = false
+  skip-timeout-commit = false
 EOT
     }
   }
