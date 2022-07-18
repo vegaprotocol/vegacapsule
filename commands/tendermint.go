@@ -5,7 +5,7 @@ import "code.vegaprotocol.io/vegacapsule/utils"
 func TendermintUnsafeResetAll(binary, homeDir string) ([]byte, error) {
 	args := []string{
 		"tm",
-		"unsafe_reset_all",
+		"unsafe-reset-all",
 		"--home", homeDir,
 	}
 
