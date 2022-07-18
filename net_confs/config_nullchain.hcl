@@ -83,9 +83,8 @@ EOT
 	BlockchainQueueAllowlist = ["{{ .FaucetPublicKey }}"]
 	{{end}}
 
-[NodeWallet]
-	[NodeWallet.ETH]
-		Address = "{{.ETHEndpoint}}"
+[Ethereum]
+  RPCEndpoint = "{{.ETHEndpoint}}"
 
 [Broker]
   [Broker.Socket]

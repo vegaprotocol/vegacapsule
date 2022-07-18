@@ -294,9 +294,8 @@ network "testnet" {
 	Level = "Info"
 	RetryRate = "1s"
 
-[NodeWallet]
-	[NodeWallet.ETH]
-		Address = "{{.ETHEndpoint}}"
+[Ethereum]
+  RPCEndpoint = "{{.ETHEndpoint}}"
 
 [Processor]
 	[Processor.Ratelimit]
