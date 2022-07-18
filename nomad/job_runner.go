@@ -82,24 +82,8 @@ func (r *JobRunner) runDockerJob(ctx context.Context, conf config.DockerConfig) 
 }
 
 func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
-	tasks := make([]*api.Task, 0, 3)
+	tasks := make([]*api.Task, 0, 2)
 	tasks = append(tasks,
-		&api.Task{
-			Name:   ns.Tendermint.Name,
-			Driver: "raw_exec",
-			Config: map[string]interface{}{
-				"command": ns.Tendermint.BinaryPath,
-				"args": []string{
-					"tm",
-					"node",
-					"--home", ns.Tendermint.HomeDir,
-				},
-			},
-			Resources: &api.Resources{
-				CPU:      utils.IntPoint(500),
-				MemoryMB: utils.IntPoint(512),
-			},
-		},
 		&api.Task{
 			Name:   ns.Vega.Name,
 			Driver: "raw_exec",
@@ -108,6 +92,7 @@ func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
 				"args": []string{
 					"node",
 					"--home", ns.Vega.HomeDir,
+					"--tendermint-home", ns.Tendermint.HomeDir,
 					"--nodewallet-passphrase-file", ns.Vega.NodeWalletPassFilePath,
 				},
 			},
