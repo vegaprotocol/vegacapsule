@@ -21,9 +21,11 @@
 	BlockchainQueueAllowlist = ["{{ .FaucetPublicKey }}"]
 	{{end}}
 
+[Ethereum]
+  RPCEndpoint = "{{.ETHEndpoint}}"
+
 [NodeWallet]
 	[NodeWallet.ETH]
-		Address = "{{.ETHEndpoint}}"
 		ClefAddress = "http://127.0.0.1:855{{ .NodeNumber }}"
 
 [Processor]

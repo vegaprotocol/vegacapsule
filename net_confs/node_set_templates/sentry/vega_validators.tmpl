@@ -27,9 +27,8 @@
 	BlockchainQueueAllowlist = ["{{ .FaucetPublicKey }}"]
 	{{end}}
 
-[NodeWallet]
-	[NodeWallet.ETH]
-		Address = "{{.ETHEndpoint}}"
+[Ethereum]
+  RPCEndpoint = "{{.ETHEndpoint}}"
 
 [Processor]
 	[Processor.Ratelimit]
