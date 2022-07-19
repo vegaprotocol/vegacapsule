@@ -22,7 +22,7 @@ func (r *VoidJobRunner) RunRawNomadJobs(ctx context.Context, rawJobs []string) (
 	return nil, nil
 }
 
-func (r *VoidJobRunner) StopNetwork(ctx context.Context, jobs *types.NetworkJobs, nodesOnly bool) error {
+func (r *VoidJobRunner) StopNetwork(ctx context.Context, jobs []types.NetworkJobState) error {
 	r.printCaveat()
 	return nil
 }

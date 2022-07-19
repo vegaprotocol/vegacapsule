@@ -42,7 +42,6 @@ var nodesAddCmd = &cobra.Command{
 			if err != nil {
 				return fmt.Errorf("failed start node: %w", err)
 			}
-
 		}
 
 		if err := networkState.Persist(); err != nil {
@@ -96,7 +95,16 @@ func nodesAddNode(state state.NetworkState, baseOneNode string) (*types.NodeSet,
 		return nil, err
 	}
 
-	newNodeSet, err := gen.AddNodeSet(len(state.GeneratedServices.NodeSets), *nodeConfig, *nodeSet, state.GeneratedServices.Faucet)
+	// Find first non-used index. We cannot relay on the len(NodeSets) to avoid issues when non last node has been removed
+	freeIndex := len(state.GeneratedServices.NodeSets)
+	for i := 0; i <= len(state.GeneratedServices.NodeSets); i++ {
+		if state.GeneratedServices.NodeSets.GetByIndex(i) == nil {
+			freeIndex = i
+			break
+		}
+	}
+
+	newNodeSet, err := gen.AddNodeSet(freeIndex, *nodeConfig, *nodeSet, state.GeneratedServices.Faucet)
 	if err != nil {
 		return nil, err
 	}

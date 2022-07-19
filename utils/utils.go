@@ -97,3 +97,17 @@ func StrPoint(s string) *string {
 func IntPoint(i int) *int {
 	return &i
 }
+
+func EmptyStrPoint(s *string) bool {
+	return s == nil || *s == ""
+}
+
+func IndexInSlice[T comparable](slice []T, element T) int {
+	for idx, value := range slice {
+		if value == element {
+			return idx
+		}
+	}
+
+	return -1
+}

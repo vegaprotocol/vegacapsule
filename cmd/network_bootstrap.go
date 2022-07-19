@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/state"
@@ -35,17 +36,40 @@ var netBootstrapCmd = &cobra.Command{
 		if err := updatedNetState.Persist(); err != nil {
 			return fmt.Errorf("failed to persist network state after bootstrap/generate command: %w", err)
 		}
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
+		defer cancel()
+		updatedNetState, err = netStart(ctx, *updatedNetState)
+		// We want state saved even if the network is started with error
+		defer saveNetworkState(updatedNetState)
 
-		updatedNetState, err = netStart(context.Background(), *updatedNetState)
 		if err != nil {
 			return fmt.Errorf("failed to start network: %w", err)
 		}
 
-		return updatedNetState.Persist()
+		return err
 	},
 }
 
+// saveNetworkState saves state to disk. The function accepts previousError which comes
+// from the network operations like start, bootstrap, etc.
+func saveNetworkState(updatedNetState *state.NetworkState) {
+	if updatedNetState == nil {
+		return
+	}
+
+	log.Printf("saving network state to the file")
+	err := updatedNetState.Persist()
+	if err != nil {
+		log.Fatalf("failed to save network state: %s", err)
+	}
+}
+
 func init() {
+	netBootstrapCmd.PersistentFlags().DurationVar(&timeout,
+		"timeout",
+		defaultTimeout,
+		"Bootstrap timeout",
+	)
 	netBootstrapCmd.PersistentFlags().BoolVar(&forceGenerate,
 		"force",
 		false,

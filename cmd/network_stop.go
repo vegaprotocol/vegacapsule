@@ -7,11 +7,13 @@ import (
 
 	"code.vegaprotocol.io/vegacapsule/nomad"
 	"code.vegaprotocol.io/vegacapsule/state"
+	"code.vegaprotocol.io/vegacapsule/types"
 	"github.com/spf13/cobra"
 )
 
 var (
-	stopNodesOnly bool
+	stopNodesOnly      bool
+	stopWithCmdRunners bool
 )
 
 var netStopCmd = &cobra.Command{
@@ -27,8 +29,13 @@ var netStopCmd = &cobra.Command{
 			return networkNotBootstrappedErr("stop")
 		}
 
-		if err := netStop(context.Background(), netState); err != nil {
+		state, err := netStop(context.Background(), *netState)
+		if err != nil {
 			return fmt.Errorf("failed to stop network: %w", err)
+		}
+
+		if err := state.Persist(); err != nil {
+			return fmt.Errorf("failed to persist network state: %w", err)
 		}
 
 		return nil
@@ -41,22 +48,42 @@ func init() {
 		false,
 		"Stops all nodes running in the network.",
 	)
+	netStopCmd.PersistentFlags().BoolVar(&stopWithCmdRunners,
+		"with-command-runners",
+		false,
+		"If this flag is passed command-runner jobs are also stopped",
+	)
 }
 
-func netStop(ctx context.Context, state *state.NetworkState) error {
+func netStop(ctx context.Context, state state.NetworkState) (*state.NetworkState, error) {
 	log.Println("stopping network")
 
 	nomadClient, err := nomad.NewClient(nil)
 	if err != nil {
-		return fmt.Errorf("failed to create nomad client: %w", err)
+		return nil, fmt.Errorf("failed to create nomad client: %w", err)
+	}
+
+	jobs := state.RunningJobs.Clone()
+
+	if stopNodesOnly {
+		jobs = jobs.GetByKind(types.JobNodeSet)
+	}
+
+	if !stopWithCmdRunners {
+		jobs = jobs.RemoveByKind(types.JobCommandRunner)
+	}
+
+	if len(jobs) == 0 && stopNodesOnly {
+		log.Println("All nodes are already stopped")
+		return &state, nil
 	}
 
 	nomadRunner := nomad.NewJobRunner(nomadClient)
-
-	if err := nomadRunner.StopNetwork(ctx, state.RunningJobs, stopNodesOnly); err != nil {
-		return fmt.Errorf("failed to stop nomad network: %w", err)
+	if err := nomadRunner.StopNetwork(ctx, jobs.ToSlice()); err != nil {
+		return nil, fmt.Errorf("failed to stop nomad network: %w", err)
 	}
 
+	state.RunningJobs.RemoveJobs(jobs.ToSlice())
 	log.Println("stopping network success")
-	return nil
+	return &state, nil
 }

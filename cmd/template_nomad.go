@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"log"
 
-	"code.vegaprotocol.io/vegacapsule/generator/nomad"
 	"code.vegaprotocol.io/vegacapsule/state"
 	"code.vegaprotocol.io/vegacapsule/types"
 	"code.vegaprotocol.io/vegacapsule/utils"
@@ -75,7 +74,7 @@ func templateNomad(templateRaw string, netState *state.NetworkState, templateOut
 
 	newNetworkState := *netState
 	for _, ns := range nodeSets {
-		buff, err := nomad.GenerateNodeSetTemplate(templateRaw, ns)
+		buff, err := utils.GenerateTemplate(templateRaw, ns)
 		if err != nil {
 			return nil, err
 		}

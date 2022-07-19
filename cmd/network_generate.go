@@ -97,8 +97,8 @@ func netGenerate(state state.NetworkState, force bool) (*state.NetworkState, err
 
 	state.GeneratedServices = generatedSvcs
 
-	state.RunningJobs = &types.NetworkJobs{}
-	state.RunningJobs.AddExtraJobIDs(generatedSvcs.PreGenerateJobsIDs())
+	state.RunningJobs = types.JobStateMap{}
+	state.RunningJobs.CreateAndAppendJobs(generatedSvcs.PreGenerateJobsIDs(), types.JobPreGenerate)
 
 	return &state, nil
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sort"
 
+	"code.vegaprotocol.io/vegacapsule/utils"
 	"github.com/hashicorp/nomad/api"
 )
 
@@ -35,6 +36,22 @@ type DataNode struct {
 	BinaryPath string
 }
 
+type NetworkPathsMapping struct {
+	TendermintHome string
+	VegaHome       string
+	DataNodeHome   *string `json:",omitempty"`
+
+	VegaBinary     string
+	DataNodeBinary *string `json:",omitempty"`
+}
+
+type CommandRunner struct {
+	Name        string
+	NomadJobRaw string
+
+	PathsMapping NetworkPathsMapping
+}
+
 type RawJobWithNomadJob struct {
 	RawJob   string
 	NomadJob *api.Job
@@ -46,15 +63,16 @@ type NomadJob struct {
 }
 
 type NodeSet struct {
-	GroupName       string
-	Name            string
-	Mode            string
-	Index           int
-	Vega            VegaNode
-	Tendermint      TendermintNode
-	DataNode        *DataNode
-	NomadJobRaw     *string `json:",omitempty"`
-	PreGenerateJobs []NomadJob
+	GroupName           string
+	Name                string
+	Mode                string
+	Index               int
+	Vega                VegaNode
+	Tendermint          TendermintNode
+	DataNode            *DataNode
+	NomadJobRaw         *string        `json:",omitempty"`
+	RemoteCommandRunner *CommandRunner `json:",omitempty"`
+	PreGenerateJobs     []NomadJob
 }
 
 // PreGenerateJobsIDs returns pre gen jobs ids per specific node set
@@ -65,6 +83,17 @@ func (ns NodeSet) PreGenerateJobsIDs() []string {
 	}
 
 	return preGenJobsIDs
+}
+
+func (ns NodeSet) JobsIDs() []string {
+	result := []string{ns.Name}
+	result = append(result, ns.PreGenerateJobsIDs()...)
+
+	if ns.RemoteCommandRunner != nil {
+		result = append(result, ns.RemoteCommandRunner.Name)
+	}
+
+	return result
 }
 
 // PreGenerateRawJobs returns pre gen jobs per specific node set
@@ -110,11 +139,22 @@ func (nm NodeSetMap) ToSlice() []NodeSet {
 	return slice
 }
 
+func (nm NodeSetMap) GetByIndex(index int) *NodeSet {
+	for _, ns := range nm {
+		if ns.Index == index {
+			return &ns
+		}
+	}
+
+	return nil
+}
+
 type GeneratedServices struct {
 	Wallet          *Wallet
 	Faucet          *Faucet
 	NodeSets        NodeSetMap
 	PreGenerateJobs []NomadJob
+	CommandRunners  []*CommandRunner
 }
 
 func NewGeneratedServices(w *Wallet, f *Faucet, ns []NodeSet) *GeneratedServices {
@@ -237,9 +277,15 @@ func (gs GeneratedServices) ListValidators() []VegaNodeOutput {
 	return validators
 }
 
-type JobIDMap map[string]bool
+type NetworkJobState struct {
+	Name    string
+	Kind    JobKind
+	Running bool
+}
 
-func (jm JobIDMap) ToSlice() []string {
+type JobStateMap map[string]NetworkJobState
+
+func (jm JobStateMap) ToSliceNames() []string {
 	slice := make([]string, 0, len(jm))
 	for id := range jm {
 		slice = append(slice, id)
@@ -247,52 +293,86 @@ func (jm JobIDMap) ToSlice() []string {
 	return slice
 }
 
-type NetworkJobs struct {
-	NodesSetsJobIDs JobIDMap
-	ExtraJobIDs     JobIDMap
-	FaucetJobID     string
-	WalletJobID     string
+func (jm JobStateMap) ToSlice() []NetworkJobState {
+	slice := []NetworkJobState{}
+	for _, job := range jm {
+		slice = append(slice, job)
+	}
+
+	return slice
 }
 
-func (nj NetworkJobs) Exists(jobID string) bool {
-	if _, ok := nj.NodesSetsJobIDs[jobID]; ok {
-		return true
-	}
-	if _, ok := nj.ExtraJobIDs[jobID]; ok {
-		return true
-	}
-	if nj.FaucetJobID == jobID {
-		return true
-	}
-	if nj.WalletJobID == jobID {
-		return true
-	}
-
-	return false
+func (jm JobStateMap) Append(job NetworkJobState) {
+	jm[job.Name] = job
 }
 
-func (nj NetworkJobs) AddExtraJobIDs(ids []string) {
-	if nj.ExtraJobIDs == nil {
-		nj.ExtraJobIDs = JobIDMap{}
-	}
+func (jm JobStateMap) Exists(jobID string) bool {
+	_, jobExists := jm[jobID]
 
+	return jobExists
+}
+
+func (jm JobStateMap) CreateAndAppendJobs(ids []string, kind JobKind) {
 	for _, id := range ids {
-		nj.ExtraJobIDs[id] = true
+		jm.Append(NetworkJobState{
+			Name:    id,
+			Kind:    kind,
+			Running: true,
+		})
 	}
 }
 
-func (nj NetworkJobs) ToSlice() []string {
-	out := append(nj.NodesSetsJobIDs.ToSlice(), nj.ExtraJobIDs.ToSlice()...)
+func (jm JobStateMap) GetByKind(kind JobKind) JobStateMap {
+	result := JobStateMap{}
 
-	if nj.FaucetJobID != "" {
-		out = append(out, nj.FaucetJobID)
+	for _, job := range jm {
+		if job.Kind == kind {
+			result.Append(job)
+		}
 	}
 
-	if nj.WalletJobID != "" {
-		out = append(out, nj.WalletJobID)
+	return result
+}
+
+func (jm JobStateMap) RemoveByKind(kind JobKind) JobStateMap {
+	result := JobStateMap{}
+
+	for _, job := range jm {
+		if job.Kind == kind {
+			continue
+		}
+
+		result.Append(job)
 	}
 
-	return out
+	return result
+}
+
+func (jm JobStateMap) GetByNames(names []string) JobStateMap {
+	result := JobStateMap{}
+	for _, job := range jm {
+		if utils.IndexInSlice(names, job.Name) != -1 {
+			result.Append(job)
+		}
+	}
+
+	return result
+}
+
+func (jm JobStateMap) Clone() JobStateMap {
+	result := JobStateMap{}
+
+	for _, job := range jm {
+		result[job.Name] = job
+	}
+
+	return result
+}
+
+func (jm JobStateMap) RemoveJobs(jobs []NetworkJobState) {
+	for _, job := range jobs {
+		delete(jm, job.Name)
+	}
 }
 
 type NodeWalletInfo struct {
@@ -318,4 +398,16 @@ const (
 	NodeModeFull                = "full"
 	NodeWalletChainTypeVega     = "vega"
 	NodeWalletChainTypeEthereum = "ethereum"
+)
+
+type JobKind string
+
+const (
+	JobNodeSet       JobKind = "node-set"
+	JobCommandRunner JobKind = "command-runner"
+	JobPreStart      JobKind = "pre-start"
+	JobPostStart     JobKind = "post-start"
+	JobFaucet        JobKind = "faucet"
+	JobWallet        JobKind = "wallet"
+	JobPreGenerate   JobKind = "pre-generate"
 )

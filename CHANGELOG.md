@@ -15,6 +15,7 @@
 - [139](https://github.com/vegaprotocol/vegacapsule/issues/139) Allow non validator nodes to be iterated during wallet configuration
 - [125](https://github.com/vegaprotocol/vegacapsule/issues/125) Update network state when `--update-network` flag is passed to the `template nomad` cmd
 - [149](https://github.com/vegaprotocol/vegacapsule/issues/149) Update sentry config to reflect correct architecture
+- [128](https://github.com/vegaprotocol/vegacapsule/issues/128) Add support for remote network commands and implement remote unsafe_reset_all
 
 ### 🐛 Fixes
 - [167](https://github.com/vegaprotocol/vegacapsule/issues/167) Fix validators filter in tendermint generator
@@ -41,7 +42,6 @@
 - [120](https://github.com/vegaprotocol/vegacapsule/pull/120) Add support for HCL2 in node-set job template
 - [122](https://github.com/vegaprotocol/vegacapsule/issues/122) Add support for sentry nodes and loading node sets templates from files
 - [124](https://github.com/vegaprotocol/vegacapsule/issues/124) Allow updating network configurations with templating after network is generated
-- [139](https://github.com/vegaprotocol/vegacapsule/issues/139) Allow non validator nodes to be iterated during wallet configuration
 - [136](https://github.com/vegaprotocol/vegacapsule/issues/136) New templates for a sentry node with data node setup
 
 ### 🐛 Fixes

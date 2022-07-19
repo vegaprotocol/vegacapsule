@@ -77,6 +77,10 @@ func (n *Client) waitForDeployment(ctx context.Context, jobID string) error {
 				return err
 			}
 
+			if len(deployments) == 0 {
+				return nil
+			}
+
 			for _, dep := range deployments {
 				log.Printf("deployment (%s) update for job: %q, status: %q, another: %s", dep.ID, dep.JobID, dep.Status, dep.StatusDescription)
 

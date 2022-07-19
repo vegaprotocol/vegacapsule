@@ -193,31 +193,61 @@ func (r *JobRunner) RunRawNomadJobs(ctx context.Context, rawJobs []string) ([]ty
 
 }
 
-func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) ([]*api.Job, error) {
+func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) ([]types.NetworkJobState, error) {
 	jobs := make([]*api.Job, 0, len(nodeSets))
+	jobsStates := []types.NetworkJobState{}
 
 	for _, ns := range nodeSets {
+		if ns.RemoteCommandRunner != nil {
+			job, err := jobspec2.ParseWithConfig(&jobspec2.ParseConfig{
+				Path:    "command_runner.hcl",
+				Body:    []byte(ns.RemoteCommandRunner.NomadJobRaw),
+				ArgVars: []string{},
+				AllowFS: true,
+			})
+
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse command runner template for node set %s: %w", ns.Name, err)
+			}
+
+			jobs = append(jobs, job)
+			jobsStates = append(jobsStates, types.NetworkJobState{
+				Name:    *job.ID,
+				Running: true, // TODO: Is this assumption correct?
+				Kind:    types.JobCommandRunner,
+			})
+		}
+
+		var jobName string
 		if ns.NomadJobRaw == nil {
 			log.Printf("adding node set %q with default Nomad job definition", ns.Name)
 
-			jobs = append(jobs, r.defaultNodeSetJob(ns))
-			continue
+			job := r.defaultNodeSetJob(ns)
+			jobs = append(jobs, job)
+			jobName = *job.ID
+		} else {
+			log.Printf("adding node set %q with custom Nomad job definition", ns.Name)
+			var err error
+			job, err := jobspec2.ParseWithConfig(&jobspec2.ParseConfig{
+				Path:    "node_set.hcl",
+				Body:    []byte(*ns.NomadJobRaw),
+				ArgVars: []string{},
+				AllowFS: true,
+			})
+
+			if err != nil {
+				return nil, err
+			}
+
+			jobs = append(jobs, job)
+			jobName = *job.ID
 		}
 
-		job, err := jobspec2.ParseWithConfig(&jobspec2.ParseConfig{
-			Path:    "input.hcl",
-			Body:    []byte(*ns.NomadJobRaw),
-			ArgVars: []string{},
-			AllowFS: true,
+		jobsStates = append(jobsStates, types.NetworkJobState{
+			Name:    jobName,
+			Running: true, // TODO: Is this assumption correct?
+			Kind:    types.JobNodeSet,
 		})
-
-		if err != nil {
-			return nil, err
-		}
-
-		log.Printf("adding node set %q with custom Nomad job definition", ns.Name)
-
-		jobs = append(jobs, job)
 	}
 
 	eg := new(errgroup.Group)
@@ -233,7 +263,7 @@ func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) (
 		return nil, fmt.Errorf("failed to wait for node sets: %w", err)
 	}
 
-	return jobs, nil
+	return jobsStates, nil
 }
 
 func (r *JobRunner) runWallet(ctx context.Context, conf *config.WalletConfig, wallet *types.Wallet) (*api.Job, error) {
@@ -350,24 +380,21 @@ func (r *JobRunner) runDockerJobs(ctx context.Context, dockerConfigs []config.Do
 	return jobIDs, nil
 }
 
-func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, generatedSvcs *types.GeneratedServices) (*types.NetworkJobs, error) {
+func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, generatedSvcs *types.GeneratedServices) (types.JobStateMap, error) {
 	g, ctx := errgroup.WithContext(gCtx)
 
-	result := &types.NetworkJobs{
-		NodesSetsJobIDs: map[string]bool{},
-		ExtraJobIDs:     map[string]bool{},
-	}
+	result := types.JobStateMap{}
 	var lock sync.Mutex
 
-	result.AddExtraJobIDs(generatedSvcs.PreGenerateJobsIDs())
+	result.CreateAndAppendJobs(generatedSvcs.PreGenerateJobsIDs(), types.JobPreStart)
 
 	if conf.Network.PreStart != nil {
-		extraJobIDs, err := r.runDockerJobs(ctx, conf.Network.PreStart.Docker)
+		ExtraJobs, err := r.runDockerJobs(ctx, conf.Network.PreStart.Docker)
 		if err != nil {
 			return nil, fmt.Errorf("failed to run pre start jobs: %w", err)
 		}
 
-		result.AddExtraJobIDs(extraJobIDs)
+		result.CreateAndAppendJobs(ExtraJobs, types.JobPreStart)
 	}
 
 	// create new error group to be able call wait funcion again
@@ -379,7 +406,11 @@ func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, gene
 			}
 
 			lock.Lock()
-			result.FaucetJobID = *job.ID
+			result.Append(types.NetworkJobState{
+				Name:    *job.ID,
+				Running: true,
+				Kind:    types.JobFaucet,
+			})
 			lock.Unlock()
 
 			return nil
@@ -394,9 +425,12 @@ func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, gene
 			}
 
 			lock.Lock()
-			result.WalletJobID = *job.ID
+			result.Append(types.NetworkJobState{
+				Name:    *job.ID,
+				Kind:    types.JobWallet,
+				Running: true,
+			})
 			lock.Unlock()
-
 			return nil
 		})
 	}
@@ -409,7 +443,7 @@ func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, gene
 
 		lock.Lock()
 		for _, job := range jobs {
-			result.NodesSetsJobIDs[*job.ID] = true
+			result.Append(job)
 		}
 		lock.Unlock()
 
@@ -417,16 +451,18 @@ func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, gene
 	})
 
 	if err := g.Wait(); err != nil {
-		return nil, fmt.Errorf("failed to start vega network: %w", err)
+		// return result even if job failed to save current network state
+		return result, fmt.Errorf("failed to start vega network: %w", err)
 	}
 
 	if conf.Network.PostStart != nil {
-		extraJobIDs, err := r.runDockerJobs(gCtx, conf.Network.PostStart.Docker)
+		extraJobsIDs, err := r.runDockerJobs(gCtx, conf.Network.PostStart.Docker)
 		if err != nil {
-			return nil, fmt.Errorf("failed to run post start jobs: %w", err)
+			// return result even if job failed to save current network state
+			return result, fmt.Errorf("failed to run post start jobs: %w", err)
 		}
 
-		result.AddExtraJobIDs(extraJobIDs)
+		result.CreateAndAppendJobs(extraJobsIDs, types.JobPostStart)
 	}
 
 	return result, nil
@@ -457,28 +493,20 @@ func (r *JobRunner) stopAllJobs(ctx context.Context) error {
 	return nil
 }
 
-func (r *JobRunner) StopNetwork(ctx context.Context, jobs *types.NetworkJobs, nodesOnly bool) error {
+func (r *JobRunner) StopNetwork(ctx context.Context, jobs []types.NetworkJobState) error {
 	// no jobs, no network started
-	if jobs == nil {
-		if !nodesOnly {
-			return r.stopAllJobs(ctx)
-		}
+	if len(jobs) == 0 {
+		return r.stopAllJobs(ctx)
 
-		return nil
 	}
 
-	allJobs := []string{}
-	if !nodesOnly {
-		allJobs = append(jobs.ExtraJobIDs.ToSlice(), jobs.WalletJobID, jobs.FaucetJobID)
-	}
-	allJobs = append(allJobs, jobs.NodesSetsJobIDs.ToSlice()...)
 	g, ctx := errgroup.WithContext(ctx)
-	for _, jobName := range allJobs {
-		if jobName == "" {
+	for _, jobState := range jobs {
+		if jobState.Name == "" {
 			continue
 		}
 		// Explicitly copy name
-		jobName := jobName
+		jobName := jobState.Name
 
 		g.Go(func() error {
 			if _, err := r.client.Stop(ctx, jobName, true); err != nil {
@@ -486,7 +514,6 @@ func (r *JobRunner) StopNetwork(ctx context.Context, jobs *types.NetworkJobs, no
 			}
 			return nil
 		})
-
 	}
 
 	if err := g.Wait(); err != nil {
