@@ -16,6 +16,7 @@
 - [125](https://github.com/vegaprotocol/vegacapsule/issues/125) Update network state when `--update-network` flag is passed to the `template nomad` cmd
 - [149](https://github.com/vegaprotocol/vegacapsule/issues/149) Update sentry config to reflect correct architecture
 - [128](https://github.com/vegaprotocol/vegacapsule/issues/128) Add support for remote network commands and implement remote unsafe_reset_all
+- [191](https://github.com/vegaprotocol/vegacapsule/issues/191) Support built-in Tendermint application and version 0.35.8
 
 ### 🐛 Fixes
 - [167](https://github.com/vegaprotocol/vegacapsule/issues/167) Fix validators filter in tendermint generator
