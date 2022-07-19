@@ -1,18 +1,19 @@
 package tendermint
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
 	"path"
 	"path/filepath"
+	"time"
 
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/types"
 	"code.vegaprotocol.io/vegacapsule/utils"
 
 	tmconfig "github.com/tendermint/tendermint/config"
-	tmp2p "github.com/tendermint/tendermint/p2p"
 	"github.com/tendermint/tendermint/privval"
 	tmtypes "github.com/tendermint/tendermint/types"
 )
@@ -42,9 +43,15 @@ type ConfigGenerator struct {
 }
 
 func newGenValidator(nodeDir string, config *tmconfig.Config) (*tmtypes.GenesisValidator, error) {
-	pv := privval.LoadFilePV(config.BaseConfig.PrivValidatorKeyFile(), config.BaseConfig.PrivValidatorStateFile())
 
-	pubKey, err := pv.GetPubKey()
+	pv, err := privval.LoadFilePV(config.PrivValidator.KeyFile(), config.PrivValidator.StateFile())
+	if err != nil {
+		return nil, err
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	pubKey, err := pv.GetPubKey(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get pubkey: %w", err)
 	}
@@ -72,7 +79,6 @@ func NewConfigGenerator(conf *config.Config, generatedNodeSets []types.NodeSet) 
 			id:        tn.Tendermint.NodeID,
 			index:     tn.Index,
 		})
-
 
 		if tn.Mode != types.NodeModeValidator {
 			continue
@@ -136,12 +142,12 @@ func (tg *ConfigGenerator) Initiate(index int, mode, groupName string) (*types.T
 	config := tmconfig.DefaultConfig()
 	config.SetRoot(nodeDir)
 
-	nodeKey, err := tmp2p.LoadNodeKey(config.NodeKeyFile())
+	nodeKey, err := tmtypes.LoadNodeKey(config.NodeKeyFile())
 	if err != nil {
 		return nil, fmt.Errorf("failed to get node key: %w", err)
 	}
 
-	nodeID := string(nodeKey.ID())
+	nodeID := string(nodeKey.ID)
 	nodeName := fmt.Sprintf("tendermint-%s-%d", mode, index)
 
 	tg.nodes = append(tg.nodes, node{

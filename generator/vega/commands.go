@@ -41,6 +41,7 @@ func (vg ConfigGenerator) initiateNode(homePath string, nodeWalletPhraseFile str
 		"init",
 		"--home", homePath,
 		"--nodewallet-passphrase-file", nodeWalletPhraseFile,
+		"--no-tendermint",
 		"--output", "json",
 		string(nodeMode),
 	}

@@ -12,11 +12,11 @@ network "testnet" {
     network_id = "1441"
     endpoint   = "http://127.0.0.1:8545/"
   }
-  
+
   pre_start {
 
     docker_service "ganache" {
-            
+
     }
 
   }
@@ -24,7 +24,7 @@ network "testnet" {
   post_start {
 
     docker_service "ganache" {
-            
+
     }
 
   }
@@ -310,25 +310,25 @@ EOT
 // ============================
 
 	  tendermint = <<-EOT
-log_level = "info"
+log-level = "info"
 
-proxy_app = "tcp://127.0.0.1:266{{.NodeNumber}}8"
+proxy-app = "tcp://127.0.0.1:266{{.NodeNumber}}8"
 moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
 
 [rpc]
   laddr = "tcp://0.0.0.0:266{{.NodeNumber}}7"
   unsafe = true
-  cors_allowed_origins = ["*"]
+  cors-allowed-origins = ["*"]
   cors-allowed-methods = ["HEAD", "GET", "POST", ]
   cors-allowed-headers = ["Origin", "Accept", "Content-Type", "X-Requested-With", "X-Server-Time", ]
 
 [p2p]
   laddr = "tcp://0.0.0.0:266{{.NodeNumber}}6"
-  addr_book_strict = false
+  addr-book-strict = false
   max_packet_msg_payload_size = 4096
   pex = false
-  allow_duplicate_ip = true
-  persistent_peers = "{{- range $i, $peer := .NodePeers -}}
+  allow-duplicate-ip = true
+  persistent-peers = "{{- range $i, $peer := .NodePeers -}}
 	  {{- if ne $i 0 }},{{end -}}
 	  {{- $peer.ID}}@127.0.0.1:266{{$peer.Index}}6
   {{- end -}}"
@@ -336,10 +336,10 @@ moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
 
 [mempool]
   size = 10000
-  cache_size = 20000
+  cache-size = 20000
 
 [consensus]
-  skip_timeout_commit = false
+  skip-timeout-commit = false
 EOT
     }
   }
@@ -360,7 +360,7 @@ EOT
   [Admin.Server]
     SocketPath = "/tmp/vega-{{.NodeNumber}}.sock"
     Enabled = true
-	
+
 [API]
 	Port = 30{{.NodeNumber}}2
 	[API.REST]
@@ -422,7 +422,7 @@ GatewayEnabled = true
     Port = 30{{.NodeNumber}}8
   [Gateway.REST]
     Port = 30{{.NodeNumber}}9
-	
+
 [Metrics]
   Level = "Info"
   Timeout = "5s"
@@ -441,35 +441,35 @@ EOT
 // ============================
 
 	  tendermint = <<-EOT
-log_level = "info"
+log-level = "info"
 
-proxy_app = "tcp://127.0.0.1:266{{.NodeNumber}}8"
+proxy-app = "tcp://127.0.0.1:266{{.NodeNumber}}8"
 moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
 
 [rpc]
   laddr = "tcp://0.0.0.0:266{{.NodeNumber}}7"
   unsafe = true
-  cors_allowed_origins = ["*"]
+  cors-allowed-origins = ["*"]
   cors-allowed-methods = ["HEAD", "GET", "POST", ]
   cors-allowed-headers = ["Origin", "Accept", "Content-Type", "X-Requested-With", "X-Server-Time", ]
 
 [p2p]
   laddr = "tcp://0.0.0.0:266{{.NodeNumber}}6"
-  addr_book_strict = false
-  max_packet_msg_payload_size = 4096
+  addr-book-strict = false
+  max-packet-msg-payload-size = 4096
   pex = false
-  allow_duplicate_ip = true
-  persistent_peers = "{{- range $i, $peer := .NodePeers -}}
+  allow-duplicate-ip = true
+  persistent-peers = "{{- range $i, $peer := .NodePeers -}}
 	  {{- if ne $i 0 }},{{end -}}
 	  {{- $peer.ID}}@127.0.0.1:266{{$peer.Index}}6
   {{- end -}}"
 
 [mempool]
   size = 10000
-  cache_size = 20000
+  cache-size = 20000
 
 [consensus]
-  skip_timeout_commit = false
+  skip-timeout-commit = false
 EOT
     }
   }
