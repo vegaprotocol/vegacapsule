@@ -67,9 +67,7 @@ EOT
 [Blockchain]
     ChainProvider = "nullchain"
     [Blockchain.Tendermint]
-        ClientAddr = "tcp://127.0.0.1:266{{.NodeNumber}}7"
-        ServerAddr = "0.0.0.0"
-        ServerPort = 266{{.NodeNumber}}8
+        RPCAddr = "tcp://127.0.0.1:266{{.NodeNumber}}7"
     [Blockchain.Null]
         Level = "Debug"
         BlockDuration = "1s"
