@@ -40,8 +40,6 @@ func setThresholdSignature(vegaBinary string, newThreshold int, nonce uint64, su
 			return "", fmt.Errorf("failed to compute set_threshold signature for validator: %s: %w", signer.KeyPair.Address, err)
 		}
 
-		fmt.Printf("address: %s, sig: %s \n", signer.KeyPair.Address, signature)
-
 		result += strings.Trim(
 			strings.TrimPrefix(string(signature), "0x"),
 			"\n",

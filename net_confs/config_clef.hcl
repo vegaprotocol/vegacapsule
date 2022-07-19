@@ -69,7 +69,7 @@ EOT
     }
 
     clef_wallet {
-      ethereum_account_addresses = ["0x6ab5e78f44adfb24e4f61eb70ff2569259affa38","0x87636f71eb1e5565c7f0b3fbec96c33d52a1e16d"]
+      ethereum_account_addresses = ["0xcdb5404943123320822a16c918d8164e866af10a","0xc50aa7e30185c614a34122a4eddaf042202e1e48"]
       clef_rpc_address = "http://localhost:855{{ .NodeNumber }}"
     }
 
