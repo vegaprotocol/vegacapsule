@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"time"
 
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/ethereum"
@@ -132,6 +133,10 @@ func (vg ConfigGenerator) initiateValidatorWallets(
 	}
 
 	if clefConf != nil {
+		if err := waitForClef(clefConf.ClefRPCAddr, `{"id": 1, "jsonrpc": "2.0", "method": "account_list"}`, time.Second*20); err != nil {
+			return nil, fmt.Errorf("failed to wait for Clef instance: %w", err)
+		}
+
 		clefAccountAddr := clefConf.AccountAddresses[index]
 
 		ethOut, err := vg.importEthereumClefNodeWallet(nodeDir, nodeWalletPassFilePath, clefAccountAddr, clefConf.ClefRPCAddr)

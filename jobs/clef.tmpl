@@ -13,7 +13,7 @@ job "{{ .Name }}-{{ .Index }}" {
       driver = "docker"
 
       config {
-        image = "vegaprotocol/clef:local"
+        image = "vegaprotocol/clef:v2.0.0"
         auth_soft_fail = true
         ports = ["http"]
       }
