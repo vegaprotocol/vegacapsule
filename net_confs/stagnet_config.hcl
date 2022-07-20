@@ -90,9 +90,8 @@ EOT
 	BlockchainQueueAllowlist = ["{{ .FaucetPublicKey }}"]
 	{{end}}
 
-[NodeWallet]
-	[NodeWallet.ETH]
-		Address = "{{.ETHEndpoint}}"
+[Ethereum]
+  RPCEndpoint = "{{.ETHEndpoint}}"
 
 [Processor]
 	[Processor.Ratelimit]
@@ -168,9 +167,8 @@ EOT
 	Level = "Info"
 	RetryRate = "1s"
 
-[NodeWallet]
-	[NodeWallet.ETH]
-		Address = "{{.ETHEndpoint}}"
+[Ethereum]
+  RPCEndpoint = "{{.ETHEndpoint}}"
 
 [Processor]
 	[Processor.Ratelimit]

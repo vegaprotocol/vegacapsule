@@ -20,6 +20,7 @@
 
 ### 🐛 Fixes
 - [167](https://github.com/vegaprotocol/vegacapsule/issues/167) Fix validators filter in tendermint generator
+- [188](https://github.com/vegaprotocol/vegacapsule/issues/188) Support new changes for Ethereum RPC endpoint in Vega configuration
 
 
 
