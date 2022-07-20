@@ -20,6 +20,11 @@
 	[Blockchain.Null]
 		Port = 31{{.NodeNumber}}1
 
+[Broker]
+  [Broker.Socket]
+    Port = 30{{.NodeNumber}}5
+    Enabled = true
+    
 [EvtForward]
 	Level = "Info"
 	RetryRate = "1s"
