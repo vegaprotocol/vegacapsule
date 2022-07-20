@@ -1,6 +1,7 @@
 package vega
 
 import (
+	"fmt"
 	"log"
 
 	"code.vegaprotocol.io/vegacapsule/config"
@@ -144,6 +145,11 @@ func (vg ConfigGenerator) importTendermintNodeWallet(homePath string, nodeWallet
 }
 
 func (vg ConfigGenerator) importVegaNodeWallet(homePath, nodeWalletPhraseFile, walletPhraseFile, walletFilePath string) (*importNodeWalletOutput, error) {
+	walletAbsPath, err := utils.AbsPath(walletFilePath) // path to the wallet file need to be absolute
+	if err != nil {
+		return nil, fmt.Errorf("failed to get absolute path for vega node wallet: %w", err)
+	}
+
 	args := []string{
 		"nodewallet",
 		"--home", homePath,
@@ -152,7 +158,7 @@ func (vg ConfigGenerator) importVegaNodeWallet(homePath, nodeWalletPhraseFile, w
 		"--output", "json",
 		"--chain", types.NodeWalletChainTypeVega,
 		"--wallet-passphrase-file", walletPhraseFile,
-		"--wallet-path", walletFilePath,
+		"--wallet-path", walletAbsPath,
 	}
 
 	log.Printf("Importing node vega wallet with: %v", args)

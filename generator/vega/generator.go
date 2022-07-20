@@ -22,7 +22,7 @@ type ConfigGenerator struct {
 }
 
 func NewConfigGenerator(conf *config.Config) (*ConfigGenerator, error) {
-	homeDir, err := filepath.Abs(path.Join(*conf.OutputDir, *conf.VegaNodePrefix))
+	homeDir, err := conf.StandarizePath(path.Join(*conf.OutputDir, *conf.VegaNodePrefix))
 	if err != nil {
 		return nil, err
 	}

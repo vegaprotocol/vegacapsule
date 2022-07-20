@@ -14,7 +14,8 @@ import (
 )
 
 type Config struct {
-	OutputDir            *string       `hcl:"-"`
+	OutputDir            *string       `hcl:"output_dir"`
+	PathsFormat          *string       `hcl:"paths_format"`
 	VegaBinary           *string       `hcl:"vega_binary_path"`
 	Prefix               *string       `hcl:"prefix"`
 	NodeDirPrefix        *string       `hcl:"node_dir_prefix"`
@@ -45,6 +46,13 @@ type NetworkConfig struct {
 	SmartContractsAddresses     *string `hcl:"smart_contracts_addresses,optional"`
 	SmartContractsAddressesFile *string `hcl:"smart_contracts_addresses_file,optional"`
 }
+
+const (
+	PathFormatAbsolute       = "absolute"
+	PathFormatPreferRelative = "prefer-relative"
+)
+
+var validPathsFormats = []string{PathFormatAbsolute, PathFormatPreferRelative}
 
 type CommandRunner struct {
 	PathsMapping ConfigRemoteNetworkPathsMapping `hcl:"paths_mapping,block"`
@@ -173,18 +181,44 @@ type ConfigTemplates struct {
 	DataNodeFile   *string `hcl:"data_node_file,optional"`
 }
 
-func (c *Config) setAbsolutePaths() error {
-	// Output directory
-	if !filepath.IsAbs(*c.OutputDir) {
-		absPath, err := filepath.Abs(*c.OutputDir)
-		if err != nil {
-			return fmt.Errorf("failed to get absolute path for outputDir: %w", err)
-		}
-		*c.OutputDir = absPath
+// StandarizePath returns the path to the network element. Value it returns depends on the
+// `Config.AbsolutePath` field value. By default the below method should return the
+// absolute path but for some scenarios the relative one is required.
+func (c Config) StandarizePath(path string) (string, error) {
+	if *c.PathsFormat == PathFormatPreferRelative {
+		return path, nil
 	}
 
+	if !filepath.IsAbs(path) {
+		var err error
+		path, err = filepath.Abs(path)
+		if err != nil {
+			return "", fmt.Errorf("failed to get standarized path for given relative path(%s): %w", path, err)
+		}
+
+	}
+
+	return path, nil
+}
+
+func (c Config) StandarizeBinaryPath(path string) (string, error) {
+	if *c.PathsFormat == PathFormatPreferRelative {
+		return path, nil
+	}
+
+	return utils.BinaryAbsPath(path)
+}
+
+func (c *Config) setStanarizedPaths() error {
+	// Output directory
+	stdOutputDirPath, err := c.StandarizePath(*c.OutputDir)
+	if err != nil {
+		return fmt.Errorf("failed to get standarized path for outputDir: %w", err)
+	}
+	*c.OutputDir = stdOutputDirPath
+
 	// Vega binary
-	vegaBinPath, err := utils.BinaryAbsPath(*c.VegaBinary)
+	vegaBinPath, err := c.StandarizeBinaryPath(*c.VegaBinary)
 	if err != nil {
 		return err
 	}
@@ -192,7 +226,7 @@ func (c *Config) setAbsolutePaths() error {
 
 	// Wallet binary
 	if c.Network.Wallet != nil {
-		walletBinPath, err := utils.BinaryAbsPath(c.Network.Wallet.Binary)
+		walletBinPath, err := c.StandarizeBinaryPath(c.Network.Wallet.Binary)
 		if err != nil {
 			return err
 		}
@@ -205,7 +239,7 @@ func (c *Config) setAbsolutePaths() error {
 			continue
 		}
 
-		dataNodeBinPath, err := utils.BinaryAbsPath(nc.DataNodeBinary)
+		dataNodeBinPath, err := c.StandarizeBinaryPath(nc.DataNodeBinary)
 		if err != nil {
 			return err
 		}
@@ -216,11 +250,23 @@ func (c *Config) setAbsolutePaths() error {
 }
 
 func (c *Config) Validate(configDir string) error {
-	if err := c.setAbsolutePaths(); err != nil {
+	if err := c.setStanarizedPaths(); err != nil {
 		return fmt.Errorf("failed to set absolute paths: %w", err)
 	}
 
-	c.configDir = configDir
+	if c.PathsFormat == nil {
+		return fmt.Errorf("filed to validate `path_format` config: value not set")
+	}
+
+	if utils.IndexInSlice(validPathsFormats, *c.PathsFormat) == -1 {
+		return fmt.Errorf("filed to validate `path_format` config: invalid value: expected one of %v, got %s", validPathsFormats, *c.PathsFormat)
+	}
+
+	standarizedConfigDir, err := c.StandarizePath(configDir)
+	if err != nil {
+		return fmt.Errorf("filed to get standarized path for `configDir`")
+	}
+	c.configDir = standarizedConfigDir
 
 	if err := c.validateCommandRunnerConfig(); err != nil {
 		return fmt.Errorf("failed to validate command runner config: %w", err)
@@ -531,6 +577,7 @@ func DefaultConfig() (*Config, error) {
 
 	return &Config{
 		OutputDir:            &outputDir,
+		PathsFormat:          utils.StrPoint(PathFormatAbsolute),
 		Prefix:               utils.StrPoint("st-local"),
 		NodeDirPrefix:        utils.StrPoint("node"),
 		TendermintNodePrefix: utils.StrPoint("tendermint"),
