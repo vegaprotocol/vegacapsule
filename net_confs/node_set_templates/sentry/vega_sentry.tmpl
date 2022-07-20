@@ -16,9 +16,7 @@
 
 [Blockchain]
 	[Blockchain.Tendermint]
-		ClientAddr = "tcp://127.0.0.1:{{$tm_rpc_port}}"
-		ServerAddr = "0.0.0.0"
-		ServerPort = {{$tm_proxy_port}}
+		RPCAddr = "tcp://127.0.0.1:{{$tm_rpc_port}}"
 	[Blockchain.Null]
 		Port = 31{{.NodeNumber}}1
 
