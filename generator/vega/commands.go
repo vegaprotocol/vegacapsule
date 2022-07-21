@@ -3,7 +3,6 @@ package vega
 import (
 	"log"
 
-	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/types"
 	"code.vegaprotocol.io/vegacapsule/utils"
 )
@@ -99,7 +98,7 @@ func (vg ConfigGenerator) generateNodeWallet(homePath string, nodeWalletPhraseFi
 
 func (vg ConfigGenerator) importEthereumClefNodeWallet(
 	homePath, nodeWalletPhraseFile string,
-	clefConf *config.ClefConfig,
+	clefAccountAddr, clefRPCAddr string,
 ) (*importNodeWalletOutput, error) {
 	args := []string{
 		"nodewallet",
@@ -108,8 +107,8 @@ func (vg ConfigGenerator) importEthereumClefNodeWallet(
 		"import",
 		"--output", "json",
 		"--chain", "ethereum",
-		"--clef-account-address", clefConf.AccountAddress,
-		"--eth.clef-address", clefConf.ClefRPCAddr,
+		"--clef-account-address", clefAccountAddr,
+		"--eth.clef-address", clefRPCAddr,
 	}
 
 	log.Printf("Importing Ethereum Clef wallet: %v", args)

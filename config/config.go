@@ -137,8 +137,8 @@ func (nc NodeConfig) Clone() (*NodeConfig, error) {
 }
 
 type ClefConfig struct {
-	AccountAddress string `hcl:"ethereum_account_address" template:""`
-	ClefRPCAddr    string `hcl:"clef_rpc_address" template:""`
+	AccountAddresses []string `hcl:"ethereum_account_addresses" template:""`
+	ClefRPCAddr      string   `hcl:"clef_rpc_address" template:""`
 }
 
 type ConfigTemplates struct {
@@ -218,6 +218,11 @@ func (c *Config) loadAndValidateNodeSets() error {
 	mErr := utils.NewMultiError()
 
 	for i, nc := range c.Network.Nodes {
+		if err := c.validateClefWalletConfig(nc); err != nil {
+			mErr.Add(err)
+			continue
+		}
+
 		updatedNc, err := c.loadAndValidateNomadJobTemplates(nc)
 		if err != nil {
 			mErr.Add(fmt.Errorf("failed to validate nomad job template for %s: %w", nc.Name, err))
@@ -247,6 +252,18 @@ func (c *Config) loadAndValidateNodeSets() error {
 
 	if mErr.HasAny() {
 		return mErr
+	}
+
+	return nil
+}
+
+func (c *Config) validateClefWalletConfig(nc NodeConfig) error {
+	if nc.ClefWallet == nil {
+		return nil
+	}
+
+	if len(nc.ClefWallet.AccountAddresses) < nc.Count {
+		return fmt.Errorf("provided ethereum_account_addresses must be greated or equal than node condig count")
 	}
 
 	return nil
