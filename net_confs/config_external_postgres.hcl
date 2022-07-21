@@ -54,7 +54,7 @@ EOT
       auth_soft_fail = true
     }
     docker_service "postgres-1" {
-      image = "timescale/timescaledb:2.6.0-pg14"
+      image = "timescale/timescaledb:2.7.1-pg14"
       cmd = "postgres"
       args = []
       env = {
