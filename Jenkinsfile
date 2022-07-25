@@ -6,6 +6,7 @@ def commitHash = 'UNKNOWN'
 pipeline {
     agent any
     options {
+        skipDefaultCheckout true
         timestamps()
         timeout(time: 45, unit: 'MINUTES')
     }
@@ -43,6 +44,7 @@ pipeline {
         stage('Git clone') {
             options { retry(3) }
             steps {
+                checkout scm
                 script {
                     commitHash = getCommitHash()
                 }
