@@ -52,18 +52,36 @@ pipeline {
             }
         }
 
-        stage('System Tests Network Smoke') {
-            steps {
-                script {
-                    systemTestsCapsule ignoreFailure: !isPRBuild(),
-                        vegacapsule: commitHash,
-                        systemTests: params.SYSTEM_TESTS_BRANCH,
-                        vegaCore: params.VEGA_CORE_BRANCH,
-                        dataNode: params.DATA_NODE_BRANCH,
-                        protos: params.PROTOS_BRANCH,
-                        vegatools: params.VEGATOOLS_BRANCH,
-                        devopsInfra: params.DEVOPS_INFRA_BRANCH,
-                        testMark: "network_infra_smoke"
+        stage('Tests') {
+            parallel {
+                stage('System Tests Network Smoke') {
+                    steps {
+                        script {
+                            systemTestsCapsule ignoreFailure: !isPRBuild(),
+                                vegacapsule: commitHash,
+                                systemTests: params.SYSTEM_TESTS_BRANCH,
+                                vegaCore: params.VEGA_CORE_BRANCH,
+                                dataNode: params.DATA_NODE_BRANCH,
+                                protos: params.PROTOS_BRANCH,
+                                vegatools: params.VEGATOOLS_BRANCH,
+                                devopsInfra: params.DEVOPS_INFRA_BRANCH,
+                                testMark: "network_infra_smoke"
+                        }
+                    }
+                }
+                stage('System Tests') {
+                    steps {
+                        script {
+                            systemTestsCapsule ignoreFailure: !isPRBuild(),
+                                vegacapsule: commitHash,
+                                systemTests: params.SYSTEM_TESTS_BRANCH,
+                                vegaCore: params.VEGA_CORE_BRANCH,
+                                dataNode: params.DATA_NODE_BRANCH,
+                                protos: params.PROTOS_BRANCH,
+                                vegatools: params.VEGATOOLS_BRANCH,
+                                devopsInfra: params.DEVOPS_INFRA_BRANCH
+                        }
+                    }
                 }
             }
         }
