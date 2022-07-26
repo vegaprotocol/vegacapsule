@@ -7,21 +7,36 @@ import (
 	"code.vegaprotocol.io/vegacapsule/utils"
 )
 
-func setThresholdSignature(vegaBinary string, vegaHome string, newThreshold int, nonce uint64, submitter string, signers []string) (string, error) {
+func getEthereumWalletArgs(signer Signer) []string {
+	if signer.ClefRPCAddress != "" {
+		return []string{
+			"--passphrase-file", signer.WalletPassFilePath,
+			"--eth.clef-address", signer.ClefRPCAddress,
+		}
+	}
+
+	return []string{
+		"--private-key", signer.KeyPair.PrivateKey,
+	}
+}
+
+func setThresholdSignature(vegaBinary string, newThreshold int, nonce uint64, submitter string, signers SignersList) (string, error) {
 	result := "0x"
 
-	for _, privKey := range signers {
-		signature, err := callVegaBridgeERC20(vegaBinary, []string{
+	for _, signer := range signers {
+		args := []string{
 			"set_threshold",
-			"--home", vegaHome,
+			"--home", signer.HomeAddress,
 			"--new-threshold", fmt.Sprintf("%d", newThreshold),
 			"--submitter", submitter,
 			"--nonce", fmt.Sprintf("%d", nonce),
-			"--private-key", privKey,
-		})
+		}
 
+		args = append(args, getEthereumWalletArgs(signer)...)
+
+		signature, err := callVegaBridgeERC20(vegaBinary, args)
 		if err != nil {
-			return "", fmt.Errorf("failed to compute set_threshold signature for validator: %s: %w", privKey, err)
+			return "", fmt.Errorf("failed to compute set_threshold signature for validator: %s: %w", signer.KeyPair.Address, err)
 		}
 
 		result += strings.Trim(
@@ -33,21 +48,23 @@ func setThresholdSignature(vegaBinary string, vegaHome string, newThreshold int,
 	return result, nil
 }
 
-func addSignerSignature(vegaBinary string, vegaHome string, newSigner string, nonce uint64, submitter string, signers []string) (string, error) {
+func addSignerSignature(vegaBinary string, newSigner string, nonce uint64, submitter string, signers SignersList) (string, error) {
 	result := "0x"
 
-	for _, privKey := range signers {
-		signature, err := callVegaBridgeERC20(vegaBinary, []string{
+	for _, signer := range signers {
+		args := []string{
 			"add_signer",
-			"--home", vegaHome,
+			"--home", signer.HomeAddress,
 			"--new-signer", newSigner,
 			"--submitter", submitter,
 			"--nonce", fmt.Sprintf("%d", nonce),
-			"--private-key", privKey,
-		})
+		}
 
+		args = append(args, getEthereumWalletArgs(signer)...)
+
+		signature, err := callVegaBridgeERC20(vegaBinary, args)
 		if err != nil {
-			return "", fmt.Errorf("failed to compute set_threshold signature for validator: %s: %w", privKey, err)
+			return "", fmt.Errorf("failed to compute set_threshold signature for validator: %s: %w", signer.KeyPair.Address, err)
 		}
 
 		result += strings.Trim(
@@ -59,21 +76,23 @@ func addSignerSignature(vegaBinary string, vegaHome string, newSigner string, no
 	return result, nil
 }
 
-func removeSignerSignature(vegaBinary string, vegaHome string, oldSigner string, nonce uint64, submitter string, signers []string) (string, error) {
+func removeSignerSignature(vegaBinary string, oldSigner string, nonce uint64, submitter string, signers SignersList) (string, error) {
 	result := "0x"
 
-	for _, privKey := range signers {
-		signature, err := callVegaBridgeERC20(vegaBinary, []string{
+	for _, signer := range signers {
+		args := []string{
 			"remove_signer",
-			"--home", vegaHome,
+			"--home", signer.HomeAddress,
 			"--old-signer", oldSigner,
 			"--submitter", submitter,
 			"--nonce", fmt.Sprintf("%d", nonce),
-			"--private-key", privKey,
-		})
+		}
 
+		args = append(args, getEthereumWalletArgs(signer)...)
+
+		signature, err := callVegaBridgeERC20(vegaBinary, args)
 		if err != nil {
-			return "", fmt.Errorf("failed to compute set_threshold signature for validator: %s: %w", privKey, err)
+			return "", fmt.Errorf("failed to compute set_threshold signature for validator: %s: %w", signer.KeyPair.Address, err)
 		}
 
 		result += strings.Trim(

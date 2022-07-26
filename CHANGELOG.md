@@ -18,6 +18,8 @@
 - [191](https://github.com/vegaprotocol/vegacapsule/issues/191) Support built-in Tendermint application and version 0.35.8
 - [194](https://github.com/vegaprotocol/vegacapsule/issues/194) Set `skip-timeout-commit` value to true to reduce block times
 - [75](https://github.com/vegaprotocol/vegacapsule/issues/75) Add support to import pre-generated keys into vegacapsule network
+- [190](https://github.com/vegaprotocol/vegacapsule/issues/190) Support multisig with Clef
+- [204](https://github.com/vegaprotocol/vegacapsule/pull/204) Add intro section to readme with more about capsule
 
 ### 🐛 Fixes
 - [167](https://github.com/vegaprotocol/vegacapsule/issues/167) Fix validators filter in tendermint generator

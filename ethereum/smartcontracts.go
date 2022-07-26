@@ -77,38 +77,45 @@ func NewEthereumClient(ctx context.Context, params EthereumClientParameters) (*E
 	}, nil
 }
 
-func (ec EthereumClient) InitMultisig(ctx context.Context, smartcontracts types.SmartContractsInfo, validators KeyPairList) error {
+func (ec EthereumClient) InitMultisig(ctx context.Context, smartcontracts types.SmartContractsInfo, validators SignersList) error {
 	if smartcontracts.EthereumOwner.Private == "" || smartcontracts.EthereumOwner.Public == "" {
 		return fmt.Errorf("failed to init multisig smart contract: missing private or public key of the smart contract owner in the network configuration")
 	}
 
-	ownerKeyPair := KeyPair{
-		PrivateKey: smartcontracts.EthereumOwner.Private,
-		Address:    smartcontracts.EthereumOwner.Public,
+	if len(validators) == 0 {
+		return fmt.Errorf("failed to init multisig smart contract: can not run multisig contract with no validators")
 	}
 
-	session, err := ec.createMultiSigControlSession(ctx, ownerKeyPair)
+	contractOwner := Signer{
+		HomeAddress: validators[0].HomeAddress,
+		KeyPair: KeyPair{
+			PrivateKey: smartcontracts.EthereumOwner.Private,
+			Address:    smartcontracts.EthereumOwner.Public,
+		},
+	}
+
+	session, err := ec.createMultiSigControlSession(ctx, contractOwner)
 	if err != nil {
 		return fmt.Errorf("failed to create multisig smart contract session: %w", err)
 	}
 
-	validSigner, err := session.IsValidSigner(common.HexToAddress(smartcontracts.EthereumOwner.Public))
+	validSigner, err := session.IsValidSigner(common.HexToAddress(contractOwner.KeyPair.Address))
 	if err != nil {
 		return fmt.Errorf("failed to check signer: %w", err)
 	}
 	if !validSigner {
-		return fmt.Errorf("failed to verify signer: %s is not valid signer of messages", smartcontracts.EthereumOwner.Public)
+		return fmt.Errorf("failed to verify signer: %s is not valid signer of messages", contractOwner.KeyPair.Address)
 	}
 
-	if err := ec.multisigSetThreshold(ctx, session, 1, KeyPairList{ownerKeyPair}); err != nil {
+	if err := ec.multisigSetThreshold(ctx, session, 1, SignersList{contractOwner}); err != nil {
 		return fmt.Errorf("failed to set multisig threshold to 1: %w", err)
 	}
 
-	if err := ec.multisigAddSigners(ctx, session, validators, KeyPairList{ownerKeyPair}); err != nil {
+	if err := ec.multisigAddSigners(ctx, session, validators, SignersList{contractOwner}); err != nil {
 		return fmt.Errorf("failed to add signers: %w", err)
 	}
 
-	if err := ec.multisigRemoveSigner(ctx, session, smartcontracts.EthereumOwner.Public, KeyPairList{ownerKeyPair}); err != nil {
+	if err := ec.multisigRemoveSigner(ctx, session, contractOwner.KeyPair.Address, SignersList{contractOwner}); err != nil {
 		return fmt.Errorf("failed to remove contract owner from muiltisig signer: %w", err)
 	}
 
@@ -119,8 +126,8 @@ func (ec EthereumClient) InitMultisig(ctx context.Context, smartcontracts types.
 	return nil
 }
 
-func (ec EthereumClient) createMultiSigControlSession(ctx context.Context, ownerKeyPair KeyPair) (*multisig.MultisigControlSession, error) {
-	privateKey, err := crypto.HexToECDSA(ownerKeyPair.PrivateKey)
+func (ec EthereumClient) createMultiSigControlSession(ctx context.Context, ownerKeyPair Signer) (*multisig.MultisigControlSession, error) {
+	privateKey, err := crypto.HexToECDSA(ownerKeyPair.KeyPair.PrivateKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert multisig owner private key hash into ECDSA: %w", err)
 	}
@@ -133,7 +140,7 @@ func (ec EthereumClient) createMultiSigControlSession(ctx context.Context, owner
 	session := &multisig.MultisigControlSession{
 		Contract: ec.multisig,
 		CallOpts: bind.CallOpts{
-			From:    common.HexToAddress(ownerKeyPair.Address),
+			From:    common.HexToAddress(ownerKeyPair.KeyPair.Address),
 			Context: ctx,
 		},
 		TransactOpts: *auth,
@@ -142,7 +149,7 @@ func (ec EthereumClient) createMultiSigControlSession(ctx context.Context, owner
 	return session, nil
 }
 
-func (ec EthereumClient) multisigSetThreshold(ctx context.Context, session *multisig.MultisigControlSession, newThreshold int, signers KeyPairList) error {
+func (ec EthereumClient) multisigSetThreshold(ctx context.Context, session *multisig.MultisigControlSession, newThreshold int, signers SignersList) error {
 	currentThreshold, err := session.GetCurrentThreshold()
 	if err != nil {
 		return fmt.Errorf("failed to get current multisig threshold: %w", err)
@@ -156,11 +163,11 @@ func (ec EthereumClient) multisigSetThreshold(ctx context.Context, session *mult
 
 	signature, err := setThresholdSignature(
 		ec.vegaBinary,
-		ec.vegaHome,
 		newThreshold,
 		nonce.Uint64(),
 		session.CallOpts.From.Hex(),
-		signers.PrivateKeys())
+		signers,
+	)
 	if err != nil {
 		return fmt.Errorf("failed computing signature: %w", err)
 	}
@@ -183,7 +190,7 @@ func (ec EthereumClient) multisigSetThreshold(ctx context.Context, session *mult
 	return nil
 }
 
-func (ec EthereumClient) multisigAddSigners(ctx context.Context, session *multisig.MultisigControlSession, validators KeyPairList, signers KeyPairList) error {
+func (ec EthereumClient) multisigAddSigners(ctx context.Context, session *multisig.MultisigControlSession, validators SignersList, signers SignersList) error {
 	signersCount, err := session.GetValidSignerCount()
 	if err != nil {
 		return fmt.Errorf("failed to get number of signers for multisig: %w", err)
@@ -191,13 +198,13 @@ func (ec EthereumClient) multisigAddSigners(ctx context.Context, session *multis
 	log.Printf("Number of signers for multisig: %d\n", signersCount)
 
 	for _, validator := range validators {
-		validSigner, err := session.IsValidSigner(common.HexToAddress(validator.Address))
+		validSigner, err := session.IsValidSigner(common.HexToAddress(validator.KeyPair.Address))
 		if err != nil {
 			return fmt.Errorf("failed to check signer: %w", err)
 		}
 
 		if validSigner {
-			log.Printf("%s is already valid signer. No need to add it again", validator.Address)
+			log.Printf("%s is already valid signer. No need to add it again", validator.KeyPair.Address)
 			continue
 		}
 
@@ -207,25 +214,24 @@ func (ec EthereumClient) multisigAddSigners(ctx context.Context, session *multis
 		}
 		signature, err := addSignerSignature(
 			ec.vegaBinary,
-			ec.vegaHome,
-			validator.Address,
+			validator.KeyPair.Address,
 			nonce.Uint64(),
 			session.CallOpts.From.Hex(),
-			signers.PrivateKeys())
+			signers)
 		if err != nil {
-			return fmt.Errorf("failed generate the add_signer signature for %s signer: %w", validator.Address, err)
+			return fmt.Errorf("failed generate the add_signer signature for %s signer: %w", validator.KeyPair.Address, err)
 		}
-		log.Printf("Computed signature for add_signer for %s: %s\n", validator.Address, signature)
+		log.Printf("Computed signature for add_signer for %s: %s\n", validator.KeyPair.Address, signature)
 
-		tx, err := session.AddSigner(common.HexToAddress(validator.Address), nonce, common.FromHex(signature))
+		tx, err := session.AddSigner(common.HexToAddress(validator.KeyPair.Address), nonce, common.FromHex(signature))
 		if err != nil {
-			return fmt.Errorf("failed to add %s as a multisig signer: %w", validator.Address, err)
+			return fmt.Errorf("failed to add %s as a multisig signer: %w", validator.KeyPair.Address, err)
 		}
 		if _, err := bind.WaitMined(ctx, ec.client, tx); err != nil {
 			return fmt.Errorf("failed waiting for transaction to be mined: %w", err)
 		}
 
-		log.Printf("Added %s as a multisig validator\n", validator.Address)
+		log.Printf("Added %s as a multisig validator\n", validator.KeyPair.Address)
 	}
 
 	signersCount, err = session.GetValidSignerCount()
@@ -237,7 +243,7 @@ func (ec EthereumClient) multisigAddSigners(ctx context.Context, session *multis
 	return nil
 }
 
-func (ec EthereumClient) multisigRemoveSigner(ctx context.Context, session *multisig.MultisigControlSession, oldSigner string, signers KeyPairList) error {
+func (ec EthereumClient) multisigRemoveSigner(ctx context.Context, session *multisig.MultisigControlSession, oldSigner string, signers SignersList) error {
 	validSigner, err := session.IsValidSigner(common.HexToAddress(oldSigner))
 	if err != nil {
 		return fmt.Errorf("failed to check signer: %w", err)
@@ -253,11 +259,10 @@ func (ec EthereumClient) multisigRemoveSigner(ctx context.Context, session *mult
 	}
 	signature, err := removeSignerSignature(
 		ec.vegaBinary,
-		ec.vegaHome,
 		oldSigner,
 		nonce.Uint64(),
 		session.CallOpts.From.Hex(),
-		signers.PrivateKeys())
+		signers)
 	if err != nil {
 		return fmt.Errorf("failed generate signature: %w", err)
 	}

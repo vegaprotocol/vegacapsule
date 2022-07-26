@@ -1,4 +1,10 @@
-# Vegacapsule
+# Vega Capsule
+Use Vega Capsule to create an instance of the Vega network on your computer to experiment with using the protocol. 
+* Become familiar with Vega, and run commands and API scripts in a controlled environment
+* Try out liquidity strategies locally before using the public testnet
+* Practice with the market creation process, to make sure proposals will be accepted for a vote
+* Simulate network conditions ahead of putting forward a network configuration change proposal
+* Simulate market conditions or price scenarios without being concerned about unexpected user behaviour
 
 ## Quick start
 
