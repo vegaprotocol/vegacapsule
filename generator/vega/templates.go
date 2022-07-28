@@ -8,7 +8,7 @@ import (
 	"text/template"
 
 	"code.vegaprotocol.io/shared/paths"
-	vgconfig "code.vegaprotocol.io/vega/config"
+	vgconfig "code.vegaprotocol.io/vega/core/config"
 	"code.vegaprotocol.io/vegacapsule/types"
 	"github.com/Masterminds/sprig"
 	"github.com/imdario/mergo"

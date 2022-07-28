@@ -12,6 +12,7 @@ import (
 	"code.vegaprotocol.io/vegacapsule/generator/genesis"
 	"code.vegaprotocol.io/vegacapsule/generator/tendermint"
 	"code.vegaprotocol.io/vegacapsule/generator/vega"
+	"code.vegaprotocol.io/vegacapsule/generator/visor"
 	"code.vegaprotocol.io/vegacapsule/generator/wallet"
 	"code.vegaprotocol.io/vegacapsule/types"
 	"code.vegaprotocol.io/vegacapsule/utils"
@@ -47,6 +48,7 @@ type Generator struct {
 	genesisGen    *genesis.Generator
 	walletGen     *wallet.ConfigGenerator
 	faucetGen     *faucet.ConfigGenerator
+	visorGen      *visor.Generator
 	jobRunner     jobRunner
 }
 
@@ -75,6 +77,10 @@ func New(conf *config.Config, genServices types.GeneratedServices, jobRunner job
 	if err != nil {
 		return nil, fmt.Errorf("failed to create new faucet generator: %w", err)
 	}
+	visorGen, err := visor.NewGenerator(conf)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create new visor generator: %w", err)
+	}
 
 	return &Generator{
 		conf:          conf,
@@ -84,6 +90,7 @@ func New(conf *config.Config, genServices types.GeneratedServices, jobRunner job
 		dataNodeGen:   dataNodeGen,
 		walletGen:     walletGen,
 		faucetGen:     faucetGen,
+		visorGen:      visorGen,
 		jobRunner:     jobRunner,
 	}, nil
 }
