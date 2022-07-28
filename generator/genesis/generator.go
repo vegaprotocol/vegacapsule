@@ -14,8 +14,8 @@ import (
 	"code.vegaprotocol.io/vegacapsule/types"
 	"code.vegaprotocol.io/vegacapsule/utils"
 
-	"code.vegaprotocol.io/vega/genesis"
-	vgtm "code.vegaprotocol.io/vega/tendermint"
+	"code.vegaprotocol.io/vega/core/genesis"
+	vgtm "code.vegaprotocol.io/vega/core/tendermint"
 	"github.com/imdario/mergo"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmtypes "github.com/tendermint/tendermint/types"
