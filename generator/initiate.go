@@ -46,6 +46,17 @@ func (g *Generator) initiateNodeSet(absoluteIndex, relativeIndex, groupIndex int
 		initDNode = node
 	}
 
+	var initVisor *types.Visor
+	// if data node binary is defined it is assumed that data-node should be deployed
+	if n.VisorBinary != "" {
+		node, err := g.visorGen.Initiate(index, n.VisorBinary, initVNode, initTNode, initDNode)
+		if err != nil {
+			return nil, fmt.Errorf("failed to initiate Visor id %d for node set %s: %w", index, n.Name, err)
+		}
+
+		initVisor = node
+	}
+
 	nodeSet := &types.NodeSet{
 		GroupName:     n.Name,
 		Index:         absoluteIndex,
@@ -56,6 +67,7 @@ func (g *Generator) initiateNodeSet(absoluteIndex, relativeIndex, groupIndex int
 		Vega:          *initVNode,
 		Tendermint:    *initTNode,
 		DataNode:      initDNode,
+		Visor:         initVisor,
 	}
 
 	if n.NomadJobTemplate != nil {

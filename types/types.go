@@ -36,6 +36,12 @@ type DataNode struct {
 	BinaryPath string
 }
 
+type Visor struct {
+	Name       string
+	HomeDir    string
+	BinaryPath string
+}
+
 type RawJobWithNomadJob struct {
 	RawJob   string
 	NomadJob *api.Job
@@ -59,6 +65,7 @@ type NodeSet struct {
 	Vega            VegaNode
 	Tendermint      TendermintNode
 	DataNode        *DataNode
+	Visor           *Visor
 	NomadJobRaw     *string `json:",omitempty"`
 	PreGenerateJobs []NomadJob
 }

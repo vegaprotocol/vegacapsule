@@ -26,6 +26,7 @@ type Config struct {
 	DataNodePrefix       *string       `hcl:"data_node_prefix"`
 	WalletPrefix         *string       `hcl:"wallet_prefix"`
 	FaucetPrefix         *string       `hcl:"faucet_prefix"`
+	VisorPrefix          *string       `hcl:"visor_prefix"`
 	Network              NetworkConfig `hcl:"network,block"`
 
 	// Internal helper variables
@@ -128,6 +129,7 @@ type NodeConfig struct {
 	VegaWalletPass     string `hcl:"vega_wallet_pass,optional" template:""`
 
 	DataNodeBinary string `hcl:"data_node_binary,optional"`
+	VisorBinary    string `hcl:"visor_binary,optional"`
 
 	ConfigTemplates      ConfigTemplates `hcl:"config_templates,block"`
 	NomadJobTemplate     *string         `hcl:"nomad_job_template,optional"`
@@ -207,15 +209,21 @@ func (c *Config) setAbsolutePaths() error {
 
 	// Data nodes binaries
 	for idx, nc := range c.Network.Nodes {
-		if nc.DataNodeBinary == "" {
-			continue
+		if nc.DataNodeBinary != "" {
+			dataNodeBinPath, err := utils.BinaryAbsPath(nc.DataNodeBinary)
+			if err != nil {
+				return fmt.Errorf("failed to set absolute path for data node binary %q: %w", nc.DataNodeBinary, err)
+			}
+			c.Network.Nodes[idx].DataNodeBinary = dataNodeBinPath
 		}
 
-		dataNodeBinPath, err := utils.BinaryAbsPath(nc.DataNodeBinary)
-		if err != nil {
-			return err
+		if nc.VisorBinary != "" {
+			visorBinPath, err := utils.BinaryAbsPath(nc.VisorBinary)
+			if err != nil {
+				return fmt.Errorf("failed to set absolute path for visor binary %q: %w", nc.VisorBinary, err)
+			}
+			c.Network.Nodes[idx].VisorBinary = visorBinPath
 		}
-		c.Network.Nodes[idx].DataNodeBinary = dataNodeBinPath
 	}
 
 	return nil
@@ -490,14 +498,15 @@ func DefaultConfig() (*Config, error) {
 
 	return &Config{
 		OutputDir:            &outputDir,
-		Prefix:               utils.ToPoint("st-local"),
-		NodeDirPrefix:        utils.ToPoint("node"),
-		TendermintNodePrefix: utils.ToPoint("tendermint"),
-		VegaNodePrefix:       utils.ToPoint("vega"),
-		DataNodePrefix:       utils.ToPoint("data"),
-		WalletPrefix:         utils.ToPoint("wallet"),
-		FaucetPrefix:         utils.ToPoint("faucet"),
-		VegaBinary:           utils.ToPoint("vega"),
+		Prefix:               utils.StrPoint("st-local"),
+		NodeDirPrefix:        utils.StrPoint("node"),
+		TendermintNodePrefix: utils.StrPoint("tendermint"),
+		VegaNodePrefix:       utils.StrPoint("vega"),
+		DataNodePrefix:       utils.StrPoint("data"),
+		WalletPrefix:         utils.StrPoint("wallet"),
+		FaucetPrefix:         utils.StrPoint("faucet"),
+		VisorPrefix:          utils.StrPoint("visor"),
+		VegaBinary:           utils.StrPoint("vega"),
 	}, nil
 }
 
