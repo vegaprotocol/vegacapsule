@@ -11,20 +11,19 @@ pipeline {
         timeout(time: 45, unit: 'MINUTES')
     }
     parameters {
-        string( name: 'VEGA_CORE_BRANCH', defaultValue: '',
+        string( name: 'VEGA_BRANCH', defaultValue: '',
                 description: '''Git branch, tag or hash of the vegaprotocol/vega repository.
-                    e.g. "develop", "v0.44.0" or commit hash. Default empty: use latests published version.''')
-        string( name: 'DATA_NODE_BRANCH', defaultValue: '',
-                description: '''Git branch, tag or hash of the vegaprotocol/data-node repository.
                     e.g. "develop", "v0.44.0" or commit hash. Default empty: use latests published version.''')
         string( name: 'PROTOS_BRANCH', defaultValue: 'develop',
                 description: 'Git branch, tag or hash of the vegaprotocol/protos repository')
-        string( name: 'VEGATOOLS_BRANCH', defaultValue: 'develop',
-                description: 'Git branch, tag or hash of the vegaprotocol/vegatools repository')
         string( name: 'SYSTEM_TESTS_BRANCH', defaultValue: 'develop',
                 description: 'Git branch, tag or hash of the vegaprotocol/system-tests repository')
+        string( name: 'VEGATOOLS_BRANCH', defaultValue: 'develop',
+                description: 'Git branch, tag or hash of the vegaprotocol/vegatools repository')
         string( name: 'DEVOPS_INFRA_BRANCH', defaultValue: 'master',
                 description: 'Git branch, tag or hash of the vegaprotocol/devops-infra repository')
+        string( name: 'DEVOPSSCRIPTS_BRANCH', defaultValue: 'main',
+                description: 'Git branch, tag or hash of the vegaprotocol/devopsscripts repository')
     }
 
     stages {
@@ -59,12 +58,12 @@ pipeline {
                         script {
                             systemTestsCapsule ignoreFailure: !isPRBuild(),
                                 vegacapsule: commitHash,
-                                systemTests: params.SYSTEM_TESTS_BRANCH,
-                                vegaCore: params.VEGA_CORE_BRANCH,
-                                dataNode: params.DATA_NODE_BRANCH,
+                                vegaVersion: params.VEGA_BRANCH,
                                 protos: params.PROTOS_BRANCH,
+                                systemTests: params.SYSTEM_TESTS_BRANCH,
                                 vegatools: params.VEGATOOLS_BRANCH,
                                 devopsInfra: params.DEVOPS_INFRA_BRANCH,
+                                devopsScripts: params.DEVOPSSCRIPTS_BRANCH,
                                 testMark: "network_infra_smoke"
                         }
                     }
@@ -74,12 +73,12 @@ pipeline {
                         script {
                             systemTestsCapsule ignoreFailure: !isPRBuild(),
                                 vegacapsule: commitHash,
-                                systemTests: params.SYSTEM_TESTS_BRANCH,
-                                vegaCore: params.VEGA_CORE_BRANCH,
-                                dataNode: params.DATA_NODE_BRANCH,
+                                vegaVersion: params.VEGA_BRANCH,
                                 protos: params.PROTOS_BRANCH,
+                                systemTests: params.SYSTEM_TESTS_BRANCH,
                                 vegatools: params.VEGATOOLS_BRANCH,
-                                devopsInfra: params.DEVOPS_INFRA_BRANCH
+                                devopsInfra: params.DEVOPS_INFRA_BRANCH,
+                                devopsScripts: params.DEVOPSSCRIPTS_BRANCH
                         }
                     }
                 }
