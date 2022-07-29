@@ -23,7 +23,8 @@ type NodesKeysData []NodeKeysData
 func createAndImportNodeWallets(nodeSet types.NodeSet, data NodeKeysData) (*types.NodeSet, error) {
 	log.Printf("importing keys for the \"%s\" node", nodeSet.Name)
 
-	if err := decodeAndImportTendermintKeys(nodeSet, data.TendermintValidatorPrivateKey, data.TendermintNodePrivateKey); err != nil {
+	tmKeys, err := decodeAndImportTendermintKeys(nodeSet, data.TendermintValidatorPrivateKey, data.TendermintNodePrivateKey)
+	if err != nil {
 		return nil, fmt.Errorf("failed to decode and import tendermint keys: %w", err)
 	}
 
@@ -43,6 +44,7 @@ func createAndImportNodeWallets(nodeSet types.NodeSet, data NodeKeysData) (*type
 	nodeSet.Vega.NodeWalletInfo.VegaWalletPublicKey = isolatedVegaWallet.WalletPublicKey
 	nodeSet.Vega.NodeWalletInfo.VegaWalletRecoveryPhrase = data.VegaRecoveryPhrase
 	nodeSet.Vega.NodeWalletInfo.VegaWalletName = defaultVegaIsolatedWalletName
+	nodeSet.Tendermint.NodeID = tmKeys.nodeKey.NodeID
 	log.Printf("importing data for the \"%s\" node finished", nodeSet.Name)
 
 	return &nodeSet, nil
@@ -82,6 +84,10 @@ func ImportKeysIntoValidatorsWallets(state state.NetworkState, keys NodesKeysDat
 		}
 
 		state.GeneratedServices.NodeSets[idx] = *newNodeSet
+	}
+
+	if err := regenerateTendermintConfig(state.GeneratedServices.NodeSets, state.Config); err != nil {
+		errs.Add(fmt.Errorf("failed to update tendermint configuration files: %w", err))
 	}
 
 	if err := updateGenesis(state); err != nil {
