@@ -10,17 +10,16 @@ import (
 	"path/filepath"
 	"text/template"
 
+	"code.vegaprotocol.io/vega/core/genesis"
+	vgtm "code.vegaprotocol.io/vega/core/tendermint"
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/types"
 	"code.vegaprotocol.io/vegacapsule/utils"
 
-	"code.vegaprotocol.io/vega/genesis"
-	vgtm "code.vegaprotocol.io/vega/tendermint"
+	"github.com/Masterminds/sprig"
 	"github.com/imdario/mergo"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmtypes "github.com/tendermint/tendermint/types"
-
-	"github.com/Masterminds/sprig"
 )
 
 type updateGenesisOutput struct {

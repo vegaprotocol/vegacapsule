@@ -6,8 +6,9 @@ import (
 	"log"
 	"math/big"
 
-	multisig "code.vegaprotocol.io/vega/contracts/multisig_control"
+	multisig "code.vegaprotocol.io/vega/core/contracts/multisig_control"
 	"code.vegaprotocol.io/vegacapsule/types"
+
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"

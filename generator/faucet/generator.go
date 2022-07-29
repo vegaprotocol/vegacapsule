@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"text/template"
 
-	"code.vegaprotocol.io/shared/paths"
-	"code.vegaprotocol.io/vega/faucet"
+	"code.vegaprotocol.io/vega/core/faucet"
+	"code.vegaprotocol.io/vega/paths"
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/types"
 	"github.com/Masterminds/sprig"
