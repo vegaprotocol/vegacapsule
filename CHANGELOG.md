@@ -20,6 +20,8 @@
 - [75](https://github.com/vegaprotocol/vegacapsule/issues/75) Add support to import pre-generated keys into vegacapsule network
 - [190](https://github.com/vegaprotocol/vegacapsule/issues/190) Support multisig with Clef
 - [204](https://github.com/vegaprotocol/vegacapsule/pull/204) Add intro section to readme with more about capsule
+- [211](https://github.com/vegaprotocol/vegacapsule/pull/211) Improve importing tendermint keys, regenerate tm config after keys are imported
+
 
 ### 🐛 Fixes
 - [167](https://github.com/vegaprotocol/vegacapsule/issues/167) Fix validators filter in tendermint generator
