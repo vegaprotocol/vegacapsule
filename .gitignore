@@ -24,4 +24,4 @@ Makefile
 zero-genesis.json
 capsule
 nomad-config.hcl
-private
+private/
