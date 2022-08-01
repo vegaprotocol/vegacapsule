@@ -22,7 +22,7 @@ func main() {
 			"--node-address", "localhost:3002",
 			"--passphrase-file", val.NodeWalletInfo.VegaWalletPassFilePath,
 			"--pubkey", val.NodeWalletInfo.VegaWalletPublicKey,
-			`{"protocolUpgradeProposal": {"upgradeBlockHeight": "380", "vegaReleaseTag": "0.0.2", "dataNodeReleaseTag": "0.0.2"}}`,
+			`{"protocolUpgradeProposal": {"upgradeBlockHeight": "50", "vegaReleaseTag": "0.0.2", "dataNodeReleaseTag": "0.0.2"}}`,
 		}, nil)
 		if err != nil {
 			panic(err)
