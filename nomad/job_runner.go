@@ -28,6 +28,141 @@ func NewJobRunner(c *Client, capsuleBinaryPath, logsOutputDir string) (*JobRunne
 	}, nil
 }
 
+func (r *JobRunner) runDockerJob(ctx context.Context, conf config.DockerConfig) (*api.Job, error) {
+	ports := []api.Port{}
+	portLabels := []string{}
+	if conf.StaticPort != nil {
+		ports = append(ports, api.Port{
+			Label: fmt.Sprintf("%s-port", conf.Name),
+			To:    conf.StaticPort.To,
+			Value: conf.StaticPort.Value,
+		})
+		portLabels = append(portLabels, fmt.Sprintf("%s-port", conf.Name))
+	}
+
+	j := &api.Job{
+		ID:          &conf.Name,
+		Datacenters: []string{"dc1"},
+		TaskGroups: []*api.TaskGroup{
+			{
+				Networks: []*api.NetworkResource{
+					{
+						ReservedPorts: ports,
+					},
+				},
+				RestartPolicy: &api.RestartPolicy{
+					Attempts: utils.IntPoint(0),
+					Mode:     utils.StrPoint("fail"),
+				},
+				Name: &conf.Name,
+				Tasks: []*api.Task{
+					{
+						Name:   conf.Name,
+						Driver: "docker",
+						Config: map[string]interface{}{
+							"image":          conf.Image,
+							"command":        conf.Command,
+							"args":           conf.Args,
+							"ports":          portLabels,
+							"auth_soft_fail": conf.AuthSoftFail,
+						},
+						Env: conf.Env,
+						Resources: &api.Resources{
+							CPU:      utils.IntPoint(500),
+							MemoryMB: utils.IntPoint(768),
+						},
+					},
+				},
+			},
+		},
+	}
+
+	if err := r.client.RunAndWait(ctx, j); err != nil {
+		return nil, fmt.Errorf("failed to run nomad docker job: %w", err)
+	}
+
+	return j, nil
+}
+
+func (r *JobRunner) defaultNodeSetJobTasks(ns types.NodeSet) []*api.Task {
+	if ns.Visor != nil {
+		return []*api.Task{
+			{
+				Name:   ns.Visor.Name,
+				Driver: "raw_exec",
+				Config: map[string]interface{}{
+					"command": ns.Visor.BinaryPath,
+					"args": []string{
+						"run",
+						"--home", ns.Visor.HomeDir,
+					},
+				},
+				Resources: &api.Resources{
+					CPU:      utils.IntPoint(1000),
+					MemoryMB: utils.IntPoint(1024),
+				},
+			},
+		}
+	}
+
+	tasks := make([]*api.Task, 0, 2)
+	tasks = append(tasks,
+		&api.Task{
+			Name:   ns.Vega.Name,
+			Driver: "raw_exec",
+			Config: map[string]interface{}{
+				"command": ns.Vega.BinaryPath,
+				"args": []string{
+					"node",
+					"--home", ns.Vega.HomeDir,
+					"--tendermint-home", ns.Tendermint.HomeDir,
+					"--nodewallet-passphrase-file", ns.Vega.NodeWalletPassFilePath,
+				},
+			},
+			Resources: &api.Resources{
+				CPU:      utils.IntPoint(500),
+				MemoryMB: utils.IntPoint(512),
+			},
+		})
+
+	if ns.DataNode != nil {
+		tasks = append(tasks, &api.Task{
+			Name:   ns.DataNode.Name,
+			Driver: "raw_exec",
+			Config: map[string]interface{}{
+				"command": ns.DataNode.BinaryPath,
+				"args": []string{
+					"node",
+					"--home", ns.DataNode.HomeDir,
+				},
+			},
+			Resources: &api.Resources{
+				CPU:      utils.IntPoint(500),
+				MemoryMB: utils.IntPoint(512),
+			},
+		})
+	}
+
+	return tasks
+}
+
+func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
+	return &api.Job{
+		ID:          utils.StrPoint(ns.Name),
+		Datacenters: []string{"dc1"},
+		TaskGroups: []*api.TaskGroup{
+			{
+				RestartPolicy: &api.RestartPolicy{
+					Attempts: utils.IntPoint(0),
+					Mode:     utils.StrPoint("fail"),
+				},
+				Name:  utils.StrPoint("vega"),
+				Tasks: r.defaultNodeSetJobTasks(ns),
+			},
+		},
+	}
+}
+
 func (r *JobRunner) RunRawNomadJobs(ctx context.Context, rawJobs []string) ([]types.RawJobWithNomadJob, error) {
 	var mut sync.Mutex
 	jobs := make([]types.RawJobWithNomadJob, 0, len(rawJobs))

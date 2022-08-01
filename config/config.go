@@ -156,12 +156,14 @@ type ClefConfig struct {
 }
 
 type ConfigTemplates struct {
-	Vega           *string `hcl:"vega,optional"`
-	VegaFile       *string `hcl:"vega_file,optional"`
-	Tendermint     *string `hcl:"tendermint,optional"`
-	TendermintFile *string `hcl:"tendermint_file,optional"`
-	DataNode       *string `hcl:"data_node,optional"`
-	DataNodeFile   *string `hcl:"data_node_file,optional"`
+	Vega             *string `hcl:"vega,optional"`
+	VegaFile         *string `hcl:"vega_file,optional"`
+	Tendermint       *string `hcl:"tendermint,optional"`
+	TendermintFile   *string `hcl:"tendermint_file,optional"`
+	DataNode         *string `hcl:"data_node,optional"`
+	DataNodeFile     *string `hcl:"data_node_file,optional"`
+	VisorRunConf     *string `hcl:"visor_run_conf,optional"`
+	VisorRunConfFile *string `hcl:"visor_run_conf_file,optional"`
 }
 
 func (c *Config) setAbsolutePaths() error {
@@ -362,6 +364,16 @@ func (c Config) loadAndValidateConfigTemplates(ct ConfigTemplates) (*ConfigTempl
 		} else {
 			ct.DataNode = &tmpl
 			ct.DataNodeFile = nil
+		}
+	}
+
+	if ct.VisorRunConf == nil && ct.VisorRunConfFile != nil {
+		tmpl, err := c.loadConfigTemplateFile(*ct.VisorRunConfFile)
+		if err != nil {
+			mErr.Add(fmt.Errorf("failed to load Visor run config template: %w", err))
+		} else {
+			ct.VisorRunConf = &tmpl
+			ct.VisorRunConfFile = nil
 		}
 	}
 

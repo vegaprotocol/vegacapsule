@@ -21,6 +21,7 @@ const (
 	vegaNodeSetTemplateType       templateKindType = "vega"
 	tendermintNodeSetTemplateType templateKindType = "tendermint"
 	dataNodeNodeSetTemplateType   templateKindType = "data-node"
+	visorRunNodeSetTemplateType   templateKindType = "visor-run"
 
 	genesisTemplateType templateKindType = "genesis"
 )

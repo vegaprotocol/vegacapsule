@@ -1,0 +1,21 @@
+name = "genesis"
+
+[rpc]
+  socketPath = "/tmp/vega-{{ .NodeSet.Index }}.sock"
+  httpPath = "/rpc"
+
+[[binaries]]
+  path = "vega"
+  args = ["node",
+    "--home", "{{ .NodeSet.Vega.HomeDir }}",
+    "--tendermint-home", "{{ .NodeSet.Tendermint.HomeDir }}",
+    "--nodewallet-passphrase-file", "{{ .NodeSet.Vega.NodeWalletPassFilePath }}",
+  ]
+  
+{{ if .NodeSet.DataNode }}
+[[binaries]]
+  path = "data-node"
+  args = ["node",
+    "--home", "{{ .NodeSet.DataNode.HomeDir }}",
+  ]
+{{ end }}

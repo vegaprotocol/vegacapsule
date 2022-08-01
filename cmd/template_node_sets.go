@@ -9,6 +9,7 @@ import (
 	"code.vegaprotocol.io/vegacapsule/generator/datanode"
 	"code.vegaprotocol.io/vegacapsule/generator/tendermint"
 	"code.vegaprotocol.io/vegacapsule/generator/vega"
+	"code.vegaprotocol.io/vegacapsule/generator/visor"
 	"code.vegaprotocol.io/vegacapsule/state"
 	"code.vegaprotocol.io/vegacapsule/types"
 	"github.com/spf13/cobra"
@@ -19,12 +20,17 @@ var (
 	nodeSetsNames       []string
 	nodeSetTemplateType string
 
-	nodeSetTemplateTypes = []templateKindType{vegaNodeSetTemplateType, tendermintNodeSetTemplateType, dataNodeNodeSetTemplateType}
+	nodeSetTemplateTypes = []templateKindType{
+		vegaNodeSetTemplateType,
+		tendermintNodeSetTemplateType,
+		dataNodeNodeSetTemplateType,
+		visorRunNodeSetTemplateType,
+	}
 )
 
 var templateNodeSetsCmd = &cobra.Command{
 	Use:   "node-sets",
-	Short: "Run config templating for Vega, Tendermit, DataNode node sets",
+	Short: "Run config templating for Vega, Tendermit, DataNode, Visor node sets",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		template, err := ioutil.ReadFile(templatePath)
 		if err != nil {
@@ -142,6 +148,18 @@ func templateNodeSets(tmplType templateKindType, templateRaw string, netState *s
 		}
 
 		gen, err := datanode.NewConfigGenerator(netState.Config)
+		if err != nil {
+			return err
+		}
+
+		return templateNodeSetConfig(gen.TemplateConfig, gen.TemplateAndMergeConfig, tmplType, tmpl, nodeSets)
+	case visorRunNodeSetTemplateType:
+		tmpl, err := visor.NewConfigTemplate(templateRaw)
+		if err != nil {
+			return err
+		}
+
+		gen, err := visor.NewGenerator(netState.Config)
 		if err != nil {
 			return err
 		}
