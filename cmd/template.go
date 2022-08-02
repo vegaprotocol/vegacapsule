@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"log"
-	"path"
 
+	"code.vegaprotocol.io/vegacapsule/types"
 	"code.vegaprotocol.io/vegacapsule/utils"
 	"github.com/spf13/cobra"
 
@@ -77,25 +77,27 @@ func init() {
 }
 
 // updateTemplateForNode writes given template to the given node
-func updateTemplateForNode(kind templateKindType, nodeHomePath string, buff *bytes.Buffer) error {
+func updateTemplateForNode(kind templateKindType, ns types.NodeSet, buff *bytes.Buffer) error {
 	configTypeFilePathMap := map[templateKindType]string{
-		vegaNodeSetTemplateType:       vegagen.ConfigFilePath(""),
-		tendermintNodeSetTemplateType: tmgen.ConfigFilePath(""),
-		dataNodeNodeSetTemplateType:   datanodegen.ConfigFilePath(""),
-		genesisTemplateType:           genesisgen.ConfigFilePath(""),
+		vegaNodeSetTemplateType:       vegagen.ConfigFilePath(ns.Vega.HomeDir),
+		tendermintNodeSetTemplateType: tmgen.ConfigFilePath(ns.Tendermint.HomeDir),
+		genesisTemplateType:           genesisgen.ConfigFilePath(ns.Tendermint.HomeDir),
+	}
+
+	if ns.DataNode != nil {
+		configTypeFilePathMap[dataNodeNodeSetTemplateType] = datanodegen.ConfigFilePath(ns.DataNode.HomeDir)
 	}
 
 	configFilePath, templateSupported := configTypeFilePathMap[kind]
 	if !templateSupported {
-		return fmt.Errorf("failed to update the %v template for node %s: template type not supported", kind, nodeHomePath)
+		return fmt.Errorf("failed to update the %v template for node %s: template type not supported", kind, ns.Name)
 	}
 
-	return outputTemplate(buff, nodeHomePath, configFilePath, false)
+	return outputTemplate(buff, configFilePath, false)
 }
 
-func outputTemplate(buff *bytes.Buffer, templateOutDir, fileName string, writeToStdOut bool) error {
-	if len(templateOutDir) != 0 {
-		filePath := path.Join(templateOutDir, fileName)
+func outputTemplate(buff *bytes.Buffer, filePath string, writeToStdOut bool) error {
+	if len(templateOutDir) != 0 || templateUpdateNetwork {
 		f, err := utils.CreateFile(filePath)
 		if err != nil {
 			return err
@@ -115,7 +117,7 @@ func outputTemplate(buff *bytes.Buffer, templateOutDir, fileName string, writeTo
 	}
 
 	// print to stdout
-	fmt.Printf("--- %s ----\n\n", fileName)
+	fmt.Printf("--- %s ----\n\n", filePath)
 	fmt.Println(buff)
 	fmt.Printf("\n\n")
 

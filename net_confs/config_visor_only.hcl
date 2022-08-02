@@ -62,14 +62,14 @@ EOT
     count = 4
     mode = "validator"
     visor_binary = "visor"
-	  data_node_binary = "data-node"
+	  // data_node_binary = "data-node"
 
     node_wallet_pass = "n0d3w4ll3t-p4ssphr4e3"
     vega_wallet_pass = "w4ll3t-p4ssphr4e3"
     ethereum_wallet_pass = "ch41nw4ll3t-3th3r3um-p4ssphr4e3"
 
     config_templates {
-      vega_file = "./node_set_templates/default/vega_full.tmpl"
+      vega_file = "./node_set_templates/default/vega_full_visor.tmpl"
       tendermint_file = "./node_set_templates/default/tendermint_full.tmpl"
       visor_run_conf_file = "./node_set_templates/default/visor_run.tmpl"
       data_node_file = "./node_set_templates/default/data_node_full.tmpl"
