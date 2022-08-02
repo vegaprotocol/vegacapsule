@@ -223,7 +223,6 @@ network "testnet" {
 		"market.auction.minimumDuration": "3s",
 		"market.fee.factors.infrastructureFee": "0.001",
 		"market.fee.factors.makerFee": "0.004",
-		"market.monitor.price.updateFrequency": "1s",
 		"market.liquidity.stakeToCcySiskas": "0.3",
 		"market.liquidity.targetstake.triggering.ratio": "0.7",
 		"network.checkpoint.timeElapsedBetweenCheckpoints": "10s",
