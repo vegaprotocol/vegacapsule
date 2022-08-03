@@ -457,14 +457,14 @@ func DefaultConfig() (*Config, error) {
 
 	return &Config{
 		OutputDir:            &outputDir,
-		Prefix:               utils.StrPoint("st-local"),
-		NodeDirPrefix:        utils.StrPoint("node"),
-		TendermintNodePrefix: utils.StrPoint("tendermint"),
-		VegaNodePrefix:       utils.StrPoint("vega"),
-		DataNodePrefix:       utils.StrPoint("data"),
-		WalletPrefix:         utils.StrPoint("wallet"),
-		FaucetPrefix:         utils.StrPoint("faucet"),
-		VegaBinary:           utils.StrPoint("vega"),
+		Prefix:               utils.ToPoint("st-local"),
+		NodeDirPrefix:        utils.ToPoint("node"),
+		TendermintNodePrefix: utils.ToPoint("tendermint"),
+		VegaNodePrefix:       utils.ToPoint("vega"),
+		DataNodePrefix:       utils.ToPoint("data"),
+		WalletPrefix:         utils.ToPoint("wallet"),
+		FaucetPrefix:         utils.ToPoint("faucet"),
+		VegaBinary:           utils.ToPoint("vega"),
 	}, nil
 }
 
