@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/nomad/api"
+	"golang.org/x/sync/errgroup"
 )
 
 type ConnectionError struct {
@@ -31,7 +32,7 @@ func IsConnectionErr(err error) bool {
 
 const (
 	DeploymentStatusRunning  = "running"
-	DeploymentStatusCanceled = "canceled"
+	DeploymentStatusCanceled = "cancelled"
 	DeploymentStatusSuccess  = "successful"
 	AllocationStateDead      = "dead"
 	Running                  = "running"
@@ -63,26 +64,35 @@ func NewClient(config *api.Config) (*Client, error) {
 
 // TODO maybe improve the logging?
 func (n *Client) waitForDeployment(ctx context.Context, jobID string) error {
-	ctx, cancel := context.WithTimeout(ctx, time.Minute*5)
+	ctx, cancel := context.WithTimeout(ctx, time.Second*20)
 	defer cancel()
 
 	for {
 		select {
 		case <-ctx.Done():
-			return nil
+			if ctx.Err() == context.DeadlineExceeded {
+				return fmt.Errorf("failed to run %s job: starting deadline has been exceeded", jobID)
+			}
+			return ctx.Err()
 		default:
 			time.Sleep(time.Second * 4)
+
+			job, _, err := n.API.Jobs().Info(jobID, &api.QueryOptions{})
+			if err != nil {
+				return err
+			}
+
 			deployments, _, err := n.API.Jobs().Deployments(jobID, true, &api.QueryOptions{})
 			if err != nil {
 				return err
 			}
 
 			for _, dep := range deployments {
-				log.Printf("deployment (%s) update for job: %q, status: %q, another: %s", dep.ID, dep.JobID, dep.Status, dep.StatusDescription)
+				log.Printf("Update for job: %q, jobStatus: %s, deploymentStatus: %q, another: %s", dep.JobID, *job.Status, dep.Status, dep.StatusDescription)
 
 				switch dep.Status {
 				case DeploymentStatusCanceled:
-					return fmt.Errorf("failed to run %s job", jobID)
+					return fmt.Errorf("failed to run %s job %s", jobID, dep.StatusDescription)
 				case DeploymentStatusSuccess:
 					return nil
 				}
@@ -110,6 +120,63 @@ func (n *Client) Run(job *api.Job) (bool, error) {
 	return false, nil
 }
 
+func (n *Client) logJob(ctx context.Context, jobID string) error {
+	jobs := n.API.Jobs()
+	allocsApi := n.API.AllocFS()
+
+	var err error
+	var allocs []*api.AllocationListStub
+
+	for len(allocs) == 0 {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+			allocs, _, err = jobs.Allocations(jobID, true, &api.QueryOptions{})
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	fmt.Println("Logs for", jobID, allocs)
+
+	eg, egCtx := errgroup.WithContext(ctx)
+
+	for _, as := range allocs {
+		fmt.Println("alloc: ", as.NodeID, as.Name)
+		cAlloc := &api.Allocation{ID: as.ID, NodeID: as.NodeID}
+		for taskName := range as.TaskStates {
+			for _, logType := range logTypes {
+				taskName := taskName
+				logType := logType
+				eg.Go(func() error {
+					cancelCh := make(chan struct{})
+					framesCh, errsCh := allocsApi.Logs(cAlloc, true, taskName, logType, "start", 0, cancelCh, &api.QueryOptions{})
+
+					for {
+						select {
+						case <-egCtx.Done():
+							return egCtx.Err()
+						case frame := <-framesCh:
+							if frame.IsHeartbeat() {
+								break
+							}
+
+							fmt.Printf("log from %s: %s\n", frame.File, frame.Data)
+						case err := <-errsCh:
+							return err
+						}
+					}
+				})
+
+			}
+		}
+	}
+
+	return eg.Wait()
+}
+
 func (n *Client) RunAndWait(ctx context.Context, job *api.Job) error {
 	jobs := n.API.Jobs()
 
@@ -118,6 +185,14 @@ func (n *Client) RunAndWait(ctx context.Context, job *api.Job) error {
 		return fmt.Errorf("error running jobs: %w", err)
 	}
 
+	go func() {
+		log.Printf("Starting log watcher for job %s", *job.ID)
+
+		if err := n.logJob(ctx, *job.ID); err != nil {
+			log.Printf("Failed to log job %s: %s", *job.ID, err)
+		}
+	}()
+
 	if err := n.waitForDeployment(ctx, *job.ID); err != nil {
 		return err
 	}
@@ -125,16 +200,17 @@ func (n *Client) RunAndWait(ctx context.Context, job *api.Job) error {
 	return nil
 }
 
-func (n *Client) Stop(ctx context.Context, jobID string, purge bool) (bool, error) {
+// Stop stops a specific job
+func (n *Client) Stop(ctx context.Context, jobID string, purge bool) error {
 	jobs := n.API.Jobs()
 
 	writeOpts := new(api.WriteOptions).WithContext(ctx)
 	jId, _, err := jobs.Deregister(jobID, purge, writeOpts)
 	if err != nil {
 		log.Printf("error stopping the job: %+v", err)
-		return false, err
+		return err
 	}
 
 	log.Printf("Stopped Job: %+v - %+v", jobID, jId)
-	return true, nil
+	return nil
 }

@@ -3,6 +3,10 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/state"
@@ -41,7 +45,18 @@ var netBootstrapCmd = &cobra.Command{
 			return fmt.Errorf("failed to start network: %w", err)
 		}
 
-		return updatedNetState.Persist()
+		if err := updatedNetState.Persist(); err != nil {
+			return err
+		}
+
+		sigs := make(chan os.Signal, 1)
+		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+		sig := <-sigs
+
+		log.Printf("Recived signal: %s", sig)
+
+		return nil
 	},
 }
 
