@@ -40,7 +40,10 @@ func netStart(ctx context.Context, state state.NetworkState) (*state.NetworkStat
 		return nil, fmt.Errorf("failed to create nomad client: %w", err)
 	}
 
-	nomadRunner := nomad.NewJobRunner(nomadClient)
+	nomadRunner, err := nomad.NewJobRunner(nomadClient, state.Config.LogsDir())
+	if err != nil {
+		return nil, fmt.Errorf("failed to create job runner: %w", err)
+	}
 
 	res, err := nomadRunner.StartNetwork(ctx, state.Config, state.GeneratedServices)
 	if err != nil {
