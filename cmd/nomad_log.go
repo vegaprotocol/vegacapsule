@@ -80,7 +80,7 @@ var nomadLogCmd = &cobra.Command{
 
 		sig := <-sigs
 
-		log.Printf("Recived signal: %s", sig)
+		log.Printf("Received signal: %s", sig)
 
 		return nil
 	},
