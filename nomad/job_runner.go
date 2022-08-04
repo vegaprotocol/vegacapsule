@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"sync"
 
 	"code.vegaprotocol.io/vegacapsule/config"
@@ -130,7 +131,12 @@ func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) (
 		if ns.NomadJobRaw == nil {
 			log.Printf("adding node set %q with default Nomad job definition", ns.Name)
 
-			jobs = append(jobs, r.defaultNodeSetJob(ns))
+			capsuleBinary, err := os.Executable()
+			if err != nil {
+				return nil, err
+			}
+
+			jobs = append(jobs, r.defaultNodeSetJob(ns, capsuleBinary))
 			continue
 		}
 

@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
+	"path"
 	"time"
 
 	"github.com/hashicorp/nomad/api"
@@ -120,7 +122,9 @@ func (n *Client) Run(job *api.Job) (bool, error) {
 	return false, nil
 }
 
-func (n *Client) logJob(ctx context.Context, jobID string) error {
+func (n *Client) logJob(ctx context.Context, job *api.Job) error {
+
+	// /client/allocation/:alloc_id/gc
 	jobs := n.API.Jobs()
 	allocsApi := n.API.AllocFS()
 
@@ -132,28 +136,39 @@ func (n *Client) logJob(ctx context.Context, jobID string) error {
 		case <-ctx.Done():
 			return ctx.Err()
 		default:
-			allocs, _, err = jobs.Allocations(jobID, true, &api.QueryOptions{})
+			allocs, _, err = jobs.Allocations(*job.ID, true, &api.QueryOptions{})
 			if err != nil {
 				return err
 			}
 		}
 	}
 
-	fmt.Println("Logs for", jobID, allocs)
+	fmt.Println("Logs for", *job.ID, allocs)
 
 	eg, egCtx := errgroup.WithContext(ctx)
 
 	for _, as := range allocs {
-		fmt.Println("alloc: ", as.NodeID, as.Name)
+		file, err := os.Create(path.Join("/Users/karel/.vegacapsule/testnet", as.Name))
+		if err != nil {
+			return err
+		}
+
+		fmt.Println("alloc: ", as.NodeID, as.Name, file.Name())
 		cAlloc := &api.Allocation{ID: as.ID, NodeID: as.NodeID}
 		for taskName := range as.TaskStates {
+
+			// n.API.AllocFS().Logs()
+
 			for _, logType := range logTypes {
 				taskName := taskName
 				logType := logType
+				file := file
 				eg.Go(func() error {
+					defer file.Close()
+
 					cancelCh := make(chan struct{})
 					framesCh, errsCh := allocsApi.Logs(cAlloc, true, taskName, logType, "start", 0, cancelCh, &api.QueryOptions{})
-
+					fmt.Println("starting ", taskName, logType)
 					for {
 						select {
 						case <-egCtx.Done():
@@ -163,7 +178,11 @@ func (n *Client) logJob(ctx context.Context, jobID string) error {
 								break
 							}
 
-							fmt.Printf("log from %s: %s\n", frame.File, frame.Data)
+							fmt.Printf("---- writing to file: %s", file.Name())
+
+							if _, err := file.Write(frame.Data); err != nil {
+								return err
+							}
 						case err := <-errsCh:
 							return err
 						}
@@ -185,13 +204,13 @@ func (n *Client) RunAndWait(ctx context.Context, job *api.Job) error {
 		return fmt.Errorf("error running jobs: %w", err)
 	}
 
-	go func() {
-		log.Printf("Starting log watcher for job %s", *job.ID)
+	// go func() {
+	// 	log.Printf("Starting log watcher for job %s", *job.ID)
 
-		if err := n.logJob(ctx, *job.ID); err != nil {
-			log.Printf("Failed to log job %s: %s", *job.ID, err)
-		}
-	}()
+	// 	if err := n.logJob(ctx, job); err != nil {
+	// 		log.Printf("Failed to log job %s: %s", *job.ID, err)
+	// 	}
+	// }()
 
 	if err := n.waitForDeployment(ctx, *job.ID); err != nil {
 		return err
