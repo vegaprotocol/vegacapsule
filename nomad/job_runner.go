@@ -9,7 +9,6 @@ import (
 
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/types"
-	"code.vegaprotocol.io/vegacapsule/utils"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/hashicorp/nomad/api"
@@ -17,69 +16,22 @@ import (
 )
 
 type JobRunner struct {
-	client *Client
+	client        *Client
+	capsuleBinary string
+	logsOutputDir string
 }
 
-func NewJobRunner(c *Client) *JobRunner {
+func NewJobRunner(c *Client, logsOutputDir string) (*JobRunner, error) {
+	capsuleBinary, err := os.Executable()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get Capsule binary executable: %w", err)
+	}
+
 	return &JobRunner{
-		client: c,
-	}
-}
-
-func (r *JobRunner) runDockerJob(ctx context.Context, conf config.DockerConfig) (*api.Job, error) {
-	ports := []api.Port{}
-	portLabels := []string{}
-	if conf.StaticPort != nil {
-		ports = append(ports, api.Port{
-			Label: fmt.Sprintf("%s-port", conf.Name),
-			To:    conf.StaticPort.To,
-			Value: conf.StaticPort.Value,
-		})
-		portLabels = append(portLabels, fmt.Sprintf("%s-port", conf.Name))
-	}
-
-	j := &api.Job{
-		ID:          &conf.Name,
-		Datacenters: []string{"dc1"},
-		TaskGroups: []*api.TaskGroup{
-			{
-				Networks: []*api.NetworkResource{
-					{
-						ReservedPorts: ports,
-					},
-				},
-				RestartPolicy: &api.RestartPolicy{
-					Attempts: utils.ToPoint(0),
-					Mode:     utils.ToPoint("fail"),
-				},
-				Name: &conf.Name,
-				Tasks: []*api.Task{
-					{
-						Name:   conf.Name,
-						Driver: "docker",
-						Config: map[string]interface{}{
-							"image":          conf.Image,
-							"command":        conf.Command,
-							"args":           conf.Args,
-							"ports":          portLabels,
-							"auth_soft_fail": conf.AuthSoftFail,
-						},
-						Env: conf.Env,
-						Resources: &api.Resources{
-							CPU:      utils.ToPoint(500),
-							MemoryMB: utils.ToPoint(768),
-						},
-					},
-				},
-			},
-		},
-	}
-
-	if err := r.client.RunAndWait(ctx, j); err != nil {
-		return nil, fmt.Errorf("failed to run nomad docker job: %w", err)
-	}
-
-	return j, nil
+		client:        c,
+		capsuleBinary: capsuleBinary,
+		logsOutputDir: logsOutputDir,
+	}, nil
 }
 
 func (r *JobRunner) RunRawNomadJobs(ctx context.Context, rawJobs []string) ([]types.RawJobWithNomadJob, error) {
@@ -124,19 +76,14 @@ func (r *JobRunner) RunRawNomadJobs(ctx context.Context, rawJobs []string) ([]ty
 
 }
 
-func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) ([]*api.Job, error) {
+func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet, outputDir string) ([]*api.Job, error) {
 	jobs := make([]*api.Job, 0, len(nodeSets))
 
 	for _, ns := range nodeSets {
 		if ns.NomadJobRaw == nil {
 			log.Printf("adding node set %q with default Nomad job definition", ns.Name)
 
-			capsuleBinary, err := os.Executable()
-			if err != nil {
-				return nil, err
-			}
-
-			jobs = append(jobs, r.defaultNodeSetJob(ns, capsuleBinary))
+			jobs = append(jobs, r.defaultNodeSetJob(ns))
 			continue
 		}
 
@@ -181,9 +128,10 @@ func (r *JobRunner) runDockerJobs(ctx context.Context, dockerConfigs []config.Do
 		// capture in the loop by copy
 		dc := dc
 		g.Go(func() error {
-			job, err := r.runDockerJob(ctx, dc)
-			if err != nil {
-				return fmt.Errorf("failed to run pre start job %s: %w", dc.Name, err)
+			job := r.defaultDockerJob(ctx, dc)
+
+			if err := r.client.RunAndWait(ctx, job); err != nil {
+				return fmt.Errorf("failed to run pre start job %q: %w", *job.ID, err)
 			}
 
 			jobIDsLock.Lock()
@@ -247,7 +195,7 @@ func (r *JobRunner) startNetwork(
 		g.Go(func() error {
 			job := r.defaultFaucetJob(*conf.VegaBinary, conf.Network.Faucet, generatedSvcs.Faucet)
 			if err := r.client.RunAndWait(ctx, job); err != nil {
-				return fmt.Errorf("failed to run the fauce job %q: %w", *job.ID, err)
+				return fmt.Errorf("failed to run the faucet job %q: %w", *job.ID, err)
 			}
 
 			lock.Lock()
@@ -274,7 +222,7 @@ func (r *JobRunner) startNetwork(
 	}
 
 	g.Go(func() error {
-		jobs, err := r.RunNodeSets(ctx, generatedSvcs.NodeSets.ToSlice())
+		jobs, err := r.RunNodeSets(ctx, generatedSvcs.NodeSets.ToSlice(), *conf.OutputDir)
 		if err != nil {
 			return fmt.Errorf("failed to run node sets: %w", err)
 		}

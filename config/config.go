@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"path"
 	"path/filepath"
 
 	"code.vegaprotocol.io/vegacapsule/types"
@@ -447,6 +448,10 @@ func (c *Config) Persist() error {
 	f := hclwrite.NewEmptyFile()
 	gohcl.EncodeIntoBody(*c, f.Body())
 	return ioutil.WriteFile(filepath.Join(*c.OutputDir, "config.hcl"), f.Bytes(), 0644)
+}
+
+func (c *Config) LogsDir() string {
+	return path.Join(*c.OutputDir, "logs")
 }
 
 func DefaultConfig() (*Config, error) {

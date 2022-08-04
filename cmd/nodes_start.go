@@ -57,13 +57,16 @@ func nodesStartNode(ctx context.Context, state state.NetworkState, name string) 
 		return nil, fmt.Errorf("failed to create nomad client: %w", err)
 	}
 
-	nomadRunner := nomad.NewJobRunner(nomadClient)
+	nomadRunner, err := nomad.NewJobRunner(nomadClient, state.Config.LogsDir())
+	if err != nil {
+		return nil, fmt.Errorf("failed to create job runner: %w", err)
+	}
 
 	if _, err := nomadRunner.RunRawNomadJobs(ctx, nodeSet.PreGenerateRawJobs()); err != nil {
 		return nil, fmt.Errorf("failed to start node set %q pre generate jobs: %w", nodeSet.Name, err)
 	}
 
-	res, err := nomadRunner.RunNodeSets(ctx, []types.NodeSet{*nodeSet})
+	res, err := nomadRunner.RunNodeSets(ctx, []types.NodeSet{*nodeSet}, *state.Config.OutputDir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start nomad node set %q : %w", nodeSet.Name, err)
 	}
