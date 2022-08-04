@@ -450,7 +450,7 @@ func (c *Config) Persist() error {
 	return ioutil.WriteFile(filepath.Join(*c.OutputDir, "config.hcl"), f.Bytes(), 0644)
 }
 
-func (c *Config) LogsDir() string {
+func (c Config) LogsDir() string {
 	return path.Join(*c.OutputDir, "logs")
 }
 

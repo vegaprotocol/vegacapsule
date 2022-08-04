@@ -105,6 +105,7 @@ func (r *JobRunner) defaultWalletJob(conf *config.WalletConfig, wallet *types.Wa
 					{
 						Name:   "wallet-1",
 						Driver: "raw_exec",
+						Leader: true,
 						Config: map[string]interface{}{
 							"command": conf.Binary,
 							"args": []string{
@@ -144,6 +145,7 @@ func (r *JobRunner) defaultFaucetJob(binary string, conf *config.FaucetConfig, f
 					{
 						Name:   conf.Name,
 						Driver: "raw_exec",
+						Leader: true,
 						Config: map[string]interface{}{
 							"command": binary,
 							"args": []string{
@@ -196,6 +198,7 @@ func (r *JobRunner) defaultDockerJob(ctx context.Context, conf config.DockerConf
 					{
 						Name:   conf.Name,
 						Driver: "docker",
+						Leader: true,
 						Config: map[string]interface{}{
 							"image":          conf.Image,
 							"command":        conf.Command,

@@ -51,7 +51,12 @@ func netStop(ctx context.Context, state *state.NetworkState) error {
 		return fmt.Errorf("failed to create nomad client: %w", err)
 	}
 
-	nomadRunner, err := nomad.NewJobRunner(nomadClient, state.Config.LogsDir())
+	var logsDir string
+	if state.Config != nil {
+		logsDir = state.Config.LogsDir()
+	}
+
+	nomadRunner, err := nomad.NewJobRunner(nomadClient, logsDir)
 	if err != nil {
 		return fmt.Errorf("failed to create job runner: %w", err)
 	}
