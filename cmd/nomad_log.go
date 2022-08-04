@@ -93,5 +93,5 @@ func init() {
 		"Output directory for logs.",
 	)
 
-	nomadLogCmd.MarkPersistentFlagRequired("out-dir")
+	nomadLogCmd.MarkPersistentFlagRequired("out-dir") // nolint:errcheck
 }
