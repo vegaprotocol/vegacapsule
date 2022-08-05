@@ -64,6 +64,7 @@ pipeline {
                                 vegatools: params.VEGATOOLS_BRANCH,
                                 devopsInfra: params.DEVOPS_INFRA_BRANCH,
                                 devopsScripts: params.DEVOPSSCRIPTS_BRANCH,
+                                jenkinsSharedLib: params.JENKINS_SHARED_LIB_BRANCH,
                                 testMark: "network_infra_smoke"
                         }
                     }
@@ -78,7 +79,8 @@ pipeline {
                                 systemTests: params.SYSTEM_TESTS_BRANCH,
                                 vegatools: params.VEGATOOLS_BRANCH,
                                 devopsInfra: params.DEVOPS_INFRA_BRANCH,
-                                devopsScripts: params.DEVOPSSCRIPTS_BRANCH
+                                devopsScripts: params.DEVOPSSCRIPTS_BRANCH,
+                                jenkinsSharedLib: params.JENKINS_SHARED_LIB_BRANCH
                         }
                     }
                 }
