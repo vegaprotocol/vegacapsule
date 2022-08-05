@@ -14,8 +14,6 @@ pipeline {
         string( name: 'VEGA_BRANCH', defaultValue: '',
                 description: '''Git branch, tag or hash of the vegaprotocol/vega repository.
                     e.g. "develop", "v0.44.0" or commit hash. Default empty: use latests published version.''')
-        string( name: 'PROTOS_BRANCH', defaultValue: 'develop',
-                description: 'Git branch, tag or hash of the vegaprotocol/protos repository')
         string( name: 'SYSTEM_TESTS_BRANCH', defaultValue: 'develop',
                 description: 'Git branch, tag or hash of the vegaprotocol/system-tests repository')
         string( name: 'VEGATOOLS_BRANCH', defaultValue: 'develop',
@@ -24,6 +22,8 @@ pipeline {
                 description: 'Git branch, tag or hash of the vegaprotocol/devops-infra repository')
         string( name: 'DEVOPSSCRIPTS_BRANCH', defaultValue: 'main',
                 description: 'Git branch, tag or hash of the vegaprotocol/devopsscripts repository')
+        string(name: 'JENKINS_SHARED_LIB_BRANCH', defaultValue: 'main',
+                description: 'Git branch name of the vegaprotocol/jenkins-shared-library repository')
     }
 
     stages {
@@ -57,9 +57,9 @@ pipeline {
                     steps {
                         script {
                             systemTestsCapsule ignoreFailure: !isPRBuild(),
+                                timeout: 30,
                                 vegacapsule: commitHash,
                                 vegaVersion: params.VEGA_BRANCH,
-                                protos: params.PROTOS_BRANCH,
                                 systemTests: params.SYSTEM_TESTS_BRANCH,
                                 vegatools: params.VEGATOOLS_BRANCH,
                                 devopsInfra: params.DEVOPS_INFRA_BRANCH,
@@ -72,9 +72,9 @@ pipeline {
                     steps {
                         script {
                             systemTestsCapsule ignoreFailure: !isPRBuild(),
+                                timeout: 30,
                                 vegacapsule: commitHash,
                                 vegaVersion: params.VEGA_BRANCH,
-                                protos: params.PROTOS_BRANCH,
                                 systemTests: params.SYSTEM_TESTS_BRANCH,
                                 vegatools: params.VEGATOOLS_BRANCH,
                                 devopsInfra: params.DEVOPS_INFRA_BRANCH,
