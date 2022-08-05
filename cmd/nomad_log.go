@@ -16,7 +16,7 @@ import (
 
 var nomadLogColOutDir string
 
-var nomadLogCmd = &cobra.Command{
+var nomadLogsCollectorCmd = &cobra.Command{
 	Use:   "logscollector",
 	Short: "Starts a log collection program that should be run as a logging sidecar inside Nomad job.",
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -87,11 +87,11 @@ var nomadLogCmd = &cobra.Command{
 }
 
 func init() {
-	nomadLogCmd.PersistentFlags().StringVar(&nomadLogColOutDir,
+	nomadLogsCollectorCmd.PersistentFlags().StringVar(&nomadLogColOutDir,
 		"out-dir",
 		"",
 		"Output directory for logs.",
 	)
 
-	nomadLogCmd.MarkPersistentFlagRequired("out-dir") // nolint:errcheck
+	nomadLogsCollectorCmd.MarkPersistentFlagRequired("out-dir") // nolint:errcheck
 }

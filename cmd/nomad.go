@@ -32,5 +32,5 @@ func init() {
 		"Install path for the Nomad binary. Uses GOBIN environment variable by default.",
 	)
 
-	nomadCmd.AddCommand(nomadLogCmd)
+	nomadCmd.AddCommand(nomadLogsCollectorCmd)
 }

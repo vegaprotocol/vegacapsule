@@ -63,7 +63,7 @@ func NewClient(config *api.Config) (*Client, error) {
 
 // TODO maybe improve the logging?
 func (n *Client) waitForDeployment(ctx context.Context, jobID string) error {
-	ctx, cancel := context.WithTimeout(ctx, time.Second*20)
+	ctx, cancel := context.WithTimeout(ctx, time.Second*120)
 	defer cancel()
 
 	for {
