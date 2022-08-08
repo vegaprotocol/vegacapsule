@@ -63,7 +63,7 @@ func NewClient(config *api.Config) (*Client, error) {
 
 // TODO maybe improve the logging?
 func (n *Client) waitForDeployment(ctx context.Context, jobID string) error {
-	ctx, cancel := context.WithTimeout(ctx, time.Minute*4)
+	ctx, cancel := context.WithTimeout(ctx, time.Minute*3)
 	defer cancel()
 
 	for {
@@ -91,7 +91,7 @@ func (n *Client) waitForDeployment(ctx context.Context, jobID string) error {
 
 				switch dep.Status {
 				case DeploymentStatusCanceled:
-					return fmt.Errorf("failed to run %s job %s", jobID, dep.StatusDescription)
+					return fmt.Errorf("failed to run %s job: %s", jobID, dep.StatusDescription)
 				case DeploymentStatusSuccess:
 					return nil
 				}
