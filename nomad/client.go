@@ -61,17 +61,15 @@ func NewClient(config *api.Config) (*Client, error) {
 	return &Client{API: api}, nil
 }
 
-// TODO maybe improve the logging?
 func (n *Client) waitForDeployment(ctx context.Context, jobID string) error {
-	ctx, cancel := context.WithTimeout(ctx, time.Minute*4)
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
+
+	ticker := time.NewTicker(time.Second * 30)
 
 	for {
 		select {
 		case <-ctx.Done():
-			if ctx.Err() == context.DeadlineExceeded {
-				return fmt.Errorf("failed to run %s job: starting deadline has been exceeded", jobID)
-			}
 			return ctx.Err()
 		default:
 			time.Sleep(time.Second * 4)
@@ -84,6 +82,15 @@ func (n *Client) waitForDeployment(ctx context.Context, jobID string) error {
 			deployments, _, err := n.API.Jobs().Deployments(jobID, true, &api.QueryOptions{})
 			if err != nil {
 				return err
+			}
+
+			timedOut, err := n.jobTimedOut(ctx, ticker, jobID)
+			if err != nil {
+				return fmt.Errorf("failed to tell of job timed out: %w", err)
+			}
+
+			if timedOut {
+				return fmt.Errorf("failed to run %s job: starting deadline has been exceeded", jobID)
 			}
 
 			for _, dep := range deployments {
