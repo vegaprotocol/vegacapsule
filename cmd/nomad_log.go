@@ -54,7 +54,7 @@ var nomadLogsCollectorCmd = &cobra.Command{
 				defer t.Cleanup()
 
 				logFileName := path.Base(logFilePath)
-				destLogFile := path.Join(nomadLogColOutDir, logFileName)
+				destLogFile := path.Join(nomadLogColOutDir, fmt.Sprintf("%s.log", logFileName))
 
 				f, err := os.Create(destLogFile)
 				if err != nil {
