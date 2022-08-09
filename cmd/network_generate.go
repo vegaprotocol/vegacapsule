@@ -77,7 +77,7 @@ func netGenerate(state state.NetworkState, force bool) (*state.NetworkState, err
 		return nil, fmt.Errorf("failed to create nomad client: %w", err)
 	}
 
-	nomadRunner, err := nomad.NewJobRunner(nomadClient, state.Config.LogsDir())
+	nomadRunner, err := nomad.NewJobRunner(nomadClient, *state.Config.VegaCapsuleBinary, state.Config.LogsDir())
 	if err != nil {
 		return nil, fmt.Errorf("failed to create job runner: %w", err)
 	}

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 	"sync"
 
 	"code.vegaprotocol.io/vegacapsule/config"
@@ -21,15 +20,10 @@ type JobRunner struct {
 	logsOutputDir string
 }
 
-func NewJobRunner(c *Client, logsOutputDir string) (*JobRunner, error) {
-	capsuleBinary, err := os.Executable()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get Capsule binary executable: %w", err)
-	}
-
+func NewJobRunner(c *Client, capsuleBinaryPath, logsOutputDir string) (*JobRunner, error) {
 	return &JobRunner{
 		client:        c,
-		capsuleBinary: capsuleBinary,
+		capsuleBinary: capsuleBinaryPath,
 		logsOutputDir: logsOutputDir,
 	}, nil
 }

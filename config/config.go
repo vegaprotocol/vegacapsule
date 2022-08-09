@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path"
 	"path/filepath"
 
@@ -17,6 +18,7 @@ import (
 type Config struct {
 	OutputDir            *string       `hcl:"-"`
 	VegaBinary           *string       `hcl:"vega_binary_path"`
+	VegaCapsuleBinary    *string       `hcl:"vega_capsule_binary_path"`
 	Prefix               *string       `hcl:"prefix"`
 	NodeDirPrefix        *string       `hcl:"node_dir_prefix"`
 	TendermintNodePrefix *string       `hcl:"tendermint_node_prefix"`
@@ -164,9 +166,26 @@ func (c *Config) setAbsolutePaths() error {
 	// Vega binary
 	vegaBinPath, err := utils.BinaryAbsPath(*c.VegaBinary)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get absolute path for %q: %w", *c.VegaBinary, err)
 	}
 	*c.VegaBinary = vegaBinPath
+
+	// Vegacapsule binary
+	if c.VegaCapsuleBinary == nil {
+		capsuleBinary, err := os.Executable()
+		if err != nil {
+			return fmt.Errorf("failed to get Capsule binary executable: %w", err)
+		}
+
+		*c.VegaCapsuleBinary = capsuleBinary
+	}
+
+	vegaCapsuleBinPath, err := utils.BinaryAbsPath(*c.VegaCapsuleBinary)
+	if err != nil {
+		return fmt.Errorf("failed to get absolute path for %q: %w", *c.VegaCapsuleBinary, err)
+	}
+
+	*c.VegaCapsuleBinary = vegaCapsuleBinPath
 
 	// Wallet binary
 	if c.Network.Wallet != nil {

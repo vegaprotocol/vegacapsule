@@ -56,7 +56,7 @@ func netStop(ctx context.Context, state *state.NetworkState) error {
 		logsDir = state.Config.LogsDir()
 	}
 
-	nomadRunner, err := nomad.NewJobRunner(nomadClient, logsDir)
+	nomadRunner, err := nomad.NewJobRunner(nomadClient, *state.Config.VegaCapsuleBinary, logsDir)
 	if err != nil {
 		return fmt.Errorf("failed to create job runner: %w", err)
 	}

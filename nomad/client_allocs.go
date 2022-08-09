@@ -10,6 +10,11 @@ import (
 	"github.com/hashicorp/nomad/api"
 )
 
+const (
+	downloadingImageMessage = "Downloading image"
+	eventStartedType        = "Started"
+)
+
 type allocationInfo struct {
 	taskName  string
 	taskState string
@@ -27,7 +32,7 @@ func (ai allocationInfo) started() bool {
 
 	e := ai.events[len(ai.events)-1]
 
-	return e.Type == "Started"
+	return e.Type == eventStartedType
 }
 
 func (ai allocationInfo) downloadingImage() bool {
@@ -41,7 +46,7 @@ func (ai allocationInfo) downloadingImage() bool {
 
 	e := ai.events[len(ai.events)-1]
 
-	return strings.Contains(e.DisplayMessage, "Downloading image")
+	return strings.Contains(e.DisplayMessage, downloadingImageMessage)
 }
 
 func (ai allocationInfo) String() string {
