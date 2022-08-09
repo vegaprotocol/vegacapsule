@@ -3,7 +3,7 @@ module code.vegaprotocol.io/vegacapsule
 go 1.18
 
 require (
-	code.vegaprotocol.io/vega v0.53.1-0.20220808130547-3932d8543d29
+	code.vegaprotocol.io/vega v0.53.1-0.20220809063036-133d6628959a
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/ethereum/go-ethereum v1.10.20
 	github.com/hashicorp/hcl/v2 v2.9.2-0.20210407182552-eb14f8319bdc
