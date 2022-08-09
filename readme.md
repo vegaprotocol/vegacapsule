@@ -43,6 +43,8 @@ vegacapsule --help
 ```bash
 vegacapsule nomad
 ```
+**Note**: You may need to set the `GOBIN` environment variable to run it.
+
 2. In another Terminal window run bootstrap command to generate and start new network
 ```bash
 vegacapsule network bootstrap --config-path=net_confs/config.hcl
@@ -138,3 +140,14 @@ Capsule can bootstraps network based on configuration. Please see `config.hcl` f
 Capsule is using Go's [text/template](https://pkg.go.dev/text/template) templating engine extended by useful functions from [Sprig](http://masterminds.github.io/sprig/) library.
 
 [TODO expand on this]
+
+
+### Troubleshooting
+
+#### Missing the `GOBIN` environment variable 
+
+```
+Error: GOBIN environment variable has not been found - please set install-path flag instead
+```
+
+The error may happen during the `vegacapsule nomad` command. To solve it, set the environment variable with the following command: `export GOBIN="$HOME/go/bin"`.
