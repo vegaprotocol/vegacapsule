@@ -177,7 +177,7 @@ func (c *Config) setAbsolutePaths() error {
 			return fmt.Errorf("failed to get Capsule binary executable: %w", err)
 		}
 
-		*c.VegaCapsuleBinary = capsuleBinary
+		c.VegaCapsuleBinary = &capsuleBinary
 	}
 
 	vegaCapsuleBinPath, err := utils.BinaryAbsPath(*c.VegaCapsuleBinary)
