@@ -18,7 +18,7 @@ import (
 type Config struct {
 	OutputDir            *string       `hcl:"-"`
 	VegaBinary           *string       `hcl:"vega_binary_path"`
-	VegaCapsuleBinary    *string       `hcl:"vega_capsule_binary_path"`
+	VegaCapsuleBinary    *string       `hcl:"vega_capsule_binary_path,optional"`
 	Prefix               *string       `hcl:"prefix"`
 	NodeDirPrefix        *string       `hcl:"node_dir_prefix"`
 	TendermintNodePrefix *string       `hcl:"tendermint_node_prefix"`
