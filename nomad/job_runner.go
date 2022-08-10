@@ -70,7 +70,7 @@ func (r *JobRunner) RunRawNomadJobs(ctx context.Context, rawJobs []string) ([]ty
 
 }
 
-func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet, outputDir string) ([]*api.Job, error) {
+func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) ([]*api.Job, error) {
 	jobs := make([]*api.Job, 0, len(nodeSets))
 
 	for _, ns := range nodeSets {
@@ -216,7 +216,7 @@ func (r *JobRunner) startNetwork(
 	}
 
 	g.Go(func() error {
-		jobs, err := r.RunNodeSets(ctx, generatedSvcs.NodeSets.ToSlice(), *conf.OutputDir)
+		jobs, err := r.RunNodeSets(ctx, generatedSvcs.NodeSets.ToSlice())
 		if err != nil {
 			return fmt.Errorf("failed to run node sets: %w", err)
 		}
