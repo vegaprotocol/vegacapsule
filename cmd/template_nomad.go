@@ -99,7 +99,7 @@ func updateNomadTemplateInTheNetworkState(netState state.NetworkState, modifiedN
 		if ns.Name != modifiedNodeSet.Name || ns.Index != modifiedNodeSet.Index {
 			continue
 		}
-		ns.NomadJobRaw = utils.StrPoint(templateRaw.String())
+		ns.NomadJobRaw = utils.ToPoint(templateRaw.String())
 
 		netState.GeneratedServices.NodeSets[idx] = ns
 	}

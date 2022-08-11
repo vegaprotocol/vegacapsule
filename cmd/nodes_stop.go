@@ -61,7 +61,10 @@ func nodesStopNode(ctx context.Context, state state.NetworkState, name string, s
 		return nil, fmt.Errorf("failed to create nomad client: %w", err)
 	}
 
-	nomadRunner := nomad.NewJobRunner(nomadClient)
+	nomadRunner, err := nomad.NewJobRunner(nomadClient, *state.Config.VegaCapsuleBinary, state.Config.LogsDir())
+	if err != nil {
+		return nil, fmt.Errorf("failed to create job runner: %w", err)
+	}
 
 	toRemove := []string{name}
 	if stopPreGen {

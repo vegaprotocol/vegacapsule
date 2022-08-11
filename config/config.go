@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os"
+	"path"
 	"path/filepath"
 
 	"code.vegaprotocol.io/vegacapsule/types"
@@ -16,6 +18,7 @@ import (
 type Config struct {
 	OutputDir            *string       `hcl:"-"`
 	VegaBinary           *string       `hcl:"vega_binary_path"`
+	VegaCapsuleBinary    *string       `hcl:"vega_capsule_binary_path,optional"`
 	Prefix               *string       `hcl:"prefix"`
 	NodeDirPrefix        *string       `hcl:"node_dir_prefix"`
 	TendermintNodePrefix *string       `hcl:"tendermint_node_prefix"`
@@ -163,9 +166,26 @@ func (c *Config) setAbsolutePaths() error {
 	// Vega binary
 	vegaBinPath, err := utils.BinaryAbsPath(*c.VegaBinary)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get absolute path for %q: %w", *c.VegaBinary, err)
 	}
 	*c.VegaBinary = vegaBinPath
+
+	// Vegacapsule binary
+	if c.VegaCapsuleBinary == nil {
+		capsuleBinary, err := os.Executable()
+		if err != nil {
+			return fmt.Errorf("failed to get Capsule binary executable: %w", err)
+		}
+
+		c.VegaCapsuleBinary = &capsuleBinary
+	}
+
+	vegaCapsuleBinPath, err := utils.BinaryAbsPath(*c.VegaCapsuleBinary)
+	if err != nil {
+		return fmt.Errorf("failed to get absolute path for %q: %w", *c.VegaCapsuleBinary, err)
+	}
+
+	*c.VegaCapsuleBinary = vegaCapsuleBinPath
 
 	// Wallet binary
 	if c.Network.Wallet != nil {
@@ -449,6 +469,10 @@ func (c *Config) Persist() error {
 	return ioutil.WriteFile(filepath.Join(*c.OutputDir, "config.hcl"), f.Bytes(), 0644)
 }
 
+func (c Config) LogsDir() string {
+	return path.Join(*c.OutputDir, "logs")
+}
+
 func DefaultConfig() (*Config, error) {
 	outputDir, err := DefaultNetworkHome()
 	if err != nil {
@@ -457,14 +481,14 @@ func DefaultConfig() (*Config, error) {
 
 	return &Config{
 		OutputDir:            &outputDir,
-		Prefix:               utils.StrPoint("st-local"),
-		NodeDirPrefix:        utils.StrPoint("node"),
-		TendermintNodePrefix: utils.StrPoint("tendermint"),
-		VegaNodePrefix:       utils.StrPoint("vega"),
-		DataNodePrefix:       utils.StrPoint("data"),
-		WalletPrefix:         utils.StrPoint("wallet"),
-		FaucetPrefix:         utils.StrPoint("faucet"),
-		VegaBinary:           utils.StrPoint("vega"),
+		Prefix:               utils.ToPoint("st-local"),
+		NodeDirPrefix:        utils.ToPoint("node"),
+		TendermintNodePrefix: utils.ToPoint("tendermint"),
+		VegaNodePrefix:       utils.ToPoint("vega"),
+		DataNodePrefix:       utils.ToPoint("data"),
+		WalletPrefix:         utils.ToPoint("wallet"),
+		FaucetPrefix:         utils.ToPoint("faucet"),
+		VegaBinary:           utils.ToPoint("vega"),
 	}, nil
 }
 
