@@ -54,7 +54,10 @@ func netStop(ctx context.Context, state *state.NetworkState) error {
 	var logsDir, vegaCapsuleBinary string
 	if state.Config != nil {
 		logsDir = state.Config.LogsDir()
-		vegaCapsuleBinary = *state.Config.VegaCapsuleBinary
+
+		if state.Config.VegaCapsuleBinary != nil {
+			vegaCapsuleBinary = *state.Config.VegaCapsuleBinary
+		}
 	}
 
 	nomadRunner, err := nomad.NewJobRunner(nomadClient, vegaCapsuleBinary, logsDir)
