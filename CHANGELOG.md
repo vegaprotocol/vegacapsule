@@ -20,6 +20,7 @@
 - [75](https://github.com/vegaprotocol/vegacapsule/issues/75) Add support to import pre-generated keys into vegacapsule network
 - [190](https://github.com/vegaprotocol/vegacapsule/issues/190) Support multisig with Clef
 - [204](https://github.com/vegaprotocol/vegacapsule/pull/204) Add intro section to readme with more about capsule
+- [211](https://github.com/vegaprotocol/vegacapsule/pull/211) Improve importing tendermint keys, re
 - [215](https://github.com/vegaprotocol/vegacapsule/pull/215) Removed old network parameter `market.monitor.price.updateFrequency`
 - [221](https://github.com/vegaprotocol/vegacapsule/pull/221) Downgrade to Tendermint v0.34
 - [217](https://github.com/vegaprotocol/vegacapsule/pull/217) Improve failure detection and add default logging sidecar to copy logs to home folder

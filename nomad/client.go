@@ -35,6 +35,9 @@ const (
 	DeploymentStatusSuccess  = "successful"
 	AllocationStateDead      = "dead"
 	Running                  = "running"
+	Dead                     = "dead"
+	Pending                  = "pending"
+	Terminated               = "terminated"
 )
 
 type Client struct {
