@@ -222,7 +222,6 @@ network "testnet" {
 		"market.auction.minimumDuration": "3s",
 		"market.fee.factors.infrastructureFee": "0.001",
 		"market.fee.factors.makerFee": "0.004",
-		"market.monitor.price.updateFrequency": "1s",
 		"market.liquidity.stakeToCcySiskas": "0.3",
 		"market.liquidity.targetstake.triggering.ratio": "0.7",
 		"network.checkpoint.timeElapsedBetweenCheckpoints": "10s",
@@ -307,25 +306,25 @@ EOT
 // ============================
 
 	  tendermint = <<-EOT
-log-level = "info"
+log_level = "info"
 
-proxy-app = "tcp://127.0.0.1:266{{.NodeNumber}}8"
+proxy_app = "tcp://127.0.0.1:266{{.NodeNumber}}8"
 moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
 
 [rpc]
   laddr = "tcp://0.0.0.0:266{{.NodeNumber}}7"
   unsafe = true
-  cors-allowed-origins = ["*"]
-  cors-allowed-methods = ["HEAD", "GET", "POST", ]
-  cors-allowed-headers = ["Origin", "Accept", "Content-Type", "X-Requested-With", "X-Server-Time", ]
+  cors_allowed_origins = ["*"]
+  cors_allowed_methods = ["HEAD", "GET", "POST", ]
+  cors_allowed_headers = ["Origin", "Accept", "Content-Type", "X-Requested-With", "X-Server-Time", ]
 
 [p2p]
   laddr = "tcp://0.0.0.0:266{{.NodeNumber}}6"
-  addr-book-strict = false
+  addr_book_strict = false
   max_packet_msg_payload_size = 4096
   pex = false
-  allow-duplicate-ip = true
-  persistent-peers = "{{- range $i, $peer := .NodePeers -}}
+  allow_duplicate_ip = true
+  persistent_peers = "{{- range $i, $peer := .NodePeers -}}
 	  {{- if ne $i 0 }},{{end -}}
 	  {{- $peer.ID}}@127.0.0.1:266{{$peer.Index}}6
   {{- end -}}"
@@ -333,10 +332,10 @@ moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
 
 [mempool]
   size = 10000
-  cache-size = 20000
+  cache_size = 20000
 
 [consensus]
-  skip-timeout-commit = false
+  skip_timeout_commit = false
 EOT
     }
   }
@@ -435,35 +434,35 @@ EOT
 // ============================
 
 	  tendermint = <<-EOT
-log-level = "info"
+log_level = "info"
 
-proxy-app = "tcp://127.0.0.1:266{{.NodeNumber}}8"
+proxy_app = "tcp://127.0.0.1:266{{.NodeNumber}}8"
 moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
 
 [rpc]
   laddr = "tcp://0.0.0.0:266{{.NodeNumber}}7"
   unsafe = true
-  cors-allowed-origins = ["*"]
-  cors-allowed-methods = ["HEAD", "GET", "POST", ]
-  cors-allowed-headers = ["Origin", "Accept", "Content-Type", "X-Requested-With", "X-Server-Time", ]
+  cors_allowed_origins = ["*"]
+  cors_allowed_methods = ["HEAD", "GET", "POST", ]
+  cors_allowed_headers = ["Origin", "Accept", "Content-Type", "X-Requested-With", "X-Server-Time", ]
 
 [p2p]
   laddr = "tcp://0.0.0.0:266{{.NodeNumber}}6"
-  addr-book-strict = false
-  max-packet-msg-payload-size = 4096
+  addr_book_strict = false
+  max_packet_msg_payload_size = 4096
   pex = false
-  allow-duplicate-ip = true
-  persistent-peers = "{{- range $i, $peer := .NodePeers -}}
+  allow_duplicate_ip = true
+  persistent_peers = "{{- range $i, $peer := .NodePeers -}}
 	  {{- if ne $i 0 }},{{end -}}
 	  {{- $peer.ID}}@127.0.0.1:266{{$peer.Index}}6
   {{- end -}}"
 
 [mempool]
   size = 10000
-  cache-size = 20000
+  cache_size = 20000
 
 [consensus]
-  skip-timeout-commit = false
+  skip_timeout_commit = false
 EOT
     }
   }

@@ -27,66 +27,39 @@ data-node version
 ```
 
 ## Install manually - build from source (more flexible)
+
 Building from source is a more flexible (recomended for local development) because it gives an option of choosing arbitrary version of the binaries.
 
 **Caveat** - not all binaries versions works with current version of Capsule. For more convenient fast installation please refer to [automatic install](#install-automatically)
 
-Prequsities - this step will require Go 1.17+ installed. [Get Go](https://go.dev/doc/install).
+Prequsities - this step will require Go 1.18+ installed. [Get Go](https://go.dev/doc/install).
 ```bash
 go version
 ```
 
 ### Vega
+All required binaries come from a single git repository. To build them follow the below instructions
+
 1. Clone Vega repository
 ```bash
 git clone git@github.com:vegaprotocol/vega.git
 ```
-2. Turn off GONOSUMDB for private vega repositories
+2. Enter directory and install from source
 ```bash
-export GONOSUMDB="code.vegaprotocol.io/*"
+cd vega
+go install ./...
 ```
-3. Enter directory and install from source
+
+Alternatively, you can build binaries separately:
 ```bash
 cd vega
 go install ./cmd/vega
+go install ./cmd/data-node
+go install ./cmd/vegawallet
 ```
-4. Validate installation
+3. Verify installation
 ```bash
 vega version
-```
-### Data node
-1. Clone Data Node repository
-```bash
-git clone git@github.com:vegaprotocol/data-node.git
-```
-2. Turn off GONOSUMDB for private vega repositories
-```bash
-export GONOSUMDB="code.vegaprotocol.io/*"
-```
-3. Enter the directory and install from source
-```bash
-cd data-node
-go install ./cmd/data-node
-```
-4. Validate installation
-```bash
-data-node version
-```
-### Vegawallet
-1. Clone Vega Wallet repository
-```bash
-git clone git@github.com:vegaprotocol/vegawallet.git
-```
-2. Turn off GONOSUMDB for private vega repositories
-```bash
-export GONOSUMDB="code.vegaprotocol.io/*"
-```
-3. Enter the directory and install from source
-```bash
-cd vegawallet
-go install .
-```
-4. Validate installation
-```bash
 vegawallet version
+data-node version
 ```
