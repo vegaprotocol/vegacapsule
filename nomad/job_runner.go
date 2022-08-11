@@ -147,11 +147,14 @@ func (r *JobRunner) StartNetwork(
 	ctx context.Context,
 	conf *config.Config,
 	generatedSvcs *types.GeneratedServices,
+	stopOnFailure bool,
 ) (*types.NetworkJobs, error) {
 	netJobs, err := r.startNetwork(ctx, conf, generatedSvcs)
 	if err != nil {
-		if err := r.stopAllJobs(ctx); err != nil {
-			log.Printf("Failed to stop all registered jobs - please clean up Nomad manually: %s", err)
+		if stopOnFailure {
+			if err := r.stopAllJobs(ctx); err != nil {
+				log.Printf("Failed to stop all registered jobs - please clean up Nomad manually: %s", err)
+			}
 		}
 
 		return nil, err

@@ -10,6 +10,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	doNotStopOnFailure bool
+)
+
 var netStartCmd = &cobra.Command{
 	Use:   "start",
 	Short: "Starts existing network",
@@ -32,6 +36,14 @@ var netStartCmd = &cobra.Command{
 	},
 }
 
+func init() {
+	netStartCmd.PersistentFlags().BoolVar(&doNotStopOnFailure,
+		"do-not-stop-on-failure",
+		false,
+		"Do not stop partially running network when failed to start",
+	)
+}
+
 func netStart(ctx context.Context, state state.NetworkState) (*state.NetworkState, error) {
 	log.Println("starting network")
 
@@ -45,7 +57,7 @@ func netStart(ctx context.Context, state state.NetworkState) (*state.NetworkStat
 		return nil, fmt.Errorf("failed to create job runner: %w", err)
 	}
 
-	res, err := nomadRunner.StartNetwork(ctx, state.Config, state.GeneratedServices)
+	res, err := nomadRunner.StartNetwork(ctx, state.Config, state.GeneratedServices, !doNotStopOnFailure)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start nomad network: %s", err)
 	}

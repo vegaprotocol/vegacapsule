@@ -11,8 +11,11 @@ import (
 )
 
 const (
-	downloadingImageMessage = "Downloading image"
-	eventStartedType        = "Started"
+	downloadingImageMessage      = "Downloading image"
+	downloadingArtifactsMessage  = "downloading Artifacts"
+	taskReceivedMessage          = "received by client"
+	buildingTaskDirectoryMessage = "building task directory"
+	eventStartedType             = "Started"
 )
 
 type allocationInfo struct {
@@ -35,6 +38,25 @@ func (ai allocationInfo) started() bool {
 	return e.Type == eventStartedType
 }
 
+// finishedWithoutError is required for pre-start tasks that may be
+// stopped before the main task
+func (ai allocationInfo) finishedWithoutError() bool {
+	if ai.taskState != Dead {
+		return false
+	}
+
+	if len(ai.events) == 0 {
+		return false
+	}
+
+	e := ai.events[len(ai.events)-1]
+
+	return strings.ToLower(e.Type) == Terminated &&
+		e.ExitCode == 0 &&
+		!e.FailsTask
+
+}
+
 func (ai allocationInfo) downloadingImage() bool {
 	if ai.taskState != Running {
 		return false
@@ -49,6 +71,48 @@ func (ai allocationInfo) downloadingImage() bool {
 	return strings.Contains(e.DisplayMessage, downloadingImageMessage)
 }
 
+func (ai allocationInfo) downloadingArtifacts() bool {
+	if ai.taskState != Pending {
+		return false
+	}
+
+	if len(ai.events) == 0 {
+		return false
+	}
+
+	e := ai.events[len(ai.events)-1]
+
+	return strings.Contains(strings.ToLower(e.DisplayMessage), downloadingArtifactsMessage)
+}
+
+func (ai allocationInfo) buildingTaskDirectory() bool {
+	if ai.taskState != Pending {
+		return false
+	}
+
+	if len(ai.events) == 0 {
+		return false
+	}
+
+	e := ai.events[len(ai.events)-1]
+
+	return strings.Contains(strings.ToLower(e.DisplayMessage), buildingTaskDirectoryMessage)
+}
+
+func (ai allocationInfo) taskReceived() bool {
+	if ai.taskState != Pending {
+		return false
+	}
+
+	if len(ai.events) == 0 {
+		return false
+	}
+
+	e := ai.events[len(ai.events)-1]
+
+	return strings.Contains(strings.ToLower(e.DisplayMessage), taskReceivedMessage)
+}
+
 func (ai allocationInfo) String() string {
 	events := make([]string, 0, len(ai.events))
 	for _, e := range ai.events {
@@ -60,9 +124,21 @@ func (ai allocationInfo) String() string {
 
 type allocations []allocationInfo
 
-func (allocs allocations) downloadingImage() bool {
+func (allocs allocations) pending() bool {
 	for _, a := range allocs {
 		if a.downloadingImage() {
+			return true
+		}
+
+		if a.downloadingArtifacts() {
+			return true
+		}
+
+		if a.taskReceived() {
+			return true
+		}
+
+		if a.buildingTaskDirectory() {
 			return true
 		}
 	}
@@ -70,9 +146,9 @@ func (allocs allocations) downloadingImage() bool {
 	return false
 }
 
-func (allocs allocations) started() bool {
+func (allocs allocations) startedOrFinishedWithoutError() bool {
 	for _, a := range allocs {
-		if !a.started() {
+		if !a.started() && !a.finishedWithoutError() {
 			return false
 		}
 	}
@@ -109,12 +185,12 @@ func (n *Client) jobTimedOut(ctx context.Context, t *time.Ticker, jobID string) 
 			return false, err
 		}
 
-		if allocs.started() {
+		if allocs.startedOrFinishedWithoutError() {
 			return false, nil
 		}
 
-		if allocs.downloadingImage() {
-			fmt.Println("has not timed out because downloading image")
+		if allocs.pending() {
+			fmt.Println("has not timed out because pending task")
 			return false, nil
 		}
 
