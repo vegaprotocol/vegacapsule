@@ -51,7 +51,16 @@ func netStop(ctx context.Context, state *state.NetworkState) error {
 		return fmt.Errorf("failed to create nomad client: %w", err)
 	}
 
-	nomadRunner := nomad.NewJobRunner(nomadClient)
+	var logsDir, vegaCapsuleBinary string
+	if state.Config != nil {
+		logsDir = state.Config.LogsDir()
+		vegaCapsuleBinary = *state.Config.VegaCapsuleBinary
+	}
+
+	nomadRunner, err := nomad.NewJobRunner(nomadClient, vegaCapsuleBinary, logsDir)
+	if err != nil {
+		return fmt.Errorf("failed to create job runner: %w", err)
+	}
 
 	if err := nomadRunner.StopNetwork(ctx, state.RunningJobs, stopNodesOnly); err != nil {
 		return fmt.Errorf("failed to stop nomad network: %w", err)

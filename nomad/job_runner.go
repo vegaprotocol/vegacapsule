@@ -8,7 +8,6 @@ import (
 
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/types"
-	"code.vegaprotocol.io/vegacapsule/utils"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/hashicorp/nomad/api"
@@ -16,124 +15,17 @@ import (
 )
 
 type JobRunner struct {
-	client *Client
+	client        *Client
+	capsuleBinary string
+	logsOutputDir string
 }
 
-func NewJobRunner(c *Client) *JobRunner {
+func NewJobRunner(c *Client, capsuleBinaryPath, logsOutputDir string) (*JobRunner, error) {
 	return &JobRunner{
-		client: c,
-	}
-}
-
-func (r *JobRunner) runDockerJob(ctx context.Context, conf config.DockerConfig) (*api.Job, error) {
-	ports := []api.Port{}
-	portLabels := []string{}
-	if conf.StaticPort != nil {
-		ports = append(ports, api.Port{
-			Label: fmt.Sprintf("%s-port", conf.Name),
-			To:    conf.StaticPort.To,
-			Value: conf.StaticPort.Value,
-		})
-		portLabels = append(portLabels, fmt.Sprintf("%s-port", conf.Name))
-	}
-
-	j := &api.Job{
-		ID:          &conf.Name,
-		Datacenters: []string{"dc1"},
-		TaskGroups: []*api.TaskGroup{
-			{
-				Networks: []*api.NetworkResource{
-					{
-						ReservedPorts: ports,
-					},
-				},
-				RestartPolicy: &api.RestartPolicy{
-					Attempts: utils.IntPoint(0),
-					Mode:     utils.StrPoint("fail"),
-				},
-				Name: &conf.Name,
-				Tasks: []*api.Task{
-					{
-						Name:   conf.Name,
-						Driver: "docker",
-						Config: map[string]interface{}{
-							"image":          conf.Image,
-							"command":        conf.Command,
-							"args":           conf.Args,
-							"ports":          portLabels,
-							"auth_soft_fail": conf.AuthSoftFail,
-						},
-						Env: conf.Env,
-						Resources: &api.Resources{
-							CPU:      utils.IntPoint(500),
-							MemoryMB: utils.IntPoint(768),
-						},
-					},
-				},
-			},
-		},
-	}
-
-	if err := r.client.RunAndWait(ctx, j); err != nil {
-		return nil, fmt.Errorf("failed to run nomad docker job: %w", err)
-	}
-
-	return j, nil
-}
-
-func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
-	tasks := make([]*api.Task, 0, 2)
-	tasks = append(tasks,
-		&api.Task{
-			Name:   ns.Vega.Name,
-			Driver: "raw_exec",
-			Config: map[string]interface{}{
-				"command": ns.Vega.BinaryPath,
-				"args": []string{
-					"node",
-					"--home", ns.Vega.HomeDir,
-					"--tendermint-home", ns.Tendermint.HomeDir,
-					"--nodewallet-passphrase-file", ns.Vega.NodeWalletPassFilePath,
-				},
-			},
-			Resources: &api.Resources{
-				CPU:      utils.IntPoint(500),
-				MemoryMB: utils.IntPoint(512),
-			},
-		})
-
-	if ns.DataNode != nil {
-		tasks = append(tasks, &api.Task{
-			Name:   ns.DataNode.Name,
-			Driver: "raw_exec",
-			Config: map[string]interface{}{
-				"command": ns.DataNode.BinaryPath,
-				"args": []string{
-					"node",
-					"--home", ns.DataNode.HomeDir,
-				},
-			},
-			Resources: &api.Resources{
-				CPU:      utils.IntPoint(500),
-				MemoryMB: utils.IntPoint(512),
-			},
-		})
-	}
-
-	return &api.Job{
-		ID:          utils.StrPoint(ns.Name),
-		Datacenters: []string{"dc1"},
-		TaskGroups: []*api.TaskGroup{
-			{
-				RestartPolicy: &api.RestartPolicy{
-					Attempts: utils.IntPoint(0),
-					Mode:     utils.StrPoint("fail"),
-				},
-				Name:  utils.StrPoint("vega"),
-				Tasks: tasks,
-			},
-		},
-	}
+		client:        c,
+		capsuleBinary: capsuleBinaryPath,
+		logsOutputDir: logsOutputDir,
+	}, nil
 }
 
 func (r *JobRunner) RunRawNomadJobs(ctx context.Context, rawJobs []string) ([]types.RawJobWithNomadJob, error) {
@@ -221,91 +113,6 @@ func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) (
 	return jobs, nil
 }
 
-func (r *JobRunner) runWallet(ctx context.Context, conf *config.WalletConfig, wallet *types.Wallet) (*api.Job, error) {
-	j := &api.Job{
-		ID:          &wallet.Name,
-		Datacenters: []string{"dc1"},
-		TaskGroups: []*api.TaskGroup{
-			{
-				RestartPolicy: &api.RestartPolicy{
-					Attempts: utils.IntPoint(0),
-					Mode:     utils.StrPoint("fail"),
-				},
-				Name: utils.StrPoint("vega"),
-				Tasks: []*api.Task{
-					{
-						Name:   "wallet-1",
-						Driver: "raw_exec",
-						Config: map[string]interface{}{
-							"command": conf.Binary,
-							"args": []string{
-								"service",
-								"run",
-								"--network", wallet.Network,
-								"--automatic-consent",
-								"--no-version-check",
-								"--output", "json",
-								"--home", wallet.HomeDir,
-							},
-						},
-						Resources: &api.Resources{
-							CPU:      utils.IntPoint(500),
-							MemoryMB: utils.IntPoint(512),
-						},
-					},
-				},
-			},
-		},
-	}
-
-	if err := r.client.RunAndWait(ctx, j); err != nil {
-		return nil, fmt.Errorf("failed to run the wallet job: %w", err)
-	}
-
-	return j, nil
-}
-
-func (r *JobRunner) runFaucet(ctx context.Context, binary string, conf *config.FaucetConfig, fc *types.Faucet) (*api.Job, error) {
-	j := &api.Job{
-		ID:          &fc.Name,
-		Datacenters: []string{"dc1"},
-		TaskGroups: []*api.TaskGroup{
-			{
-				RestartPolicy: &api.RestartPolicy{
-					Attempts: utils.IntPoint(0),
-					Mode:     utils.StrPoint("fail"),
-				},
-				Name: &conf.Name,
-				Tasks: []*api.Task{
-					{
-						Name:   conf.Name,
-						Driver: "raw_exec",
-						Config: map[string]interface{}{
-							"command": binary,
-							"args": []string{
-								"faucet",
-								"run",
-								"--passphrase-file", fc.WalletPassFilePath,
-								"--home", fc.HomeDir,
-							},
-						},
-						Resources: &api.Resources{
-							CPU:      utils.IntPoint(500),
-							MemoryMB: utils.IntPoint(512),
-						},
-					},
-				},
-			},
-		},
-	}
-
-	if err := r.client.RunAndWait(ctx, j); err != nil {
-		return nil, fmt.Errorf("failed to wait for faucet job: %w", err)
-	}
-
-	return j, nil
-}
-
 func (r *JobRunner) runDockerJobs(ctx context.Context, dockerConfigs []config.DockerConfig) ([]string, error) {
 	g, ctx := errgroup.WithContext(ctx)
 	jobIDs := make([]string, 0, len(dockerConfigs))
@@ -315,9 +122,10 @@ func (r *JobRunner) runDockerJobs(ctx context.Context, dockerConfigs []config.Do
 		// capture in the loop by copy
 		dc := dc
 		g.Go(func() error {
-			job, err := r.runDockerJob(ctx, dc)
-			if err != nil {
-				return fmt.Errorf("failed to run pre start job %s: %w", dc.Name, err)
+			job := r.defaultDockerJob(ctx, dc)
+
+			if err := r.client.RunAndWait(ctx, job); err != nil {
+				return fmt.Errorf("failed to run pre start job %q: %w", *job.ID, err)
 			}
 
 			jobIDsLock.Lock()
@@ -335,7 +143,28 @@ func (r *JobRunner) runDockerJobs(ctx context.Context, dockerConfigs []config.Do
 	return jobIDs, nil
 }
 
-func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, generatedSvcs *types.GeneratedServices) (*types.NetworkJobs, error) {
+func (r *JobRunner) StartNetwork(
+	ctx context.Context,
+	conf *config.Config,
+	generatedSvcs *types.GeneratedServices,
+) (*types.NetworkJobs, error) {
+	netJobs, err := r.startNetwork(ctx, conf, generatedSvcs)
+	if err != nil {
+		if err := r.stopAllJobs(ctx); err != nil {
+			log.Printf("Failed to stop all registered jobs - please clean up Nomad manually: %s", err)
+		}
+
+		return nil, err
+	}
+
+	return netJobs, nil
+}
+
+func (r *JobRunner) startNetwork(
+	gCtx context.Context,
+	conf *config.Config,
+	generatedSvcs *types.GeneratedServices,
+) (*types.NetworkJobs, error) {
 	g, ctx := errgroup.WithContext(gCtx)
 
 	result := &types.NetworkJobs{
@@ -358,9 +187,9 @@ func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, gene
 	// create new error group to be able call wait funcion again
 	if generatedSvcs.Faucet != nil {
 		g.Go(func() error {
-			job, err := r.runFaucet(ctx, *conf.VegaBinary, conf.Network.Faucet, generatedSvcs.Faucet)
-			if err != nil {
-				return fmt.Errorf("failed to run faucet: %w", err)
+			job := r.defaultFaucetJob(*conf.VegaBinary, conf.Network.Faucet, generatedSvcs.Faucet)
+			if err := r.client.RunAndWait(ctx, job); err != nil {
+				return fmt.Errorf("failed to run the faucet job %q: %w", *job.ID, err)
 			}
 
 			lock.Lock()
@@ -373,9 +202,9 @@ func (r *JobRunner) StartNetwork(gCtx context.Context, conf *config.Config, gene
 
 	if generatedSvcs.Wallet != nil {
 		g.Go(func() error {
-			job, err := r.runWallet(ctx, conf.Network.Wallet, generatedSvcs.Wallet)
-			if err != nil {
-				return fmt.Errorf("failed to run wallet: %w", err)
+			job := r.defaultWalletJob(conf.Network.Wallet, generatedSvcs.Wallet)
+			if err := r.client.RunAndWait(ctx, job); err != nil {
+				return fmt.Errorf("failed to run the wallet job %q: %w", *job.ID, err)
 			}
 
 			lock.Lock()
@@ -427,8 +256,7 @@ func (r *JobRunner) stopAllJobs(ctx context.Context) error {
 	for _, j := range jobs {
 		j := j
 		eg.Go(func() error {
-			_, err := r.client.Stop(ctx, j.ID, true)
-			return err
+			return r.client.Stop(ctx, j.ID, true)
 		})
 	}
 
@@ -466,7 +294,7 @@ func (r *JobRunner) StopNetwork(ctx context.Context, jobs *types.NetworkJobs, no
 		jobName := jobName
 
 		g.Go(func() error {
-			if _, err := r.client.Stop(ctx, jobName, true); err != nil {
+			if err := r.client.Stop(ctx, jobName, true); err != nil {
 				return fmt.Errorf("cannot stop nomad job \"%s\": %w", jobName, err)
 			}
 			return nil
@@ -499,7 +327,7 @@ func (r *JobRunner) StopJobs(ctx context.Context, jobIDs []string) error {
 		jobName := jobName
 
 		g.Go(func() error {
-			if _, err := r.client.Stop(ctx, jobName, true); err != nil {
+			if err := r.client.Stop(ctx, jobName, true); err != nil {
 				return fmt.Errorf("cannot stop nomad job \"%s\": %w", jobName, err)
 			}
 			return nil
