@@ -53,22 +53,6 @@ pipeline {
 
         stage('Tests') {
             parallel {
-                stage('System Tests Network Smoke') {
-                    steps {
-                        script {
-                            systemTestsCapsule ignoreFailure: !isPRBuild(),
-                                timeout: 30,
-                                vegacapsule: commitHash,
-                                vegaVersion: params.VEGA_BRANCH,
-                                systemTests: params.SYSTEM_TESTS_BRANCH,
-                                vegatools: params.VEGATOOLS_BRANCH,
-                                devopsInfra: params.DEVOPS_INFRA_BRANCH,
-                                devopsScripts: params.DEVOPSSCRIPTS_BRANCH,
-                                jenkinsSharedLib: params.JENKINS_SHARED_LIB_BRANCH,
-                                testMark: "network_infra_smoke"
-                        }
-                    }
-                }
                 stage('System Tests') {
                     steps {
                         script {
