@@ -20,7 +20,7 @@ type initateWalletOutput struct {
 }
 
 func (cg *ConfigGenerator) initiateWallet(conf *config.WalletConfig) (*initateWalletOutput, error) {
-	args := []string{"init", "--no-version-check", "--output", "json", "--home", cg.homeDir}
+	args := []string{"init", "--output", "json", "--home", cg.homeDir}
 
 	log.Printf("Initiating wallet %q with: %v", conf.Name, args)
 
@@ -33,7 +33,7 @@ func (cg *ConfigGenerator) initiateWallet(conf *config.WalletConfig) (*initateWa
 }
 
 func (cg *ConfigGenerator) importNetworkConfig(conf *config.WalletConfig) (*importNetworkOutput, error) {
-	args := []string{"network", "import", "--no-version-check", "--output", "json", "--home", cg.homeDir, "--from-file", cg.configFilePath()}
+	args := []string{"network", "import", "--output", "json", "--home", cg.homeDir, "--from-file", cg.configFilePath()}
 
 	log.Printf("Importing network to wallet %q with: %v", conf.Name, args)
 
