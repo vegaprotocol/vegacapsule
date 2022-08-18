@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	downloadingImageMessage      = "Downloading image"
-	downloadingArtifactsMessage  = "downloading Artifacts"
+	downloadingImageMessage      = "downloading image"
+	downloadingArtifactsMessage  = "downloading artifacts"
 	taskReceivedMessage          = "received by client"
 	buildingTaskDirectoryMessage = "building task directory"
 	eventStartedType             = "Started"
@@ -57,60 +57,31 @@ func (ai allocationInfo) finishedWithoutError() bool {
 
 }
 
-func (ai allocationInfo) downloadingImage() bool {
-	if ai.taskState != Running {
-		return false
-	}
-
+// lastEventMessageContains lowercase the message and check if message contains given text.
+func (ai allocationInfo) lastEventMessageContains(text string) bool {
 	if len(ai.events) == 0 {
 		return false
 	}
 
 	e := ai.events[len(ai.events)-1]
 
-	return strings.Contains(e.DisplayMessage, downloadingImageMessage)
+	return strings.Contains(strings.ToLower(e.DisplayMessage), text)
+}
+
+func (ai allocationInfo) downloadingImage() bool {
+	return ai.lastEventMessageContains(downloadingImageMessage)
 }
 
 func (ai allocationInfo) downloadingArtifacts() bool {
-	if ai.taskState != Pending {
-		return false
-	}
-
-	if len(ai.events) == 0 {
-		return false
-	}
-
-	e := ai.events[len(ai.events)-1]
-
-	return strings.Contains(strings.ToLower(e.DisplayMessage), downloadingArtifactsMessage)
+	return ai.lastEventMessageContains(downloadingArtifactsMessage)
 }
 
 func (ai allocationInfo) buildingTaskDirectory() bool {
-	if ai.taskState != Pending {
-		return false
-	}
-
-	if len(ai.events) == 0 {
-		return false
-	}
-
-	e := ai.events[len(ai.events)-1]
-
-	return strings.Contains(strings.ToLower(e.DisplayMessage), buildingTaskDirectoryMessage)
+	return ai.lastEventMessageContains(buildingTaskDirectoryMessage)
 }
 
 func (ai allocationInfo) taskReceived() bool {
-	if ai.taskState != Pending {
-		return false
-	}
-
-	if len(ai.events) == 0 {
-		return false
-	}
-
-	e := ai.events[len(ai.events)-1]
-
-	return strings.Contains(strings.ToLower(e.DisplayMessage), taskReceivedMessage)
+	return ai.lastEventMessageContains(taskReceivedMessage)
 }
 
 func (ai allocationInfo) String() string {
@@ -122,28 +93,32 @@ func (ai allocationInfo) String() string {
 	return fmt.Sprintf("Task: %q, State: %q, Events: %q", ai.taskName, ai.taskState, strings.Join(events, " -> "))
 }
 
+func formatPendingReason(task, reason string) string {
+	return fmt.Sprintf("task %q is %s", task, reason)
+}
+
 type allocations []allocationInfo
 
-func (allocs allocations) pending() bool {
+func (allocs allocations) pending() (bool, string) {
 	for _, a := range allocs {
 		if a.downloadingImage() {
-			return true
+			return true, formatPendingReason(a.taskName, downloadingImageMessage)
 		}
 
 		if a.downloadingArtifacts() {
-			return true
+			return true, formatPendingReason(a.taskName, downloadingArtifactsMessage)
 		}
 
 		if a.taskReceived() {
-			return true
+			return true, formatPendingReason(a.taskName, taskReceivedMessage)
 		}
 
 		if a.buildingTaskDirectory() {
-			return true
+			return true, formatPendingReason(a.taskName, buildingTaskDirectoryMessage)
 		}
 	}
 
-	return false
+	return false, ""
 }
 
 func (allocs allocations) startedOrFinishedWithoutError() bool {
@@ -186,16 +161,17 @@ func (n *Client) jobTimedOut(ctx context.Context, t *time.Ticker, jobID string) 
 		}
 
 		if allocs.startedOrFinishedWithoutError() {
+			log.Printf("All tasks for job %q started or finished witout an error", jobID)
 			return false, nil
 		}
 
-		if allocs.pending() {
-			fmt.Println("has not timed out because pending task")
+		if pending, reason := allocs.pending(); pending {
+			log.Printf("Job %q has not timed out because it has pending task: %s", jobID, reason)
 			return false, nil
 		}
 
 		for _, alloc := range allocs {
-			log.Printf("Job  %q has timed out output: %s", jobID, alloc)
+			log.Printf("Job %q has timed out output: %s", jobID, alloc)
 		}
 
 		return true, fmt.Errorf("failed to run %s job: starting deadline has been exceeded", jobID)
