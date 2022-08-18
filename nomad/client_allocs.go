@@ -195,7 +195,7 @@ func (n *Client) jobTimedOut(ctx context.Context, t *time.Ticker, jobID string) 
 		}
 
 		for _, alloc := range allocs {
-			log.Printf("Job  %q has timed out output: %s", jobID, alloc)
+			log.Printf("Job %q has timed out output: %s", jobID, alloc)
 		}
 
 		return true, fmt.Errorf("failed to run %s job: starting deadline has been exceeded", jobID)

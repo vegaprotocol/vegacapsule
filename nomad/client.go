@@ -68,7 +68,7 @@ func (n *Client) waitForDeployment(ctx context.Context, jobID string) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	ticker := time.NewTicker(time.Second * 30)
+	ticker := time.NewTicker(time.Minute * 5)
 
 	for {
 		select {
