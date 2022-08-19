@@ -88,7 +88,7 @@ EOT
   }
 
   node_set "full" {
-    count = 2
+    count = 4
     mode = "full"
 	  data_node_binary = "data-node"
 
