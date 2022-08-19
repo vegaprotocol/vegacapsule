@@ -99,7 +99,15 @@ func nodesAddNode(state state.NetworkState, baseOneNode string) (*types.NodeSet,
 		return nil, err
 	}
 
-	newNodeSet, err := gen.AddNodeSet(len(state.GeneratedServices.NodeSets), *nodeConfig, *nodeSet, state.GeneratedServices.Faucet)
+	groupNodeSets := state.GeneratedServices.GetNodeSetsByGroupName(nodeSet.GroupName)
+
+	newNodeSet, err := gen.AddNodeSet(
+		len(state.GeneratedServices.NodeSets),
+		len(groupNodeSets),
+		*nodeConfig,
+		*nodeSet,
+		state.GeneratedServices.Faucet,
+	)
 	if err != nil {
 		return nil, err
 	}

@@ -5,6 +5,7 @@ GatewayEnabled = true
   [SQLStore.ConnectionConfig]
     Port = 5{{.NodeNumber}}32
     UseTransactions = true
+    Database = "vega{{.NodeSet.RelativeIndex}}"
   
 
 [API]

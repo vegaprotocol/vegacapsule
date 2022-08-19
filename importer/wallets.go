@@ -68,11 +68,11 @@ func ImportKeysIntoValidatorsWallets(state state.NetworkState, keys NodesKeysDat
 			continue
 		}
 
-		nodeData := getNodeWalletsDataForNodeIdx(nodeSet.Index, keys)
+		nodeData := getNodeWalletsDataForNodeIdx(nodeSet.AbsoluteIndex, keys)
 		if nodeData == nil {
 			errs.Add(fmt.Errorf("failed to import data for the %s node set: missing import data for the %d node in given set",
 				nodeSet.Name,
-				nodeSet.Index))
+				nodeSet.AbsoluteIndex))
 
 			continue
 		}

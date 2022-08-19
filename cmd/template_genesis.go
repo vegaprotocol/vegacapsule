@@ -79,7 +79,7 @@ func templateGenesis(templateRaw string, netState *state.NetworkState) error {
 
 	for _, ns := range netState.GeneratedServices.NodeSets {
 		if err := updateTemplateForNode(genesisTemplateType, ns.Tendermint.HomeDir, buff); err != nil {
-			return fmt.Errorf("failed to update template for node %d: %w", ns.Index, err)
+			return fmt.Errorf("failed to update template for node %d: %w", ns.AbsoluteIndex, err)
 		}
 	}
 

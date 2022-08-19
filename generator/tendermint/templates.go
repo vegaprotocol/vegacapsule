@@ -56,7 +56,7 @@ func (tc ConfigTemplateContext) NodePeersByGroupName(groupNames ...string) []Pee
 		}
 
 		for _, node := range nodes {
-			if node.index == tc.NodeSet.Index {
+			if node.index == tc.NodeSet.AbsoluteIndex {
 				continue
 			}
 
@@ -73,7 +73,7 @@ func (tc ConfigTemplateContext) NodePeersByGroupName(groupNames ...string) []Pee
 func (tc ConfigTemplateContext) NodePeers() []Peer {
 	peers := []Peer{}
 	for _, node := range tc.nodes {
-		if node.index == tc.NodeSet.Index {
+		if node.index == tc.NodeSet.AbsoluteIndex {
 			continue
 		}
 
@@ -120,7 +120,7 @@ func (tg *ConfigGenerator) TemplateConfig(ns types.NodeSet, configTemplate *temp
 		Prefix:               *tg.conf.Prefix,
 		TendermintNodePrefix: *tg.conf.TendermintNodePrefix,
 		VegaNodePrefix:       *tg.conf.VegaNodePrefix,
-		NodeNumber:           ns.Index,
+		NodeNumber:           ns.AbsoluteIndex,
 		NodesCount:           len(tg.nodes),
 		NodeSet:              ns,
 		nodes:                tg.nodes,

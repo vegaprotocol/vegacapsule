@@ -173,12 +173,12 @@ func templateNodeSetConfig(
 
 		if templateUpdateNetwork {
 			if err := updateTemplateForNode(tmplType, ns.Tendermint.HomeDir, buff); err != nil {
-				return fmt.Errorf("failed to update template for node %d: %w", ns.Index, err)
+				return fmt.Errorf("failed to update template for node %d: %w", ns.AbsoluteIndex, err)
 			}
 		} else {
 			fileName := fmt.Sprintf("%s-%s.conf", tmplType, ns.Name)
 			if err := outputTemplate(buff, templateOutDir, fileName, true); err != nil {
-				return fmt.Errorf("failed to print generated template for node %d: %w", ns.Index, err)
+				return fmt.Errorf("failed to print generated template for node %d: %w", ns.AbsoluteIndex, err)
 			}
 		}
 	}
