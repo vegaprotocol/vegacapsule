@@ -104,6 +104,7 @@ func nodesAddNode(state state.NetworkState, baseOneNode string) (*types.NodeSet,
 	newNodeSet, err := gen.AddNodeSet(
 		len(state.GeneratedServices.NodeSets),
 		len(groupNodeSets),
+		nodeSet.GroupIndex,
 		*nodeConfig,
 		*nodeSet,
 		state.GeneratedServices.Faucet,

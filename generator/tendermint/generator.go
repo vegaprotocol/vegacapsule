@@ -70,7 +70,7 @@ func NewConfigGenerator(conf *config.Config, generatedNodeSets []types.NodeSet) 
 			name:      tn.Tendermint.Name,
 			groupName: tn.GroupName,
 			id:        tn.Tendermint.NodeID,
-			index:     tn.AbsoluteIndex,
+			index:     tn.Index,
 		})
 
 		if tn.Mode != types.NodeModeValidator {

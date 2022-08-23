@@ -33,7 +33,7 @@ func NewConfigTemplate(templateRaw string) (*template.Template, error) {
 func (dng ConfigGenerator) TemplateConfig(ns types.NodeSet, configTemplate *template.Template) (*bytes.Buffer, error) {
 	templateCtx := ConfigTemplateContext{
 		Prefix:      *dng.conf.Prefix,
-		NodeNumber:  ns.AbsoluteIndex,
+		NodeNumber:  ns.Index,
 		NodeHomeDir: dng.homeDir,
 		NodeSet:     ns,
 	}

@@ -48,7 +48,7 @@ func (g *Generator) initiateNodeSet(absoluteIndex, relativeIndex, groupIndex int
 
 	nodeSet := &types.NodeSet{
 		GroupName:     n.Name,
-		AbsoluteIndex: absoluteIndex,
+		Index:         absoluteIndex,
 		RelativeIndex: relativeIndex,
 		GroupIndex:    groupIndex,
 		Name:          fmt.Sprintf("%s-nodeset-%s-%d-%s", g.conf.Network.Name, n.Name, absoluteIndex, n.Mode),
@@ -85,6 +85,8 @@ func (g *Generator) initiateNodeSets() (*nodeSets, error) {
 				return nil, fmt.Errorf("failed to clode node config for %q: %w", n.Name, err)
 			}
 			absIndexC := absIndex
+			groupIndexC := groupIndex
+			relativeIndexC := relativeIndex
 
 			eg.Go(func() error {
 				preGenJobs, err := g.startPreGenerateJobs(*nc, absIndexC)
@@ -92,7 +94,7 @@ func (g *Generator) initiateNodeSets() (*nodeSets, error) {
 					return err
 				}
 
-				nodeSet, err := g.initiateNodeSet(absIndexC, relativeIndex, groupIndex, *nc)
+				nodeSet, err := g.initiateNodeSet(absIndexC, relativeIndexC, groupIndexC, *nc)
 				if err != nil {
 					return err
 				}

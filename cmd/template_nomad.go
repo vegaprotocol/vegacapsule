@@ -96,7 +96,7 @@ func templateNomad(templateRaw string, netState *state.NetworkState, templateOut
 
 func updateNomadTemplateInTheNetworkState(netState state.NetworkState, modifiedNodeSet types.NodeSet, templateRaw *bytes.Buffer) state.NetworkState {
 	for idx, ns := range netState.GeneratedServices.NodeSets {
-		if ns.Name != modifiedNodeSet.Name || ns.AbsoluteIndex != modifiedNodeSet.AbsoluteIndex {
+		if ns.Name != modifiedNodeSet.Name || ns.Index != modifiedNodeSet.Index {
 			continue
 		}
 		ns.NomadJobRaw = utils.ToPoint(templateRaw.String())

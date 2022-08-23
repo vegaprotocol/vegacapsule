@@ -50,8 +50,8 @@ type NodeSet struct {
 	GroupName string
 	Name      string
 	Mode      string
-	// AbsoluteIndex is a node set counter over all created node sets.
-	AbsoluteIndex int
+	// Index is a node set counter over all created node sets.
+	Index int
 	// RelativeIndex is a counter relative to current node set group. Related to GroupName.
 	RelativeIndex int
 	// GroupIndex is a index of the group where this node set belongs to. Related to GroupName.
@@ -110,7 +110,7 @@ func (nm NodeSetMap) ToSlice() []NodeSet {
 	}
 
 	sort.Slice(slice, func(i, j int) bool {
-		return slice[i].AbsoluteIndex < slice[j].AbsoluteIndex
+		return slice[i].Index < slice[j].Index
 	})
 
 	return slice

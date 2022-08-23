@@ -18,8 +18,8 @@ moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
 
 [p2p]
   laddr = "tcp://0.0.0.0:{{$p2p_port}}"
-  max)packet)msg)payload)size = 4096
-  allow)duplicate)ip = true
+  max_packet_msg_payload_size = 4096
+  allow_duplicate_ip = true
 
   pex = false
   addr_book_strict = false

@@ -46,9 +46,9 @@ func (vg ConfigGenerator) TemplateConfig(ns types.NodeSet, fc *types.Faucet, con
 		DataNodePrefix:       *vg.conf.DataNodePrefix,
 		ETHEndpoint:          vg.conf.Network.Ethereum.Endpoint,
 		NodeMode:             ns.Mode,
-		NodeNumber:           ns.AbsoluteIndex,
+		NodeNumber:           ns.Index,
 		NodeSet:              ns,
-		NodeHomeDir:          vg.nodeDir(ns.AbsoluteIndex),
+		NodeHomeDir:          vg.nodeDir(ns.Index),
 	}
 
 	if fc != nil {
