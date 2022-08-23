@@ -60,7 +60,7 @@ EOT
       env = {
         POSTGRES_USER="vega"
         POSTGRES_PASSWORD="vega"
-        POSTGRES_DBS="vega0,vega1,vega2,vega3,vega4"
+        POSTGRES_DBS="vega0,vega1,vega2,vega3,vega4,vega5,vega6"
       }
       static_port {
         value = 5232
@@ -88,7 +88,7 @@ EOT
   }
 
   node_set "full" {
-    count = 4
+    count = 2
     mode = "full"
 	  data_node_binary = "data-node"
 

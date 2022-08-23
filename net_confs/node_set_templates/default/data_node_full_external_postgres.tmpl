@@ -5,7 +5,7 @@ GatewayEnabled = true
   [SQLStore.ConnectionConfig]
     Port = 5232
     UseTransactions = true
-    Database = "vega{{.NodeSet.RelativeIndex}}"
+    Database = "vega{{.NodeNumber}}"
   
 
 [API]
@@ -15,7 +15,7 @@ GatewayEnabled = true
 
 [Pprof]
   Level = "Info"
-  Enabled = true
+  Enabled = false
   Port = 6{{.NodeNumber}}60
   ProfilesDir = "{{.NodeHomeDir}}"
 
