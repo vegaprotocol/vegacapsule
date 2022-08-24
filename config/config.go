@@ -15,6 +15,12 @@ import (
 	"github.com/hashicorp/hcl/v2/hclwrite"
 )
 
+const (
+	VegaBinName     = "vega"
+	WalletBinName   = "vegawallet"
+	DataNodeBinName = "data-node"
+)
+
 type Config struct {
 	OutputDir            *string       `hcl:"-"`
 	VegaBinary           *string       `hcl:"vega_binary_path"`
@@ -219,6 +225,29 @@ func (c *Config) setAbsolutePaths() error {
 	}
 
 	return nil
+}
+
+func (c *Config) SetBinaryPaths(binsPaths map[string]string) {
+	// Vega binary
+	if binName, ok := binsPaths[VegaBinName]; ok {
+		*c.VegaBinary = binName
+	}
+
+	// Wallet binary
+	if binName, ok := binsPaths[WalletBinName]; c.Network.Wallet != nil && ok {
+		c.Network.Wallet.Binary = binName
+	}
+
+	// Data nodes binaries
+	if binName, ok := binsPaths[DataNodeBinName]; c.Network.Wallet != nil && ok {
+		for idx, nc := range c.Network.Nodes {
+			if nc.DataNodeBinary == "" {
+				continue
+			}
+
+			c.Network.Nodes[idx].DataNodeBinary = binName
+		}
+	}
 }
 
 func (c *Config) Validate(configDir string) error {
@@ -480,6 +509,10 @@ func (c *Config) Persist() error {
 
 func (c Config) LogsDir() string {
 	return path.Join(*c.OutputDir, "logs")
+}
+
+func (c Config) BinariesDir() string {
+	return path.Join(*c.OutputDir, "bins")
 }
 
 func DefaultConfig() (*Config, error) {

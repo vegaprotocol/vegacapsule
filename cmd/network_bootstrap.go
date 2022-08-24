@@ -5,9 +5,12 @@ import (
 	"fmt"
 
 	"code.vegaprotocol.io/vegacapsule/config"
+	"code.vegaprotocol.io/vegacapsule/installer"
 	"code.vegaprotocol.io/vegacapsule/state"
 	"github.com/spf13/cobra"
 )
+
+var installBinaries bool
 
 var netBootstrapCmd = &cobra.Command{
 	Use:   "bootstrap",
@@ -24,6 +27,24 @@ var netBootstrapCmd = &cobra.Command{
 		}
 
 		conf.OutputDir = &homePath
+
+		var releaseTag string
+		if installReleaseTag != "" {
+			releaseTag = installReleaseTag
+		} else if installBinaries {
+			releaseTag = latestReleaseTag
+		}
+
+		if releaseTag != "" {
+			inst := installer.New(conf.BinariesDir(), installPath)
+
+			installedBinsPaths, err := inst.Install(cmd.Context(), releaseTag, assetsToInstall)
+			if err != nil {
+				return fmt.Errorf("failed to install dependencies: %w", err)
+			}
+
+			conf.SetBinaryPaths(installedBinsPaths)
+		}
 
 		netState.Config = conf
 
@@ -50,6 +71,16 @@ func init() {
 		"force",
 		false,
 		"Force creating even if folders exists",
+	)
+	netBootstrapCmd.PersistentFlags().BoolVar(&installBinaries,
+		"install",
+		false,
+		"Automatically installs latest version of vega, data-node and wallet binaries.",
+	)
+	netBootstrapCmd.PersistentFlags().StringVar(&installReleaseTag,
+		"install-release-tag",
+		"",
+		"Automatically installs specific release tag version of vega, data-node and wallet binaries.",
 	)
 	netBootstrapCmd.PersistentFlags().StringVar(&configFilePath,
 		"config-path",

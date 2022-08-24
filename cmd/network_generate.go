@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/generator"
@@ -66,8 +67,8 @@ func netGenerate(state state.NetworkState, force bool) (*state.NetworkState, err
 		return nil, fmt.Errorf("failed to generate network: network is already generated")
 	}
 
-	if netDirExists, _ := utils.FileExists(*state.Config.OutputDir); netDirExists {
-		return nil, fmt.Errorf("output directory %q already exist", *state.Config.OutputDir)
+	if netDirEmpty, _ := utils.DirEmpty(*state.Config.OutputDir, filepath.Base(state.Config.BinariesDir())); !netDirEmpty {
+		return nil, fmt.Errorf("output directory %q already exists and it's not empty", *state.Config.OutputDir)
 	}
 
 	log.Println("generating network")
