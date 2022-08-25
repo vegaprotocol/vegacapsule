@@ -13,6 +13,10 @@ import (
 	"github.com/hashicorp/nomad/api"
 )
 
+var defaultLogConfig = &api.LogConfig{
+	MaxFileSizeMB: utils.ToPoint(500), // 500 Mb
+}
+
 func (r *JobRunner) defaultLogCollectorTask(jobName string) *api.Task {
 	return &api.Task{
 		Name:   "logger",
@@ -24,6 +28,7 @@ func (r *JobRunner) defaultLogCollectorTask(jobName string) *api.Task {
 				"--out-dir", path.Join(r.logsOutputDir, jobName),
 			},
 		},
+		LogConfig: defaultLogConfig,
 		Resources: &api.Resources{
 			CPU:      utils.ToPoint(500),
 			MemoryMB: utils.ToPoint(512),
@@ -47,6 +52,7 @@ func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
 					"--nodewallet-passphrase-file", ns.Vega.NodeWalletPassFilePath,
 				},
 			},
+			LogConfig: defaultLogConfig,
 			Resources: &api.Resources{
 				CPU:      utils.ToPoint(500),
 				MemoryMB: utils.ToPoint(512),
@@ -66,6 +72,7 @@ func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
 					"--home", ns.DataNode.HomeDir,
 				},
 			},
+			LogConfig: defaultLogConfig,
 			Resources: &api.Resources{
 				CPU:      utils.ToPoint(500),
 				MemoryMB: utils.ToPoint(512),
@@ -118,6 +125,7 @@ func (r *JobRunner) defaultWalletJob(conf *config.WalletConfig, wallet *types.Wa
 								"--home", wallet.HomeDir,
 							},
 						},
+						LogConfig: defaultLogConfig,
 						Resources: &api.Resources{
 							CPU:      utils.ToPoint(500),
 							MemoryMB: utils.ToPoint(512),
@@ -155,6 +163,7 @@ func (r *JobRunner) defaultFaucetJob(binary string, conf *config.FaucetConfig, f
 								"--home", fc.HomeDir,
 							},
 						},
+						LogConfig: defaultLogConfig,
 						Resources: &api.Resources{
 							CPU:      utils.ToPoint(500),
 							MemoryMB: utils.ToPoint(512),
@@ -206,7 +215,8 @@ func (r *JobRunner) defaultDockerJob(ctx context.Context, conf config.DockerConf
 							"ports":          portLabels,
 							"auth_soft_fail": conf.AuthSoftFail,
 						},
-						Env: conf.Env,
+						Env:       conf.Env,
+						LogConfig: defaultLogConfig,
 						Resources: &api.Resources{
 							CPU:      utils.ToPoint(500),
 							MemoryMB: utils.ToPoint(768),
