@@ -91,7 +91,7 @@ func (lc LogsCollector) collectLogs(ctx context.Context, logFilePath string) err
 	go func() {
 		<-ctx.Done()
 		if err := t.StopAtEOF(); err != nil {
-			t.Stop()
+			t.Stop() //nolint
 		}
 
 		time.Sleep(time.Second * 5)
