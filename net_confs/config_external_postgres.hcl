@@ -54,13 +54,13 @@ EOT
       auth_soft_fail = true
     }
     docker_service "postgres-1" {
-      image = "timescale/timescaledb:2.7.1-pg14"
+      image = "vegaprotocol/timescaledb:2.7.1-pg14"
       cmd = "postgres"
       args = []
       env = {
         POSTGRES_USER="vega"
         POSTGRES_PASSWORD="vega"
-        POSTGRES_DB="vega"
+        POSTGRES_DBS="vega0,vega1,vega2,vega3,vega4,vega5,vega6"
       }
       static_port {
         value = 5232

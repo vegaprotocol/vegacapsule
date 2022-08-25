@@ -152,8 +152,8 @@ func (g *Generator) Generate() (genSvc *types.GeneratedServices, err error) {
 	return types.NewGeneratedServices(wl, fc, append(ns.validators, ns.nonValidators...)), nil
 }
 
-func (g *Generator) AddNodeSet(index int, nc config.NodeConfig, ns types.NodeSet, fc *types.Faucet) (*types.NodeSet, error) {
-	preGenJobs, err := g.startPreGenerateJobs(nc, index)
+func (g *Generator) AddNodeSet(absoluteIndex, relativeIndex, groupIndex int, nc config.NodeConfig, ns types.NodeSet, fc *types.Faucet) (*types.NodeSet, error) {
+	preGenJobs, err := g.startPreGenerateJobs(nc, absoluteIndex)
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +172,7 @@ func (g *Generator) AddNodeSet(index int, nc config.NodeConfig, ns types.NodeSet
 		return nil, fmt.Errorf("failed to clode node config for %q: %w", nc.Name, err)
 	}
 
-	initNodeSet, err := g.initiateNodeSet(index, *cnc)
+	initNodeSet, err := g.initiateNodeSet(absoluteIndex, relativeIndex, groupIndex, *cnc)
 	if err != nil {
 		return nil, err
 	}

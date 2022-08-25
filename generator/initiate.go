@@ -11,19 +11,19 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-func (g *Generator) initiateNodeSet(index int, nc config.NodeConfig) (*types.NodeSet, error) {
-	n, err := templateNodeConfig(index, nc)
+func (g *Generator) initiateNodeSet(absoluteIndex, relativeIndex, groupIndex int, nc config.NodeConfig) (*types.NodeSet, error) {
+	n, err := templateNodeConfig(absoluteIndex, nc)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute node config templates for %s: %w", nc.Name, err)
 	}
 
-	initTNode, err := g.tendermintGen.Initiate(index, n.Mode, n.Name)
+	initTNode, err := g.tendermintGen.Initiate(absoluteIndex, n.Mode, n.Name)
 	if err != nil {
-		return nil, fmt.Errorf("failed to initiate Tendermit node id %d for node set %s: %w", index, n.Name, err)
+		return nil, fmt.Errorf("failed to initiate Tendermit node id %d for node set %s: %w", absoluteIndex, n.Name, err)
 	}
 
 	initVNode, err := g.vegaGen.Initiate(
-		index,
+		absoluteIndex,
 		n.Mode,
 		initTNode.HomeDir,
 		n.NodeWalletPass,
@@ -32,28 +32,30 @@ func (g *Generator) initiateNodeSet(index int, nc config.NodeConfig) (*types.Nod
 		n.ClefWallet,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to initiate Vega node id %d for node set %s: %w", index, n.Name, err)
+		return nil, fmt.Errorf("failed to initiate Vega node id %d for node set %s: %w", absoluteIndex, n.Name, err)
 	}
 
 	var initDNode *types.DataNode
 	// if data node binary is defined it is assumed that data-node should be deployed
 	if n.DataNodeBinary != "" {
-		node, err := g.dataNodeGen.Initiate(index, n.DataNodeBinary)
+		node, err := g.dataNodeGen.Initiate(absoluteIndex, n.DataNodeBinary)
 		if err != nil {
-			return nil, fmt.Errorf("failed to initiate Data node id %d for node set %s: %w", index, n.Name, err)
+			return nil, fmt.Errorf("failed to initiate Data node id %d for node set %s: %w", absoluteIndex, n.Name, err)
 		}
 
 		initDNode = node
 	}
 
 	nodeSet := &types.NodeSet{
-		GroupName:  n.Name,
-		Index:      index,
-		Name:       fmt.Sprintf("%s-nodeset-%s-%d-%s", g.conf.Network.Name, n.Name, index, n.Mode),
-		Mode:       n.Mode,
-		Vega:       *initVNode,
-		Tendermint: *initTNode,
-		DataNode:   initDNode,
+		GroupName:     n.Name,
+		Index:         absoluteIndex,
+		RelativeIndex: relativeIndex,
+		GroupIndex:    groupIndex,
+		Name:          fmt.Sprintf("%s-nodeset-%s-%d-%s", g.conf.Network.Name, n.Name, absoluteIndex, n.Mode),
+		Mode:          n.Mode,
+		Vega:          *initVNode,
+		Tendermint:    *initTNode,
+		DataNode:      initDNode,
 	}
 
 	if n.NomadJobTemplate != nil {
@@ -75,22 +77,24 @@ func (g *Generator) initiateNodeSets() (*nodeSets, error) {
 	nonValidatorsSet := []types.NodeSet{}
 
 	var eg errgroup.Group
-	var index int
-	for _, n := range g.conf.Network.Nodes {
-		for i := 0; i < n.Count; i++ {
+	var absIndex int
+	for groupIndex, n := range g.conf.Network.Nodes {
+		for relativeIndex := 0; relativeIndex < n.Count; relativeIndex++ {
 			nc, err := n.Clone()
 			if err != nil {
 				return nil, fmt.Errorf("failed to clode node config for %q: %w", n.Name, err)
 			}
-			indexc := index
+			absIndexC := absIndex
+			groupIndexC := groupIndex
+			relativeIndexC := relativeIndex
 
 			eg.Go(func() error {
-				preGenJobs, err := g.startPreGenerateJobs(*nc, indexc)
+				preGenJobs, err := g.startPreGenerateJobs(*nc, absIndexC)
 				if err != nil {
 					return err
 				}
 
-				nodeSet, err := g.initiateNodeSet(indexc, *nc)
+				nodeSet, err := g.initiateNodeSet(absIndexC, relativeIndexC, groupIndexC, *nc)
 				if err != nil {
 					return err
 				}
@@ -108,7 +112,7 @@ func (g *Generator) initiateNodeSets() (*nodeSets, error) {
 				return nil
 			})
 
-			index++
+			absIndex++
 		}
 	}
 

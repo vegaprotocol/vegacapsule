@@ -53,6 +53,21 @@ EOT
       }
       auth_soft_fail = true
     }
+    docker_service "postgres-1" {
+      image = "vegaprotocol/timescaledb:2.7.1-pg14"
+      cmd = "postgres"
+      args = []
+      env = {
+        POSTGRES_USER="vega"
+        POSTGRES_PASSWORD="vega"
+        POSTGRES_DBS="vega0,vega1,vega2,vega3,vega4,vega5,vega6"
+      }
+      static_port {
+        value = 5232
+        to = 5432
+      }
+      auth_soft_fail = true
+    }
   }
 
   post_start {
@@ -140,7 +155,7 @@ EOT
     config_templates {
       vega_file = "./node_set_templates/default/vega_full.tmpl"
       tendermint_file = "./node_set_templates/default/tendermint_full.tmpl"
-      data_node_file = "./node_set_templates/default/data_node_full.tmpl"
+      data_node_file = "./node_set_templates/default/data_node_full_external_postgres.tmpl"
     }
   }
 }

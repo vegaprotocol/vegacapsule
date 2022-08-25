@@ -47,10 +47,15 @@ type NomadJob struct {
 }
 
 type NodeSet struct {
-	GroupName       string
-	Name            string
-	Mode            string
-	Index           int
+	GroupName string
+	Name      string
+	Mode      string
+	// Index is a node set counter over all created node sets.
+	Index int
+	// RelativeIndex is a counter relative to current node set group. Related to GroupName.
+	RelativeIndex int
+	// GroupIndex is a index of the group where this node set belongs to. Related to GroupName.
+	GroupIndex      int
 	Vega            VegaNode
 	Tendermint      TendermintNode
 	DataNode        *DataNode
