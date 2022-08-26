@@ -1,0 +1,44 @@
+package nomad
+
+import (
+	"errors"
+	"fmt"
+)
+
+type ConnectionError struct {
+	Err error
+}
+
+func (ce *ConnectionError) Error() string {
+	return fmt.Sprintf("failed to connect to nomad: %s", ce.Err.Error())
+}
+
+func newConnectionErr(err error) *ConnectionError {
+	return &ConnectionError{
+		Err: err,
+	}
+}
+
+func IsConnectionErr(err error) bool {
+	var cerr *ConnectionError
+	return errors.As(err, &cerr)
+}
+
+type JobTimeoutError struct {
+	JobID string
+}
+
+func (ce *JobTimeoutError) Error() string {
+	return fmt.Sprintf("failed to run %s job: starting deadline has been exceeded", ce.JobID)
+}
+
+func newTimeoutErr(jobID string) *JobTimeoutError {
+	return &JobTimeoutError{
+		JobID: jobID,
+	}
+}
+
+func IsTimeoutErr(err error) bool {
+	var cerr *JobTimeoutError
+	return errors.As(err, &cerr)
+}

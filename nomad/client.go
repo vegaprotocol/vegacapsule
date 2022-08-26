@@ -2,32 +2,12 @@ package nomad
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/hashicorp/nomad/api"
 )
-
-type ConnectionError struct {
-	Err error
-}
-
-func (ce *ConnectionError) Error() string {
-	return fmt.Sprintf("failed to connect to nomad: %s", ce.Err.Error())
-}
-
-func newConnectionErr(err error) *ConnectionError {
-	return &ConnectionError{
-		Err: err,
-	}
-}
-
-func IsConnectionErr(err error) bool {
-	var cerr *ConnectionError
-	return errors.As(err, &cerr)
-}
 
 const (
 	DeploymentStatusRunning  = "running"
@@ -93,7 +73,7 @@ func (n *Client) waitForDeployment(ctx context.Context, jobID string) error {
 			}
 
 			if timedOut {
-				return fmt.Errorf("failed to run %s job: starting deadline has been exceeded", jobID)
+				return newTimeoutErr(jobID)
 			}
 
 			for _, dep := range deployments {
