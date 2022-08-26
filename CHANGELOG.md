@@ -33,6 +33,7 @@
 - [188](https://github.com/vegaprotocol/vegacapsule/issues/188) Support new changes for Ethereum RPC endpoint in Vega configuration
 - [209](https://github.com/vegaprotocol/vegacapsule/pull/209) Save tendermint template after merge to given file
 - [236](https://github.com/vegaprotocol/vegacapsule/pull/236) Improve detection for Nomad pending jobs
+- [245](https://github.com/vegaprotocol/vegacapsule/pull/245) Disable Nomad pending allocations/tasks restarts
 
 
 
