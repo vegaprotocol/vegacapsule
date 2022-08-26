@@ -13,15 +13,26 @@ import (
 	"github.com/hashicorp/nomad/api"
 )
 
-var defaultResourcesConfig = &api.Resources{
-	CPU:      utils.ToPoint(500),
-	MemoryMB: utils.ToPoint(512),
-	DiskMB:   utils.ToPoint(550),
-}
-
-var defaultLogConfig = &api.LogConfig{
-	MaxFileSizeMB: utils.ToPoint(50), // 500 Mb
-}
+var (
+	defaultLogConfig = &api.LogConfig{
+		MaxFileSizeMB: utils.ToPoint(50), // 500 Mb
+	}
+	defaultResourcesConfig = &api.Resources{
+		CPU:      utils.ToPoint(500),
+		MemoryMB: utils.ToPoint(512),
+		DiskMB:   utils.ToPoint(550),
+	}
+	defaultRestartPolicy = &api.RestartPolicy{
+		Attempts: utils.ToPoint(0),
+		Interval: utils.ToPoint(time.Second * 5),
+		Delay:    utils.ToPoint(time.Second * 1),
+		Mode:     utils.ToPoint("fail"),
+	}
+	defaultReschedulePolicy = &api.ReschedulePolicy{
+		Attempts:  utils.ToPoint(0),
+		Unlimited: utils.ToPoint(false),
+	}
+)
 
 func (r *JobRunner) defaultLogCollectorTask(jobName string) *api.Task {
 	return &api.Task{
@@ -85,13 +96,10 @@ func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
 				EphemeralDisk: &api.EphemeralDisk{
 					SizeMB: utils.ToPoint(550),
 				},
-				RestartPolicy: &api.RestartPolicy{
-					Attempts: utils.ToPoint(0),
-					Interval: utils.ToPoint(time.Second * 5),
-					Mode:     utils.ToPoint("fail"),
-				},
-				Name:  utils.ToPoint("vega"),
-				Tasks: tasks,
+				Name:             utils.ToPoint("vega"),
+				RestartPolicy:    defaultRestartPolicy,
+				ReschedulePolicy: defaultReschedulePolicy,
+				Tasks:            tasks,
 			},
 		},
 	}
@@ -106,11 +114,9 @@ func (r *JobRunner) defaultWalletJob(conf *config.WalletConfig, wallet *types.Wa
 				EphemeralDisk: &api.EphemeralDisk{
 					SizeMB: utils.ToPoint(550),
 				},
-				RestartPolicy: &api.RestartPolicy{
-					Attempts: utils.ToPoint(0),
-					Mode:     utils.ToPoint("fail"),
-				},
-				Name: utils.ToPoint("vega"),
+				Name:             utils.ToPoint("vega"),
+				RestartPolicy:    defaultRestartPolicy,
+				ReschedulePolicy: defaultReschedulePolicy,
 				Tasks: []*api.Task{
 					{
 						Name:   "wallet-1",
@@ -147,11 +153,9 @@ func (r *JobRunner) defaultFaucetJob(binary string, conf *config.FaucetConfig, f
 				EphemeralDisk: &api.EphemeralDisk{
 					SizeMB: utils.ToPoint(550),
 				},
-				RestartPolicy: &api.RestartPolicy{
-					Attempts: utils.ToPoint(0),
-					Mode:     utils.ToPoint("fail"),
-				},
-				Name: &conf.Name,
+				Name:             &conf.Name,
+				RestartPolicy:    defaultRestartPolicy,
+				ReschedulePolicy: defaultReschedulePolicy,
 				Tasks: []*api.Task{
 					{
 						Name:   conf.Name,
@@ -196,16 +200,14 @@ func (r *JobRunner) defaultDockerJob(ctx context.Context, conf config.DockerConf
 				EphemeralDisk: &api.EphemeralDisk{
 					SizeMB: utils.ToPoint(550),
 				},
+				Name:             &conf.Name,
+				RestartPolicy:    defaultRestartPolicy,
+				ReschedulePolicy: defaultReschedulePolicy,
 				Networks: []*api.NetworkResource{
 					{
 						ReservedPorts: ports,
 					},
 				},
-				RestartPolicy: &api.RestartPolicy{
-					Attempts: utils.ToPoint(0),
-					Mode:     utils.ToPoint("fail"),
-				},
-				Name: &conf.Name,
 				Tasks: []*api.Task{
 					{
 						Name:   conf.Name,
