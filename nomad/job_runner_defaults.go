@@ -20,7 +20,7 @@ var defaultResourcesConfig = &api.Resources{
 }
 
 var defaultLogConfig = &api.LogConfig{
-	MaxFileSizeMB: utils.ToPoint(500), // 500 Mb
+	MaxFileSizeMB: utils.ToPoint(50), // 500 Mb
 }
 
 func (r *JobRunner) defaultLogCollectorTask(jobName string) *api.Task {
@@ -82,6 +82,9 @@ func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
 		Datacenters: []string{"dc1"},
 		TaskGroups: []*api.TaskGroup{
 			{
+				EphemeralDisk: &api.EphemeralDisk{
+					SizeMB: utils.ToPoint(550),
+				},
 				RestartPolicy: &api.RestartPolicy{
 					Attempts: utils.ToPoint(0),
 					Interval: utils.ToPoint(time.Second * 5),
@@ -100,6 +103,9 @@ func (r *JobRunner) defaultWalletJob(conf *config.WalletConfig, wallet *types.Wa
 		Datacenters: []string{"dc1"},
 		TaskGroups: []*api.TaskGroup{
 			{
+				EphemeralDisk: &api.EphemeralDisk{
+					SizeMB: utils.ToPoint(550),
+				},
 				RestartPolicy: &api.RestartPolicy{
 					Attempts: utils.ToPoint(0),
 					Mode:     utils.ToPoint("fail"),
@@ -138,6 +144,9 @@ func (r *JobRunner) defaultFaucetJob(binary string, conf *config.FaucetConfig, f
 		Datacenters: []string{"dc1"},
 		TaskGroups: []*api.TaskGroup{
 			{
+				EphemeralDisk: &api.EphemeralDisk{
+					SizeMB: utils.ToPoint(550),
+				},
 				RestartPolicy: &api.RestartPolicy{
 					Attempts: utils.ToPoint(0),
 					Mode:     utils.ToPoint("fail"),
@@ -184,6 +193,9 @@ func (r *JobRunner) defaultDockerJob(ctx context.Context, conf config.DockerConf
 		Datacenters: []string{"dc1"},
 		TaskGroups: []*api.TaskGroup{
 			{
+				EphemeralDisk: &api.EphemeralDisk{
+					SizeMB: utils.ToPoint(550),
+				},
 				Networks: []*api.NetworkResource{
 					{
 						ReservedPorts: ports,
