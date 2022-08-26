@@ -13,6 +13,12 @@ import (
 	"github.com/hashicorp/nomad/api"
 )
 
+var defaultResourcesConfig = &api.Resources{
+	CPU:      utils.ToPoint(500),
+	MemoryMB: utils.ToPoint(512),
+	DiskMB:   utils.ToPoint(550),
+}
+
 var defaultLogConfig = &api.LogConfig{
 	MaxFileSizeMB: utils.ToPoint(500), // 500 Mb
 }
@@ -29,10 +35,7 @@ func (r *JobRunner) defaultLogCollectorTask(jobName string) *api.Task {
 			},
 		},
 		LogConfig: defaultLogConfig,
-		Resources: &api.Resources{
-			CPU:      utils.ToPoint(500),
-			MemoryMB: utils.ToPoint(512),
-		},
+		Resources: defaultResourcesConfig,
 	}
 }
 
@@ -53,10 +56,7 @@ func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
 				},
 			},
 			LogConfig: defaultLogConfig,
-			Resources: &api.Resources{
-				CPU:      utils.ToPoint(500),
-				MemoryMB: utils.ToPoint(512),
-			},
+			Resources: defaultResourcesConfig,
 		},
 		r.defaultLogCollectorTask(ns.Name),
 	)
@@ -73,10 +73,7 @@ func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
 				},
 			},
 			LogConfig: defaultLogConfig,
-			Resources: &api.Resources{
-				CPU:      utils.ToPoint(500),
-				MemoryMB: utils.ToPoint(512),
-			},
+			Resources: defaultResourcesConfig,
 		})
 	}
 
@@ -126,10 +123,7 @@ func (r *JobRunner) defaultWalletJob(conf *config.WalletConfig, wallet *types.Wa
 							},
 						},
 						LogConfig: defaultLogConfig,
-						Resources: &api.Resources{
-							CPU:      utils.ToPoint(500),
-							MemoryMB: utils.ToPoint(512),
-						},
+						Resources: defaultResourcesConfig,
 					},
 					r.defaultLogCollectorTask(wallet.Name),
 				},
@@ -164,10 +158,7 @@ func (r *JobRunner) defaultFaucetJob(binary string, conf *config.FaucetConfig, f
 							},
 						},
 						LogConfig: defaultLogConfig,
-						Resources: &api.Resources{
-							CPU:      utils.ToPoint(500),
-							MemoryMB: utils.ToPoint(512),
-						},
+						Resources: defaultResourcesConfig,
 					},
 					r.defaultLogCollectorTask(fc.Name),
 				},
