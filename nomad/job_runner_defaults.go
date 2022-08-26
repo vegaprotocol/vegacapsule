@@ -13,6 +13,16 @@ import (
 	"github.com/hashicorp/nomad/api"
 )
 
+var defaultResourcesConfig = &api.Resources{
+	CPU:      utils.ToPoint(500),
+	MemoryMB: utils.ToPoint(512),
+	DiskMB:   utils.ToPoint(550),
+}
+
+var defaultLogConfig = &api.LogConfig{
+	MaxFileSizeMB: utils.ToPoint(50), // 500 Mb
+}
+
 func (r *JobRunner) defaultLogCollectorTask(jobName string) *api.Task {
 	return &api.Task{
 		Name:   "logger",
@@ -24,10 +34,8 @@ func (r *JobRunner) defaultLogCollectorTask(jobName string) *api.Task {
 				"--out-dir", path.Join(r.logsOutputDir, jobName),
 			},
 		},
-		Resources: &api.Resources{
-			CPU:      utils.ToPoint(500),
-			MemoryMB: utils.ToPoint(512),
-		},
+		LogConfig: defaultLogConfig,
+		Resources: defaultResourcesConfig,
 	}
 }
 
@@ -47,10 +55,8 @@ func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
 					"--nodewallet-passphrase-file", ns.Vega.NodeWalletPassFilePath,
 				},
 			},
-			Resources: &api.Resources{
-				CPU:      utils.ToPoint(500),
-				MemoryMB: utils.ToPoint(512),
-			},
+			LogConfig: defaultLogConfig,
+			Resources: defaultResourcesConfig,
 		},
 		r.defaultLogCollectorTask(ns.Name),
 	)
@@ -66,10 +72,8 @@ func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
 					"--home", ns.DataNode.HomeDir,
 				},
 			},
-			Resources: &api.Resources{
-				CPU:      utils.ToPoint(500),
-				MemoryMB: utils.ToPoint(512),
-			},
+			LogConfig: defaultLogConfig,
+			Resources: defaultResourcesConfig,
 		})
 	}
 
@@ -78,6 +82,9 @@ func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
 		Datacenters: []string{"dc1"},
 		TaskGroups: []*api.TaskGroup{
 			{
+				EphemeralDisk: &api.EphemeralDisk{
+					SizeMB: utils.ToPoint(550),
+				},
 				RestartPolicy: &api.RestartPolicy{
 					Attempts: utils.ToPoint(0),
 					Interval: utils.ToPoint(time.Second * 5),
@@ -96,6 +103,9 @@ func (r *JobRunner) defaultWalletJob(conf *config.WalletConfig, wallet *types.Wa
 		Datacenters: []string{"dc1"},
 		TaskGroups: []*api.TaskGroup{
 			{
+				EphemeralDisk: &api.EphemeralDisk{
+					SizeMB: utils.ToPoint(550),
+				},
 				RestartPolicy: &api.RestartPolicy{
 					Attempts: utils.ToPoint(0),
 					Mode:     utils.ToPoint("fail"),
@@ -118,10 +128,8 @@ func (r *JobRunner) defaultWalletJob(conf *config.WalletConfig, wallet *types.Wa
 								"--home", wallet.HomeDir,
 							},
 						},
-						Resources: &api.Resources{
-							CPU:      utils.ToPoint(500),
-							MemoryMB: utils.ToPoint(512),
-						},
+						LogConfig: defaultLogConfig,
+						Resources: defaultResourcesConfig,
 					},
 					r.defaultLogCollectorTask(wallet.Name),
 				},
@@ -136,6 +144,9 @@ func (r *JobRunner) defaultFaucetJob(binary string, conf *config.FaucetConfig, f
 		Datacenters: []string{"dc1"},
 		TaskGroups: []*api.TaskGroup{
 			{
+				EphemeralDisk: &api.EphemeralDisk{
+					SizeMB: utils.ToPoint(550),
+				},
 				RestartPolicy: &api.RestartPolicy{
 					Attempts: utils.ToPoint(0),
 					Mode:     utils.ToPoint("fail"),
@@ -155,10 +166,8 @@ func (r *JobRunner) defaultFaucetJob(binary string, conf *config.FaucetConfig, f
 								"--home", fc.HomeDir,
 							},
 						},
-						Resources: &api.Resources{
-							CPU:      utils.ToPoint(500),
-							MemoryMB: utils.ToPoint(512),
-						},
+						LogConfig: defaultLogConfig,
+						Resources: defaultResourcesConfig,
 					},
 					r.defaultLogCollectorTask(fc.Name),
 				},
@@ -184,6 +193,9 @@ func (r *JobRunner) defaultDockerJob(ctx context.Context, conf config.DockerConf
 		Datacenters: []string{"dc1"},
 		TaskGroups: []*api.TaskGroup{
 			{
+				EphemeralDisk: &api.EphemeralDisk{
+					SizeMB: utils.ToPoint(550),
+				},
 				Networks: []*api.NetworkResource{
 					{
 						ReservedPorts: ports,
@@ -206,7 +218,8 @@ func (r *JobRunner) defaultDockerJob(ctx context.Context, conf config.DockerConf
 							"ports":          portLabels,
 							"auth_soft_fail": conf.AuthSoftFail,
 						},
-						Env: conf.Env,
+						Env:       conf.Env,
+						LogConfig: defaultLogConfig,
 						Resources: &api.Resources{
 							CPU:      utils.ToPoint(500),
 							MemoryMB: utils.ToPoint(768),
