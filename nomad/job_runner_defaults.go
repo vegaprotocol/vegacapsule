@@ -13,6 +13,8 @@ import (
 	"github.com/hashicorp/nomad/api"
 )
 
+const hasLogsCollector = "logs-collector"
+
 var (
 	defaultLogConfig = &api.LogConfig{
 		MaxFileSizeMB: utils.ToPoint(50), // 500 Mb
@@ -147,6 +149,7 @@ func (r *JobRunner) defaultNodeSetTasks(ns types.NodeSet) []*api.Task {
 func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
 	return &api.Job{
 		ID:          utils.ToPoint(ns.Name),
+		Meta:        map[string]string{hasLogsCollector: "true"},
 		Datacenters: []string{"dc1"},
 		TaskGroups: []*api.TaskGroup{
 			{
@@ -165,6 +168,7 @@ func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
 func (r *JobRunner) defaultWalletJob(conf *config.WalletConfig, wallet *types.Wallet) *api.Job {
 	return &api.Job{
 		ID:          &wallet.Name,
+		Meta:        map[string]string{hasLogsCollector: "true"},
 		Datacenters: []string{"dc1"},
 		TaskGroups: []*api.TaskGroup{
 			{
@@ -204,6 +208,7 @@ func (r *JobRunner) defaultWalletJob(conf *config.WalletConfig, wallet *types.Wa
 func (r *JobRunner) defaultFaucetJob(binary string, conf *config.FaucetConfig, fc *types.Faucet) *api.Job {
 	return &api.Job{
 		ID:          &fc.Name,
+		Meta:        map[string]string{hasLogsCollector: "true"},
 		Datacenters: []string{"dc1"},
 		TaskGroups: []*api.TaskGroup{
 			{
@@ -250,6 +255,7 @@ func (r *JobRunner) defaultDockerJob(ctx context.Context, conf config.DockerConf
 	}
 
 	return &api.Job{
+		Meta:        map[string]string{hasLogsCollector: "true"},
 		ID:          &conf.Name,
 		Datacenters: []string{"dc1"},
 		TaskGroups: []*api.TaskGroup{

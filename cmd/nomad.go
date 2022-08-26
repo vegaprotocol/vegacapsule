@@ -37,12 +37,12 @@ var nomadCmd = &cobra.Command{
 }
 
 func init() {
-	nomadCmd.PersistentFlags().StringVar(&nomadConfigPath,
+	nomadCmd.Flags().StringVar(&nomadConfigPath,
 		"nomad-config-path",
 		"",
 		"Allows to use Nomad configuration",
 	)
-	nomadCmd.PersistentFlags().StringVar(&installPath,
+	nomadCmd.Flags().StringVar(&installPath,
 		"install-path",
 		"",
 		"Install path for the Nomad binary. Uses GOBIN environment variable by default.",

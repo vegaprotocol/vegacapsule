@@ -8,6 +8,7 @@ import (
 
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/types"
+	"code.vegaprotocol.io/vegacapsule/utils"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/hashicorp/nomad/api"
@@ -70,6 +71,31 @@ func (r *JobRunner) RunRawNomadJobs(ctx context.Context, rawJobs []string) ([]ty
 
 }
 
+func (r *JobRunner) runAndWait(ctx context.Context, job *api.Job) error {
+	err := r.Client.RunAndWait(ctx, job)
+	if err == nil {
+		return nil
+	}
+
+	if IsJobTimeoutErr(err) {
+		_, ok := job.Meta[hasLogsCollector]
+		if ok {
+			args := []string{
+				"nomad", "logscollector", "tail",
+				"--out-dir", r.logsOutputDir,
+				"--job-id", *job.ID,
+			}
+			logs, err := utils.ExecuteBinary(r.capsuleBinary, args, nil)
+			if err != nil {
+				return fmt.Errorf("failed to print logs: %w", err)
+			}
+			fmt.Println(string(logs))
+		}
+	}
+
+	return err
+}
+
 func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) ([]*api.Job, error) {
 	jobs := make([]*api.Job, 0, len(nodeSets))
 
@@ -102,7 +128,7 @@ func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) (
 		j := j
 
 		eg.Go(func() error {
-			return r.Client.RunAndWait(ctx, j)
+			return r.runAndWait(ctx, j)
 		})
 	}
 
@@ -125,7 +151,7 @@ func (r *JobRunner) runDockerJobs(ctx context.Context, dockerConfigs []config.Do
 		g.Go(func() error {
 			job := r.defaultDockerJob(ctx, dc)
 
-			if err := r.Client.RunAndWait(ctx, job); err != nil {
+			if err := r.runAndWait(ctx, job); err != nil {
 				return fmt.Errorf("failed to run pre start job %q: %w", *job.ID, err)
 			}
 
@@ -192,7 +218,8 @@ func (r *JobRunner) startNetwork(
 	if generatedSvcs.Faucet != nil {
 		g.Go(func() error {
 			job := r.defaultFaucetJob(*conf.VegaBinary, conf.Network.Faucet, generatedSvcs.Faucet)
-			if err := r.Client.RunAndWait(ctx, job); err != nil {
+
+			if err := r.runAndWait(ctx, job); err != nil {
 				return fmt.Errorf("failed to run the faucet job %q: %w", *job.ID, err)
 			}
 
@@ -207,7 +234,8 @@ func (r *JobRunner) startNetwork(
 	if generatedSvcs.Wallet != nil {
 		g.Go(func() error {
 			job := r.defaultWalletJob(conf.Network.Wallet, generatedSvcs.Wallet)
-			if err := r.Client.RunAndWait(ctx, job); err != nil {
+
+			if err := r.runAndWait(ctx, job); err != nil {
 				return fmt.Errorf("failed to run the wallet job %q: %w", *job.ID, err)
 			}
 

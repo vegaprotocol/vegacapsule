@@ -68,12 +68,12 @@ func (n *Client) waitForDeployment(ctx context.Context, jobID string) error {
 			}
 
 			timedOut, err := n.jobTimedOut(ctx, ticker, jobID)
-			if err != nil {
-				return fmt.Errorf("failed to tell of job timed out: %w", err)
+			if !timedOut && err != nil {
+				return fmt.Errorf("failed to tell if job timed out: %w", err)
 			}
 
 			if timedOut {
-				return newTimeoutErr(jobID)
+				return newJobTimeoutErr(jobID)
 			}
 
 			for _, dep := range deployments {
