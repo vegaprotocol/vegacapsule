@@ -31,7 +31,6 @@ func createIsolatedVegaWallet(nodeSet types.NodeSet, recoveryPhraseFilePath stri
 	args := []string{
 		"wallet", "import",
 		"--home", nodeSet.Vega.HomeDir,
-		"--no-version-check",
 		"--output", "json",
 		"--recovery-phrase-file", recoveryPhraseFilePath,
 		"--passphrase-file", nodeSet.Vega.NodeWalletInfo.VegaWalletPassFilePath,
