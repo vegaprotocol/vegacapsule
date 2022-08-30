@@ -28,17 +28,12 @@ var netBootstrapCmd = &cobra.Command{
 
 		conf.OutputDir = &homePath
 
-		var releaseTag string
-		if installReleaseTag != "" {
-			releaseTag = installReleaseTag
-		} else if installBinaries {
-			releaseTag = latestReleaseTag
-		}
+		releaseTag := getReleaseTag()
 
 		if releaseTag != "" {
 			inst := installer.New(conf.BinariesDir(), installPath)
 
-			installedBinsPaths, err := inst.Install(cmd.Context(), releaseTag, assetsToInstall)
+			installedBinsPaths, err := inst.Install(cmd.Context(), releaseTag)
 			if err != nil {
 				return fmt.Errorf("failed to install dependencies: %w", err)
 			}
@@ -80,7 +75,7 @@ func init() {
 	netBootstrapCmd.PersistentFlags().StringVar(&installReleaseTag,
 		"install-release-tag",
 		"",
-		"Automatically installs specific release tag version of vega, data-node and wallet binaries.",
+		"Installs specific release tag version of vega, data-node and wallet binaries.",
 	)
 	netBootstrapCmd.PersistentFlags().StringVar(&configFilePath,
 		"config-path",

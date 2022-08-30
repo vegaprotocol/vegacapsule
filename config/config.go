@@ -8,17 +8,12 @@ import (
 	"path"
 	"path/filepath"
 
+	"code.vegaprotocol.io/vegacapsule/installer"
 	"code.vegaprotocol.io/vegacapsule/types"
 	"code.vegaprotocol.io/vegacapsule/utils"
 
 	"github.com/hashicorp/hcl/v2/gohcl"
 	"github.com/hashicorp/hcl/v2/hclwrite"
-)
-
-const (
-	VegaBinName     = "vega"
-	WalletBinName   = "vegawallet"
-	DataNodeBinName = "data-node"
 )
 
 type Config struct {
@@ -227,19 +222,19 @@ func (c *Config) setAbsolutePaths() error {
 	return nil
 }
 
-func (c *Config) SetBinaryPaths(binsPaths map[string]string) {
+func (c *Config) SetBinaryPaths(bins installer.InstalledBins) {
 	// Vega binary
-	if binName, ok := binsPaths[VegaBinName]; ok {
+	if binName, ok := bins.VegaPath(); ok {
 		*c.VegaBinary = binName
 	}
 
 	// Wallet binary
-	if binName, ok := binsPaths[WalletBinName]; c.Network.Wallet != nil && ok {
+	if binName, ok := bins.WalletPath(); c.Network.Wallet != nil && ok {
 		c.Network.Wallet.Binary = binName
 	}
 
 	// Data nodes binaries
-	if binName, ok := binsPaths[DataNodeBinName]; c.Network.Wallet != nil && ok {
+	if binName, ok := bins.DataNodePath(); ok {
 		for idx, nc := range c.Network.Nodes {
 			if nc.DataNodeBinary == "" {
 				continue
@@ -248,6 +243,30 @@ func (c *Config) SetBinaryPaths(binsPaths map[string]string) {
 			c.Network.Nodes[idx].DataNodeBinary = binName
 		}
 	}
+}
+
+func (c *Config) GetVegaBinary() string {
+	return *c.VegaBinary
+}
+
+func (c *Config) GetWalletBinary() string {
+	if c.Network.Wallet == nil {
+		return ""
+	}
+	return c.Network.Wallet.Binary
+}
+
+// DataNodeBinaryPaths returns data node binary paths per specific node set
+func (c *Config) GetDataNodeBinaries() map[string]string {
+	pathsPerNodeSet := map[string]string{}
+
+	for _, nc := range c.Network.Nodes {
+		if nc.DataNodeBinary != "" {
+			pathsPerNodeSet[nc.Name] = nc.DataNodeBinary
+		}
+	}
+
+	return pathsPerNodeSet
 }
 
 func (c *Config) Validate(configDir string) error {

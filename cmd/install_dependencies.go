@@ -17,11 +17,6 @@ const (
 var (
 	installPath       string
 	installReleaseTag string
-	assetsToInstall   = map[string]string{
-		installer.FormatAssetName(config.VegaBinName):     config.VegaBinName,
-		installer.FormatAssetName(config.WalletBinName):   config.WalletBinName,
-		installer.FormatAssetName(config.DataNodeBinName): config.DataNodeBinName,
-	}
 )
 
 var installBinariesCmd = &cobra.Command{
@@ -46,14 +41,14 @@ var installBinariesCmd = &cobra.Command{
 
 		inst := installer.New(conf.BinariesDir(), installPath)
 
-		installedBinsPaths, err := inst.Install(cmd.Context(), latestReleaseTag, assetsToInstall)
+		installedBinsPaths, err := inst.Install(cmd.Context(), getReleaseTag())
 		if err != nil {
 			return fmt.Errorf("failed to install dependencies: %w", err)
 		}
 
 		if installPath != "" {
 			installedBins := make([]string, 0, len(installedBinsPaths))
-			for binName, _ := range installedBinsPaths {
+			for binName := range installedBinsPaths {
 				installedBins = append(installedBins, binName)
 			}
 
@@ -77,4 +72,14 @@ func init() {
 		latestReleaseTag,
 		"Automatically installs specific release tag version of vega, data-node and wallet binaries.",
 	)
+}
+
+func getReleaseTag() string {
+	var releaseTag string
+	if installReleaseTag != "" {
+		releaseTag = installReleaseTag
+	} else if installBinaries {
+		releaseTag = latestReleaseTag
+	}
+	return releaseTag
 }

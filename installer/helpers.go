@@ -8,7 +8,7 @@ import (
 	"code.vegaprotocol.io/vegacapsule/utils"
 )
 
-func FormatAssetName(name string) string {
+func formatAssetName(name string) string {
 	return fmt.Sprintf("%s-%s-%s.zip", name, runtime.GOOS, runtime.GOARCH)
 }
 
