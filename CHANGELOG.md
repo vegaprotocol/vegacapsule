@@ -34,6 +34,7 @@
 - [209](https://github.com/vegaprotocol/vegacapsule/pull/209) Save tendermint template after merge to given file
 - [236](https://github.com/vegaprotocol/vegacapsule/pull/236) Improve detection for Nomad pending jobs
 - [245](https://github.com/vegaprotocol/vegacapsule/pull/245) Disable Nomad pending allocations/tasks restarts
+- [248](https://github.com/vegaprotocol/vegacapsule/pull/248) Remove --no-version-check flag from vega wallet in the importer module
 
 
 
