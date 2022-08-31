@@ -23,10 +23,10 @@ var (
 		DiskMB:   utils.ToPoint(550),
 	}
 	defaultRestartPolicy = &api.RestartPolicy{
-		Attempts: utils.ToPoint(0),
-		Interval: utils.ToPoint(time.Second * 5),
-		Delay:    utils.ToPoint(time.Second * 1),
-		Mode:     utils.ToPoint("fail"),
+		// Attempts: utils.ToPoint(0),
+		// Interval: utils.ToPoint(time.Second * 5),
+		// Delay:    utils.ToPoint(time.Second * 1),
+		// Mode:     utils.ToPoint("fail"),
 	}
 	defaultReschedulePolicy = &api.ReschedulePolicy{
 		Attempts:  utils.ToPoint(0),
