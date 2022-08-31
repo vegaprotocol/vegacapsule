@@ -164,6 +164,8 @@ type ConfigTemplates struct {
 	DataNodeFile     *string `hcl:"data_node_file,optional"`
 	VisorRunConf     *string `hcl:"visor_run_conf,optional"`
 	VisorRunConfFile *string `hcl:"visor_run_conf_file,optional"`
+	VisorConf        *string `hcl:"visor_conf,optional"`
+	VisorConfFile    *string `hcl:"visor_conf_file,optional"`
 }
 
 func (c *Config) setAbsolutePaths() error {
@@ -377,6 +379,16 @@ func (c Config) loadAndValidateConfigTemplates(ct ConfigTemplates) (*ConfigTempl
 		}
 	}
 
+	if ct.VisorConf == nil && ct.VisorConfFile != nil {
+		tmpl, err := c.loadConfigTemplateFile(*ct.VisorConfFile)
+		if err != nil {
+			mErr.Add(fmt.Errorf("failed to load Visor config template: %w", err))
+		} else {
+			ct.VisorConf = &tmpl
+			ct.VisorConfFile = nil
+		}
+	}
+
 	if mErr.HasAny() {
 		return nil, mErr
 	}
@@ -510,15 +522,15 @@ func DefaultConfig() (*Config, error) {
 
 	return &Config{
 		OutputDir:            &outputDir,
-		Prefix:               utils.StrPoint("st-local"),
-		NodeDirPrefix:        utils.StrPoint("node"),
-		TendermintNodePrefix: utils.StrPoint("tendermint"),
-		VegaNodePrefix:       utils.StrPoint("vega"),
-		DataNodePrefix:       utils.StrPoint("data"),
-		WalletPrefix:         utils.StrPoint("wallet"),
-		FaucetPrefix:         utils.StrPoint("faucet"),
-		VisorPrefix:          utils.StrPoint("visor"),
-		VegaBinary:           utils.StrPoint("vega"),
+		Prefix:               utils.ToPoint("st-local"),
+		NodeDirPrefix:        utils.ToPoint("node"),
+		TendermintNodePrefix: utils.ToPoint("tendermint"),
+		VegaNodePrefix:       utils.ToPoint("vega"),
+		DataNodePrefix:       utils.ToPoint("data"),
+		WalletPrefix:         utils.ToPoint("wallet"),
+		FaucetPrefix:         utils.ToPoint("faucet"),
+		VisorPrefix:          utils.ToPoint("visor"),
+		VegaBinary:           utils.ToPoint("vega"),
 	}, nil
 }
 

@@ -80,8 +80,29 @@ func (r *JobRunner) defaultLogCollectorTask(jobName string) *api.Task {
 	}
 }
 
-func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
-	tasks := make([]*api.Task, 0, 3)
+func (r *JobRunner) defaultNodeSetTasks(ns types.NodeSet) []*api.Task {
+	if ns.Visor != nil {
+		return []*api.Task{
+			{
+				Name:   ns.Visor.Name,
+				Driver: "raw_exec",
+				Config: map[string]interface{}{
+					"command": ns.Visor.BinaryPath,
+					"args": []string{
+						"run",
+						"--home", ns.Visor.HomeDir,
+					},
+				},
+				Resources: &api.Resources{
+					CPU:      utils.ToPoint(1000),
+					MemoryMB: utils.ToPoint(1024),
+				},
+			},
+		}
+	}
+
+	tasks := make([]*api.Task, 0, 2)
+
 	tasks = append(tasks,
 		&api.Task{
 			Leader: true,
@@ -118,6 +139,10 @@ func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
 		})
 	}
 
+	return tasks
+}
+
+func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
 	return &api.Job{
 		ID:          utils.ToPoint(ns.Name),
 		Datacenters: []string{"dc1"},
@@ -129,7 +154,7 @@ func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
 				Name:             utils.ToPoint("vega"),
 				RestartPolicy:    defaultRestartPolicy,
 				ReschedulePolicy: defaultReschedulePolicy,
-				Tasks:            tasks,
+				Tasks:            r.defaultNodeSetTasks(ns),
 			},
 		},
 	}

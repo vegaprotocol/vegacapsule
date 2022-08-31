@@ -18,6 +18,7 @@ type configOverride struct {
 	vegaTmpl       *template.Template
 	dataNodeTmpl   *template.Template
 	visorRunTmpl   *template.Template
+	visorConfTmpl  *template.Template
 	gen            *Generator
 }
 
@@ -56,11 +57,20 @@ func newConfigOverride(gen *Generator, n config.NodeConfig) (*configOverride, er
 		}
 	}
 
+	var visorConfTmpl *template.Template
+	if n.VisorBinary != "" && n.ConfigTemplates.VisorConf != nil {
+		visorConfTmpl, err = visor.NewConfigTemplate(*n.ConfigTemplates.VisorRunConf)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return &configOverride{
 		tendermintTmpl: tendermintTmpl,
 		vegaTmpl:       vegaTmpl,
 		dataNodeTmpl:   dataNodeTmpl,
 		visorRunTmpl:   visorRunTmpl,
+		visorConfTmpl:  visorConfTmpl,
 		gen:            gen,
 	}, nil
 }
@@ -86,7 +96,7 @@ func (co *configOverride) Overwrite(nc config.NodeConfig, ns types.NodeSet, fc *
 	}
 	if ns.Visor != nil && co.visorRunTmpl != nil {
 		log.Printf("Overwriting Visor config for nodeset %s", ns.Name)
-		if err := co.gen.visorGen.OverwriteConfig(ns, co.visorRunTmpl); err != nil {
+		if err := co.gen.visorGen.OverwriteConfigs(ns, co.visorConfTmpl, co.visorRunTmpl); err != nil {
 			return fmt.Errorf("failed to overwrite Visor config for id %d: %w", ns.Index, err)
 		}
 	}

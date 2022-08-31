@@ -191,12 +191,10 @@ func templateNodeSetConfig(
 		}
 
 		if templateUpdateNetwork {
-			fmt.Println("templateUpdateNetwork")
 			if err := updateTemplateForNode(tmplType, ns, buff); err != nil {
 				return fmt.Errorf("failed to update template for node %d: %w", ns.Index, err)
 			}
 		} else {
-			fmt.Println("templateUpdateNetwork else")
 			fileName := fmt.Sprintf("%s-%s.conf", tmplType, ns.Name)
 
 			if err := outputTemplate(buff, path.Join(templateOutDir, fileName), true); err != nil {

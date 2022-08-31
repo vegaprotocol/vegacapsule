@@ -72,6 +72,7 @@ EOT
       vega_file = "./node_set_templates/default/vega_full_visor.tmpl"
       tendermint_file = "./node_set_templates/default/tendermint_full.tmpl"
       visor_run_conf_file = "./node_set_templates/default/visor_run.tmpl"
+      visor_conf_file = "./node_set_templates/default/visor_config.tmpl"
       data_node_file = "./node_set_templates/default/data_node_full.tmpl"
     }
   }

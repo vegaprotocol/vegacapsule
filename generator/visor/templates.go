@@ -28,7 +28,7 @@ func NewConfigTemplate(templateRaw string) (*template.Template, error) {
 	return t, nil
 }
 
-func (vg Generator) TemplateConfig(ns types.NodeSet, configTemplate *template.Template) (*bytes.Buffer, error) {
+func (g Generator) TemplateConfig(ns types.NodeSet, configTemplate *template.Template) (*bytes.Buffer, error) {
 	templateCtx := ConfigTemplateContext{
 		NodeSet: ns,
 	}
@@ -42,6 +42,7 @@ func (vg Generator) TemplateConfig(ns types.NodeSet, configTemplate *template.Te
 	return buff, nil
 }
 
+// TODO solve this for other then genesis config
 // TemplateAndMergeConfig templates provided template and merge it with originally initated Visor genesis run config
 func (vg *Generator) TemplateAndMergeConfig(ns types.NodeSet, configTemplate *template.Template) (*bytes.Buffer, error) {
 	buff, err := vg.TemplateConfig(ns, configTemplate)
@@ -50,9 +51,8 @@ func (vg *Generator) TemplateAndMergeConfig(ns types.NodeSet, configTemplate *te
 	}
 
 	genRunConfigFilePath := genesisRunConfigFilePath(ns.Visor.HomeDir)
-	upRunConfigFilePath := upgradeRunConfigFilePath(ns.Visor.HomeDir)
 
-	if err := vg.mergeAndSaveConfig(ns, buff, genRunConfigFilePath, upRunConfigFilePath); err != nil {
+	if err := mergeAndSaveConfig(ns, buff, genRunConfigFilePath, vsconfig.RunConfig{}, vsconfig.RunConfig{}); err != nil {
 		return nil, err
 	}
 
@@ -69,44 +69,65 @@ func (vg *Generator) TemplateAndMergeConfig(ns types.NodeSet, configTemplate *te
 	return buffOut, nil
 }
 
-func (vg Generator) OverwriteConfig(ns types.NodeSet, configTemplate *template.Template) error {
-	buff, err := vg.TemplateConfig(ns, configTemplate)
+// OverwriteConfigs overwrites visor config and genesis run config
+func (g Generator) OverwriteConfigs(ns types.NodeSet, visorConfTemplate, runConfTemplate *template.Template) error {
+	if err := g.OverwriteConfig(ns, visorConfTemplate); err != nil {
+		return fmt.Errorf("failed to overwrite visor config: %w", err)
+	}
+
+	if err := g.OverwriteRunConfig(ns, runConfTemplate, genesisRunConfigFilePath(ns.Vega.HomeDir)); err != nil {
+		return fmt.Errorf("failed to overwrite visor genesis run config: %w", err)
+	}
+
+	return nil
+}
+
+func (g Generator) OverwriteConfig(ns types.NodeSet, configTemplate *template.Template) error {
+	buff, err := g.TemplateConfig(ns, configTemplate)
 	if err != nil {
 		return err
 	}
 
-	genRunConfigFilePath := genesisRunConfigFilePath(ns.Visor.HomeDir)
-	upRunConfigFilePath := upgradeRunConfigFilePath(ns.Visor.HomeDir)
+	configPath := configFilePath(ns.Visor.HomeDir)
 
-	return vg.mergeAndSaveConfig(ns, buff, genRunConfigFilePath, upRunConfigFilePath)
+	return mergeAndSaveConfig(ns, buff, configPath, vsconfig.VegaConfig{}, vsconfig.VegaConfig{})
 }
 
-func (vg Generator) mergeAndSaveConfig(
+// OverwriteRunConfig overwrites run config with template in a given path.
+// Uses default genesis path if not given.
+func (g Generator) OverwriteRunConfig(ns types.NodeSet, configTemplate *template.Template, configPath string) error {
+	buff, err := g.TemplateConfig(ns, configTemplate)
+	if err != nil {
+		return err
+	}
+
+	if configPath == "" {
+		configPath = genesisRunConfigFilePath(ns.Visor.HomeDir)
+	}
+
+	return mergeAndSaveConfig(ns, buff, configPath, vsconfig.RunConfig{}, vsconfig.RunConfig{})
+}
+
+func mergeAndSaveConfig[T vsconfig.RunConfig | vsconfig.VegaConfig](
 	ns types.NodeSet,
 	tmpldConf *bytes.Buffer,
-	genesisConfigPath, upgradeConfigPath string,
+	configPath string,
+	overrideConfig, originalConfig T,
 ) error {
-	overrideConfig := vsconfig.RunConfig{}
-
 	if _, err := toml.DecodeReader(tmpldConf, &overrideConfig); err != nil {
 		return fmt.Errorf("failed decode override config: %w", err)
 	}
 
-	visorConfig := vsconfig.RunConfig{}
-	if err := paths.ReadStructuredFile(genesisConfigPath, &visorConfig); err != nil {
-		return fmt.Errorf("failed to read configuration file at %s: %w", genesisConfigPath, err)
+	if err := paths.ReadStructuredFile(configPath, &originalConfig); err != nil {
+		return fmt.Errorf("failed to read configuration file at %s: %w", configPath, err)
 	}
 
-	if err := mergo.MergeWithOverwrite(&visorConfig, overrideConfig); err != nil {
+	if err := mergo.MergeWithOverwrite(&originalConfig, overrideConfig); err != nil {
 		return fmt.Errorf("failed to merge configs: %w", err)
 	}
 
-	if err := paths.WriteStructuredFile(genesisConfigPath, visorConfig); err != nil {
-		return fmt.Errorf("failed to write configuration file at %s: %w", genesisConfigPath, err)
-	}
-
-	if err := paths.WriteStructuredFile(upgradeConfigPath, visorConfig); err != nil {
-		return fmt.Errorf("failed to write configuration file at %s: %w", upgradeConfigPath, err)
+	if err := paths.WriteStructuredFile(configPath, originalConfig); err != nil {
+		return fmt.Errorf("failed to write configuration file at %s: %w", configPath, err)
 	}
 
 	return nil

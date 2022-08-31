@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	code.vegaprotocol.io/shared v0.0.0-20220614080106-5c97205b0d92
-	code.vegaprotocol.io/vega v0.53.1-0.20220810105834-6d41c0def119
+	code.vegaprotocol.io/vega v0.54.0
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/ethereum/go-ethereum v1.10.20
 	github.com/hashicorp/hcl/v2 v2.9.2-0.20210407182552-eb14f8319bdc
@@ -68,7 +68,7 @@ require (
 	github.com/dgryski/go-farm v0.0.0-20190423205320-6a90982ecee2 // indirect
 	github.com/dlclark/regexp2 v1.4.1-0.20201116162257-a2a8dda75c91 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
-	github.com/fsnotify/fsnotify v1.5.4 // indirect
+	github.com/fsnotify/fsnotify v1.5.4
 	github.com/go-kit/kit v0.12.0 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/go-stack/stack v1.8.0 // indirect
@@ -125,7 +125,7 @@ require (
 	github.com/spf13/afero v1.8.2 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
-	github.com/spf13/pflag v1.0.5 // indirect
+	github.com/spf13/pflag v1.0.5
 	github.com/subosito/gotenv v1.4.0 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20220614013038-64ee5596c38a // indirect
 	github.com/tecbot/gorocksdb v0.0.0-20191217155057-f0fad39f321c // indirect

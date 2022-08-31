@@ -8,6 +8,7 @@ import (
 
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/types"
+	"code.vegaprotocol.io/vegacapsule/utils"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/hashicorp/nomad/api"
@@ -51,8 +52,8 @@ func (r *JobRunner) runDockerJob(ctx context.Context, conf config.DockerConfig) 
 					},
 				},
 				RestartPolicy: &api.RestartPolicy{
-					Attempts: utils.IntPoint(0),
-					Mode:     utils.StrPoint("fail"),
+					Attempts: utils.ToPoint(0),
+					Mode:     utils.ToPoint("fail"),
 				},
 				Name: &conf.Name,
 				Tasks: []*api.Task{
@@ -68,8 +69,8 @@ func (r *JobRunner) runDockerJob(ctx context.Context, conf config.DockerConfig) 
 						},
 						Env: conf.Env,
 						Resources: &api.Resources{
-							CPU:      utils.IntPoint(500),
-							MemoryMB: utils.IntPoint(768),
+							CPU:      utils.ToPoint(500),
+							MemoryMB: utils.ToPoint(768),
 						},
 					},
 				},
@@ -82,85 +83,6 @@ func (r *JobRunner) runDockerJob(ctx context.Context, conf config.DockerConfig) 
 	}
 
 	return j, nil
-}
-
-func (r *JobRunner) defaultNodeSetJobTasks(ns types.NodeSet) []*api.Task {
-	if ns.Visor != nil {
-		return []*api.Task{
-			{
-				Name:   ns.Visor.Name,
-				Driver: "raw_exec",
-				Config: map[string]interface{}{
-					"command": ns.Visor.BinaryPath,
-					"args": []string{
-						"run",
-						"--home", ns.Visor.HomeDir,
-					},
-				},
-				Resources: &api.Resources{
-					CPU:      utils.IntPoint(1000),
-					MemoryMB: utils.IntPoint(1024),
-				},
-			},
-		}
-	}
-
-	tasks := make([]*api.Task, 0, 2)
-	tasks = append(tasks,
-		&api.Task{
-			Name:   ns.Vega.Name,
-			Driver: "raw_exec",
-			Config: map[string]interface{}{
-				"command": ns.Vega.BinaryPath,
-				"args": []string{
-					"node",
-					"--home", ns.Vega.HomeDir,
-					"--tendermint-home", ns.Tendermint.HomeDir,
-					"--nodewallet-passphrase-file", ns.Vega.NodeWalletPassFilePath,
-				},
-			},
-			Resources: &api.Resources{
-				CPU:      utils.IntPoint(500),
-				MemoryMB: utils.IntPoint(512),
-			},
-		})
-
-	if ns.DataNode != nil {
-		tasks = append(tasks, &api.Task{
-			Name:   ns.DataNode.Name,
-			Driver: "raw_exec",
-			Config: map[string]interface{}{
-				"command": ns.DataNode.BinaryPath,
-				"args": []string{
-					"node",
-					"--home", ns.DataNode.HomeDir,
-				},
-			},
-			Resources: &api.Resources{
-				CPU:      utils.IntPoint(500),
-				MemoryMB: utils.IntPoint(512),
-			},
-		})
-	}
-
-	return tasks
-}
-
-func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
-	return &api.Job{
-		ID:          utils.StrPoint(ns.Name),
-		Datacenters: []string{"dc1"},
-		TaskGroups: []*api.TaskGroup{
-			{
-				RestartPolicy: &api.RestartPolicy{
-					Attempts: utils.IntPoint(0),
-					Mode:     utils.StrPoint("fail"),
-				},
-				Name:  utils.StrPoint("vega"),
-				Tasks: r.defaultNodeSetJobTasks(ns),
-			},
-		},
-	}
 }
 
 func (r *JobRunner) RunRawNomadJobs(ctx context.Context, rawJobs []string) ([]types.RawJobWithNomadJob, error) {
