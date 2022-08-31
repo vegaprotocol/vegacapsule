@@ -34,6 +34,36 @@ var (
 	}
 )
 
+func mergeResourcesWithDefault(customRes *config.Resources) *api.Resources {
+	result := *defaultResourcesConfig
+
+	if customRes == nil {
+		return &result
+	}
+
+	if customRes.CPU != nil {
+		result.CPU = customRes.CPU
+	}
+
+	if customRes.Cores != nil {
+		result.Cores = customRes.Cores
+	}
+
+	if customRes.DiskMB != nil {
+		result.DiskMB = customRes.DiskMB
+	}
+
+	if customRes.MemoryMB != nil {
+		result.MemoryMB = customRes.MemoryMB
+	}
+
+	if customRes.MemoryMaxMB != nil {
+		result.MemoryMaxMB = customRes.MemoryMaxMB
+	}
+
+	return &result
+}
+
 func (r *JobRunner) defaultLogCollectorTask(jobName string) *api.Task {
 	return &api.Task{
 		Name:   "logger",
@@ -222,10 +252,7 @@ func (r *JobRunner) defaultDockerJob(ctx context.Context, conf config.DockerConf
 						},
 						Env:       conf.Env,
 						LogConfig: defaultLogConfig,
-						Resources: &api.Resources{
-							CPU:      utils.ToPoint(500),
-							MemoryMB: utils.ToPoint(768),
-						},
+						Resources: mergeResourcesWithDefault(conf.Resources),
 					},
 					r.defaultLogCollectorTask(conf.Name),
 				},
