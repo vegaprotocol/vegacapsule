@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path"
-	"time"
+	// "time"
 
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/types"
