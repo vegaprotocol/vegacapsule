@@ -73,6 +73,14 @@ type StaticPort struct {
 	Value int `hcl:"value"`
 }
 
+type Resources struct {
+	CPU         *int `hcl:"cpu,optional"`
+	Cores       *int `hcl:"cores,optional"`
+	MemoryMB    *int `hcl:"memory,optional"`
+	MemoryMaxMB *int `hcl:"memory_max,optional"`
+	DiskMB      *int `hcl:"disk,optional"`
+}
+
 type DockerConfig struct {
 	Name         string            `hcl:"name,label"`
 	Image        string            `hcl:"image"`
@@ -81,6 +89,7 @@ type DockerConfig struct {
 	Env          map[string]string `hcl:"env,optional"`
 	StaticPort   *StaticPort       `hcl:"static_port,block"`
 	AuthSoftFail bool              `hcl:"auth_soft_fail,optional"`
+	Resources    *Resources        `hcl:"resources,block"`
 }
 
 type WalletConfig struct {

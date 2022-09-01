@@ -66,6 +66,11 @@ EOT
         value = 5232
         to = 5432
       }
+      resources {
+        cpu = 600
+        memory = 900
+      }
+
       auth_soft_fail = true
     }
   }
