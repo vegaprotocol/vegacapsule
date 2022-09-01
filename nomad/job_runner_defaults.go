@@ -93,11 +93,13 @@ func (r *JobRunner) defaultNodeSetTasks(ns types.NodeSet) []*api.Task {
 						"--home", ns.Visor.HomeDir,
 					},
 				},
+				LogConfig: defaultLogConfig,
 				Resources: &api.Resources{
 					CPU:      utils.ToPoint(1000),
 					MemoryMB: utils.ToPoint(1024),
 				},
 			},
+			r.defaultLogCollectorTask(ns.Name),
 		}
 	}
 

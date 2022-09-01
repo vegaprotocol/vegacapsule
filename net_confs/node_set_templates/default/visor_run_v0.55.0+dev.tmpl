@@ -1,9 +1,8 @@
-name = "genesis"
+name = "v0.55.0+dev"
 
 [vega]
   [vega.binary]
-    # Current vega binary is automatically copied to genesis folder by Vegacapsule
-    path = "vega"
+    path = "/Users/karel/go/bin/vega"
     args = ["node",
       "--home", "{{ .NodeSet.Vega.HomeDir }}",
       "--tendermint-home", "{{ .NodeSet.Tendermint.HomeDir }}",

@@ -56,6 +56,10 @@ func (g *Generator) Initiate(
 	}
 	log.Println(string(b))
 
+	if err := utils.CopyFile(vegaNode.BinaryPath, path.Join(genesisFolder(visorDir), "vega")); err != nil {
+		return nil, err
+	}
+
 	initNode := &types.Visor{
 		Name:       fmt.Sprintf("visor-%d", index),
 		HomeDir:    visorDir,
@@ -70,10 +74,17 @@ func (g Generator) PrepareUpgrade(
 	releaseTag string,
 	ns types.NodeSet,
 	configTemplate *template.Template,
+	force bool,
 ) error {
 	visorDir := g.visorDir(index)
 
 	upgradeFolderName := filepath.Join(visorDir, releaseTag)
+
+	if force {
+		if err := os.RemoveAll(upgradeFolderName); err != nil {
+			return fmt.Errorf("failed to remove upgrade folder %q flag: %w", upgradeFolderName, err)
+		}
+	}
 
 	log.Printf("Preparing upgrade folder %q for visor %q", upgradeFolderName, visorDir)
 
@@ -81,14 +92,13 @@ func (g Generator) PrepareUpgrade(
 		return err
 	}
 
-	upgradeRunConfigPath := filepath.Join(releaseTag, runConfigFileName)
+	upgradeRunConfigPath := filepath.Join(upgradeFolderName, runConfigFileName)
 	if err := utils.CopyFile(defaultUpgradeRunConfigFilePath(visorDir), upgradeRunConfigPath); err != nil {
 		return err
 	}
 
 	log.Printf("Overwriting upgrade run config %q", upgradeRunConfigPath)
 
-	// TODO TemplateAndMergeConfig use template instead so the result can be printed to stdout
 	if err := g.OverwriteRunConfig(ns, configTemplate, upgradeRunConfigPath); err != nil {
 		return err
 	}
@@ -97,16 +107,16 @@ func (g Generator) PrepareUpgrade(
 }
 
 func (g Generator) visorDir(i int) string {
-	nodeDirName := fmt.Sprintf("%s%d", *g.conf.NodeDirPrefix, i)
+	nodeDirName := fmt.Sprintf("%s%d", *g.conf.VisorPrefix, i)
 	return filepath.Join(g.homeDir, nodeDirName)
+}
+
+func configFilePath(nodeDir string) string {
+	return filepath.Join(nodeDir, configFileName)
 }
 
 func genesisFolder(nodeDir string) string {
 	return filepath.Join(nodeDir, GenesisFolderName)
-}
-
-func configFilePath(nodeDir string) string {
-	return filepath.Join(genesisFolder(nodeDir), configFileName)
 }
 
 func genesisRunConfigFilePath(nodeDir string) string {

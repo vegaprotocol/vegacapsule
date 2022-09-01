@@ -75,7 +75,7 @@ func (g Generator) OverwriteConfigs(ns types.NodeSet, visorConfTemplate, runConf
 		return fmt.Errorf("failed to overwrite visor config: %w", err)
 	}
 
-	if err := g.OverwriteRunConfig(ns, runConfTemplate, genesisRunConfigFilePath(ns.Vega.HomeDir)); err != nil {
+	if err := g.OverwriteRunConfig(ns, runConfTemplate, genesisRunConfigFilePath(ns.Visor.HomeDir)); err != nil {
 		return fmt.Errorf("failed to overwrite visor genesis run config: %w", err)
 	}
 
@@ -89,7 +89,6 @@ func (g Generator) OverwriteConfig(ns types.NodeSet, configTemplate *template.Te
 	}
 
 	configPath := configFilePath(ns.Visor.HomeDir)
-
 	return mergeAndSaveConfig(ns, buff, configPath, vsconfig.VegaConfig{}, vsconfig.VegaConfig{})
 }
 
@@ -115,6 +114,7 @@ func mergeAndSaveConfig[T vsconfig.RunConfig | vsconfig.VegaConfig](
 	overrideConfig, originalConfig T,
 ) error {
 	if _, err := toml.DecodeReader(tmpldConf, &overrideConfig); err != nil {
+		fmt.Println(tmpldConf)
 		return fmt.Errorf("failed decode override config: %w", err)
 	}
 

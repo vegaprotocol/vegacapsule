@@ -315,7 +315,7 @@ func (c Config) loadAndValidatePreGenerate(preGen PreGenerate) (*PreGenerate, er
 
 	for i, nc := range preGen.Nomad {
 		if nc.JobTemplate == nil && nc.JobTemplateFile != nil {
-			tmpl, err := c.loadConfigTemplateFile(*nc.JobTemplateFile)
+			tmpl, err := c.LoadConfigTemplateFile(*nc.JobTemplateFile)
 			if err != nil {
 				mErr.Add(fmt.Errorf("failed to load pre generate nomad template file for %s: %w", nc.Name, err))
 
@@ -340,7 +340,7 @@ func (c Config) loadAndValidateConfigTemplates(ct ConfigTemplates) (*ConfigTempl
 	mErr := utils.NewMultiError()
 
 	if ct.Vega == nil && ct.VegaFile != nil {
-		tmpl, err := c.loadConfigTemplateFile(*ct.VegaFile)
+		tmpl, err := c.LoadConfigTemplateFile(*ct.VegaFile)
 		if err != nil {
 			mErr.Add(fmt.Errorf("failed to load Vega config template: %w", err))
 		} else {
@@ -350,7 +350,7 @@ func (c Config) loadAndValidateConfigTemplates(ct ConfigTemplates) (*ConfigTempl
 	}
 
 	if ct.Tendermint == nil && ct.TendermintFile != nil {
-		tmpl, err := c.loadConfigTemplateFile(*ct.TendermintFile)
+		tmpl, err := c.LoadConfigTemplateFile(*ct.TendermintFile)
 		if err != nil {
 			mErr.Add(fmt.Errorf("failed to load Tendermint config template: %w", err))
 		} else {
@@ -360,7 +360,7 @@ func (c Config) loadAndValidateConfigTemplates(ct ConfigTemplates) (*ConfigTempl
 	}
 
 	if ct.DataNode == nil && ct.DataNodeFile != nil {
-		tmpl, err := c.loadConfigTemplateFile(*ct.DataNodeFile)
+		tmpl, err := c.LoadConfigTemplateFile(*ct.DataNodeFile)
 		if err != nil {
 			mErr.Add(fmt.Errorf("failed to load Data Node config template: %w", err))
 		} else {
@@ -370,7 +370,7 @@ func (c Config) loadAndValidateConfigTemplates(ct ConfigTemplates) (*ConfigTempl
 	}
 
 	if ct.VisorRunConf == nil && ct.VisorRunConfFile != nil {
-		tmpl, err := c.loadConfigTemplateFile(*ct.VisorRunConfFile)
+		tmpl, err := c.LoadConfigTemplateFile(*ct.VisorRunConfFile)
 		if err != nil {
 			mErr.Add(fmt.Errorf("failed to load Visor run config template: %w", err))
 		} else {
@@ -380,7 +380,7 @@ func (c Config) loadAndValidateConfigTemplates(ct ConfigTemplates) (*ConfigTempl
 	}
 
 	if ct.VisorConf == nil && ct.VisorConfFile != nil {
-		tmpl, err := c.loadConfigTemplateFile(*ct.VisorConfFile)
+		tmpl, err := c.LoadConfigTemplateFile(*ct.VisorConfFile)
 		if err != nil {
 			mErr.Add(fmt.Errorf("failed to load Visor config template: %w", err))
 		} else {
@@ -396,7 +396,7 @@ func (c Config) loadAndValidateConfigTemplates(ct ConfigTemplates) (*ConfigTempl
 	return &ct, nil
 }
 
-func (c Config) loadConfigTemplateFile(path string) (string, error) {
+func (c Config) LoadConfigTemplateFile(path string) (string, error) {
 	templateFile, err := utils.AbsPathWithPrefix(c.configDir, path)
 	if err != nil {
 		return "", fmt.Errorf("failed to get absolute file path %q: %w", path, err)
