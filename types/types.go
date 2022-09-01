@@ -7,6 +7,15 @@ import (
 	"github.com/hashicorp/nomad/api"
 )
 
+const (
+	NodeModeValidator = "validator"
+	NodeModeFull      = "full"
+
+	NodeWalletChainTypeTendermint = "tendermint"
+	NodeWalletChainTypeVega       = "vega"
+	NodeWalletChainTypeEthereum   = "ethereum"
+)
+
 type VegaNodeOutput struct {
 	NomadJobName string
 	VegaNode
@@ -88,6 +97,10 @@ func (ns NodeSet) PreGenerateRawJobs() []string {
 	}
 
 	return preGenJobs
+}
+
+func (ns NodeSet) IsValidator() bool {
+	return ns.Mode == NodeModeValidator
 }
 
 type Wallet struct {
@@ -225,7 +238,7 @@ func (gs GeneratedServices) GetValidators() []NodeSet {
 	var out []NodeSet
 
 	for _, ns := range gs.NodeSets {
-		if ns.Mode == NodeModeValidator {
+		if ns.IsValidator() {
 			out = append(out, ns)
 		}
 	}
@@ -237,7 +250,7 @@ func (gs GeneratedServices) GetNonValidators() []NodeSet {
 	var out []NodeSet
 
 	for _, ns := range gs.NodeSets {
-		if ns.Mode != NodeModeValidator {
+		if !ns.IsValidator() {
 			out = append(out, ns)
 		}
 	}
@@ -341,12 +354,3 @@ type SmartContractsInfo struct {
 		Private string `json:"priv"`
 	} `json:"addr0"`
 }
-
-const (
-	NodeModeValidator = "validator"
-	NodeModeFull      = "full"
-
-	NodeWalletChainTypeTendermint = "tendermint"
-	NodeWalletChainTypeVega       = "vega"
-	NodeWalletChainTypeEthereum   = "ethereum"
-)

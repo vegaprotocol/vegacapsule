@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 
 	"code.vegaprotocol.io/vegacapsule/commands"
@@ -72,8 +73,12 @@ var nodesProtocolUpgradeCmd = &cobra.Command{
 			return nil
 		}
 
+		if upgradeBlockHeight == 0 {
+			return fmt.Errorf("height has to be defined when sending proposals, please set with --height flag")
+		}
+
 		for _, ns := range nodeSets {
-			b, err := commands.VegaProtocolUpgradeProposal(
+			_, err := commands.VegaProtocolUpgradeProposal(
 				*netState.Config.VegaBinary,
 				ns.Vega.HomeDir,
 				upgradeReleaseTag,
@@ -84,7 +89,7 @@ var nodesProtocolUpgradeCmd = &cobra.Command{
 				return fmt.Errorf("failed to submit protocol upgrade proposal to node %q: %w", ns.Name, err)
 			}
 
-			fmt.Printf("applied protocol upgrade for node set %q: %s \n", ns.Name, b)
+			log.Printf("Applied protocol upgrade for node set %q \n", ns.Name)
 		}
 
 		return nil
@@ -95,7 +100,7 @@ func init() {
 	nodesProtocolUpgradeCmd.Flags().Int64Var(&upgradeBlockHeight,
 		"height",
 		0,
-		"The block height at which the upgrade should be made",
+		"The block height at which the upgrade should be made. Has to be defined when propose flag is true",
 	)
 	nodesProtocolUpgradeCmd.Flags().StringVar(&upgradeReleaseTag,
 		"release-tag",
@@ -127,7 +132,6 @@ func init() {
 		false,
 		"Forces to run upgrade",
 	)
-	nodesProtocolUpgradeCmd.MarkFlagRequired("height")
 	nodesProtocolUpgradeCmd.MarkFlagRequired("release-tag")
 	nodesProtocolUpgradeCmd.MarkFlagRequired("template-path")
 }
@@ -141,7 +145,11 @@ func filtertUpgradeNodeSet(genS types.GeneratedServices, upgradeInclude, upgrade
 			if err != nil {
 				return nil, fmt.Errorf("failed to get requested node set: %w", err)
 			}
-			nodeSets = append(nodeSets, *ns)
+
+			// TODO perhaps we want to error if node set is not validator?
+			if ns.IsValidator() {
+				nodeSets = append(nodeSets, *ns)
+			}
 		}
 
 		return nodeSets, nil
@@ -150,7 +158,7 @@ func filtertUpgradeNodeSet(genS types.GeneratedServices, upgradeInclude, upgrade
 	if len(upgradeExclude) != 0 {
 		var nodeSets []types.NodeSet
 
-		for _, ns := range genS.NodeSets {
+		for _, ns := range genS.GetValidators() {
 			for _, excludeNodeName := range upgradeExclude {
 				if ns.Name == excludeNodeName {
 					continue
@@ -163,5 +171,5 @@ func filtertUpgradeNodeSet(genS types.GeneratedServices, upgradeInclude, upgrade
 		return nodeSets, nil
 	}
 
-	return genS.NodeSets.ToSlice(), nil
+	return genS.GetValidators(), nil
 }

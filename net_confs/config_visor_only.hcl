@@ -53,16 +53,35 @@ EOT
       }
       auth_soft_fail = true
     }
+    docker_service "postgres-1" {
+      image = "vegaprotocol/timescaledb:2.7.1-pg14"
+      cmd = "postgres"
+      args = []
+      env = {
+        POSTGRES_USER="vega"
+        POSTGRES_PASSWORD="vega"
+        POSTGRES_DBS="vega0,vega1,vega2,vega3,vega4,vega5,vega6"
+      }
+      static_port {
+        value = 5232
+        to = 5432
+      }
+      resources {
+        cpu = 600
+        memory = 900
+      }
+
+      auth_soft_fail = true
+    }
   }
   
   genesis_template_file = "./genesis.tmpl"
   smart_contracts_addresses_file = "./public_smart_contracts_addresses.json"
 
-  node_set "visor" {
+  node_set "visor-validator" {
     count = 4
     mode = "validator"
     visor_binary = "visor"
-	  // data_node_binary = "data-node"
 
     node_wallet_pass = "n0d3w4ll3t-p4ssphr4e3"
     vega_wallet_pass = "w4ll3t-p4ssphr4e3"
@@ -73,7 +92,21 @@ EOT
       tendermint_file = "./node_set_templates/default/tendermint_full.tmpl"
       visor_run_conf_file = "./node_set_templates/default/visor_run.tmpl"
       visor_conf_file = "./node_set_templates/default/visor_config.tmpl"
-      data_node_file = "./node_set_templates/default/data_node_full.tmpl"
+    }
+  }
+
+  node_set "visor-full" {
+    count = 2
+    mode = "full"
+    visor_binary = "visor"
+	  data_node_binary = "data-node"
+
+    config_templates {
+      vega_file = "./node_set_templates/default/vega_full_visor.tmpl"
+      tendermint_file = "./node_set_templates/default/tendermint_full.tmpl"
+      visor_run_conf_file = "./node_set_templates/default/visor_run.tmpl"
+      visor_conf_file = "./node_set_templates/default/visor_config.tmpl"
+      data_node_file = "./node_set_templates/default/data_node_full_external_postgres.tmpl"
     }
   }
 }

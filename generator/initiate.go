@@ -49,7 +49,7 @@ func (g *Generator) initiateNodeSet(absoluteIndex, relativeIndex, groupIndex int
 	var initVisor *types.Visor
 	// if data node binary is defined it is assumed that data-node should be deployed
 	if n.VisorBinary != "" {
-		node, err := g.visorGen.Initiate(absoluteIndex, n.VisorBinary, initVNode, initTNode, initDNode)
+		node, err := g.visorGen.Initiate(absoluteIndex, n.VisorBinary, initVNode, initDNode)
 		if err != nil {
 			return nil, fmt.Errorf("failed to initiate Visor id %d for node set %s: %w", absoluteIndex, n.Name, err)
 		}

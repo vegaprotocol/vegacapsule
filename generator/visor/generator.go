@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 	"text/template"
 
 	"code.vegaprotocol.io/vegacapsule/config"
@@ -41,7 +42,6 @@ func (g *Generator) Initiate(
 	index int,
 	visorBinary string,
 	vegaNode *types.VegaNode,
-	tmNode *types.TendermintNode,
 	dataNode *types.DataNode,
 ) (*types.Visor, error) {
 	visorDir := g.visorDir(index)
@@ -56,12 +56,20 @@ func (g *Generator) Initiate(
 	}
 	log.Println(string(b))
 
+	binariesNames := []string{"vega"}
 	if err := utils.CopyFile(vegaNode.BinaryPath, path.Join(genesisFolder(visorDir), "vega")); err != nil {
 		return nil, err
 	}
 
+	if dataNode != nil {
+		binariesNames = append(binariesNames, "data-node")
+		if err := utils.CopyFile(dataNode.BinaryPath, path.Join(genesisFolder(visorDir), "data-node")); err != nil {
+			return nil, err
+		}
+	}
+
 	initNode := &types.Visor{
-		Name:       fmt.Sprintf("visor-%d", index),
+		Name:       fmt.Sprintf("visor-%d-with-%s", index, strings.Join(binariesNames, "-")),
 		HomeDir:    visorDir,
 		BinaryPath: visorBinary,
 	}
