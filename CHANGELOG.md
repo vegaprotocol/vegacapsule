@@ -27,6 +27,7 @@
 - [231](https://github.com/vegaprotocol/vegacapsule/issues/231) Remove version check from wallet commands that doesn't support it anymore
 - [237](https://github.com/vegaprotocol/vegacapsule/issues/237) Use external Postgres for Data Node by default
 - [244](https://github.com/vegaprotocol/vegacapsule/issues/244) Improve logs collector to collect rotated files and not truncate previous logs
+- [249](https://github.com/vegaprotocol/vegacapsule/pull/249) Allow to specify resources for docker tasks
 
 ### 🐛 Fixes
 - [167](https://github.com/vegaprotocol/vegacapsule/issues/167) Fix validators filter in tendermint generator
