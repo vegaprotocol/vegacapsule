@@ -8,7 +8,6 @@ import (
 
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/types"
-	"code.vegaprotocol.io/vegacapsule/utils"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/hashicorp/nomad/api"
@@ -27,62 +26,6 @@ func NewJobRunner(c *Client, capsuleBinaryPath, logsOutputDir string) (*JobRunne
 		capsuleBinary: capsuleBinaryPath,
 		logsOutputDir: logsOutputDir,
 	}, nil
-}
-
-func (r *JobRunner) runDockerJob(ctx context.Context, conf config.DockerConfig) (*api.Job, error) {
-	ports := []api.Port{}
-	portLabels := []string{}
-	if conf.StaticPort != nil {
-		ports = append(ports, api.Port{
-			Label: fmt.Sprintf("%s-port", conf.Name),
-			To:    conf.StaticPort.To,
-			Value: conf.StaticPort.Value,
-		})
-		portLabels = append(portLabels, fmt.Sprintf("%s-port", conf.Name))
-	}
-
-	j := &api.Job{
-		ID:          &conf.Name,
-		Datacenters: []string{"dc1"},
-		TaskGroups: []*api.TaskGroup{
-			{
-				Networks: []*api.NetworkResource{
-					{
-						ReservedPorts: ports,
-					},
-				},
-				RestartPolicy: &api.RestartPolicy{
-					Attempts: utils.ToPoint(0),
-					Mode:     utils.ToPoint("fail"),
-				},
-				Name: &conf.Name,
-				Tasks: []*api.Task{
-					{
-						Name:   conf.Name,
-						Driver: "docker",
-						Config: map[string]interface{}{
-							"image":          conf.Image,
-							"command":        conf.Command,
-							"args":           conf.Args,
-							"ports":          portLabels,
-							"auth_soft_fail": conf.AuthSoftFail,
-						},
-						Env: conf.Env,
-						Resources: &api.Resources{
-							CPU:      utils.ToPoint(500),
-							MemoryMB: utils.ToPoint(768),
-						},
-					},
-				},
-			},
-		},
-	}
-
-	if err := r.client.RunAndWait(ctx, j); err != nil {
-		return nil, fmt.Errorf("failed to run nomad docker job: %w", err)
-	}
-
-	return j, nil
 }
 
 func (r *JobRunner) RunRawNomadJobs(ctx context.Context, rawJobs []string) ([]types.RawJobWithNomadJob, error) {
