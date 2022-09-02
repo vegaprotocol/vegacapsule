@@ -35,8 +35,10 @@ go install
 vegacapsule --help
 ```
 
-3. Install **vega**, **data-node** and **vegawallet** binaries on your machine and.
-[Install Vega binaries](install_vega_bins.md).
+3. #### Install dependepcies
+[Install Vega binaries](install_vega_bins.md). Installs **vega**, **data-node** and **vegawallet** binaries on your machine and.
+
+This step can be skipped if network when network is bootstrapped with --install flag. See 
 
 ### Start Capsule Network
 1. Start nomad
@@ -45,10 +47,31 @@ vegacapsule nomad
 ```
 **Note**: You may need to set the `GOBIN` environment variable to run it.
 
-2. In another Terminal window run bootstrap command to generate and start new network
+2. Bootstrap network
+
+In another Terminal window run bootstrap command to generate and start new network.
+
+#### Bootstrap with preinstalled binaries ####
+This step requires preinstalled **vega**, **data-node** and **vegawallet** binaries.
+Plese refer to [Install Vega binaries](install_vega_bins.md).
+
 ```bash
 vegacapsule network bootstrap --config-path=net_confs/config.hcl
 ```
+
+#### Bootstrap with autoinstall ####
+Bootstrap with autoinstall will automatically download required binaries as a first step of the process.
+Either **--install** or **--install-release-tag** flags can be used. The former installes latest version and the 
+latter installes from given release tag.
+
+```bash
+vegacapsule network bootstrap --config-path=net_confs/config.hcl --install
+```
+
+```bash
+vegacapsule network bootstrap --config-path=net_confs/config.hcl --install-release-tag v0.54.0
+```
+
 3. Check Nomad console by opening http://localhost:4646/
 
 ## Restoring network from checkpoint

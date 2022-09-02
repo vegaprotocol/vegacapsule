@@ -2,20 +2,40 @@
 
 ## Install automatically
 
-There is a feature avalible in Capsule that allows fetching supported binaries automatically. Your personal Gihub token is required for this step. [Get Github Token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token)
+There is a feature avalible in Capsule that allows fetching supported binaries automatically.
 
 1. Validate that Capsule is installed
 ```bash
-vegacapsule --help
+vegacapsule version
 ```
-2. Run the install command with github token flag
+### Install binaries to custom path
+Install latest version of binaries to given path:
+
+2. A
 ```bash
-vegacapsule install-bins --github-token "$(cat PATH_TO_YOUR_GITHUB_TOKEN)"
+vegacapsule install-bins --install-path YOUR_CUSTOM_PATH
 ```
 
-Alternatively GITHUB_TOKEN env variable can be used instead of --github-token flag
+Alternatively the binaries can be installed from a specific release tag with install-release-tag flag.
+[Check for releases.](https://github.com/vegaprotocol/vega/releases)
+
+Please note that minimum supported release tag is v0.54.0.
+
+2. B
 ```bash
-export GITHUB_TOKEN=YOUR_TOKEN
+vegacapsule install-bins --install-path YOUR_CUSTOM_PATH --install-release-tag SPECIFIC_RELEASE_TAG
+```
+
+3. Validate that binaries are accessible trough in chosen path (YOUR_CUSTOM_PATH) and versions matching the one from previous cmd output. If not, please run step 2 again with --install-path flag.
+```bash
+YOUR_CUSTOM_PATH/vega version
+YOUR_CUSTOM_PATH/vegawallet version
+YOUR_CUSTOM_PATH/data-node version
+```
+
+### Globaly install binaries
+2.
+```bash
 vegacapsule install-bins
 ```
 
