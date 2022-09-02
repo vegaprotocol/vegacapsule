@@ -26,6 +26,7 @@ type Config struct {
 	DataNodePrefix       *string       `hcl:"data_node_prefix"`
 	WalletPrefix         *string       `hcl:"wallet_prefix"`
 	FaucetPrefix         *string       `hcl:"faucet_prefix"`
+	VisorPrefix          *string       `hcl:"visor_prefix"`
 	Network              NetworkConfig `hcl:"network,block"`
 
 	// Internal helper variables
@@ -128,6 +129,7 @@ type NodeConfig struct {
 	VegaWalletPass     string `hcl:"vega_wallet_pass,optional" template:""`
 
 	DataNodeBinary string `hcl:"data_node_binary,optional"`
+	VisorBinary    string `hcl:"visor_binary,optional"`
 
 	ConfigTemplates      ConfigTemplates `hcl:"config_templates,block"`
 	NomadJobTemplate     *string         `hcl:"nomad_job_template,optional"`
@@ -154,12 +156,16 @@ type ClefConfig struct {
 }
 
 type ConfigTemplates struct {
-	Vega           *string `hcl:"vega,optional"`
-	VegaFile       *string `hcl:"vega_file,optional"`
-	Tendermint     *string `hcl:"tendermint,optional"`
-	TendermintFile *string `hcl:"tendermint_file,optional"`
-	DataNode       *string `hcl:"data_node,optional"`
-	DataNodeFile   *string `hcl:"data_node_file,optional"`
+	Vega             *string `hcl:"vega,optional"`
+	VegaFile         *string `hcl:"vega_file,optional"`
+	Tendermint       *string `hcl:"tendermint,optional"`
+	TendermintFile   *string `hcl:"tendermint_file,optional"`
+	DataNode         *string `hcl:"data_node,optional"`
+	DataNodeFile     *string `hcl:"data_node_file,optional"`
+	VisorRunConf     *string `hcl:"visor_run_conf,optional"`
+	VisorRunConfFile *string `hcl:"visor_run_conf_file,optional"`
+	VisorConf        *string `hcl:"visor_conf,optional"`
+	VisorConfFile    *string `hcl:"visor_conf_file,optional"`
 }
 
 func (c *Config) setAbsolutePaths() error {
@@ -207,15 +213,21 @@ func (c *Config) setAbsolutePaths() error {
 
 	// Data nodes binaries
 	for idx, nc := range c.Network.Nodes {
-		if nc.DataNodeBinary == "" {
-			continue
+		if nc.DataNodeBinary != "" {
+			dataNodeBinPath, err := utils.BinaryAbsPath(nc.DataNodeBinary)
+			if err != nil {
+				return fmt.Errorf("failed to set absolute path for data node binary %q: %w", nc.DataNodeBinary, err)
+			}
+			c.Network.Nodes[idx].DataNodeBinary = dataNodeBinPath
 		}
 
-		dataNodeBinPath, err := utils.BinaryAbsPath(nc.DataNodeBinary)
-		if err != nil {
-			return err
+		if nc.VisorBinary != "" {
+			visorBinPath, err := utils.BinaryAbsPath(nc.VisorBinary)
+			if err != nil {
+				return fmt.Errorf("failed to set absolute path for visor binary %q: %w", nc.VisorBinary, err)
+			}
+			c.Network.Nodes[idx].VisorBinary = visorBinPath
 		}
-		c.Network.Nodes[idx].DataNodeBinary = dataNodeBinPath
 	}
 
 	return nil
@@ -303,7 +315,7 @@ func (c Config) loadAndValidatePreGenerate(preGen PreGenerate) (*PreGenerate, er
 
 	for i, nc := range preGen.Nomad {
 		if nc.JobTemplate == nil && nc.JobTemplateFile != nil {
-			tmpl, err := c.loadConfigTemplateFile(*nc.JobTemplateFile)
+			tmpl, err := c.LoadConfigTemplateFile(*nc.JobTemplateFile)
 			if err != nil {
 				mErr.Add(fmt.Errorf("failed to load pre generate nomad template file for %s: %w", nc.Name, err))
 
@@ -328,7 +340,7 @@ func (c Config) loadAndValidateConfigTemplates(ct ConfigTemplates) (*ConfigTempl
 	mErr := utils.NewMultiError()
 
 	if ct.Vega == nil && ct.VegaFile != nil {
-		tmpl, err := c.loadConfigTemplateFile(*ct.VegaFile)
+		tmpl, err := c.LoadConfigTemplateFile(*ct.VegaFile)
 		if err != nil {
 			mErr.Add(fmt.Errorf("failed to load Vega config template: %w", err))
 		} else {
@@ -338,7 +350,7 @@ func (c Config) loadAndValidateConfigTemplates(ct ConfigTemplates) (*ConfigTempl
 	}
 
 	if ct.Tendermint == nil && ct.TendermintFile != nil {
-		tmpl, err := c.loadConfigTemplateFile(*ct.TendermintFile)
+		tmpl, err := c.LoadConfigTemplateFile(*ct.TendermintFile)
 		if err != nil {
 			mErr.Add(fmt.Errorf("failed to load Tendermint config template: %w", err))
 		} else {
@@ -348,12 +360,32 @@ func (c Config) loadAndValidateConfigTemplates(ct ConfigTemplates) (*ConfigTempl
 	}
 
 	if ct.DataNode == nil && ct.DataNodeFile != nil {
-		tmpl, err := c.loadConfigTemplateFile(*ct.DataNodeFile)
+		tmpl, err := c.LoadConfigTemplateFile(*ct.DataNodeFile)
 		if err != nil {
 			mErr.Add(fmt.Errorf("failed to load Data Node config template: %w", err))
 		} else {
 			ct.DataNode = &tmpl
 			ct.DataNodeFile = nil
+		}
+	}
+
+	if ct.VisorRunConf == nil && ct.VisorRunConfFile != nil {
+		tmpl, err := c.LoadConfigTemplateFile(*ct.VisorRunConfFile)
+		if err != nil {
+			mErr.Add(fmt.Errorf("failed to load Visor run config template: %w", err))
+		} else {
+			ct.VisorRunConf = &tmpl
+			ct.VisorRunConfFile = nil
+		}
+	}
+
+	if ct.VisorConf == nil && ct.VisorConfFile != nil {
+		tmpl, err := c.LoadConfigTemplateFile(*ct.VisorConfFile)
+		if err != nil {
+			mErr.Add(fmt.Errorf("failed to load Visor config template: %w", err))
+		} else {
+			ct.VisorConf = &tmpl
+			ct.VisorConfFile = nil
 		}
 	}
 
@@ -364,7 +396,7 @@ func (c Config) loadAndValidateConfigTemplates(ct ConfigTemplates) (*ConfigTempl
 	return &ct, nil
 }
 
-func (c Config) loadConfigTemplateFile(path string) (string, error) {
+func (c Config) LoadConfigTemplateFile(path string) (string, error) {
 	templateFile, err := utils.AbsPathWithPrefix(c.configDir, path)
 	if err != nil {
 		return "", fmt.Errorf("failed to get absolute file path %q: %w", path, err)
@@ -497,6 +529,7 @@ func DefaultConfig() (*Config, error) {
 		DataNodePrefix:       utils.ToPoint("data"),
 		WalletPrefix:         utils.ToPoint("wallet"),
 		FaucetPrefix:         utils.ToPoint("faucet"),
+		VisorPrefix:          utils.ToPoint("visor"),
 		VegaBinary:           utils.ToPoint("vega"),
 	}, nil
 }

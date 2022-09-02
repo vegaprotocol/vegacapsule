@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"text/template"
 
-	vspaths "code.vegaprotocol.io/vega/paths"
+	vspaths "code.vegaprotocol.io/shared/paths"
 	vwconfig "code.vegaprotocol.io/vega/wallet/network"
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/types"

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"path"
 
 	"code.vegaprotocol.io/vegacapsule/generator/nomad"
 	"code.vegaprotocol.io/vegacapsule/state"
@@ -86,7 +87,7 @@ func templateNomad(templateRaw string, netState *state.NetworkState, templateOut
 			continue
 		}
 		fileName := fmt.Sprintf("nomad-%s.hcl", ns.Name)
-		if err := outputTemplate(buff, templateOutDir, fileName, true); err != nil {
+		if err := outputTemplate(buff, path.Join(templateOutDir, fileName), true); err != nil {
 			return nil, err
 		}
 	}
