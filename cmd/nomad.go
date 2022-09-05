@@ -1,11 +1,27 @@
 package cmd
 
 import (
+	"fmt"
+	"os"
+
 	nmrunner "code.vegaprotocol.io/vegacapsule/nomad/runner"
 	"github.com/spf13/cobra"
 )
 
 var nomadConfigPath string
+
+func getInstallPath(installPath string) (string, error) {
+	if len(installPath) != 0 {
+		return installPath, nil
+	}
+
+	installPath = os.Getenv("GOBIN")
+	if len(installPath) == 0 {
+		return "", fmt.Errorf("GOBIN environment variable has not been found - please set install-path flag instead")
+	}
+
+	return installPath, nil
+}
 
 var nomadCmd = &cobra.Command{
 	Use:   "nomad",

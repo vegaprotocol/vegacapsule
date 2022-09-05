@@ -40,4 +40,5 @@ func init() {
 	rootCmd.AddCommand(ethereumCmd)
 	rootCmd.AddCommand(installBinariesCmd)
 	rootCmd.AddCommand(templateCmd)
+	rootCmd.AddCommand(versionCmd)
 }

@@ -31,6 +31,43 @@ func FileExists(name string) (bool, error) {
 	return false, err
 }
 
+// DirEmpty returns whether given directory is empty or not.
+// Folder is considered empty if only the given ignore files are present.
+func DirEmpty(path string, ignore ...string) (bool, error) {
+	f, err := os.Open(path)
+	if err != nil && errors.Is(err, os.ErrNotExist) {
+		return true, nil
+	} else if err != nil {
+		return false, err
+	}
+
+	defer f.Close()
+
+	names, err := f.Readdirnames(1)
+	if err == io.EOF {
+		return true, nil
+	}
+
+	if len(names) == 0 {
+		return true, nil
+	}
+
+	for _, name := range names {
+		var shouldIgnore bool
+		for _, iName := range ignore {
+			if name == iName {
+				shouldIgnore = true
+			}
+		}
+
+		if !shouldIgnore {
+			return false, nil
+		}
+	}
+
+	return true, nil
+}
+
 // Create file creates file and it's path if not exists.
 func CreateFile(p string) (*os.File, error) {
 	if err := os.MkdirAll(filepath.Dir(p), 0770); err != nil {
