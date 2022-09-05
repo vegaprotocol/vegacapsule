@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"path"
 
 	"code.vegaprotocol.io/vegacapsule/generator/genesis"
 	"code.vegaprotocol.io/vegacapsule/generator/tendermint"
@@ -74,11 +75,11 @@ func templateGenesis(templateRaw string, netState *state.NetworkState) error {
 	}
 
 	if !templateUpdateNetwork {
-		return outputTemplate(buff, templateOutDir, "genesis.json", true)
+		return outputTemplate(buff, path.Join(templateOutDir, "genesis.json"), true)
 	}
 
 	for _, ns := range netState.GeneratedServices.NodeSets {
-		if err := updateTemplateForNode(genesisTemplateType, ns.Tendermint.HomeDir, buff); err != nil {
+		if err := updateTemplateForNode(genesisTemplateType, ns, buff); err != nil {
 			return fmt.Errorf("failed to update template for node %d: %w", ns.Index, err)
 		}
 	}

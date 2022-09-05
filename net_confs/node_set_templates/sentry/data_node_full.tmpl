@@ -1,7 +1,17 @@
 GatewayEnabled = true
-[SqlStore]
-  Port = 5{{.NodeNumber}}32
 
+[SqlStore]
+  Level = "Info"
+  Enabled = true
+  WipeOnStartup = true
+  UseEmbedded = true
+  [SQLStore.ConnectionConfig]
+    Database = "vega"
+    Host = "localhost"
+    Password = "vega"
+    Port = 5{{.NodeNumber}}32
+    UseTransactions = true
+    Username = "vega"
 [API]
   Level = "Info"
   Port = 30{{.NodeNumber}}7

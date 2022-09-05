@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"path"
 	"text/template"
 
 	"code.vegaprotocol.io/vegacapsule/generator/datanode"
 	"code.vegaprotocol.io/vegacapsule/generator/tendermint"
 	"code.vegaprotocol.io/vegacapsule/generator/vega"
+	"code.vegaprotocol.io/vegacapsule/generator/visor"
 	"code.vegaprotocol.io/vegacapsule/state"
 	"code.vegaprotocol.io/vegacapsule/types"
 	"github.com/spf13/cobra"
@@ -19,12 +21,17 @@ var (
 	nodeSetsNames       []string
 	nodeSetTemplateType string
 
-	nodeSetTemplateTypes = []templateKindType{vegaNodeSetTemplateType, tendermintNodeSetTemplateType, dataNodeNodeSetTemplateType}
+	nodeSetTemplateTypes = []templateKindType{
+		vegaNodeSetTemplateType,
+		tendermintNodeSetTemplateType,
+		dataNodeNodeSetTemplateType,
+		visorRunNodeSetTemplateType,
+	}
 )
 
 var templateNodeSetsCmd = &cobra.Command{
 	Use:   "node-sets",
-	Short: "Run config templating for Vega, Tendermit, DataNode node sets",
+	Short: "Run config templating for Vega, Tendermit, DataNode, Visor node sets",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		template, err := ioutil.ReadFile(templatePath)
 		if err != nil {
@@ -147,6 +154,18 @@ func templateNodeSets(tmplType templateKindType, templateRaw string, netState *s
 		}
 
 		return templateNodeSetConfig(gen.TemplateConfig, gen.TemplateAndMergeConfig, tmplType, tmpl, nodeSets)
+	case visorRunNodeSetTemplateType:
+		tmpl, err := visor.NewConfigTemplate(templateRaw)
+		if err != nil {
+			return err
+		}
+
+		gen, err := visor.NewGenerator(netState.Config)
+		if err != nil {
+			return err
+		}
+
+		return templateNodeSetConfig(gen.TemplateConfig, gen.TemplateAndMergeConfig, tmplType, tmpl, nodeSets)
 	}
 
 	return fmt.Errorf("template type %q does not exists", tmplType)
@@ -172,12 +191,13 @@ func templateNodeSetConfig(
 		}
 
 		if templateUpdateNetwork {
-			if err := updateTemplateForNode(tmplType, ns.Tendermint.HomeDir, buff); err != nil {
+			if err := updateTemplateForNode(tmplType, ns, buff); err != nil {
 				return fmt.Errorf("failed to update template for node %d: %w", ns.Index, err)
 			}
 		} else {
 			fileName := fmt.Sprintf("%s-%s.conf", tmplType, ns.Name)
-			if err := outputTemplate(buff, templateOutDir, fileName, true); err != nil {
+
+			if err := outputTemplate(buff, path.Join(templateOutDir, fileName), true); err != nil {
 				return fmt.Errorf("failed to print generated template for node %d: %w", ns.Index, err)
 			}
 		}

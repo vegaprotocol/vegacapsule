@@ -7,8 +7,8 @@ import (
 	"os"
 	"text/template"
 
+	"code.vegaprotocol.io/shared/paths"
 	vgconfig "code.vegaprotocol.io/vega/core/config"
-	"code.vegaprotocol.io/vega/paths"
 	"code.vegaprotocol.io/vegacapsule/types"
 
 	"github.com/Masterminds/sprig"

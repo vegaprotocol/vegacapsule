@@ -17,21 +17,22 @@
 [EvtForward]
 	Level = "Info"
 	RetryRate = "1s"
-	{{if .FaucetPublicKey}}
-	BlockchainQueueAllowlist = ["{{ .FaucetPublicKey }}"]
-	{{end}}
 
 [Ethereum]
   RPCEndpoint = "{{.ETHEndpoint}}"
-
-[NodeWallet]
-	[NodeWallet.ETH]
-		ClefAddress = "http://127.0.0.1:855{{ .NodeNumber }}"
 
 [Processor]
 	[Processor.Ratelimit]
 		Requests = 10000
 		PerNBlocks = 1
 
-[Validators]
-	Level = "Debug"
+[Snapshot]
+	Level = "DEBUG"
+	KeepRecent = 10
+	RetryLimit = 5
+	Storage = "GOLevelDB"
+	DBPath = ""
+	StartHeight = -1
+
+[ProtocolUpgrade]
+	Level = "DEBUG"

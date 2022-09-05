@@ -1,0 +1,22 @@
+name = "v0.55.0+dev"
+
+[vega]
+  [vega.binary]
+    path = "/Users/karel/go/bin/vega"
+    args = ["node",
+      "--home", "{{ .NodeSet.Vega.HomeDir }}",
+      "--tendermint-home", "{{ .NodeSet.Tendermint.HomeDir }}",
+      "--nodewallet-passphrase-file", "{{ .NodeSet.Vega.NodeWalletPassFilePath }}",
+    ]
+  [vega.rpc]
+    socketPath = "/tmp/vega-{{ .NodeSet.Index }}.sock"
+    httpPath = "/rpc"
+
+{{ if .NodeSet.DataNode }}
+[data_node]
+    [data_node.binary]
+    path = "data-node"
+    args = ["node",
+      "--home", "{{ .NodeSet.DataNode.HomeDir }}",
+    ]
+{{ end }}

@@ -17,4 +17,5 @@ func init() {
 	nodesCmd.AddCommand(nodesRemoveCmd)
 	nodesCmd.AddCommand(nodesUnsafeResetAllCmd)
 	nodesCmd.AddCommand(nodesRestoreCheckpointCmd)
+	nodesCmd.AddCommand(nodesProtocolUpgradeCmd)
 }
