@@ -26,7 +26,7 @@ Please note that minimum supported release tag is v0.54.0.
 vegacapsule install-bins --install-path YOUR_CUSTOM_PATH --install-release-tag SPECIFIC_RELEASE_TAG
 ```
 
-3. Validate that binaries are accessible trough in chosen path (YOUR_CUSTOM_PATH) and versions matching the one from previous cmd output. If not, please run step 2 again with --install-path flag.
+3. Validate that binaries are accessible from chosen path (YOUR_CUSTOM_PATH) and the versions match the ones from previous cmd output. If not, run step 2 again with `--install-path` flag.
 ```bash
 YOUR_CUSTOM_PATH/vega version
 YOUR_CUSTOM_PATH/vegawallet version
