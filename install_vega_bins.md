@@ -16,7 +16,7 @@ Install the latest version of the vega binaries to given path:
 vegacapsule install-bins --install-path YOUR_CUSTOM_PATH
 ```
 
-Alternatively the binaries can be installed from a specific release tag with install-release-tag flag.
+Alternatively the binaries can be installed from a specific release tag with install-release-tag flag. To do this follow step 'B'
 [Check for releases.](https://github.com/vegaprotocol/vega/releases)
 
 Please note that minimum supported release tag is v0.54.0.
