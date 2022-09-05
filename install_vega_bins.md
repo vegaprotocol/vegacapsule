@@ -9,7 +9,7 @@ There is a feature avalible in Capsule that allows fetching supported binaries a
 vegacapsule version
 ```
 ### Install binaries to custom path
-Install latest version of binaries to given path:
+Install the latest version of the vega binaries to given path:
 
 2. A
 ```bash
