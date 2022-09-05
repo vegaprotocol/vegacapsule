@@ -34,7 +34,7 @@ YOUR_CUSTOM_PATH/data-node version
 ```
 
 ### Globaly install binaries
-2.
+1.
 ```bash
 vegacapsule install-bins
 ```
