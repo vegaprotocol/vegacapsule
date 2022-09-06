@@ -65,36 +65,42 @@ func netStart(ctx context.Context, state state.NetworkState) (*state.NetworkStat
 	}
 	state.RunningJobs = res
 
-	printPorts(state)
-
 	log.Println("starting network success")
+
+	printPorts(state)
 
 	return &state, nil
 }
 
 func printPorts(state state.NetworkState) {
-	time.Sleep(time.Second * 10)
-	openPorts := getRunningPorts()
+	log.Println("collecting exposed nodes addresses")
 
-	fmt.Println(openPorts)
+	time.Sleep(time.Second * 5)
+	openPorts := getRunningPorts()
 
 	if fOpenPorts, ok := openPorts["faucet"]; ok && state.GeneratedServices.Faucet != nil {
 		configuredPorts, err := ExtractPortsFromTOML(state.GeneratedServices.Faucet.ConfigFilePath)
 		if err == nil {
 			for _, port := range fOpenPorts {
+				if len(fOpenPorts) != 0 {
+					fmt.Printf("%q:\n", state.GeneratedServices.Faucet.Name)
+				}
 				if portName, ok := configuredPorts[port]; ok {
-					fmt.Printf("%s port %s %d\n", state.GeneratedServices.Faucet.Name, portName, port)
+					fmt.Printf("- %s localhost:%d\n", portName, port)
 				}
 			}
 		}
 	}
 
-	if wOpenPorts, ok := openPorts["faucet"]; ok && state.GeneratedServices.Wallet != nil {
+	if wOpenPorts, ok := openPorts["wallet"]; ok && state.GeneratedServices.Wallet != nil {
 		configuredPorts, err := ExtractPortsFromTOML(state.GeneratedServices.Wallet.ConfigFilePath)
 		if err == nil {
 			for _, port := range wOpenPorts {
+				if len(wOpenPorts) != 0 {
+					fmt.Printf("\n%q:\n", state.GeneratedServices.Wallet.Name)
+				}
 				if portName, ok := configuredPorts[port]; ok {
-					fmt.Printf("%s port %s %d\n", state.GeneratedServices.Wallet.Name, portName, port)
+					fmt.Printf("- %s: localhost:%d\n", portName, port)
 				}
 			}
 		}
@@ -104,9 +110,12 @@ func printPorts(state state.NetworkState) {
 		if vOpenPorts, ok := openPorts["vega"]; ok {
 			configuredPorts, err := ExtractPortsFromTOML(ns.Vega.ConfigFilePath)
 			if err == nil {
+				if len(vOpenPorts) != 0 {
+					fmt.Printf("\n%q Vega:\n", ns.Name)
+				}
 				for _, port := range vOpenPorts {
 					if portName, ok := configuredPorts[port]; ok {
-						fmt.Printf("%s vega port %s %d\n", ns.Name, portName, port)
+						fmt.Printf("- %s: localhost:%d\n", portName, port)
 					}
 				}
 			}
@@ -115,9 +124,12 @@ func printPorts(state state.NetworkState) {
 		if dnOpenPorts, ok := openPorts["data-node"]; ok && ns.DataNode != nil {
 			configuredPorts, err := ExtractPortsFromTOML(ns.DataNode.ConfigFilePath)
 			if err == nil {
+				if len(dnOpenPorts) != 0 {
+					fmt.Printf("\n%q Data Node:\n", ns.Name)
+				}
 				for _, port := range dnOpenPorts {
 					if portName, ok := configuredPorts[port]; ok {
-						fmt.Printf("%s Data Node port %s %d\n", ns.Name, portName, port)
+						fmt.Printf("- %s: localhost:%d\n", portName, port)
 					}
 				}
 			}
@@ -174,7 +186,9 @@ func getRunningPorts() map[string][]int64 {
 				}
 			}
 
-			out[outName] = []int64{}
+			if _, ok := out[outName]; !ok {
+				out[outName] = []int64{}
+			}
 
 			for _, c := range cs {
 				if c.Status == "LISTEN" {
