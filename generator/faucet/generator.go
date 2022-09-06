@@ -116,7 +116,7 @@ func (cg ConfigGenerator) OverwriteConfig(fc *types.Faucet, configTemplate *temp
 		return fmt.Errorf("failed decode override config: %w", err)
 	}
 
-	configFilePath := cg.configFilePath()
+	configFilePath := fc.ConfigFilePath
 
 	defaultConfig := faucet.NewDefaultConfig()
 	if err := paths.ReadStructuredFile(configFilePath, &defaultConfig); err != nil {
@@ -134,6 +134,7 @@ func (cg ConfigGenerator) OverwriteConfig(fc *types.Faucet, configTemplate *temp
 	return nil
 }
 
+// TODO remove this if not needed anymore
 func (cg ConfigGenerator) configFilePath() string {
 	return filepath.Join(cg.homeDir, "config", "faucet", "config.toml")
 }

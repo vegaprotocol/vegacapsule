@@ -70,6 +70,7 @@ func (vg ConfigGenerator) Initiate(
 		HomeDir:                nodeDir,
 		NodeWalletPassFilePath: nodeWalletPassFilePath,
 		BinaryPath:             *vg.conf.VegaBinary,
+		ConfigFilePath:         confFilePath,
 	}
 
 	if mode != types.NodeModeValidator {

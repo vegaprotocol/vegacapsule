@@ -16,6 +16,7 @@ import (
 	"code.vegaprotocol.io/vegacapsule/generator/wallet"
 	"code.vegaprotocol.io/vegacapsule/types"
 	"code.vegaprotocol.io/vegacapsule/utils"
+	"github.com/hashicorp/nomad/api"
 )
 
 type nodeSets struct {
@@ -38,6 +39,7 @@ func (ns nodeSets) GetAllByGroupName(groupName string) []types.NodeSet {
 type jobRunner interface {
 	RunRawNomadJobs(ctx context.Context, rawJobs []string) ([]types.RawJobWithNomadJob, error)
 	StopNetwork(ctx context.Context, jobs *types.NetworkJobs, nodesOnly bool) error
+	GetJobPorts(job *api.Job) []int64
 }
 
 type Generator struct {

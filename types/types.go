@@ -25,6 +25,7 @@ type VegaNode struct {
 	Name                   string
 	Mode                   string
 	HomeDir                string
+	ConfigFilePath         string
 	NodeWalletPassFilePath string
 
 	NodeWalletInfo *NodeWalletInfo `json:",omitempty"`
@@ -40,9 +41,10 @@ type TendermintNode struct {
 }
 
 type DataNode struct {
-	Name       string
-	HomeDir    string
-	BinaryPath string
+	Name           string
+	HomeDir        string
+	BinaryPath     string
+	ConfigFilePath string
 }
 
 type Visor struct {
@@ -59,6 +61,7 @@ type RawJobWithNomadJob struct {
 type NomadJob struct {
 	ID          string
 	NomadJobRaw string
+	Ports       []int64
 }
 
 type NodeSet struct {
@@ -104,12 +107,12 @@ func (ns NodeSet) IsValidator() bool {
 }
 
 type Wallet struct {
-	Name                  string
-	HomeDir               string
-	Network               string
-	ServiceConfigFilePath string
-	PublicKeyFilePath     string
-	PrivateKeyFilePath    string
+	Name               string
+	HomeDir            string
+	Network            string
+	ConfigFilePath     string
+	PublicKeyFilePath  string
+	PrivateKeyFilePath string
 }
 
 type Faucet struct {

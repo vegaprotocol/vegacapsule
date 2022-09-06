@@ -63,6 +63,7 @@ func (g *Generator) startNomadJobs(rawNomadJobs []string) ([]types.NomadJob, err
 		jobIDs = append(jobIDs, types.NomadJob{
 			ID:          *j.NomadJob.ID,
 			NomadJobRaw: j.RawJob,
+			Ports:       g.jobRunner.GetJobPorts(j.NomadJob),
 		})
 	}
 

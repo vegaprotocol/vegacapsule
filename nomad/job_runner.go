@@ -340,3 +340,7 @@ func (r *JobRunner) StopJobs(ctx context.Context, jobIDs []string) error {
 
 	return g.Wait()
 }
+
+func (r *JobRunner) GetJobPorts(job *api.Job) []int64 {
+	return GetJobPorts(job)
+}

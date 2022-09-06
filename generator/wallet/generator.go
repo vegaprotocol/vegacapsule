@@ -73,12 +73,12 @@ func (cg *ConfigGenerator) InitiateWithNetworkConfig(conf *config.WalletConfig, 
 	}
 
 	return &types.Wallet{
-		Name:                  fmt.Sprintf("%s-wallet", cg.conf.Network.Name),
-		HomeDir:               cg.homeDir,
-		ServiceConfigFilePath: cg.configFilePath(),
-		Network:               importOut.Name,
-		PublicKeyFilePath:     initOut.RsaKeys.PublicKeyFilePath,
-		PrivateKeyFilePath:    initOut.RsaKeys.PrivateKeyFilePath,
+		Name:               fmt.Sprintf("%s-wallet", cg.conf.Network.Name),
+		HomeDir:            cg.homeDir,
+		ConfigFilePath:     cg.configFilePath(),
+		Network:            importOut.Name,
+		PublicKeyFilePath:  initOut.RsaKeys.PublicKeyFilePath,
+		PrivateKeyFilePath: initOut.RsaKeys.PrivateKeyFilePath,
 	}, nil
 }
 
