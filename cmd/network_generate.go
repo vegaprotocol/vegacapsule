@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"code.vegaprotocol.io/vega/paths"
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/generator"
 	"code.vegaprotocol.io/vegacapsule/nomad"
@@ -106,39 +105,4 @@ func netGenerate(state state.NetworkState, force bool) (*state.NetworkState, err
 	state.RunningJobs.AddExtraJobIDs(generatedSvcs.PreGenerateJobsIDs())
 
 	return &state, nil
-}
-
-func ExtractPortsFromTOML(configPath string) (map[int64]string, error) {
-	config := map[string]interface{}{}
-	if err := paths.ReadStructuredFile(configPath, &config); err != nil {
-		return nil, fmt.Errorf("failed to read configuration file at %s: %w", configPath, err)
-	}
-
-	return ExtractPorts(config), nil
-}
-
-func ExtractPorts(m map[string]interface{}) map[int64]string {
-	out := map[int64]string{}
-
-	for name, value := range m {
-		switch v := value.(type) {
-		case map[string]interface{}:
-			walkOut := ExtractPorts(v)
-
-			for port, currentName := range walkOut {
-				newName := name
-				if currentName != "" {
-					newName = fmt.Sprintf("%s.%s", name, currentName)
-				}
-
-				out[port] = newName
-			}
-		case int64:
-			if name == "Port" {
-				out[v] = ""
-			}
-		}
-	}
-
-	return out
 }

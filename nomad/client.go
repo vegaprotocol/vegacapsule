@@ -57,7 +57,7 @@ func (n *Client) waitForDeployment(ctx context.Context, jobID string) error {
 		default:
 			time.Sleep(time.Second * 4)
 
-			job, _, err := n.API.Jobs().Info(jobID, &api.QueryOptions{})
+			job, err := n.Info(ctx, jobID)
 			if err != nil {
 				return err
 			}
@@ -90,10 +90,20 @@ func (n *Client) waitForDeployment(ctx context.Context, jobID string) error {
 	}
 }
 
-func (n *Client) Run(job *api.Job) (bool, error) {
+func (n *Client) Info(ctx context.Context, jobID string) (*api.Job, error) {
+	queryOpts := new(api.QueryOptions).WithContext(ctx)
+	job, _, err := n.API.Jobs().Info(jobID, queryOpts)
+	if err != nil {
+		return nil, err
+	}
+
+	return job, nil
+}
+
+func (n *Client) Run(ctx context.Context, job *api.Job) (bool, error) {
 	jobs := n.API.Jobs()
 
-	info, _, err := jobs.Info(*job.ID, &api.QueryOptions{})
+	info, err := n.Info(ctx, *job.ID)
 	if err != nil {
 		//NOTE: Handle 404 status code
 		log.Printf("Error getting job info: %+v", err)
@@ -137,4 +147,15 @@ func (n *Client) Stop(ctx context.Context, jobID string, purge bool) error {
 
 	log.Printf("Stopped Job: %+v - %+v", jobID, jId)
 	return nil
+}
+
+// Stop stops a specific job
+func (n *Client) List(ctx context.Context) ([]*api.JobListStub, error) {
+	queryOpts := new(api.QueryOptions).WithContext(ctx)
+	jobs, _, err := n.API.Jobs().List(queryOpts)
+	if err != nil {
+		return nil, err
+	}
+
+	return jobs, nil
 }

@@ -65,12 +65,14 @@ func (vg ConfigGenerator) Initiate(
 	}
 
 	initNode := &types.VegaNode{
-		Name:                   fmt.Sprintf("vega-%s-%d", mode, index),
+		GeneratedService: types.GeneratedService{
+			Name:           fmt.Sprintf("vega-%s-%d", mode, index),
+			HomeDir:        nodeDir,
+			ConfigFilePath: confFilePath,
+		},
 		Mode:                   mode,
-		HomeDir:                nodeDir,
 		NodeWalletPassFilePath: nodeWalletPassFilePath,
 		BinaryPath:             *vg.conf.VegaBinary,
-		ConfigFilePath:         confFilePath,
 	}
 
 	if mode != types.NodeModeValidator {

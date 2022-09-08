@@ -15,14 +15,14 @@ import (
 )
 
 type JobRunner struct {
-	client        *Client
+	Client        *Client
 	capsuleBinary string
 	logsOutputDir string
 }
 
 func NewJobRunner(c *Client, capsuleBinaryPath, logsOutputDir string) (*JobRunner, error) {
 	return &JobRunner{
-		client:        c,
+		Client:        c,
 		capsuleBinary: capsuleBinaryPath,
 		logsOutputDir: logsOutputDir,
 	}, nil
@@ -47,7 +47,7 @@ func (r *JobRunner) RunRawNomadJobs(ctx context.Context, rawJobs []string) ([]ty
 				return fmt.Errorf("failed to parse Nomad job: %w", err)
 			}
 
-			if err := r.client.RunAndWait(ctx, job); err != nil {
+			if err := r.Client.RunAndWait(ctx, job); err != nil {
 				return err
 			}
 
@@ -102,7 +102,7 @@ func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) (
 		j := j
 
 		eg.Go(func() error {
-			return r.client.RunAndWait(ctx, j)
+			return r.Client.RunAndWait(ctx, j)
 		})
 	}
 
@@ -116,6 +116,7 @@ func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) (
 func (r *JobRunner) runDockerJobs(ctx context.Context, dockerConfigs []config.DockerConfig) ([]string, error) {
 	g, ctx := errgroup.WithContext(ctx)
 	jobIDs := make([]string, 0, len(dockerConfigs))
+
 	var jobIDsLock sync.Mutex
 
 	for _, dc := range dockerConfigs {
@@ -124,7 +125,7 @@ func (r *JobRunner) runDockerJobs(ctx context.Context, dockerConfigs []config.Do
 		g.Go(func() error {
 			job := r.defaultDockerJob(ctx, dc)
 
-			if err := r.client.RunAndWait(ctx, job); err != nil {
+			if err := r.Client.RunAndWait(ctx, job); err != nil {
 				return fmt.Errorf("failed to run pre start job %q: %w", *job.ID, err)
 			}
 
@@ -191,7 +192,7 @@ func (r *JobRunner) startNetwork(
 	if generatedSvcs.Faucet != nil {
 		g.Go(func() error {
 			job := r.defaultFaucetJob(*conf.VegaBinary, conf.Network.Faucet, generatedSvcs.Faucet)
-			if err := r.client.RunAndWait(ctx, job); err != nil {
+			if err := r.Client.RunAndWait(ctx, job); err != nil {
 				return fmt.Errorf("failed to run the faucet job %q: %w", *job.ID, err)
 			}
 
@@ -206,7 +207,7 @@ func (r *JobRunner) startNetwork(
 	if generatedSvcs.Wallet != nil {
 		g.Go(func() error {
 			job := r.defaultWalletJob(conf.Network.Wallet, generatedSvcs.Wallet)
-			if err := r.client.RunAndWait(ctx, job); err != nil {
+			if err := r.Client.RunAndWait(ctx, job); err != nil {
 				return fmt.Errorf("failed to run the wallet job %q: %w", *job.ID, err)
 			}
 
@@ -250,7 +251,7 @@ func (r *JobRunner) startNetwork(
 }
 
 func (r *JobRunner) stopAllJobs(ctx context.Context) error {
-	jobs, _, err := r.client.API.Jobs().List(nil)
+	jobs, _, err := r.Client.API.Jobs().List(nil)
 	if err != nil {
 		return err
 	}
@@ -259,7 +260,7 @@ func (r *JobRunner) stopAllJobs(ctx context.Context) error {
 	for _, j := range jobs {
 		j := j
 		eg.Go(func() error {
-			return r.client.Stop(ctx, j.ID, true)
+			return r.Client.Stop(ctx, j.ID, true)
 		})
 	}
 
@@ -268,7 +269,7 @@ func (r *JobRunner) stopAllJobs(ctx context.Context) error {
 	}
 
 	// just to try - we are not interested in error
-	_ = r.client.API.System().GarbageCollect()
+	_ = r.Client.API.System().GarbageCollect()
 
 	return nil
 }
@@ -297,7 +298,7 @@ func (r *JobRunner) StopNetwork(ctx context.Context, jobs *types.NetworkJobs, no
 		jobName := jobName
 
 		g.Go(func() error {
-			if err := r.client.Stop(ctx, jobName, true); err != nil {
+			if err := r.Client.Stop(ctx, jobName, true); err != nil {
 				return fmt.Errorf("cannot stop nomad job \"%s\": %w", jobName, err)
 			}
 			return nil
@@ -310,7 +311,7 @@ func (r *JobRunner) StopNetwork(ctx context.Context, jobs *types.NetworkJobs, no
 	}
 
 	// just to try - we are not interested in error
-	_ = r.client.API.System().GarbageCollect()
+	_ = r.Client.API.System().GarbageCollect()
 
 	return nil
 }
@@ -330,7 +331,7 @@ func (r *JobRunner) StopJobs(ctx context.Context, jobIDs []string) error {
 		jobName := jobName
 
 		g.Go(func() error {
-			if err := r.client.Stop(ctx, jobName, true); err != nil {
+			if err := r.Client.Stop(ctx, jobName, true); err != nil {
 				return fmt.Errorf("cannot stop nomad job \"%s\": %w", jobName, err)
 			}
 			return nil
@@ -341,6 +342,12 @@ func (r *JobRunner) StopJobs(ctx context.Context, jobIDs []string) error {
 	return g.Wait()
 }
 
-func (r *JobRunner) GetJobPorts(job *api.Job) []int64 {
-	return GetJobPorts(job)
+// ListExposedPorts returns exposed ports per node
+func (r *JobRunner) ListExposedPorts(ctx context.Context, jobID string) ([]int64, error) {
+	job, err := r.Client.Info(ctx, jobID)
+	if err != nil {
+		return nil, err
+	}
+
+	return GetJobPorts(job), nil
 }
