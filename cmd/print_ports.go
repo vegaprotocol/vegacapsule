@@ -62,14 +62,19 @@ func printNetworkPorts(ctx context.Context, nomadRunner *nomad.JobRunner, genSer
 		if len(gss) == 0 {
 			nomadExposedPorts, err := nomadRunner.ListExposedPorts(ctx, j.ID)
 			if err != nil {
-				log.Printf("failed to ") // TODO add the log
+				log.Printf("failed to list exposed Nomad jobs: %s", err)
 				continue
 			}
 
+			fmt.Printf("\n%q:\n", j.ID)
 			for _, openPort := range nomadExposedPorts {
-				printJobPort(openPort, "", j.ID, "")
+				printJobPort(openPort, "")
 			}
 			continue
+		}
+
+		if len(gss) != 0 {
+			fmt.Printf("\n%q:\n", j.ID)
 		}
 
 		for _, gs := range gss {
@@ -79,9 +84,10 @@ func printNetworkPorts(ctx context.Context, nomadRunner *nomad.JobRunner, genSer
 				continue
 			}
 
-			for openPort, processName := range portsPerProcessName {
+			fmt.Printf("%q:\n", gs.Name)
+			for openPort := range portsPerProcessName {
 				if portName, ok := configuredPorts[openPort]; ok {
-					printJobPort(openPort, portName, j.ID, processName)
+					printJobPort(openPort, portName)
 				}
 			}
 		}
@@ -93,15 +99,7 @@ func printNetworkPorts(ctx context.Context, nomadRunner *nomad.JobRunner, genSer
 func printJobPort(
 	port int64,
 	portName string,
-	jobName string,
-	taskName string,
 ) {
-	if taskName != "" {
-		fmt.Printf("\n%q %s:\n", jobName, taskName)
-	} else {
-		fmt.Printf("\n%q:\n", jobName)
-	}
-
 	if portName != "" {
 		fmt.Printf("- %s: localhost:%d\n", portName, port)
 	} else {
