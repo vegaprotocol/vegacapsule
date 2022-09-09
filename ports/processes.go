@@ -12,7 +12,7 @@ const (
 	vegaProcessName     = "vega"
 	faucetProcessName   = "faucet"
 	dataNodeProcessName = "data-node"
-	walletProcessName   = "wallet"
+	walletProcessName   = "vegawallet"
 
 	portStatusListen = "LISTEN"
 	nomadProcessName = "nomad"

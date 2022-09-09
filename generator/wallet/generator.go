@@ -74,7 +74,7 @@ func (cg *ConfigGenerator) InitiateWithNetworkConfig(conf *config.WalletConfig, 
 
 	return &types.Wallet{
 		GeneratedService: types.GeneratedService{
-			Name:           fmt.Sprintf("%s-wallet", cg.conf.Network.Name),
+			Name:           fmt.Sprintf("%s-vegawallet", cg.conf.Network.Name),
 			HomeDir:        cg.homeDir,
 			ConfigFilePath: cg.configFilePath(),
 		},

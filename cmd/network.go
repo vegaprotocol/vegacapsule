@@ -46,4 +46,5 @@ func init() {
 	networkCmd.AddCommand(netGenerateCmd)
 	networkCmd.AddCommand(netLogsCmd)
 	networkCmd.AddCommand(keysCmd)
+	networkCmd.AddCommand(netPrintPortsCmd)
 }

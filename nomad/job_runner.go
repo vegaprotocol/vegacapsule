@@ -342,12 +342,33 @@ func (r *JobRunner) StopJobs(ctx context.Context, jobIDs []string) error {
 	return g.Wait()
 }
 
-// ListExposedPorts returns exposed ports per node
-func (r *JobRunner) ListExposedPorts(ctx context.Context, jobID string) ([]int64, error) {
+// ListExposedPortsPerJobID returns exposed ports per node
+func (r *JobRunner) ListExposedPortsPerJob(ctx context.Context, jobID string) ([]int64, error) {
 	job, err := r.Client.Info(ctx, jobID)
 	if err != nil {
 		return nil, err
 	}
 
 	return GetJobPorts(job), nil
+}
+
+// ListExposedPorts returns exposed ports accross all nodes
+func (r *JobRunner) ListExposedPorts(ctx context.Context) (map[string][]int64, error) {
+	jobs, err := r.Client.List(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	portsPerJob := map[string][]int64{}
+
+	for _, j := range jobs {
+		ports, err := r.ListExposedPortsPerJob(ctx, j.ID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to list ports for job %q: %w", j.ID, err)
+		}
+
+		portsPerJob[j.ID] = ports
+	}
+
+	return portsPerJob, nil
 }

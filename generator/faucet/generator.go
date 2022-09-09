@@ -135,8 +135,3 @@ func (cg ConfigGenerator) OverwriteConfig(fc *types.Faucet, configTemplate *temp
 
 	return nil
 }
-
-// TODO remove this if not needed anymore
-func (cg ConfigGenerator) configFilePath() string {
-	return filepath.Join(cg.homeDir, "config", "faucet", "config.toml")
-}

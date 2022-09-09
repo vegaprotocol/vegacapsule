@@ -11,7 +11,7 @@ const (
 )
 
 // ExtractPortsFromConfig read TOML config from disc and extracts
-// all ports definitin into a map of ports to port name
+// all ports definitions into a map of ports to port name
 func ExtractPortsFromConfig(configPath string) (map[int64]string, error) {
 	config := map[string]interface{}{}
 	if err := paths.ReadStructuredFile(configPath, &config); err != nil {
@@ -21,7 +21,7 @@ func ExtractPortsFromConfig(configPath string) (map[int64]string, error) {
 	return ExtractPorts(config), nil
 }
 
-// ExtractPorts extracts all ports definitin into a map of ports to port name.
+// ExtractPorts extracts all ports definitions into a map of ports to port name.
 // Example map: { 2002: "API.Rest", 2003: "API.GRPC" }
 func ExtractPorts(m map[string]interface{}) map[int64]string {
 	out := map[int64]string{}

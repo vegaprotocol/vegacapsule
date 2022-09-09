@@ -65,7 +65,9 @@ func netStart(ctx context.Context, state state.NetworkState) (*state.NetworkStat
 
 	log.Println("starting network success")
 
-	printNetworkPorts(ctx, nomadRunner, state.GeneratedServices)
+	if err := printNetworkAddresses(ctx, nomadRunner, state.GeneratedServices); err != nil {
+		log.Printf("failed to print network addresses - please try to run 'network print-ports' instaed: %s", err)
+	}
 
 	return &state, nil
 }
