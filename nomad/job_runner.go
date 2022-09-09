@@ -352,7 +352,7 @@ func (r *JobRunner) ListExposedPortsPerJob(ctx context.Context, jobID string) ([
 	return GetJobPorts(job), nil
 }
 
-// ListExposedPorts returns exposed ports accross all nodes
+// ListExposedPorts returns exposed ports across all nodes
 func (r *JobRunner) ListExposedPorts(ctx context.Context) (map[string][]int64, error) {
 	jobs, err := r.Client.List(ctx)
 	if err != nil {
