@@ -137,7 +137,7 @@ func (vg ConfigGenerator) initiateValidatorWallets(
 			return nil, fmt.Errorf("failed to wait for Clef instance: %w", err)
 		}
 
-		clefAccountAddr := clefConf.AccountAddresses[index]
+		clefAccountAddr := clefConf.AccountAddresses[index%len(clefConf.AccountAddresses)]
 
 		ethOut, err := vg.importEthereumClefNodeWallet(nodeDir, nodeWalletPassFilePath, clefAccountAddr, clefConf.ClefRPCAddr)
 		if err != nil {
