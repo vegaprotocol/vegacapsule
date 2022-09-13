@@ -1,16 +1,16 @@
 vega_binary_path = "vega"
 
 network "testnet" {
-	ethereum {
+    ethereum {
     chain_id   = "1440"
     network_id = "1441"
     endpoint   = "http://127.0.0.1:8545/"
   }
   
   faucet "faucet-1" {
-	  wallet_pass = "f4uc3tw4ll3t-v3g4-p4ssphr4e3"
+      wallet_pass = "f4uc3tw4ll3t-v3g4-p4ssphr4e3"
 
-	  template = <<-EOT
+      template = <<-EOT
 [Node]
   Port = 3002
   IP = "127.0.0.1"
@@ -75,7 +75,7 @@ EOT
   node_set "full" {
     count = 1
     mode = "full"
-	  data_node_binary = "data-node"
+      data_node_binary = "data-node"
 
     config_templates {
       vega_file = "./node_set_templates/default/vega_full.tmpl"
@@ -88,7 +88,7 @@ EOT
     count = 2
     mode = "validator"
     visor_binary = "visor"
-	  data_node_binary = "data-node"
+      data_node_binary = "data-node"
 
     node_wallet_pass = "n0d3w4ll3t-p4ssphr4e3"
     vega_wallet_pass = "w4ll3t-p4ssphr4e3"
@@ -98,6 +98,7 @@ EOT
       vega_file = "./node_set_templates/default/vega_full.tmpl"
       tendermint_file = "./node_set_templates/default/tendermint_full.tmpl"
       visor_run_conf_file = "./node_set_templates/default/visor_run.tmpl"
+      visor_conf_file = "./node_set_templates/default/visor_config.tmpl"
       data_node_file = "./node_set_templates/default/data_node_full.tmpl"
     }
   }
