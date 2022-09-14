@@ -133,7 +133,7 @@ func (vg ConfigGenerator) initiateValidatorWallets(
 	}
 
 	if clefConf != nil {
-		if err := waitForClef(clefConf.ClefRPCAddr, `{"id": 1, "jsonrpc": "2.0", "method": "account_list"}`, time.Second*20); err != nil {
+		if err := waitForClef(clefConf.ClefRPCAddr, `{"id": 1, "jsonrpc": "2.0", "method": "account_list"}`, time.Second*30); err != nil {
 			return nil, fmt.Errorf("failed to wait for Clef instance: %w", err)
 		}
 

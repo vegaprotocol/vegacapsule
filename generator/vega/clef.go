@@ -11,23 +11,24 @@ import (
 )
 
 func waitForClef(url string, payload string, timeout time.Duration) (err error) {
-	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer([]byte(payload)))
-	if err != nil {
-		return err
-	}
-
-	req.Header = map[string][]string{
-		"Content-Type": {"application/json"},
-	}
-
 	httpClient := http.Client{Timeout: time.Second * 5}
 
 	testCall := func() error {
 		log.Printf("wating for Clef %q to start", url)
 
-		res, err := httpClient.Do(req)
+		req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer([]byte(payload)))
 		if err != nil {
-			return fmt.Errorf("failed to send request to Clef %q: %w", url, err)
+			return err
+		}
+
+		req.Header = map[string][]string{
+			"Content-Type": {"application/json"},
+		}
+
+		res, err := httpClient.Do(req)
+		fmt.Println("response:", res, err)
+		if err != nil {
+			return fmt.Errorf("failed to send request %q to Clef %q: %w", payload, url, err)
 		}
 
 		b, err := ioutil.ReadAll(res.Body)
