@@ -149,7 +149,7 @@ func (n *Client) Stop(ctx context.Context, jobID string, purge bool) error {
 	return nil
 }
 
-// Stop stops a specific job
+// List returns all the jobs wrapped in the slice of the `api.JobListStub` structs
 func (n *Client) List(ctx context.Context) ([]*api.JobListStub, error) {
 	queryOpts := new(api.QueryOptions).WithContext(ctx)
 	jobs, _, err := n.API.Jobs().List(queryOpts)

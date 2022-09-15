@@ -23,7 +23,11 @@ var netPrintPortsCmd = &cobra.Command{
 		}
 
 		if networkState.Empty() {
-			return networkNotBootstrappedErr("nodes start")
+			return networkNotBootstrappedErr("network addresses")
+		}
+
+		if !networkState.Running() {
+			return networkNotRunningErr("network addresses")
 		}
 
 		nomadClient, err := nomad.NewClient(nil)
@@ -41,7 +45,7 @@ var netPrintPortsCmd = &cobra.Command{
 }
 
 func printNetworkAddresses(ctx context.Context, nomadRunner *nomad.JobRunner, genServices *types.GeneratedServices) error {
-	log.Println("priting exposed network addresses")
+	log.Println("printing exposed network addresses")
 
 	nomadExposedPorts, err := nomadRunner.ListExposedPorts(ctx)
 	if err != nil {
