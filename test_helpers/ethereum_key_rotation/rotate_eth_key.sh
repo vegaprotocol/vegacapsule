@@ -37,7 +37,7 @@ echo ETH_ADDR "$ETH_ADDR"
 echo ETH_NEW_ADDR "$ETH_NEW_ADDR"
 echo target_block $target_block
 
-vega wallet --home $VEGA_HOME command send --wallet $WALLET_NAME --passphrase-file $VEGA_WALLET_PASS_FILE --node-address $NODE_RPC_ADDR --pubkey $VEGA_PUB_KEY '{"ethereumKeyRotateSubmission": {"targetBlock": "'$target_block'", "newAddress": "'$ETH_NEW_ADDR'", "currentAddress": "'$ETH_ADDR'", "submitterAddress":""}}'
+vega wallet --home $VEGA_HOME command send --wallet $WALLET_NAME --passphrase-file $VEGA_WALLET_PASS_FILE --node-address $NODE_RPC_ADDR --pubkey $VEGA_PUB_KEY '{"ethereumKeyRotateSubmission": {"targetBlock": "'$target_block'", "newAddress": "'$ETH_NEW_ADDR'", "currentAddress": "'$ETH_ADDR'", "submitterAddress":"0xEe7D375bcB50C26d52E1A4a472D8822A2A22d94F"}}'
 
 while true; do
 sleep 1;
