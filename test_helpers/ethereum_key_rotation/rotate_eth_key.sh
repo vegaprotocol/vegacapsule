@@ -1,15 +1,14 @@
 #!/bin/bash
 
+VEGA_HOME=~/.vegacapsule/testnet/vega/node0
+VEGA_WALLET_PASS_FILE=$VEGA_HOME/vega-wallet-pass.txt
 NODE_WALLET_PASS_FILE=$VEGA_HOME/node-vega-wallet-pass.txt
 ETH_WALLET_PASS_FILE=$VEGA_HOME/ethereum-vega-wallet-pass.txt
-
 NODE_RPC_ADDR=localhost:3002
 NODE_REST_ADDR=localhost:3003
 DATA_NODE_REST_ADDR=localhost:3029
 CLEF_ADDR=127.0.0.1:8550
 WALLET_NAME=created-wallet
-VEGA_WALLET_PASS_FILE=$VEGA_HOME/vega-wallet-pass.txt
-VEGA_HOME=~/.vegacapsule/testnet/vega/node0
 
 
 VEGA_PUB_KEY=$(vega wallet --home $VEGA_HOME key list --wallet $WALLET_NAME --passphrase-file $VEGA_WALLET_PASS_FILE --output json | jq -r '.keys[0].publicKey')
