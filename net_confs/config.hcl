@@ -70,6 +70,7 @@ EOT
       }
 
       auth_soft_fail = true
+      start_probe = ["psql", "-U", "vega", "-c", "select 10 + 10"]
     }
   }
   

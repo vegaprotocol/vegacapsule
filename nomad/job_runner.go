@@ -1,12 +1,15 @@
 package nomad
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"path"
 	"strings"
 	"sync"
+	"time"
 
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/logscollector"
@@ -146,6 +149,44 @@ func (r *JobRunner) runDockerJobs(ctx context.Context, dockerConfigs []config.Do
 
 			if err := r.runAndWait(ctx, job); err != nil {
 				return fmt.Errorf("failed to run pre start job %q: %w", *job.ID, err)
+			}
+
+			if len(dc.StartProbe) != 0 {
+				for i := 0; i < 10; i++ {
+					allocs, _, err := r.client.API.Jobs().Allocations(*job.ID, false, nil)
+					if err != nil {
+						return err
+					}
+
+					if len(allocs) == 0 {
+						return nil
+					}
+
+					a := &api.Allocation{
+						ID: allocs[0].ID,
+					}
+
+					stdIn := bytes.NewBuffer([]byte{})
+					stdOut := bytes.NewBuffer([]byte{})
+					stdErr := bytes.NewBuffer([]byte{})
+
+					exitCode, err := r.client.API.Allocations().Exec(ctx, a, dc.Name, false, dc.StartProbe, stdIn, stdOut, stdErr, nil, nil)
+					if err != nil {
+						return err
+					}
+
+					if exitCode == 0 {
+						break
+					}
+
+					if i == 9 {
+						out, _ := ioutil.ReadAll(stdOut)
+						eOut, _ := ioutil.ReadAll(stdErr)
+
+						return fmt.Errorf("failed to finisht the job start probe: %s %s", out, eOut)
+					}
+					time.Sleep(time.Second * 1)
+				}
 			}
 
 			jobIDsLock.Lock()

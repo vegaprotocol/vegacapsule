@@ -100,6 +100,7 @@ type DockerConfig struct {
 	StaticPort   *StaticPort       `hcl:"static_port,block"`
 	AuthSoftFail bool              `hcl:"auth_soft_fail,optional"`
 	Resources    *Resources        `hcl:"resources,block"`
+	StartProbe   []string          `hcl:"start_probe,optional"`
 }
 
 type WalletConfig struct {
