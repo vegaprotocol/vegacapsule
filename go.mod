@@ -28,9 +28,12 @@ require (
 	github.com/go-logfmt/logfmt v0.5.1 // indirect
 	github.com/gtank/merlin v0.1.1 // indirect
 	github.com/gtank/ristretto255 v0.1.2 // indirect
+	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
 	github.com/mimoo/StrobeGo v0.0.0-20181016162300-f8f6d4d2b643 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.2 // indirect
+	github.com/power-devops/perfstat v0.0.0-20210106213030-5aafc221ea8c // indirect
+	github.com/yusufpapurcu/wmi v1.2.2 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 )
 
@@ -162,6 +165,7 @@ require (
 	github.com/google/go-github/v43 v43.0.0
 	github.com/hashicorp/nomad v1.3.1
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
+	github.com/shirou/gopsutil/v3 v3.22.8
 	github.com/spf13/cobra v1.5.0
 )
 

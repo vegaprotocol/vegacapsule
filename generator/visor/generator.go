@@ -69,8 +69,11 @@ func (g *Generator) Initiate(
 	}
 
 	initNode := &types.Visor{
-		Name:       fmt.Sprintf("visor-%d-with-%s", index, strings.Join(binariesNames, "-")),
-		HomeDir:    visorDir,
+		GeneratedService: types.GeneratedService{
+			Name:           fmt.Sprintf("visor-%d-with-%s", index, strings.Join(binariesNames, "-")),
+			HomeDir:        visorDir,
+			ConfigFilePath: configFilePath(visorDir),
+		},
 		BinaryPath: visorBinary,
 	}
 

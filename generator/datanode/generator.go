@@ -53,8 +53,11 @@ func (dng *ConfigGenerator) Initiate(index int, dataNodeBinary string) (*types.D
 	}
 
 	initNode := &types.DataNode{
-		Name:       fmt.Sprintf("data-node-%d", index),
-		HomeDir:    nodeDir,
+		GeneratedService: types.GeneratedService{
+			Name:           fmt.Sprintf("data-node-%d", index),
+			HomeDir:        nodeDir,
+			ConfigFilePath: confFilePath,
+		},
 		BinaryPath: dataNodeBinary,
 	}
 

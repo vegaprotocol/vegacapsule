@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"code.vegaprotocol.io/vegacapsule/types"
+	"github.com/hashicorp/nomad/api"
 )
 
 type VoidJobRunner struct{}
@@ -23,6 +24,11 @@ func (r *VoidJobRunner) RunRawNomadJobs(ctx context.Context, rawJobs []string) (
 }
 
 func (r *VoidJobRunner) StopNetwork(ctx context.Context, jobs *types.NetworkJobs, nodesOnly bool) error {
+	r.printCaveat()
+	return nil
+}
+
+func (r *VoidJobRunner) GetJobPorts(job *api.Job) []int64 {
 	r.printCaveat()
 	return nil
 }

@@ -88,10 +88,12 @@ func (cg *ConfigGenerator) Initiate(conf *config.FaucetConfig) (*types.Faucet, e
 	}
 
 	return &types.Faucet{
-		Name:               fmt.Sprintf("%s-faucet", cg.conf.Network.Name),
-		HomeDir:            cg.homeDir,
+		GeneratedService: types.GeneratedService{
+			Name:           fmt.Sprintf("%s-faucet", cg.conf.Network.Name),
+			ConfigFilePath: initOut.FaucetConfigFilePath,
+			HomeDir:        cg.homeDir,
+		},
 		PublicKey:          initOut.PublicKey,
-		ConfigFilePath:     initOut.FaucetConfigFilePath,
 		WalletFilePath:     initOut.FaucetWalletFilePath,
 		WalletPassFilePath: walletPassFilePath,
 	}, nil
@@ -116,7 +118,7 @@ func (cg ConfigGenerator) OverwriteConfig(fc *types.Faucet, configTemplate *temp
 		return fmt.Errorf("failed decode override config: %w", err)
 	}
 
-	configFilePath := cg.configFilePath()
+	configFilePath := fc.ConfigFilePath
 
 	defaultConfig := faucet.NewDefaultConfig()
 	if err := paths.ReadStructuredFile(configFilePath, &defaultConfig); err != nil {
@@ -132,8 +134,4 @@ func (cg ConfigGenerator) OverwriteConfig(fc *types.Faucet, configTemplate *temp
 	}
 
 	return nil
-}
-
-func (cg ConfigGenerator) configFilePath() string {
-	return filepath.Join(cg.homeDir, "config", "faucet", "config.toml")
 }
