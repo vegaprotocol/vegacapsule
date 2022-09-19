@@ -175,6 +175,11 @@ func (r *JobRunner) runDockerJobs(ctx context.Context, dockerConfigs []config.Do
 						return err
 					}
 
+					out, _ := ioutil.ReadAll(stdOut)
+					eOut, _ := ioutil.ReadAll(stdErr)
+					fmt.Printf("start_probe stdout: %s\n", out)
+					fmt.Printf("start_probe stderr: %s", eOut)
+
 					if exitCode == 0 {
 						break
 					}
@@ -185,6 +190,7 @@ func (r *JobRunner) runDockerJobs(ctx context.Context, dockerConfigs []config.Do
 
 						return fmt.Errorf("failed to finisht the job start probe: %s %s", out, eOut)
 					}
+
 					time.Sleep(time.Second * 1)
 				}
 			}
