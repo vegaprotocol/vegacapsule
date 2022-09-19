@@ -15,22 +15,22 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-type LogsCollector struct {
+type Collector struct {
 	logsDir   string
 	outputDir string
 
 	filesToCollect chan string
 }
 
-func New(logsDir, outputDir string) *LogsCollector {
-	return &LogsCollector{
+func New(logsDir, outputDir string) *Collector {
+	return &Collector{
 		filesToCollect: make(chan string, 20),
 		logsDir:        logsDir,
 		outputDir:      outputDir,
 	}
 }
 
-func (lc LogsCollector) watchForCreatedFiles(ctx context.Context) error {
+func (lc Collector) watchForCreatedFiles(ctx context.Context) error {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		return err
@@ -65,7 +65,7 @@ func (lc LogsCollector) watchForCreatedFiles(ctx context.Context) error {
 	}
 }
 
-func (lc LogsCollector) collectLogs(ctx context.Context, logFilePath string) error {
+func (lc Collector) collectLogs(ctx context.Context, logFilePath string) error {
 	log.Printf("Setting up file listener for %q", logFilePath)
 	defer log.Printf("Shutting down file listener for %q", logFilePath)
 
@@ -118,7 +118,7 @@ func (lc LogsCollector) collectLogs(ctx context.Context, logFilePath string) err
 	}
 }
 
-func (lc LogsCollector) Run(ctx context.Context) error {
+func (lc Collector) Run(ctx context.Context) error {
 	match := fmt.Sprintf("%s/*.[stderr|stdout]*[0-9]", lc.logsDir)
 
 	log.Printf("Looking for log files with %q", match)
