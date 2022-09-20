@@ -101,7 +101,11 @@ func (gs GeneratedServices) ListValidators() []VegaNodeOutput {
 		}
 
 		validators = append(validators, VegaNodeOutput{
-			VegaNode:     nodeSet.Vega,
+			VegaNode: nodeSet.Vega,
+			Tendermint: TendermintOutput{
+				NodeID:             nodeSet.Tendermint.NodeID,
+				ValidatorPublicKey: nodeSet.Tendermint.ValidatorPublicKey,
+			},
 			NomadJobName: nodeSet.Name,
 		})
 	}
