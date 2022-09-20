@@ -159,7 +159,7 @@ func (tg *ConfigGenerator) Initiate(index int, mode, groupName string) (*types.T
 			HomeDir:        nodeDir,
 			ConfigFilePath: confFilePath,
 		},
-		NodeID:          nodeID,eat: add tendermint output to the nodes ls-validators command)
+		NodeID:          nodeID,
 		GenesisFilePath: config.BaseConfig.GenesisFile(),
 		BinaryPath:      *tg.conf.VegaBinary,
 	}
