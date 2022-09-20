@@ -152,12 +152,14 @@ func (tg *ConfigGenerator) Initiate(index int, mode, groupName string) (*types.T
 	})
 
 	initNode := &types.TendermintNode{
+		Name:    nodeName,
+		HomeDir: nodeDir,
 		GeneratedService: types.GeneratedService{
 			Name:           nodeName,
 			HomeDir:        nodeDir,
 			ConfigFilePath: confFilePath,
 		},
-		NodeID:          nodeID,
+		NodeID:          nodeID,eat: add tendermint output to the nodes ls-validators command)
 		GenesisFilePath: config.BaseConfig.GenesisFile(),
 		BinaryPath:      *tg.conf.VegaBinary,
 	}
