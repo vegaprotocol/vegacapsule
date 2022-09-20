@@ -92,14 +92,19 @@ func (r *JobRunner) runAndWait(ctx context.Context, job *api.Job) error {
 	return err
 }
 
+type jobWithPreProbe struct {
+	Job   *api.Job
+	Probe string
+}
+
 func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) ([]*api.Job, error) {
-	jobs := make([]*api.Job, 0, len(nodeSets))
+	jobs := make([]jobWithPreProbe, 0, len(nodeSets))
 
 	for _, ns := range nodeSets {
 		if ns.NomadJobRaw == nil {
 			log.Printf("adding node set %q with default Nomad job definition", ns.Name)
 
-			jobs = append(jobs, r.defaultNodeSetJob(ns))
+			jobs = append(jobs, jobWithPreProbe{Job: r.defaultNodeSetJob(ns), Probe: ns.PreStartProbe})
 			continue
 		}
 
@@ -116,7 +121,7 @@ func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) (
 
 		log.Printf("adding node set %q with custom Nomad job definition", ns.Name)
 
-		jobs = append(jobs, job)
+		jobs = append(jobs, jobWithPreProbe{Job: job, Probe: ns.PreStartProbe})
 	}
 
 	eg := new(errgroup.Group)
@@ -124,7 +129,7 @@ func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) (
 		j := j
 
 		eg.Go(func() error {
-			return r.runAndWait(ctx, j)
+			return r.Client.ProbeRunAndWait(ctx, j)
 		})
 	}
 
@@ -132,7 +137,13 @@ func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) (
 		return nil, fmt.Errorf("failed to wait for node sets: %w", err)
 	}
 
-	return jobs, nil
+	jobsRaw := make([]*api.Job, 0, len(nodeSets))
+
+	for _, j := range jobs {
+		jobsRaw = append(jobsRaw, j.Job)
+	}
+
+	return jobsRaw, nil
 }
 
 func (r *JobRunner) runDockerJobs(ctx context.Context, dockerConfigs []config.DockerConfig) ([]string, error) {

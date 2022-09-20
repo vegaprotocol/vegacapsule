@@ -131,7 +131,8 @@ type NodeConfig struct {
 	Mode  string `hcl:"mode"`
 	Count int    `hcl:"count"`
 
-	PreGenerate *PreGenerate `hcl:"pre_generate,block"`
+	PreGenerate   *PreGenerate `hcl:"pre_generate,block"`
+	PreStartProbe string       `hcl:"pre_start_probe,optional"  template:""`
 
 	ClefWallet *ClefConfig `hcl:"clef_wallet,block" template:""`
 

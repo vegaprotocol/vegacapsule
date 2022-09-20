@@ -68,6 +68,7 @@ func (g *Generator) initiateNodeSet(absoluteIndex, relativeIndex, groupIndex int
 		Tendermint:    *initTNode,
 		DataNode:      initDNode,
 		Visor:         initVisor,
+		PreStartProbe: n.PreStartProbe,
 	}
 
 	if n.NomadJobTemplate != nil {
