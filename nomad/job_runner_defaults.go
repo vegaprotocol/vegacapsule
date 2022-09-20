@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/nomad/api"
 )
 
-const hasLogsCollector = "logs-collector"
+const logsCollectorTaskName = "capsule-logscolletor"
 
 var (
 	defaultLogConfig = &api.LogConfig{
@@ -66,9 +66,21 @@ func mergeResourcesWithDefault(customRes *config.Resources) *api.Resources {
 	return &result
 }
 
+func hasLogsCollectorTask(job *api.Job) bool {
+	for _, tg := range job.TaskGroups {
+		for _, task := range tg.Tasks {
+			if task.Name == logsCollectorTaskName {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
 func (r *JobRunner) defaultLogCollectorTask(jobName string) *api.Task {
 	return &api.Task{
-		Name:   "logger",
+		Name:   logsCollectorTaskName,
 		Driver: "raw_exec",
 		Config: map[string]interface{}{
 			"command": r.capsuleBinary,
@@ -149,7 +161,6 @@ func (r *JobRunner) defaultNodeSetTasks(ns types.NodeSet) []*api.Task {
 func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
 	return &api.Job{
 		ID:          utils.ToPoint(ns.Name),
-		Meta:        map[string]string{hasLogsCollector: "true"},
 		Datacenters: []string{"dc1"},
 		TaskGroups: []*api.TaskGroup{
 			{
@@ -168,7 +179,6 @@ func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
 func (r *JobRunner) defaultWalletJob(conf *config.WalletConfig, wallet *types.Wallet) *api.Job {
 	return &api.Job{
 		ID:          &wallet.Name,
-		Meta:        map[string]string{hasLogsCollector: "true"},
 		Datacenters: []string{"dc1"},
 		TaskGroups: []*api.TaskGroup{
 			{
@@ -208,7 +218,6 @@ func (r *JobRunner) defaultWalletJob(conf *config.WalletConfig, wallet *types.Wa
 func (r *JobRunner) defaultFaucetJob(binary string, conf *config.FaucetConfig, fc *types.Faucet) *api.Job {
 	return &api.Job{
 		ID:          &fc.Name,
-		Meta:        map[string]string{hasLogsCollector: "true"},
 		Datacenters: []string{"dc1"},
 		TaskGroups: []*api.TaskGroup{
 			{
@@ -255,7 +264,6 @@ func (r *JobRunner) defaultDockerJob(ctx context.Context, conf config.DockerConf
 	}
 
 	return &api.Job{
-		Meta:        map[string]string{hasLogsCollector: "true"},
 		ID:          &conf.Name,
 		Datacenters: []string{"dc1"},
 		TaskGroups: []*api.TaskGroup{

@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"sort"
+	"strings"
 	"time"
 
 	"code.vegaprotocol.io/vegacapsule/utils"
@@ -21,7 +22,11 @@ type nomadLogFile struct {
 	createdAt time.Time
 }
 
-func PrintLogs(logsDir string) error {
+func TailLastLogs(logsDir string) error {
+	return Tail(logsDir, 4000, false, false)
+}
+
+func Tail(logsDir string, offset int64, follow, withLogger bool) error {
 	fileExists, err := utils.FileExists(logsDir)
 	if err != nil {
 		return err
@@ -63,6 +68,10 @@ func PrintLogs(logsDir string) error {
 			continue
 		}
 
+		if !withLogger && strings.Contains(taskName, "logger") {
+			continue
+		}
+
 		logFilePerTaskName[taskName] = nomadLogFile{
 			taskName:  taskName,
 			name:      logFile,
@@ -72,7 +81,7 @@ func PrintLogs(logsDir string) error {
 	}
 
 	keys := make([]string, 0, len(logFilePerTaskName))
-	for k, _ := range logFilePerTaskName {
+	for k := range logFilePerTaskName {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
@@ -89,18 +98,23 @@ func PrintLogs(logsDir string) error {
 			continue
 		}
 
-		var offset int64 = 4000
+		var seekInfo *tail.SeekInfo
+
 		if offset > fileInfo.Size() {
 			offset = fileInfo.Size()
 		}
 
-		t, err := tail.TailFile(logFile.path, tail.Config{
-			Follow: false,
-			Poll:   true,
-			Location: &tail.SeekInfo{
+		if offset > 0 {
+			seekInfo = &tail.SeekInfo{
 				Offset: -offset,
 				Whence: io.SeekEnd,
-			},
+			}
+		}
+
+		t, err := tail.TailFile(logFile.path, tail.Config{
+			Follow:   follow,
+			Poll:     true,
+			Location: seekInfo,
 		})
 		if err != nil {
 			return fmt.Errorf("failed to tail file %q: %q", logFile.path, err)

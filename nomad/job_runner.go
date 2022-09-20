@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"path"
 	"sync"
 
 	"code.vegaprotocol.io/vegacapsule/config"
+	"code.vegaprotocol.io/vegacapsule/logscollector"
 	"code.vegaprotocol.io/vegacapsule/types"
-	"code.vegaprotocol.io/vegacapsule/utils"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/hashicorp/nomad/api"
@@ -68,7 +69,6 @@ func (r *JobRunner) RunRawNomadJobs(ctx context.Context, rawJobs []string) ([]ty
 	}
 
 	return jobs, nil
-
 }
 
 func (r *JobRunner) runAndWait(ctx context.Context, job *api.Job) error {
@@ -77,19 +77,9 @@ func (r *JobRunner) runAndWait(ctx context.Context, job *api.Job) error {
 		return nil
 	}
 
-	if IsJobTimeoutErr(err) {
-		_, ok := job.Meta[hasLogsCollector]
-		if ok {
-			args := []string{
-				"nomad", "logscollector", "tail",
-				"--out-dir", r.logsOutputDir,
-				"--job-id", *job.ID,
-			}
-			logs, err := utils.ExecuteBinary(r.capsuleBinary, args, nil)
-			if err != nil {
-				return fmt.Errorf("failed to print logs: %w", err)
-			}
-			fmt.Println(string(logs))
+	if IsJobTimeoutErr(err) && hasLogsCollectorTask(job) {
+		if err := logscollector.TailLastLogs(path.Join(r.logsOutputDir, *job.ID)); err != nil {
+			return fmt.Errorf("failed to print logs from failed job: %w", err)
 		}
 	}
 

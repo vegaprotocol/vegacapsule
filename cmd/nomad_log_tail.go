@@ -13,7 +13,7 @@ var nomadLogsCollectorTailCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logsDir := path.Join(nomadLogColOutDir, jobID)
 
-		return logscollector.PrintLogs(logsDir)
+		return logscollector.TailLastLogs(logsDir)
 	},
 }
 
