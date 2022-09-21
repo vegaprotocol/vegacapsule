@@ -105,20 +105,24 @@ func (r *JobRunner) defaultNodeSetTasks(ns types.NodeSet) []*api.Task {
 
 	tasks := make([]*api.Task, 0, 2)
 
+	cfgCore := map[string]interface{}{
+		"command": ns.Vega.BinaryPath,
+		"args": []string{
+			"node",
+			"--home", ns.Vega.HomeDir,
+			"--tendermint-home", ns.Tendermint.HomeDir,
+			"--nodewallet-passphrase-file", ns.Vega.NodeWalletPassFilePath,
+		},
+	}
+
+	withDebugger(cfgCore, ns.Vega.DebuggerPort)
+
 	tasks = append(tasks,
 		&api.Task{
-			Leader: true,
-			Name:   ns.Vega.Name,
-			Driver: "raw_exec",
-			Config: map[string]interface{}{
-				"command": ns.Vega.BinaryPath,
-				"args": []string{
-					"node",
-					"--home", ns.Vega.HomeDir,
-					"--tendermint-home", ns.Tendermint.HomeDir,
-					"--nodewallet-passphrase-file", ns.Vega.NodeWalletPassFilePath,
-				},
-			},
+			Leader:    true,
+			Name:      ns.Vega.Name,
+			Driver:    "raw_exec",
+			Config:    cfgCore,
 			LogConfig: defaultLogConfig,
 			Resources: defaultResourcesConfig,
 		},
@@ -126,18 +130,25 @@ func (r *JobRunner) defaultNodeSetTasks(ns types.NodeSet) []*api.Task {
 	)
 
 	if ns.DataNode != nil {
-		tasks = append(tasks, &api.Task{
-			Name:   ns.DataNode.Name,
-			Driver: "raw_exec",
-			Config: map[string]interface{}{
-				"command": ns.DataNode.BinaryPath,
-				"args": []string{
-					"node",
-					"--home", ns.DataNode.HomeDir,
-				},
+		cfgDN := map[string]interface{}{
+			"command": ns.DataNode.BinaryPath,
+			"args": []string{
+				"node",
+				"--home", ns.DataNode.HomeDir,
 			},
+		}
+
+		withDebugger(cfgDN, ns.DataNode.DebuggerPort)
+
+		tasks = append(tasks, &api.Task{
+			Name:      ns.DataNode.Name,
+			Driver:    "raw_exec",
+			Config:    cfgDN,
 			LogConfig: defaultLogConfig,
 			Resources: defaultResourcesConfig,
+			Env: map[string]string{
+				"GOTRACEBACK": "crash",
+			},
 		})
 	}
 
@@ -163,6 +174,21 @@ func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
 }
 
 func (r *JobRunner) defaultWalletJob(conf *config.WalletConfig, wallet *types.Wallet) *api.Job {
+	cfg := map[string]interface{}{
+		"command": conf.Binary,
+		"args": []string{
+			"service",
+			"run",
+			"--network", wallet.Network,
+			"--automatic-consent",
+			"--no-version-check",
+			"--output", "json",
+			"--home", wallet.HomeDir,
+		},
+	}
+
+	withDebugger(cfg, wallet.DebuggerPort)
+
 	return &api.Job{
 		ID:          &wallet.Name,
 		Datacenters: []string{"dc1"},
@@ -176,21 +202,10 @@ func (r *JobRunner) defaultWalletJob(conf *config.WalletConfig, wallet *types.Wa
 				ReschedulePolicy: defaultReschedulePolicy,
 				Tasks: []*api.Task{
 					{
-						Name:   "wallet-1",
-						Driver: "raw_exec",
-						Leader: true,
-						Config: map[string]interface{}{
-							"command": conf.Binary,
-							"args": []string{
-								"service",
-								"run",
-								"--network", wallet.Network,
-								"--automatic-consent",
-								"--no-version-check",
-								"--output", "json",
-								"--home", wallet.HomeDir,
-							},
-						},
+						Name:      "wallet-1",
+						Driver:    "raw_exec",
+						Leader:    true,
+						Config:    cfg,
 						LogConfig: defaultLogConfig,
 						Resources: defaultResourcesConfig,
 					},
@@ -199,6 +214,22 @@ func (r *JobRunner) defaultWalletJob(conf *config.WalletConfig, wallet *types.Wa
 			},
 		},
 	}
+}
+
+func withDebugger(cfg map[string]interface{}, portPtr *int64) {
+	if portPtr == nil {
+		return
+	}
+	cfg["args"], cfg["command"] = append([]string{
+		fmt.Sprintf("--listen=:%d", *portPtr),
+		"--headless=true",
+		"--api-version=2",
+		"--check-go-version=false",
+		"--accept-multiclient",
+		"--continue",
+		"--log",
+		"exec", cfg["command"].(string),
+		"--"}, cfg["args"].([]string)...), "dlv"
 }
 
 func (r *JobRunner) defaultFaucetJob(binary string, conf *config.FaucetConfig, fc *types.Faucet) *api.Job {

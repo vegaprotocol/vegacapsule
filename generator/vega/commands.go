@@ -35,7 +35,7 @@ type createWalletOutput struct {
 	} `json:"key"`
 }
 
-func (vg ConfigGenerator) initiateNode(homePath string, nodeWalletPhraseFile string, nodeMode string) (*initateNodeOutput, error) {
+func (vg *ConfigGenerator) initiateNode(homePath string, nodeWalletPhraseFile string, nodeMode string) (*initateNodeOutput, error) {
 	args := []string{
 		"init",
 		"--home", homePath,
@@ -55,7 +55,7 @@ func (vg ConfigGenerator) initiateNode(homePath string, nodeWalletPhraseFile str
 	return out, nil
 }
 
-func (vg ConfigGenerator) createWallet(homePath, name, walletPhraseFilePath string) (*createWalletOutput, error) {
+func (vg *ConfigGenerator) createWallet(homePath, name, walletPhraseFilePath string) (*createWalletOutput, error) {
 	args := []string{
 		"wallet",
 		"--home", homePath,
@@ -75,7 +75,7 @@ func (vg ConfigGenerator) createWallet(homePath, name, walletPhraseFilePath stri
 	return out, nil
 }
 
-func (vg ConfigGenerator) generateNodeWallet(homePath string, nodeWalletPhraseFile string, walletPhraseFile string, walletType string) (*generateNodeWalletOutput, error) {
+func (vg *ConfigGenerator) generateNodeWallet(homePath string, nodeWalletPhraseFile string, walletPhraseFile string, walletType string) (*generateNodeWalletOutput, error) {
 	args := []string{
 		"nodewallet",
 		"--home", homePath,
@@ -96,7 +96,7 @@ func (vg ConfigGenerator) generateNodeWallet(homePath string, nodeWalletPhraseFi
 	return out, nil
 }
 
-func (vg ConfigGenerator) importEthereumClefNodeWallet(
+func (vg *ConfigGenerator) importEthereumClefNodeWallet(
 	homePath, nodeWalletPhraseFile string,
 	clefAccountAddr, clefRPCAddr string,
 ) (*importNodeWalletOutput, error) {
@@ -121,7 +121,7 @@ func (vg ConfigGenerator) importEthereumClefNodeWallet(
 	return nwo, nil
 }
 
-func (vg ConfigGenerator) importTendermintNodeWallet(homePath string, nodeWalletPhraseFile string, tendermintHomePath string) (*importNodeWalletOutput, error) {
+func (vg *ConfigGenerator) importTendermintNodeWallet(homePath string, nodeWalletPhraseFile string, tendermintHomePath string) (*importNodeWalletOutput, error) {
 	args := []string{
 		"nodewallet",
 		"--home", homePath,
@@ -142,7 +142,7 @@ func (vg ConfigGenerator) importTendermintNodeWallet(homePath string, nodeWallet
 	return nwo, nil
 }
 
-func (vg ConfigGenerator) importVegaNodeWallet(homePath, nodeWalletPhraseFile, walletPhraseFile, walletFilePath string) (*importNodeWalletOutput, error) {
+func (vg *ConfigGenerator) importVegaNodeWallet(homePath, nodeWalletPhraseFile, walletPhraseFile, walletFilePath string) (*importNodeWalletOutput, error) {
 	args := []string{
 		"nodewallet",
 		"--home", homePath,

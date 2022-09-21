@@ -1,4 +1,5 @@
 vega_binary_path = "vega"
+debugger = true
 
 network "testnet" {
 	ethereum {
@@ -95,7 +96,7 @@ EOT
   node_set "full" {
     count = 1
     mode = "full"
-	  data_node_binary = "data-node"
+    data_node_binary = "data-node"
 
     config_templates {
       vega_file = "./node_set_templates/default/vega_full.tmpl"

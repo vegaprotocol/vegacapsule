@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"sync"
 
+	"golang.org/x/sync/errgroup"
+
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/generator/nomad"
 	"code.vegaprotocol.io/vegacapsule/generator/wallet"
 	"code.vegaprotocol.io/vegacapsule/types"
-	"golang.org/x/sync/errgroup"
 )
 
 func (g *Generator) initiateNodeSet(absoluteIndex, relativeIndex, groupIndex int, nc config.NodeConfig) (*types.NodeSet, error) {
@@ -147,7 +148,7 @@ func (g *Generator) initAndConfigureFaucet(conf *config.FaucetConfig) (*types.Fa
 	return initFaucet, nil
 }
 
-func (g *Generator) initAndConfigureWallet(conf *config.WalletConfig, validatorsSet, nonValidatorSet []types.NodeSet) (*types.Wallet, error) {
+func (g *Generator) initAndConfigureWallet(validatorsSet, nonValidatorSet []types.NodeSet) (*types.Wallet, error) {
 	walletConfTemplate, err := wallet.NewConfigTemplate(g.conf.Network.Wallet.Template)
 	if err != nil {
 		return nil, err

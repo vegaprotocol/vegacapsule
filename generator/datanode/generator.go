@@ -61,10 +61,15 @@ func (dng *ConfigGenerator) Initiate(index int, dataNodeBinary string) (*types.D
 		BinaryPath: dataNodeBinary,
 	}
 
+	if dng.conf.Debugger {
+		debugPort := types.BaseDebugPort + 101 + int64(index)
+		initNode.DebuggerPort = &debugPort
+	}
+
 	return initNode, nil
 }
 
-func (dng ConfigGenerator) nodeDir(i int) string {
+func (dng *ConfigGenerator) nodeDir(i int) string {
 	nodeDirName := fmt.Sprintf("%s%d", *dng.conf.NodeDirPrefix, i)
 	return filepath.Join(dng.homeDir, nodeDirName)
 }

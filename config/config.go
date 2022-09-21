@@ -19,6 +19,7 @@ import (
 type Config struct {
 	OutputDir            *string       `hcl:"-"`
 	VegaBinary           *string       `hcl:"vega_binary_path"`
+	Debugger             bool          `hcl:"debugger,optional"`
 	VegaCapsuleBinary    *string       `hcl:"vega_capsule_binary_path,optional"`
 	Prefix               *string       `hcl:"prefix"`
 	NodeDirPrefix        *string       `hcl:"node_dir_prefix"`

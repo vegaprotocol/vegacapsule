@@ -16,6 +16,7 @@ const (
 
 	portStatusListen = "LISTEN"
 	nomadProcessName = "nomad"
+	delveName        = "dlv"
 )
 
 var networkProcessesNames = map[string]struct{}{
@@ -53,18 +54,21 @@ func ScanNetworkProcessesPorts() (map[int64]string, error) {
 			continue
 		}
 
-		if _, ok := networkProcessesNames[currentName]; !ok {
-			continue
-		}
-
-		cs, err := p.Connections()
-		if err != nil {
-			log.Printf("failed to get listen connections for process %s: %s", currentName, err)
-			continue
-		}
-
 		outName := currentName
-		if outName == vegaProcessName {
+
+		switch outName {
+		case delveName:
+			pc, outNameCh, err := findChild(p)
+			if err != nil {
+				continue
+			}
+
+			if err = addPort(p, outNameCh, out); err != nil {
+				continue
+			}
+			p, outName = pc, outNameCh
+			fallthrough
+		case vegaProcessName:
 			cmds, err := p.CmdlineSlice()
 			if err != nil {
 				continue
@@ -74,14 +78,54 @@ func ScanNetworkProcessesPorts() (map[int64]string, error) {
 			if len(cmds) != 0 && cmds[1] == faucetProcessName {
 				outName = faucetProcessName
 			}
+		default:
+			if _, ok := networkProcessesNames[currentName]; !ok {
+				continue
+			}
 		}
 
-		for _, c := range cs {
-			if c.Status == portStatusListen {
-				out[int64(c.Laddr.Port)] = outName
-			}
+		if err = addPort(p, outName, out); err != nil {
+			continue
 		}
 	}
 
 	return out, nil
+}
+
+func addPort(p *process.Process, outName string, out map[int64]string) error {
+	cs, err := p.Connections()
+	if err != nil {
+		log.Printf("failed to get listen connections for process %s: %s", outName, err)
+		return err
+	}
+
+	for _, c := range cs {
+		if c.Status == portStatusListen {
+			out[int64(c.Laddr.Port)] = outName
+		}
+	}
+	return nil
+}
+
+// recursive find child that matches process name in networkProcessesNames
+func findChild(p *process.Process) (*process.Process, string, error) {
+	children, err := p.Children()
+	if err != nil {
+		return nil, "", err
+	}
+
+	for _, child := range children {
+		childName, err := child.Name()
+		if err != nil {
+			continue
+		}
+
+		if _, ok := networkProcessesNames[childName]; ok {
+			return child, childName, nil
+		}
+
+		return findChild(child)
+	}
+
+	return nil, "", fmt.Errorf("process not recognised")
 }

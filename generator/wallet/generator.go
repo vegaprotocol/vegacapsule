@@ -72,7 +72,7 @@ func (cg *ConfigGenerator) InitiateWithNetworkConfig(conf *config.WalletConfig, 
 		return nil, fmt.Errorf("failed to import network to wallet %s: %w", conf.Name, err)
 	}
 
-	return &types.Wallet{
+	wallet := &types.Wallet{
 		GeneratedService: types.GeneratedService{
 			Name:           fmt.Sprintf("%s-vegawallet", cg.conf.Network.Name),
 			HomeDir:        cg.homeDir,
@@ -81,10 +81,17 @@ func (cg *ConfigGenerator) InitiateWithNetworkConfig(conf *config.WalletConfig, 
 		Network:            importOut.Name,
 		PublicKeyFilePath:  initOut.RsaKeys.PublicKeyFilePath,
 		PrivateKeyFilePath: initOut.RsaKeys.PrivateKeyFilePath,
-	}, nil
+	}
+
+	if cg.conf.Debugger {
+		debugPort := types.BaseDebugPort
+		wallet.DebuggerPort = &debugPort
+	}
+
+	return wallet, nil
 }
 
-func (cg ConfigGenerator) generateNetworkConfig(validators, nonValidators []types.NodeSet, configTemplate *template.Template) error {
+func (cg *ConfigGenerator) generateNetworkConfig(validators, nonValidators []types.NodeSet, configTemplate *template.Template) error {
 	templateCtx := ConfigTemplateContext{
 		Prefix:               *cg.conf.Prefix,
 		TendermintNodePrefix: *cg.conf.TendermintNodePrefix,
@@ -116,6 +123,6 @@ func (cg ConfigGenerator) generateNetworkConfig(validators, nonValidators []type
 	return nil
 }
 
-func (cg ConfigGenerator) configFilePath() string {
+func (cg *ConfigGenerator) configFilePath() string {
 	return filepath.Join(cg.homeDir, "config.toml")
 }

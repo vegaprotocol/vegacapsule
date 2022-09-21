@@ -148,7 +148,7 @@ func (g *Generator) Generate() (genSvc *types.GeneratedServices, err error) {
 
 	var wl *types.Wallet
 	if g.conf.Network.Wallet != nil {
-		initWallet, err := g.initAndConfigureWallet(g.conf.Network.Wallet, ns.validators, ns.nonValidators)
+		initWallet, err := g.initAndConfigureWallet(ns.validators, ns.nonValidators)
 		if err != nil {
 			return nil, err
 		}

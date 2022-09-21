@@ -1,7 +1,6 @@
 package ports
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -24,7 +23,6 @@ type genServiceGetter interface {
 }
 
 func OpenPortsPerJob(
-	ctx context.Context,
 	nomadExposedPortsPerJob map[string][]int64,
 	genServices genServiceGetter,
 ) (map[JobWithTask][]PortWithName, error) {
@@ -53,13 +51,18 @@ func OpenPortsPerJob(
 			}
 
 			for openPort, processName := range portsPerProcessName {
+				key := JobWithTask{Name: jobID, TaskName: processName}
+				portWithName := PortWithName{Port: openPort}
+
 				if portName, ok := configuredPorts[openPort]; ok && strings.Contains(gs.Name, processName) {
-					key := JobWithTask{Name: jobID, TaskName: processName}
-					openPortsPerJob[key] = append(openPortsPerJob[key], PortWithName{
-						Port: openPort,
-						Name: portName,
-					})
+					portWithName.Name = portName
+				} else if gs.DebuggerPort != nil && *gs.DebuggerPort == openPort {
+					portWithName.Name = "Debugger"
+				} else {
+					continue
 				}
+
+				openPortsPerJob[key] = append(openPortsPerJob[key], portWithName)
 			}
 		}
 	}

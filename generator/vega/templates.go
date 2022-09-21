@@ -38,7 +38,7 @@ func NewConfigTemplate(templateRaw string) (*template.Template, error) {
 	return t, nil
 }
 
-func (vg ConfigGenerator) TemplateConfig(ns types.NodeSet, fc *types.Faucet, configTemplate *template.Template) (*bytes.Buffer, error) {
+func (vg *ConfigGenerator) TemplateConfig(ns types.NodeSet, fc *types.Faucet, configTemplate *template.Template) (*bytes.Buffer, error) {
 	templateCtx := ConfigTemplateContext{
 		Prefix:               *vg.conf.Prefix,
 		TendermintNodePrefix: *vg.conf.TendermintNodePrefix,
@@ -94,7 +94,7 @@ func (vg *ConfigGenerator) TemplateAndMergeConfig(ns types.NodeSet, fc *types.Fa
 	return buffOut, nil
 }
 
-func (vg ConfigGenerator) OverwriteConfig(ns types.NodeSet, fc *types.Faucet, configTemplate *template.Template) error {
+func (vg *ConfigGenerator) OverwriteConfig(ns types.NodeSet, fc *types.Faucet, configTemplate *template.Template) error {
 	buff, err := vg.TemplateConfig(ns, fc, configTemplate)
 	if err != nil {
 		return err
@@ -104,7 +104,7 @@ func (vg ConfigGenerator) OverwriteConfig(ns types.NodeSet, fc *types.Faucet, co
 	return vg.mergeAndSaveConfig(ns, buff, configFilePath, configFilePath)
 }
 
-func (vg ConfigGenerator) mergeAndSaveConfig(
+func (vg *ConfigGenerator) mergeAndSaveConfig(
 	ns types.NodeSet,
 	tmpldConf *bytes.Buffer,
 	configPath string,

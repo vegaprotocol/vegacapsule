@@ -7,11 +7,12 @@ import (
 	"os"
 	"text/template"
 
-	"code.vegaprotocol.io/shared/paths"
-	"code.vegaprotocol.io/vegacapsule/types"
 	"github.com/Masterminds/sprig"
 	"github.com/imdario/mergo"
 	"github.com/zannen/toml"
+
+	"code.vegaprotocol.io/shared/paths"
+	"code.vegaprotocol.io/vegacapsule/types"
 )
 
 type ConfigTemplateContext struct {
@@ -30,7 +31,7 @@ func NewConfigTemplate(templateRaw string) (*template.Template, error) {
 	return t, nil
 }
 
-func (dng ConfigGenerator) TemplateConfig(ns types.NodeSet, configTemplate *template.Template) (*bytes.Buffer, error) {
+func (dng *ConfigGenerator) TemplateConfig(ns types.NodeSet, configTemplate *template.Template) (*bytes.Buffer, error) {
 	templateCtx := ConfigTemplateContext{
 		Prefix:      *dng.conf.Prefix,
 		NodeNumber:  ns.Index,
@@ -82,7 +83,7 @@ func (dng *ConfigGenerator) TemplateAndMergeConfig(ns types.NodeSet, configTempl
 	return buffOut, nil
 }
 
-func (dng ConfigGenerator) OverwriteConfig(ns types.NodeSet, configTemplate *template.Template) error {
+func (dng *ConfigGenerator) OverwriteConfig(ns types.NodeSet, configTemplate *template.Template) error {
 	buff, err := dng.TemplateConfig(ns, configTemplate)
 	if err != nil {
 		return err
@@ -92,7 +93,7 @@ func (dng ConfigGenerator) OverwriteConfig(ns types.NodeSet, configTemplate *tem
 	return dng.mergeAndSaveConfig(ns, buff, configFilePath, configFilePath)
 }
 
-func (dng ConfigGenerator) mergeAndSaveConfig(
+func (dng *ConfigGenerator) mergeAndSaveConfig(
 	ns types.NodeSet,
 	tmpldConf *bytes.Buffer,
 	configPath string,

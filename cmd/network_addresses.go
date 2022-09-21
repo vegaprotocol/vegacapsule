@@ -6,11 +6,12 @@ import (
 	"log"
 	"sort"
 
+	"github.com/spf13/cobra"
+
 	"code.vegaprotocol.io/vegacapsule/nomad"
 	"code.vegaprotocol.io/vegacapsule/ports"
 	"code.vegaprotocol.io/vegacapsule/state"
 	"code.vegaprotocol.io/vegacapsule/types"
-	"github.com/spf13/cobra"
 )
 
 var netPrintPortsCmd = &cobra.Command{
@@ -52,7 +53,7 @@ func printNetworkAddresses(ctx context.Context, nomadRunner *nomad.JobRunner, ge
 		return err
 	}
 
-	allOpenPorts, err := ports.OpenPortsPerJob(ctx, nomadExposedPorts, genServices)
+	allOpenPorts, err := ports.OpenPortsPerJob(nomadExposedPorts, genServices)
 	if err != nil {
 		return err
 	}

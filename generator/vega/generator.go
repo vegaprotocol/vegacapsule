@@ -34,7 +34,7 @@ func NewConfigGenerator(conf *config.Config) (*ConfigGenerator, error) {
 	}, nil
 }
 
-func (vg ConfigGenerator) Initiate(
+func (vg *ConfigGenerator) Initiate(
 	index int,
 	mode, tendermintHome, nodeWalletPass,
 	vegaWalletPass, ethereumWalletPass string,
@@ -75,6 +75,11 @@ func (vg ConfigGenerator) Initiate(
 		BinaryPath:             *vg.conf.VegaBinary,
 	}
 
+	if vg.conf.Debugger {
+		debugPort := types.BaseDebugPort + 1 + int64(index)
+		initNode.DebuggerPort = &debugPort
+	}
+
 	if mode != types.NodeModeValidator {
 		log.Printf("vega config initialized for node %q with id %d, paths: %#v", mode, index, initOut.ConfigFilePath)
 		return initNode, nil
@@ -99,7 +104,7 @@ func (vg ConfigGenerator) Initiate(
 	return initNode, nil
 }
 
-func (vg ConfigGenerator) initiateValidatorWallets(
+func (vg *ConfigGenerator) initiateValidatorWallets(
 	index int,
 	nodeDir, tendermintHome, vegaWalletPass,
 	ethereumWalletPass, nodeWalletPassFilePath string,
@@ -177,7 +182,7 @@ func (vg ConfigGenerator) initiateValidatorWallets(
 	return nwi, nil
 }
 
-func (vg ConfigGenerator) nodeDir(i int) string {
+func (vg *ConfigGenerator) nodeDir(i int) string {
 	nodeDirName := fmt.Sprintf("%s%d", *vg.conf.NodeDirPrefix, i)
 	return filepath.Join(vg.homeDir, nodeDirName)
 }

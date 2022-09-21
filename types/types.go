@@ -2,10 +2,13 @@ package types
 
 import "github.com/hashicorp/nomad/api"
 
+const BaseDebugPort int64 = 2346
+
 type GeneratedService struct {
 	Name           string
 	HomeDir        string
 	ConfigFilePath string
+	DebuggerPort   *int64
 }
 
 type Wallet struct {
