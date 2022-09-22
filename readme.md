@@ -114,6 +114,25 @@ vegacapsule nodes restore-checkpoint --checkpoint-file PATH_TO_YOUR_CHECKPOINT_F
 vegacapsule network start
 ```
 
+## Logs
+
+Logs from all jobs are stored by default to $CAPSULE_HOM/logs. There is a CLI availible to read them.
+
+To read all logs per single job:
+```
+vegacapsule logs --job-id $JOBID
+```
+
+To follow all logs per job:
+```
+vegacapsule logs --job-id $JOBID --follow
+```
+
+For more information please check
+```
+vegacapsule logs --help
+```
+
 ## Commands
 
 You can see all available commands calling the `vegacapsule --help` command.

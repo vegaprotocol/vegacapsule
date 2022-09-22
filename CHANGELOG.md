@@ -31,6 +31,7 @@
 - [210](https://github.com/vegaprotocol/vegacapsule/pull/210) Add support for Vega Visor node sets
 - [239](https://github.com/vegaprotocol/vegacapsule/issues/239) Allow to install binaries from specific release tag and add version command.
 - [262](https://github.com/vegaprotocol/vegacapsule/issues/262) Prints nodes ports after startup and add specific command to print them.
+- [246](https://github.com/vegaprotocol/vegacapsule/issues/246) Add command to view logs from jobs and print all logs from failed job
 
 ### 🐛 Fixes
 - [167](https://github.com/vegaprotocol/vegacapsule/issues/167) Fix validators filter in tendermint generator
