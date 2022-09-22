@@ -15,6 +15,8 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+const timeFormat = time.RFC3339
+
 type Collector struct {
 	logsDir   string
 	outputDir string
@@ -77,7 +79,7 @@ func (lc Collector) collectLogs(ctx context.Context, logFilePath string) error {
 
 	logFileNameBase := path.Base(logFilePath)
 	logFileName := strings.TrimSuffix(logFileNameBase, filepath.Ext(logFileNameBase))
-	destLogFile := path.Join(lc.outputDir, fmt.Sprintf("%s-%s.log", logFileName, time.Now().Format(time.RFC3339)))
+	destLogFile := path.Join(lc.outputDir, fmt.Sprintf("%s-%s.log", logFileName, time.Now().Format(timeFormat)))
 
 	f, err := os.Create(destLogFile)
 	if err != nil {

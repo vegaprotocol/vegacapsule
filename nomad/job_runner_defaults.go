@@ -13,8 +13,6 @@ import (
 	"github.com/hashicorp/nomad/api"
 )
 
-const logsCollectorTaskName = "capsule-logscolletor"
-
 var (
 	defaultLogConfig = &api.LogConfig{
 		MaxFileSizeMB: utils.ToPoint(50), // 500 Mb
@@ -69,7 +67,7 @@ func mergeResourcesWithDefault(customRes *config.Resources) *api.Resources {
 func hasLogsCollectorTask(job *api.Job) bool {
 	for _, tg := range job.TaskGroups {
 		for _, task := range tg.Tasks {
-			if task.Name == logsCollectorTaskName {
+			if task.Name == types.NomadLogsCollectorTaskName {
 				return true
 			}
 		}
@@ -80,7 +78,7 @@ func hasLogsCollectorTask(job *api.Job) bool {
 
 func (r *JobRunner) defaultLogCollectorTask(jobName string) *api.Task {
 	return &api.Task{
-		Name:   logsCollectorTaskName,
+		Name:   types.NomadLogsCollectorTaskName,
 		Driver: "raw_exec",
 		Config: map[string]interface{}{
 			"command": r.capsuleBinary,

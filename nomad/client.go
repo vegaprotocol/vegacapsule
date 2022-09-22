@@ -139,13 +139,12 @@ func (n *Client) Stop(ctx context.Context, jobID string, purge bool) error {
 	jobs := n.API.Jobs()
 
 	writeOpts := new(api.WriteOptions).WithContext(ctx)
-	jId, _, err := jobs.Deregister(jobID, purge, writeOpts)
+	_, _, err := jobs.Deregister(jobID, purge, writeOpts)
 	if err != nil {
 		log.Printf("error stopping the job: %+v", err)
 		return err
 	}
 
-	log.Printf("Stopped Job: %+v - %+v", jobID, jId)
 	return nil
 }
 

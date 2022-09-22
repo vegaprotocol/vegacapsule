@@ -78,6 +78,8 @@ func (r *JobRunner) runAndWait(ctx context.Context, job *api.Job) error {
 	}
 
 	if IsJobTimeoutErr(err) && hasLogsCollectorTask(job) {
+		fmt.Printf("\nLogs from failed %s job:\n", *job.ID)
+
 		if err := logscollector.TailLastLogs(path.Join(r.logsOutputDir, *job.ID)); err != nil {
 			return fmt.Errorf("failed to print logs from failed job: %w", err)
 		}
@@ -286,6 +288,8 @@ func (r *JobRunner) stopAllJobs(ctx context.Context) error {
 		return err
 	}
 
+	log.Printf("Stopped all jobs")
+
 	// just to try - we are not interested in error
 	_ = r.Client.API.System().GarbageCollect()
 
@@ -319,6 +323,8 @@ func (r *JobRunner) StopNetwork(ctx context.Context, jobs *types.NetworkJobs, no
 			if err := r.Client.Stop(ctx, jobName, true); err != nil {
 				return fmt.Errorf("cannot stop nomad job \"%s\": %w", jobName, err)
 			}
+
+			log.Printf("Stopped Job: %+v", jobName)
 			return nil
 		})
 
@@ -352,6 +358,8 @@ func (r *JobRunner) StopJobs(ctx context.Context, jobIDs []string) error {
 			if err := r.Client.Stop(ctx, jobName, true); err != nil {
 				return fmt.Errorf("cannot stop nomad job \"%s\": %w", jobName, err)
 			}
+
+			log.Printf("Stopped Job: %+v", jobName)
 			return nil
 		})
 
