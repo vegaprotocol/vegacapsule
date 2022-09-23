@@ -152,8 +152,6 @@ func (tg *ConfigGenerator) Initiate(index int, mode, groupName string) (*types.T
 	})
 
 	initNode := &types.TendermintNode{
-		Name:    nodeName,
-		HomeDir: nodeDir,
 		GeneratedService: types.GeneratedService{
 			Name:           nodeName,
 			HomeDir:        nodeDir,
