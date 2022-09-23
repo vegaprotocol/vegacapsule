@@ -1,0 +1,56 @@
+name: Release binaries
+
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
+
+jobs:
+  release-linux:
+    name: Release on Linux ${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch:
+          - amd64
+    env:
+      GOOS: linux
+      GOARCH: ${{ matrix.arch }}
+      CGO_ENABLED: 0
+      GO111MODULE: on
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.18
+        id: go
+
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Get dependencies
+        run: go mod vendor
+
+      - name: Run tests
+        if: ${{ env.GOARCH == 'amd64' }}
+        run: go test -v ./...
+
+      - name: Build binary
+        run: |
+          hash=$(echo ${{ github.sha }} | cut -b1-8)
+          go build -o build/vegacapsule -ldflags "-X code.vegaprotocol.io/vegacapsule/version.VersionHash=$hash"
+
+      - name: Bundle binary in archive
+        uses: thedoctor0/zip-release@master
+        with:
+          type: zip
+          directory: build
+          filename: vegacapsule-${{ env.GOOS }}-${{ env.GOARCH }}.zip
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: build/*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,43 @@
+job "{{ .Name }}" {
+  datacenters = ["dc1"]
+
+  group "vega-node" {
+
+    task "{{ .Vega.Name }}" {
+      driver = "raw_exec"
+
+      config {
+        command = "{{ .Vega.BinaryPath }}"
+        args = [
+          "node",
+          "--home", "{{ .Vega.HomeDir }}",
+          "--nodewallet-passphrase-file", "{{ .Vega.NodeWalletPassFilePath }}",
+        ]
+      }
+
+      resources {
+        cpu    = 500
+        memory = 512
+      }
+    }
+    
+    {{ if .DataNode }}
+    task "{{ .DataNode.Name }}" {
+      driver = "raw_exec"
+
+      config {
+        command = "{{ .DataNode.BinaryPath }}"
+        args = [
+          "node",
+          "--home", "{{ .DataNode.HomeDir }}",
+        ]
+      }
+
+      resources {
+        cpu    = 500
+        memory = 512
+      }
+    }
+    {{ end }}
+  }
+}

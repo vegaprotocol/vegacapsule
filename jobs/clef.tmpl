@@ -1,0 +1,27 @@
+job "{{ .Name }}-{{ .Index }}" {
+  datacenters = ["dc1"]
+
+  group "clef-node" {
+    network {
+      port "http" {
+        to = 8550
+        static = 855{{ .Index }}
+      }
+    }
+
+    task "clef-node" {
+      driver = "docker"
+
+      config {
+        image = "vegaprotocol/clef:v2.4.1"
+        auth_soft_fail = true
+        ports = ["http"]
+      }
+
+      resources {
+        cpu    = 1000
+        memory = 2000
+      }
+    }
+  }
+}
