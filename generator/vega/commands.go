@@ -107,8 +107,8 @@ func (vg ConfigGenerator) importEthereumClefNodeWallet(
 		"import",
 		"--output", "json",
 		"--chain", "ethereum",
-		"--clef-account-address", clefAccountAddr,
-		"--eth.clef-address", clefRPCAddr,
+		"--ethereum-clef-account", clefAccountAddr,
+		"--ethereum-clef-address", clefRPCAddr,
 	}
 
 	log.Printf("Importing Ethereum Clef wallet: %v", args)

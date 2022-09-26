@@ -11,7 +11,6 @@ func getEthereumWalletArgs(signer Signer) []string {
 	if signer.ClefRPCAddress != "" {
 		return []string{
 			"--passphrase-file", signer.WalletPassFilePath,
-			"--eth.clef-address", signer.ClefRPCAddress,
 		}
 	}
 
