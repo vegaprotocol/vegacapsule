@@ -41,4 +41,5 @@ func init() {
 	rootCmd.AddCommand(installBinariesCmd)
 	rootCmd.AddCommand(templateCmd)
 	rootCmd.AddCommand(versionCmd)
+	rootCmd.AddCommand(logsCmd)
 }
