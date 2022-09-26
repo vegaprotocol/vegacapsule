@@ -26,6 +26,10 @@ var netBootstrapCmd = &cobra.Command{
 			return err
 		}
 
+		defer func() {
+			cmd.SilenceUsage = true
+		}()
+
 		conf.OutputDir = &homePath
 
 		releaseTag := getReleaseTag()

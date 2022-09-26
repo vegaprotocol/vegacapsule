@@ -68,12 +68,12 @@ func (n *Client) waitForDeployment(ctx context.Context, jobID string) error {
 			}
 
 			timedOut, err := n.jobTimedOut(ctx, ticker, jobID)
-			if err != nil {
-				return fmt.Errorf("failed to tell of job timed out: %w", err)
+			if !timedOut && err != nil {
+				return fmt.Errorf("failed to tell if job timed out: %w", err)
 			}
 
 			if timedOut {
-				return newTimeoutErr(jobID)
+				return newJobTimeoutErr(jobID)
 			}
 
 			for _, dep := range deployments {
@@ -139,13 +139,12 @@ func (n *Client) Stop(ctx context.Context, jobID string, purge bool) error {
 	jobs := n.API.Jobs()
 
 	writeOpts := new(api.WriteOptions).WithContext(ctx)
-	jId, _, err := jobs.Deregister(jobID, purge, writeOpts)
+	_, _, err := jobs.Deregister(jobID, purge, writeOpts)
 	if err != nil {
 		log.Printf("error stopping the job: %+v", err)
 		return err
 	}
 
-	log.Printf("Stopped Job: %+v - %+v", jobID, jId)
 	return nil
 }
 

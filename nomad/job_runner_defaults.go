@@ -64,9 +64,21 @@ func mergeResourcesWithDefault(customRes *config.Resources) *api.Resources {
 	return &result
 }
 
+func hasLogsCollectorTask(job *api.Job) bool {
+	for _, tg := range job.TaskGroups {
+		for _, task := range tg.Tasks {
+			if task.Name == types.NomadLogsCollectorTaskName {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
 func (r *JobRunner) defaultLogCollectorTask(jobName string) *api.Task {
 	return &api.Task{
-		Name:   "logger",
+		Name:   types.NomadLogsCollectorTaskName,
 		Driver: "raw_exec",
 		Config: map[string]interface{}{
 			"command": r.capsuleBinary,
