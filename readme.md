@@ -133,6 +133,37 @@ For more information please check
 vegacapsule logs --help
 ```
 
+## Depositing/staking & minting of Ethereum assets
+
+Please note following commands are only for Ethereum assets.
+All availible assets can be listed on Data Node REST API under `$DATA_NODE_URL/assets`.
+
+### Examples
+
+Variables used in examples:
+
+`PUB_KEY` - public key to deposit or stake to.
+
+`AMOUNT` - the amount the be deposited, staked or minted.
+
+`ASSET_SYMBOL` - symbol of the asset to be deposited, staked or minted. It can be found via the Data Node endpoint above.
+
+`ETH_ADDR` - Ethereum adddress for assets to be minted to.
+
+```bash
+# Deposit asset to specific Vega key
+vegacapsule ethereum asset deposit --amount $AMOUNT --asset-symbol $ASSET_SYMBOL --pub-key $PUB_KEY
+
+# Stake asset to specific Vega key
+vegacapsule ethereum asset stake --amount $AMOUNT --asset-symbol $ASSET_SYMBOL --pub-key $PUB_KEY
+
+# Mint asset to specific Ethereum address
+vegacapsule ethereum asset mint --amount $AMOUNT --asset-symbol $ASSET_SYMBOL --to-addr $ETH_ADDR
+```
+
+Validating that asset has been deposited on Data Node REST API: `$DATA_NODE_URL/parties/$PUB_KEY/accounts`
+Validating that asset has been staked on Data Node REST API: `$DATA_NODE_URL/parties/$PUB_KEY/stake`
+
 ## Commands
 
 You can see all available commands calling the `vegacapsule --help` command.

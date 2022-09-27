@@ -3,9 +3,8 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
-
-	vgtypes "github.com/ethereum/go-ethereum/core/types"
 
 	"code.vegaprotocol.io/vegacapsule/ethereum"
 	"code.vegaprotocol.io/vegacapsule/state"
@@ -35,16 +34,18 @@ const (
 )
 
 func init() {
-	ethereumCmd.PersistentFlags().StringVar(&ethereumAddress,
+	ethereumWaitCmd.Flags().StringVar(&ethereumAddress,
 		"eth-address",
 		defaultEthereumAddress,
 		"Specify the ethereum network address",
 	)
-	ethereumCmd.PersistentFlags().IntVar(&ethereumChainID,
+	ethereumWaitCmd.Flags().IntVar(&ethereumChainID,
 		"eth-chain-id",
 		defaultEthereumChainID,
 		"Specify the ethereum chain ID",
 	)
+	ethereumWaitCmd.MarkFlagRequired("eth-address")
+	ethereumWaitCmd.MarkFlagRequired("eth-chain-id")
 
 	ethereumCmd.AddCommand(ethereumMultisigCmd)
 	ethereumMultisigCmd.AddCommand(ethereumMultisigSetupCmd)
@@ -56,6 +57,7 @@ func init() {
 	)
 
 	ethereumCmd.AddCommand(ethereumWaitCmd)
+	ethereumCmd.AddCommand(ethereumAssetCmd)
 }
 
 var ethereumMultisigCmd = &cobra.Command{
@@ -97,13 +99,18 @@ var ethereumMultisigSetupCmd = &cobra.Command{
 			return fmt.Errorf("failed getting smart contract informations: %w", err)
 		}
 
+		chainID, err := strconv.Atoi(netState.Config.Network.Ethereum.ChainID)
+		if err != nil {
+			return err
+		}
+
 		ctx := context.Background()
 		client, err := ethereum.NewEthereumMultisigClient(ctx, ethereum.EthereumMultisigClientParameters{
 			VegaBinary: *netState.Config.VegaBinary,
 			VegaHome:   utils.VegaNodeHomePath(homePath, 0),
 
-			ChainID:            ethereumChainID,
-			EthereumAddress:    ethereumAddress,
+			ChainID:            chainID,
+			EthereumAddress:    netState.Config.Network.Ethereum.Endpoint,
 			SmartcontractsInfo: *smartcontracts,
 		})
 		if err != nil {
@@ -131,15 +138,4 @@ func getSigners(nodes []types.VegaNodeOutput) []ethereum.Signer {
 	}
 
 	return result
-}
-
-func printEthereumTx(tx *vgtypes.Transaction) error {
-	txJSON, err := tx.MarshalJSON()
-	if err != nil {
-		return fmt.Errorf("failed to marshal transaction to JSON: %w", err)
-	}
-
-	fmt.Printf("Transaction: %s", txJSON)
-
-	return nil
 }
