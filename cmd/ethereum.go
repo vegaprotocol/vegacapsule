@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	vgtypes "github.com/ethereum/go-ethereum/core/types"
+
 	"code.vegaprotocol.io/vegacapsule/ethereum"
 	"code.vegaprotocol.io/vegacapsule/state"
 	"code.vegaprotocol.io/vegacapsule/types"
@@ -96,7 +98,7 @@ var ethereumMultisigSetupCmd = &cobra.Command{
 		}
 
 		ctx := context.Background()
-		client, err := ethereum.NewEthereumClient(ctx, ethereum.EthereumClientParameters{
+		client, err := ethereum.NewEthereumMultisigClient(ctx, ethereum.EthereumMultisigClientParameters{
 			VegaBinary: *netState.Config.VegaBinary,
 			VegaHome:   utils.VegaNodeHomePath(homePath, 0),
 
@@ -129,4 +131,15 @@ func getSigners(nodes []types.VegaNodeOutput) []ethereum.Signer {
 	}
 
 	return result
+}
+
+func printEthereumTx(tx *vgtypes.Transaction) error {
+	txJSON, err := tx.MarshalJSON()
+	if err != nil {
+		return fmt.Errorf("failed to marshal transaction to JSON: %w", err)
+	}
+
+	fmt.Printf("Transaction: %s", txJSON)
+
+	return nil
 }

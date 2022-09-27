@@ -3,10 +3,10 @@ module code.vegaprotocol.io/vegacapsule
 go 1.18
 
 require (
-	code.vegaprotocol.io/shared v0.0.0-20220614080106-5c97205b0d92
+	code.vegaprotocol.io/shared v0.0.0-20220816105810-a519d6b44f35
 	code.vegaprotocol.io/vega v0.54.0
 	github.com/Masterminds/sprig v2.22.0+incompatible
-	github.com/ethereum/go-ethereum v1.10.20
+	github.com/ethereum/go-ethereum v1.10.21
 	github.com/hashicorp/hcl/v2 v2.9.2-0.20210407182552-eb14f8319bdc
 	github.com/hashicorp/nomad/api v0.0.0-20220803132838-0aef3fc411f5
 	github.com/imdario/mergo v0.3.13
@@ -16,7 +16,6 @@ require (
 	github.com/tendermint/tendermint v0.34.20
 	github.com/tomwright/dasel v1.24.3
 	github.com/zannen/toml v0.3.2
-	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
 	golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f
 )
 
@@ -52,7 +51,7 @@ require (
 	github.com/apparentlymart/go-cidr v1.0.1 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/blang/semver v3.5.1+incompatible // indirect
+	github.com/blang/semver v3.5.1+incompatible
 	github.com/bmatcuk/doublestar v1.1.5 // indirect
 	github.com/btcsuite/btcd v0.22.1 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.2.0 // indirect
@@ -151,7 +150,6 @@ require (
 	golang.org/x/term v0.0.0-20220526004731-065cf7ba2467 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	gonum.org/v1/gonum v0.9.1 // indirect
-	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20220519153652-3a47de7e79bd // indirect
 	google.golang.org/grpc v1.48.0 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect

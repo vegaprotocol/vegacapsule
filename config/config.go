@@ -48,6 +48,8 @@ type NetworkConfig struct {
 	Nodes                       []NodeConfig `hcl:"node_set,block"`
 	SmartContractsAddresses     *string      `hcl:"smart_contracts_addresses,optional"`
 	SmartContractsAddressesFile *string      `hcl:"smart_contracts_addresses_file,optional"`
+
+	tokenAddresses map[string]types.SmartContractsToken
 }
 
 func (nc NetworkConfig) GetNodeConfig(name string) (*NodeConfig, error) {
@@ -534,9 +536,14 @@ func (c *Config) loadAndValidatSetSmartContractsAddresses() error {
 	}
 
 	_, err := c.SmartContractsInfo()
-
 	if err != nil {
 		return fmt.Errorf("failed to check smart contract addreses: %w", err)
+	}
+
+	c.Network.tokenAddresses = map[string]types.SmartContractsToken{}
+
+	if err := json.Unmarshal([]byte(*c.Network.SmartContractsAddresses), &c.Network.tokenAddresses); err != nil {
+		return fmt.Errorf("failed to get smart contracts tokens info: config.network.smart_contracts_addresses format is wrong: %w", err)
 	}
 
 	return nil
@@ -550,6 +557,15 @@ func (c Config) SmartContractsInfo() (*types.SmartContractsInfo, error) {
 	}
 
 	return smartcontracts, nil
+}
+
+func (c Config) GetTokenSmartContract(name string) *types.SmartContractsToken {
+	token, ok := c.Network.tokenAddresses[name]
+	if !ok {
+		return nil
+	}
+
+	return &token
 }
 
 func (c *Config) Persist() error {
