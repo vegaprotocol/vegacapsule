@@ -164,7 +164,7 @@ func (r *JobRunner) runDockerJobs(ctx context.Context, dockerConfigs []config.Do
 
 			if len(dc.StartProbe) != 0 {
 				for i := 0; i < 10; i++ {
-					allocs, _, err := r.client.API.Jobs().Allocations(*job.ID, false, nil)
+					allocs, _, err := r.Client.API.Jobs().Allocations(*job.ID, false, nil)
 					if err != nil {
 						return err
 					}
@@ -181,7 +181,7 @@ func (r *JobRunner) runDockerJobs(ctx context.Context, dockerConfigs []config.Do
 					stdOut := bytes.NewBuffer([]byte{})
 					stdErr := bytes.NewBuffer([]byte{})
 
-					exitCode, err := r.client.API.Allocations().Exec(ctx, a, dc.Name, false, dc.StartProbe, stdIn, stdOut, stdErr, nil, nil)
+					exitCode, err := r.Client.API.Allocations().Exec(ctx, a, dc.Name, false, dc.StartProbe, stdIn, stdOut, stdErr, nil, nil)
 					if err != nil {
 						return err
 					}

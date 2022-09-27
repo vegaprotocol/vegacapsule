@@ -18,6 +18,7 @@ type NodeSet struct {
 	Visor           *Visor
 	NomadJobRaw     *string `json:",omitempty"`
 	PreGenerateJobs []NomadJob
+	PreStartProbe   string `hcl:"pre_start_probe,optional"  template:""`
 }
 
 // PreGenerateJobsIDs returns pre gen jobs ids per specific node set
