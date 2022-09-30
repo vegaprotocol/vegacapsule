@@ -32,13 +32,13 @@ func (ce *JobTimeoutError) Error() string {
 	return fmt.Sprintf("failed to run %s job: starting deadline has been exceeded", ce.JobID)
 }
 
-func newTimeoutErr(jobID string) *JobTimeoutError {
+func newJobTimeoutErr(jobID string) *JobTimeoutError {
 	return &JobTimeoutError{
 		JobID: jobID,
 	}
 }
 
-func IsTimeoutErr(err error) bool {
+func IsJobTimeoutErr(err error) bool {
 	var cerr *JobTimeoutError
 	return errors.As(err, &cerr)
 }

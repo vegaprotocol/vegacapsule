@@ -27,6 +27,10 @@ var netStartCmd = &cobra.Command{
 			return networkNotBootstrappedErr("start")
 		}
 
+		defer func() {
+			cmd.SilenceUsage = true
+		}()
+
 		updatedNetState, err := netStart(context.Background(), *netState)
 		if err != nil {
 			return fmt.Errorf("failed to start network: %w", err)

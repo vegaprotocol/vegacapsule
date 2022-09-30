@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"path"
 	"sync"
 
 	"code.vegaprotocol.io/vegacapsule/config"
+	"code.vegaprotocol.io/vegacapsule/logscollector"
 	"code.vegaprotocol.io/vegacapsule/types"
 	"golang.org/x/sync/errgroup"
 
@@ -67,7 +69,23 @@ func (r *JobRunner) RunRawNomadJobs(ctx context.Context, rawJobs []string) ([]ty
 	}
 
 	return jobs, nil
+}
 
+func (r *JobRunner) runAndWait(ctx context.Context, job *api.Job) error {
+	err := r.Client.RunAndWait(ctx, job)
+	if err == nil {
+		return nil
+	}
+
+	if IsJobTimeoutErr(err) && hasLogsCollectorTask(job) {
+		fmt.Printf("\nLogs from failed %s job:\n", *job.ID)
+
+		if err := logscollector.TailLastLogs(path.Join(r.logsOutputDir, *job.ID)); err != nil {
+			return fmt.Errorf("failed to print logs from failed job: %w", err)
+		}
+	}
+
+	return err
 }
 
 func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) ([]*api.Job, error) {
@@ -102,7 +120,7 @@ func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) (
 		j := j
 
 		eg.Go(func() error {
-			return r.Client.RunAndWait(ctx, j)
+			return r.runAndWait(ctx, j)
 		})
 	}
 
@@ -125,7 +143,7 @@ func (r *JobRunner) runDockerJobs(ctx context.Context, dockerConfigs []config.Do
 		g.Go(func() error {
 			job := r.defaultDockerJob(ctx, dc)
 
-			if err := r.Client.RunAndWait(ctx, job); err != nil {
+			if err := r.runAndWait(ctx, job); err != nil {
 				return fmt.Errorf("failed to run pre start job %q: %w", *job.ID, err)
 			}
 
@@ -192,7 +210,8 @@ func (r *JobRunner) startNetwork(
 	if generatedSvcs.Faucet != nil {
 		g.Go(func() error {
 			job := r.defaultFaucetJob(*conf.VegaBinary, conf.Network.Faucet, generatedSvcs.Faucet)
-			if err := r.Client.RunAndWait(ctx, job); err != nil {
+
+			if err := r.runAndWait(ctx, job); err != nil {
 				return fmt.Errorf("failed to run the faucet job %q: %w", *job.ID, err)
 			}
 
@@ -207,7 +226,8 @@ func (r *JobRunner) startNetwork(
 	if generatedSvcs.Wallet != nil {
 		g.Go(func() error {
 			job := r.defaultWalletJob(conf.Network.Wallet, generatedSvcs.Wallet)
-			if err := r.Client.RunAndWait(ctx, job); err != nil {
+
+			if err := r.runAndWait(ctx, job); err != nil {
 				return fmt.Errorf("failed to run the wallet job %q: %w", *job.ID, err)
 			}
 
@@ -268,6 +288,8 @@ func (r *JobRunner) stopAllJobs(ctx context.Context) error {
 		return err
 	}
 
+	log.Printf("Stopped all jobs")
+
 	// just to try - we are not interested in error
 	_ = r.Client.API.System().GarbageCollect()
 
@@ -301,6 +323,8 @@ func (r *JobRunner) StopNetwork(ctx context.Context, jobs *types.NetworkJobs, no
 			if err := r.Client.Stop(ctx, jobName, true); err != nil {
 				return fmt.Errorf("cannot stop nomad job \"%s\": %w", jobName, err)
 			}
+
+			log.Printf("Stopped Job: %+v", jobName)
 			return nil
 		})
 
@@ -334,6 +358,8 @@ func (r *JobRunner) StopJobs(ctx context.Context, jobIDs []string) error {
 			if err := r.Client.Stop(ctx, jobName, true); err != nil {
 				return fmt.Errorf("cannot stop nomad job \"%s\": %w", jobName, err)
 			}
+
+			log.Printf("Stopped Job: %+v", jobName)
 			return nil
 		})
 

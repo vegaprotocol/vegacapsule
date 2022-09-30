@@ -124,7 +124,6 @@ func (g *Generator) generate(nodeSets []types.NodeSet, genValidators []tmtypes.G
 			ns.Vega.HomeDir,
 			ns.Tendermint.HomeDir,
 			ns.Vega.NodeWalletPassFilePath,
-			ns.Vega.NodeWalletInfo.EthereumClefRPCAddress,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to update genesis for %q from %q: %w", ns.Tendermint.HomeDir, ns.Vega.HomeDir, err)
@@ -180,7 +179,7 @@ func (g *Generator) generate(nodeSets []types.NodeSet, genValidators []tmtypes.G
 
 func (g *Generator) updateGenesis(
 	vegaHomePath, tendermintHomePath,
-	nodeWalletPhraseFile, ethereumClefRPCAddress string,
+	nodeWalletPhraseFile string,
 ) (*updateGenesisOutput, error) {
 	args := []string{
 		"genesis",
@@ -189,10 +188,6 @@ func (g *Generator) updateGenesis(
 		"update",
 		"--tm-home", tendermintHomePath,
 		"--dry-run",
-	}
-
-	if ethereumClefRPCAddress != "" {
-		args = append(args, "--eth.clef-address", ethereumClefRPCAddress)
 	}
 
 	log.Printf("Updating genesis with: %s %v", g.vegaBinary, args)

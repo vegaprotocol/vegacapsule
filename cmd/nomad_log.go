@@ -53,4 +53,6 @@ func init() {
 	)
 
 	nomadLogsCollectorCmd.MarkPersistentFlagRequired("out-dir") // nolint:errcheck
+
+	nomadLogsCollectorCmd.AddCommand(nomadLogsCollectorTailCmd)
 }

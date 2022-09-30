@@ -7,4 +7,6 @@ const (
 	NodeWalletChainTypeTendermint = "tendermint"
 	NodeWalletChainTypeVega       = "vega"
 	NodeWalletChainTypeEthereum   = "ethereum"
+
+	NomadLogsCollectorTaskName = "capsule-logscolletor"
 )
