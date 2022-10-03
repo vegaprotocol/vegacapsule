@@ -84,4 +84,15 @@ type SmartContractsInfo struct {
 		Public  string `json:"pub"`
 		Private string `json:"priv"`
 	} `json:"addr0"`
+	ERC20Bridge struct {
+		EthereumAddress string `json:"Ethereum"`
+	} `json:"erc20_bridge_1"`
+	StakingBridge struct {
+		EthereumAddress string `json:"Ethereum"`
+	} `json:"staking_bridge"`
+}
+
+type SmartContractsToken struct {
+	EthereumAddress string `json:"Ethereum"`
+	VegaAddress     string `json:"Vega"`
 }

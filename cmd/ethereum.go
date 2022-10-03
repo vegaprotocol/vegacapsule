@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"code.vegaprotocol.io/vegacapsule/ethereum"
@@ -33,12 +34,23 @@ const (
 )
 
 func init() {
-	ethereumCmd.PersistentFlags().StringVar(&ethereumAddress,
+	ethereumWaitCmd.Flags().StringVar(&ethereumAddress,
 		"eth-address",
 		defaultEthereumAddress,
 		"Specify the ethereum network address",
 	)
-	ethereumCmd.PersistentFlags().IntVar(&ethereumChainID,
+	ethereumWaitCmd.Flags().IntVar(&ethereumChainID,
+		"eth-chain-id",
+		defaultEthereumChainID,
+		"Specify the ethereum chain ID",
+	)
+
+	ethereumMultisigCmd.Flags().StringVar(&ethereumAddress,
+		"eth-address",
+		defaultEthereumAddress,
+		"Specify the ethereum network address",
+	)
+	ethereumMultisigCmd.Flags().IntVar(&ethereumChainID,
 		"eth-chain-id",
 		defaultEthereumChainID,
 		"Specify the ethereum chain ID",
@@ -54,6 +66,7 @@ func init() {
 	)
 
 	ethereumCmd.AddCommand(ethereumWaitCmd)
+	ethereumCmd.AddCommand(ethereumAssetCmd)
 }
 
 var ethereumMultisigCmd = &cobra.Command{
@@ -95,13 +108,18 @@ var ethereumMultisigSetupCmd = &cobra.Command{
 			return fmt.Errorf("failed getting smart contract informations: %w", err)
 		}
 
+		chainID, err := strconv.Atoi(netState.Config.Network.Ethereum.ChainID)
+		if err != nil {
+			return err
+		}
+
 		ctx := context.Background()
-		client, err := ethereum.NewEthereumClient(ctx, ethereum.EthereumClientParameters{
+		client, err := ethereum.NewEthereumMultisigClient(ctx, ethereum.EthereumMultisigClientParameters{
 			VegaBinary: *netState.Config.VegaBinary,
 			VegaHome:   utils.VegaNodeHomePath(homePath, 0),
 
-			ChainID:            ethereumChainID,
-			EthereumAddress:    ethereumAddress,
+			ChainID:            chainID,
+			EthereumAddress:    netState.Config.Network.Ethereum.Endpoint,
 			SmartcontractsInfo: *smartcontracts,
 		})
 		if err != nil {
