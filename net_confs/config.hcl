@@ -18,8 +18,6 @@ EOT
   }
 
   wallet "wallet-1" {
-    vega_binary_path = "vega-59"
-    
     template = <<-EOT
 Name = "DV"
 Level = "info"
@@ -96,7 +94,6 @@ EOT
     count = 1
     mode = "full"
     use_data_node = true
-    vega_binary_path = "vega-59"
     
     config_templates {
       vega_file = "./node_set_templates/default/vega_full.tmpl"

@@ -18,8 +18,6 @@ EOT
   }
 
   wallet "wallet-1" {
-    binary = "vegawallet"
-
     template = <<-EOT
 Name = "DV"
 Level = "info"
@@ -374,7 +372,7 @@ EOT
   node_set "full" {
     count = 1
     mode = "full"
-	  data_node_binary = "data-node"
+	use_data_node = true
 
     config_templates {
 

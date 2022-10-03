@@ -18,8 +18,6 @@ EOT
   }
 
   wallet "wallet-1" {
-    binary = "vegawallet"
-    
     template = <<-EOT
 Name = "DV"
 Level = "info"
@@ -75,7 +73,7 @@ EOT
   node_set "full" {
     count = 1
     mode = "full"
-	  data_node_binary = "data-node"
+	  use_data_node = true
 
     config_templates {
       vega_file = "./node_set_templates/default/vega_full.tmpl"
@@ -88,7 +86,7 @@ EOT
     count = 2
     mode = "validator"
     visor_binary = "visor"
-	  data_node_binary = "data-node"
+	  use_data_node = true
 
     node_wallet_pass = "n0d3w4ll3t-p4ssphr4e3"
     vega_wallet_pass = "w4ll3t-p4ssphr4e3"

@@ -18,8 +18,6 @@ EOT
   }
 
   wallet "wallet-1" {
-    binary = "vegawallet"
-
     template = <<-EOT
 Name = "DV"
 Level = "info"
@@ -44,7 +42,7 @@ EOT
     node_wallet_pass = "n0d3w4ll3t-p4ssphr4e3"
     vega_wallet_pass = "w4ll3t-p4ssphr4e3"
     ethereum_wallet_pass = "ch41nw4ll3t-3th3r3um-p4ssphr4e3"
-	data_node_binary = "data-node"
+	use_data_node = true
     nomad_job_template_file = "./jobs/node_set_nullchain.tmpl"
 
     config_templates {
