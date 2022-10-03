@@ -25,7 +25,7 @@ const (
 )
 
 var (
-	minSupportedVersion = semver.MustParse("0.56.0")
+	minSupportedVersion = semver.MustParse("0.54.0")
 	assetsToInstall     = map[string]string{
 		formatAssetName(vegaBinName): vegaBinName,
 	}

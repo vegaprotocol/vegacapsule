@@ -26,11 +26,9 @@ Please note that minimum supported release tag is v0.54.0.
 vegacapsule install-bins --install-path YOUR_CUSTOM_PATH --install-release-tag SPECIFIC_RELEASE_TAG
 ```
 
-3. Validate that binaries are accessible from chosen path (YOUR_CUSTOM_PATH) and the versions match the ones from previous cmd output. If not, run step 2 again with `--install-path` flag.
+3. Validate that the binary is accessible from chosen path (YOUR_CUSTOM_PATH) and the version matches the one from previous cmd output. If not, run step 2 again with `--install-path` flag.
 ```bash
 YOUR_CUSTOM_PATH/vega version
-YOUR_CUSTOM_PATH/vegawallet version
-YOUR_CUSTOM_PATH/data-node version
 ```
 
 ### Globaly install binaries
@@ -42,8 +40,8 @@ vegacapsule install-bins
 3. Validate that binaries are accessible trough $PATH. And versions matching the one from previous cmd output. If not, please run step 2 again with --install-path flag.
 ```bash
 vega version
-vegawallet version
-data-node version
+vega wallet version
+vega datanode version
 ```
 
 ## Install manually - build from source (more flexible)
@@ -74,12 +72,10 @@ Alternatively, you can build binaries separately:
 ```bash
 cd vega
 go install ./cmd/vega
-go install ./cmd/data-node
-go install ./cmd/vegawallet
 ```
 3. Verify installation
 ```bash
 vega version
-vegawallet version
-data-node version
+vega vegawallet version
+vega datanode version
 ```
