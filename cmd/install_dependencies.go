@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	latestReleaseTag = "v0.56.0"
+	latestReleaseTag = "v0.57.0"
 )
 
 var (
