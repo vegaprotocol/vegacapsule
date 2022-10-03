@@ -66,18 +66,13 @@ var ethereumAssetDepositCmd = &cobra.Command{
 			return fmt.Errorf("failed to get non existing asset: %q", ethereumAssetDepositFlags.assetSymbol)
 		}
 
-		netAddr, err := ethereumEndpointAddress(conf)
-		if err != nil {
-			return fmt.Errorf("failed to parse Ethereum network address: %w", err)
-		}
-
 		depositArgs := ethereumAssetDepositOrStakeArgs{
 			amount:          ethereumAssetDepositFlags.amount,
 			vegaPubKey:      ethereumAssetDepositFlags.vegaPubKey,
 			ownerPrivateKey: smartContracts.EthereumOwner.Private,
 			bridgeAddress:   smartContracts.ERC20Bridge.EthereumAddress,
 			assetAddress:    asset.EthereumAddress,
-			networkAddress:  netAddr,
+			networkAddress:  conf.Network.Ethereum.Endpoint,
 		}
 
 		return ethereumAssetDeposit(cmd.Context(), depositArgs)

@@ -2,10 +2,8 @@ package cmd
 
 import (
 	"fmt"
-	"net/url"
 	"time"
 
-	"code.vegaprotocol.io/vegacapsule/config"
 	vgtypes "github.com/ethereum/go-ethereum/core/types"
 
 	"github.com/spf13/cobra"
@@ -31,22 +29,6 @@ func printEthereumTx(tx *vgtypes.Transaction) error {
 	fmt.Printf("Transaction: %s", txJSON)
 
 	return nil
-}
-
-func ethereumEndpointAddress(conf *config.Config) (string, error) {
-	u, err := url.Parse(conf.Network.Ethereum.Endpoint)
-	if err != nil {
-		panic(err)
-	}
-
-	switch u.Scheme {
-	case "http":
-		u.Scheme = "ws"
-	case "https":
-		u.Scheme = "wss"
-	}
-
-	return u.String(), nil
 }
 
 func defeaultSyncTimeout() time.Duration {

@@ -65,17 +65,12 @@ var ethereumAssetMintCmd = &cobra.Command{
 			return fmt.Errorf("failed to get non existing asset: %q", ethereumAssetMintFlags.assetSymbol)
 		}
 
-		netAddr, err := ethereumEndpointAddress(conf)
-		if err != nil {
-			return fmt.Errorf("failed to parse Ethereum network address: %w", err)
-		}
-
 		mintArgs := ethereumAssetMintArgs{
 			amount:          ethereumAssetMintFlags.amount,
 			ownerPrivateKey: smartContracts.EthereumOwner.Private,
 			toAddress:       ethereumAssetMintFlags.toAddress,
 			assetAddress:    asset.EthereumAddress,
-			networkAddress:  netAddr,
+			networkAddress:  conf.Network.Ethereum.Endpoint,
 		}
 
 		return ethereumAssetMint(cmd.Context(), mintArgs)
