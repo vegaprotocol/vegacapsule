@@ -44,8 +44,17 @@ func init() {
 		defaultEthereumChainID,
 		"Specify the ethereum chain ID",
 	)
-	ethereumWaitCmd.MarkFlagRequired("eth-address")
-	ethereumWaitCmd.MarkFlagRequired("eth-chain-id")
+
+	ethereumMultisigCmd.Flags().StringVar(&ethereumAddress,
+		"eth-address",
+		defaultEthereumAddress,
+		"Specify the ethereum network address",
+	)
+	ethereumMultisigCmd.Flags().IntVar(&ethereumChainID,
+		"eth-chain-id",
+		defaultEthereumChainID,
+		"Specify the ethereum chain ID",
+	)
 
 	ethereumCmd.AddCommand(ethereumMultisigCmd)
 	ethereumMultisigCmd.AddCommand(ethereumMultisigSetupCmd)
