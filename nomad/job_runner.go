@@ -167,17 +167,17 @@ func (r *JobRunner) StartNetwork(
 	ctx context.Context,
 	conf *config.Config,
 	generatedSvcs *types.GeneratedServices,
-	stopOnFailure bool,
+	stopAllJobsOnFailure bool,
 ) (*types.NetworkJobs, error) {
 	netJobs, err := r.startNetwork(ctx, conf, generatedSvcs)
 	if err != nil {
-		if stopOnFailure {
+		if stopAllJobsOnFailure {
 			if err := r.stopAllJobs(ctx); err != nil {
 				log.Printf("Failed to stop all registered jobs - please clean up Nomad manually: %s", err)
 			}
+			return nil, err
 		}
-
-		return nil, err
+		log.Println("Part of the network could not start, but it has been required to not stop existing jobs on failure, so we continue as normal...")
 	}
 
 	return netJobs, nil
@@ -201,13 +201,13 @@ func (r *JobRunner) startNetwork(
 	if conf.Network.PreStart != nil {
 		extraJobIDs, err := r.runDockerJobs(ctx, conf.Network.PreStart.Docker)
 		if err != nil {
-			return nil, fmt.Errorf("failed to run pre start jobs: %w", err)
+			return result, fmt.Errorf("failed to run pre start jobs: %w", err)
 		}
 
 		result.AddExtraJobIDs(extraJobIDs)
 	}
 
-	// create new error group to be able call wait funcion again
+	// create new error group to be able to call the `wait` function again
 	if generatedSvcs.Faucet != nil {
 		g.Go(func() error {
 			job := r.defaultFaucetJob(*conf.VegaBinary, conf.Network.Faucet, generatedSvcs.Faucet)
@@ -256,13 +256,13 @@ func (r *JobRunner) startNetwork(
 	})
 
 	if err := g.Wait(); err != nil {
-		return nil, fmt.Errorf("failed to start vega network: %w", err)
+		return result, fmt.Errorf("failed to start vega network: %w", err)
 	}
 
 	if conf.Network.PostStart != nil {
 		extraJobIDs, err := r.runDockerJobs(gCtx, conf.Network.PostStart.Docker)
 		if err != nil {
-			return nil, fmt.Errorf("failed to run post start jobs: %w", err)
+			return result, fmt.Errorf("failed to run post start jobs: %w", err)
 		}
 
 		result.AddExtraJobIDs(extraJobIDs)
@@ -353,29 +353,30 @@ func (r *JobRunner) stopJobsByIDs(ctx context.Context, allJobIDs []string) error
 	}
 
 	if len(cleanedUpJobIDs) == 0 {
-		log.Println("No jobs to be stopped.")
+		log.Println("No job to be stopped.")
 		return nil
 	}
 
-	log.Printf("Trying to stop the jobs: %s\n", strings.Join(cleanedUpJobIDs, ", "))
+	log.Printf("Trying to stop jobs: %s\n", strings.Join(cleanedUpJobIDs, ", "))
 
 	g, ctx := errgroup.WithContext(ctx)
 	for _, jobID := range cleanedUpJobIDs {
+		cpyJobID := jobID
 		g.Go(func() error {
-			if err := r.Client.Stop(ctx, jobID, true); err != nil {
-				return fmt.Errorf("cannot stop the job %q: %w", jobID, err)
+			if err := r.Client.Stop(ctx, cpyJobID, true); err != nil {
+				return fmt.Errorf("cannot stop job %q: %w", cpyJobID, err)
 			}
 
-			log.Printf("Job %q stopped\n", jobID)
+			log.Printf("Job %q stopped\n", cpyJobID)
 			return nil
 		})
 	}
 
 	if err := g.Wait(); err != nil {
-		return fmt.Errorf("could not stop all the jobs: %w", err)
+		return fmt.Errorf("could not stop all jobs: %w", err)
 	}
 
-	log.Println("The jobs have been stopped.")
+	log.Println("Jobs have been stopped.")
 
 	// just to try - we are not interested in error
 	_ = r.Client.API.System().GarbageCollect()

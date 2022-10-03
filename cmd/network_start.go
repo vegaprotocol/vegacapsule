@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	doNotStopOnFailure bool
+	doNotStopAllJobsOnFailure bool
 )
 
 var netStartCmd = &cobra.Command{
@@ -41,7 +41,7 @@ var netStartCmd = &cobra.Command{
 }
 
 func init() {
-	netStartCmd.PersistentFlags().BoolVar(&doNotStopOnFailure,
+	netStartCmd.PersistentFlags().BoolVar(&doNotStopAllJobsOnFailure,
 		"do-not-stop-on-failure",
 		false,
 		"Do not stop partially running network when failed to start",
@@ -53,21 +53,21 @@ func netStart(ctx context.Context, state state.NetworkState) (*state.NetworkStat
 
 	nomadClient, err := nomad.NewClient(nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to initialize the nomad client: %w", err)
+		return nil, fmt.Errorf("failed to initialize nomad client: %w", err)
 	}
 
 	nomadRunner, err := nomad.NewJobRunner(nomadClient, *state.Config.VegaCapsuleBinary, state.Config.LogsDir())
 	if err != nil {
-		return nil, fmt.Errorf("failed to create the job runner: %w", err)
+		return nil, fmt.Errorf("failed to create job runner: %w", err)
 	}
 
-	res, err := nomadRunner.StartNetwork(ctx, state.Config, state.GeneratedServices, !doNotStopOnFailure)
+	res, err := nomadRunner.StartNetwork(ctx, state.Config, state.GeneratedServices, !doNotStopAllJobsOnFailure)
 	if err != nil {
-		return nil, fmt.Errorf("failed to start the network: %s", err)
+		return nil, fmt.Errorf("failed to start network: %s", err)
 	}
 	state.RunningJobs = res
 
-	log.Println("The network successfully started.")
+	log.Println("Network successfully started.")
 
 	if err := printNetworkAddresses(ctx, nomadRunner, state.GeneratedServices); err != nil {
 		log.Printf("failed to print network addresses - please try to run 'network print-ports' instead: %s", err)

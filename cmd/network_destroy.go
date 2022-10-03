@@ -22,9 +22,9 @@ var netDestroyCmd = &cobra.Command{
 
 		if err := netStop(context.Background(), netState); err != nil {
 			if nomad.IsConnectionErr(err) {
-				log.Println("Couldn't connect to nomad, skipping the network shutdown...")
+				log.Println("Couldn't connect to nomad, skipping network shutdown...")
 			} else {
-				return fmt.Errorf("failed to stop the network: %w", err)
+				return fmt.Errorf("failed to stop network: %w", err)
 			}
 		}
 
@@ -33,10 +33,10 @@ var netDestroyCmd = &cobra.Command{
 }
 
 func netCleanup(outputDir string) error {
-	log.Println("Cleaning up the network...")
+	log.Println("Cleaning up network...")
 
 	if err := os.RemoveAll(outputDir); err != nil {
-		return fmt.Errorf("failed to cleanup the network: %w", err)
+		return fmt.Errorf("failed to cleanup network: %w", err)
 	}
 
 	log.Println("Network has been successfully cleaned up.")
