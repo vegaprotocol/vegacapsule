@@ -5,6 +5,7 @@ import (
 	"runtime/debug"
 
 	vgjson "code.vegaprotocol.io/vega/libs/json"
+	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/state"
 	"code.vegaprotocol.io/vegacapsule/utils"
 
@@ -24,6 +25,7 @@ type versionOutput struct {
 
 type versionWithNameOutput struct {
 	Name string `json:"name"`
+	Path string `json:"path,omitempty"`
 	versionOutput
 }
 
@@ -58,26 +60,46 @@ var versionCmd = &cobra.Command{
 			},
 		}
 
-		vegaVersion, err := getBinaryVersion(netState.Config.GetVegaBinary(), netState.Config.GetVegaBinary())
+		vegaVersion, err := getBinaryVersion(netState.Config.GetVegaBinary(), "vega", "")
 		if err != nil {
 			return err
 		}
 		versions = append(versions, vegaVersion)
 
-		if netState.Config.GetWalletBinary() != "" {
-			walletVersion, err := getBinaryVersion(netState.Config.GetWalletBinary(), netState.Config.GetWalletBinary())
+		if netState.GeneratedServices.Wallet != nil {
+			walletVersion, err := getBinaryVersion(
+				netState.GeneratedServices.Wallet.BinaryPath,
+				netState.GeneratedServices.Wallet.Name,
+				config.WalletSubCmd,
+			)
 			if err != nil {
 				return err
 			}
 			versions = append(versions, walletVersion)
 		}
 
-		for nodeSet, binPath := range netState.Config.GetDataNodeBinaries() {
-			dataNodeVersion, err := getBinaryVersion(binPath, fmt.Sprintf("%s for node set %q", binPath, nodeSet))
+		for _, ns := range netState.GeneratedServices.NodeSets {
+			vegaVersion, err := getBinaryVersion(
+				ns.Vega.BinaryPath,
+				fmt.Sprintf("%s %s", ns.Name, ns.Vega.Name),
+				"",
+			)
 			if err != nil {
 				return err
 			}
-			versions = append(versions, dataNodeVersion)
+			versions = append(versions, vegaVersion)
+
+			if ns.DataNode != nil {
+				dataNodeVersion, err := getBinaryVersion(
+					ns.DataNode.BinaryPath,
+					fmt.Sprintf("%s %s", ns.Name, ns.DataNode.Name),
+					config.DataNodeSubCmd,
+				)
+				if err != nil {
+					return err
+				}
+				versions = append(versions, dataNodeVersion)
+			}
 		}
 
 		vgjson.PrettyPrint(versions)
@@ -96,8 +118,12 @@ func init() {
 	setVersionHash()
 }
 
-func getBinaryVersion(path, name string) (*versionWithNameOutput, error) {
+func getBinaryVersion(path, name, subCmd string) (*versionWithNameOutput, error) {
 	args := []string{"version", "--output", "json"}
+
+	if subCmd != "" {
+		args = append([]string{subCmd}, args...)
+	}
 
 	var version versionOutput
 	if _, err := utils.ExecuteBinary(path, args, &version); err != nil {
@@ -106,6 +132,7 @@ func getBinaryVersion(path, name string) (*versionWithNameOutput, error) {
 
 	return &versionWithNameOutput{
 		Name:          name,
+		Path:          path,
 		versionOutput: version,
 	}, nil
 }

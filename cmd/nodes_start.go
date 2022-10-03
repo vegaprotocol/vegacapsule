@@ -8,10 +8,14 @@ import (
 	"code.vegaprotocol.io/vegacapsule/nomad"
 	"code.vegaprotocol.io/vegacapsule/state"
 	"code.vegaprotocol.io/vegacapsule/types"
+	"code.vegaprotocol.io/vegacapsule/utils"
 	"github.com/spf13/cobra"
 )
 
-var nodeName string
+var (
+	nodeName   string
+	vegaBinary string
+)
 
 var nodesStartCmd = &cobra.Command{
 	Use:   "start",
@@ -26,7 +30,7 @@ var nodesStartCmd = &cobra.Command{
 			return networkNotBootstrappedErr("nodes start")
 		}
 
-		updatedNetworkState, err := nodesStartNode(context.Background(), *networkState, nodeName)
+		updatedNetworkState, err := nodesStartNode(context.Background(), *networkState, nodeName, vegaBinary)
 		if err != nil {
 			return fmt.Errorf("failed start node: %w", err)
 		}
@@ -41,10 +45,15 @@ func init() {
 		"",
 		"Name of the node tha should be started",
 	)
+	nodesStartCmd.PersistentFlags().StringVar(&vegaBinary,
+		"vega-binary",
+		"",
+		"Path of Vega binary to be used to start the node",
+	)
 	nodesStartCmd.MarkFlagRequired("name")
 }
 
-func nodesStartNode(ctx context.Context, state state.NetworkState, name string) (*state.NetworkState, error) {
+func nodesStartNode(ctx context.Context, state state.NetworkState, name, vegaBinary string) (*state.NetworkState, error) {
 	log.Printf("starting %s node set", name)
 
 	nodeSet, err := state.GeneratedServices.GetNodeSet(name)
@@ -66,12 +75,26 @@ func nodesStartNode(ctx context.Context, state state.NetworkState, name string) 
 		return nil, fmt.Errorf("failed to start node set %q pre generate jobs: %w", nodeSet.Name, err)
 	}
 
+	if vegaBinary != "" {
+		vegaBinPath, err := utils.BinaryAbsPath(vegaBinary)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get absolute path for %q: %w", vegaBinary, err)
+		}
+
+		nodeSet.Vega.BinaryPath = vegaBinPath
+
+		if nodeSet.DataNode != nil {
+			nodeSet.DataNode.BinaryPath = vegaBinPath
+		}
+	}
+
 	res, err := nomadRunner.RunNodeSets(ctx, []types.NodeSet{*nodeSet})
 	if err != nil {
 		return nil, fmt.Errorf("failed to start nomad node set %q : %w", nodeSet.Name, err)
 	}
 
 	state.RunningJobs.NodesSetsJobIDs[*res[0].ID] = true
+	state.GeneratedServices.NodeSets[nodeSet.Name] = *nodeSet
 
 	log.Printf("starting %s node set success", name)
 	return &state, nil

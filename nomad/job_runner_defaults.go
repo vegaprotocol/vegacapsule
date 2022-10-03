@@ -144,6 +144,7 @@ func (r *JobRunner) defaultNodeSetTasks(ns types.NodeSet) []*api.Task {
 			Config: map[string]interface{}{
 				"command": ns.DataNode.BinaryPath,
 				"args": []string{
+					config.DataNodeSubCmd,
 					"node",
 					"--home", ns.DataNode.HomeDir,
 				},
@@ -174,7 +175,7 @@ func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
 	}
 }
 
-func (r *JobRunner) defaultWalletJob(conf *config.WalletConfig, wallet *types.Wallet) *api.Job {
+func (r *JobRunner) defaultWalletJob(wallet *types.Wallet) *api.Job {
 	return &api.Job{
 		ID:          &wallet.Name,
 		Datacenters: []string{"dc1"},
@@ -192,8 +193,9 @@ func (r *JobRunner) defaultWalletJob(conf *config.WalletConfig, wallet *types.Wa
 						Driver: "raw_exec",
 						Leader: true,
 						Config: map[string]interface{}{
-							"command": conf.Binary,
+							"command": wallet.BinaryPath,
 							"args": []string{
+								config.WalletSubCmd,
 								"service",
 								"run",
 								"--network", wallet.Network,
@@ -233,7 +235,7 @@ func (r *JobRunner) defaultFaucetJob(binary string, conf *config.FaucetConfig, f
 						Config: map[string]interface{}{
 							"command": binary,
 							"args": []string{
-								"faucet",
+								config.FaucetSubCmd,
 								"run",
 								"--passphrase-file", fc.WalletPassFilePath,
 								"--home", fc.HomeDir,

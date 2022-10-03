@@ -21,17 +21,13 @@ const (
 	repository      = "vega"
 	repositoryOwner = "vegaprotocol"
 
-	vegaBinName     = "vega"
-	walletBinName   = "vegawallet"
-	dataNodeBinName = "data-node"
+	vegaBinName = "vega"
 )
 
 var (
-	minSupportedVersion = semver.MustParse("0.54.0")
+	minSupportedVersion = semver.MustParse("0.56.0")
 	assetsToInstall     = map[string]string{
-		formatAssetName(vegaBinName):     vegaBinName,
-		formatAssetName(walletBinName):   walletBinName,
-		formatAssetName(dataNodeBinName): dataNodeBinName,
+		formatAssetName(vegaBinName): vegaBinName,
 	}
 )
 
@@ -44,14 +40,6 @@ func (ib InstalledBins) lookup(name string) (string, bool) {
 
 func (ib InstalledBins) VegaPath() (string, bool) {
 	return ib.lookup(vegaBinName)
-}
-
-func (ib InstalledBins) WalletPath() (string, bool) {
-	return ib.lookup(walletBinName)
-}
-
-func (ib InstalledBins) DataNodePath() (string, bool) {
-	return ib.lookup(dataNodeBinName)
 }
 
 type Installer struct {

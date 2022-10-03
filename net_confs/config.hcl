@@ -18,7 +18,7 @@ EOT
   }
 
   wallet "wallet-1" {
-    binary = "vegawallet"
+    vega_binary_path = "vega-59"
     
     template = <<-EOT
 Name = "DV"
@@ -95,8 +95,9 @@ EOT
   node_set "full" {
     count = 1
     mode = "full"
-	  data_node_binary = "data-node"
-
+    use_data_node = true
+    vega_binary_path = "vega-59"
+    
     config_templates {
       vega_file = "./node_set_templates/default/vega_full.tmpl"
       tendermint_file = "./node_set_templates/default/tendermint_full.tmpl"

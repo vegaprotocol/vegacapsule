@@ -42,7 +42,7 @@ func newConfigOverride(gen *Generator, n config.NodeConfig) (*configOverride, er
 	}
 
 	var dataNodeTmpl *template.Template
-	if n.DataNodeBinary != "" && n.ConfigTemplates.DataNode != nil {
+	if n.UseDataNode && n.ConfigTemplates.DataNode != nil {
 		dataNodeTmpl, err = datanode.NewConfigTemplate(*n.ConfigTemplates.DataNode)
 		if err != nil {
 			return nil, err
