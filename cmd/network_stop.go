@@ -39,16 +39,16 @@ func init() {
 	netStopCmd.PersistentFlags().BoolVar(&stopNodesOnly,
 		"nodes-only",
 		false,
-		"Stops all nodes running in the network.",
+		"Only stops running nodes sets in the network.",
 	)
 }
 
 func netStop(ctx context.Context, state *state.NetworkState) error {
-	log.Println("stopping network")
+	log.Println("Stopping network...")
 
 	nomadClient, err := nomad.NewClient(nil)
 	if err != nil {
-		return fmt.Errorf("failed to create nomad client: %w", err)
+		return fmt.Errorf("failed to initialize nomad client: %w", err)
 	}
 
 	var logsDir, vegaCapsuleBinary string
@@ -66,9 +66,9 @@ func netStop(ctx context.Context, state *state.NetworkState) error {
 	}
 
 	if err := nomadRunner.StopNetwork(ctx, state.RunningJobs, stopNodesOnly); err != nil {
-		return fmt.Errorf("failed to stop nomad network: %w", err)
+		return fmt.Errorf("failed to stop network: %w", err)
 	}
 
-	log.Println("stopping network success")
+	log.Println("Network successfully stopped.")
 	return nil
 }

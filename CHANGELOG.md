@@ -42,6 +42,7 @@
 - [245](https://github.com/vegaprotocol/vegacapsule/pull/245) Disable Nomad pending allocations/tasks restarts
 - [248](https://github.com/vegaprotocol/vegacapsule/pull/248) Remove --no-version-check flag from vega wallet in the importer module
 - [273](https://github.com/vegaprotocol/vegacapsule/pull/273) Remove `clef-address` from `nodewallet` config file
+- [228](https://github.com/vegaprotocol/vegacapsule/pull/228) Network can now be stopped/started after previous start failed
 
 
 

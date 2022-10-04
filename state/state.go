@@ -3,6 +3,7 @@ package state
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 
 	"code.vegaprotocol.io/vegacapsule/config"
@@ -51,7 +52,7 @@ func LoadNetworkState(networkDir string) (*NetworkState, error) {
 		return &NetworkState{}, nil
 	}
 
-	networkBytes, err := ioutil.ReadFile(statePath)
+	networkBytes, err := os.ReadFile(statePath)
 	if err != nil {
 		return nil, fmt.Errorf("cannot read network state: %w", err)
 	}

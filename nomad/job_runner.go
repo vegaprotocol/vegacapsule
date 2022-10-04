@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"path"
+	"strings"
 	"sync"
 
 	"code.vegaprotocol.io/vegacapsule/config"
@@ -166,17 +167,17 @@ func (r *JobRunner) StartNetwork(
 	ctx context.Context,
 	conf *config.Config,
 	generatedSvcs *types.GeneratedServices,
-	stopOnFailure bool,
+	stopAllJobsOnFailure bool,
 ) (*types.NetworkJobs, error) {
 	netJobs, err := r.startNetwork(ctx, conf, generatedSvcs)
 	if err != nil {
-		if stopOnFailure {
+		if stopAllJobsOnFailure {
 			if err := r.stopAllJobs(ctx); err != nil {
 				log.Printf("Failed to stop all registered jobs - please clean up Nomad manually: %s", err)
 			}
+			return nil, err
 		}
-
-		return nil, err
+		log.Println("Part of the network could not start, but it has been required to not stop existing jobs on failure, so we continue as normal...")
 	}
 
 	return netJobs, nil
@@ -200,13 +201,13 @@ func (r *JobRunner) startNetwork(
 	if conf.Network.PreStart != nil {
 		extraJobIDs, err := r.runDockerJobs(ctx, conf.Network.PreStart.Docker)
 		if err != nil {
-			return nil, fmt.Errorf("failed to run pre start jobs: %w", err)
+			return result, fmt.Errorf("failed to run pre start jobs: %w", err)
 		}
 
 		result.AddExtraJobIDs(extraJobIDs)
 	}
 
-	// create new error group to be able call wait funcion again
+	// create new error group to be able to call the `wait` function again
 	if generatedSvcs.Faucet != nil {
 		g.Go(func() error {
 			job := r.defaultFaucetJob(*conf.VegaBinary, conf.Network.Faucet, generatedSvcs.Faucet)
@@ -255,13 +256,13 @@ func (r *JobRunner) startNetwork(
 	})
 
 	if err := g.Wait(); err != nil {
-		return nil, fmt.Errorf("failed to start vega network: %w", err)
+		return result, fmt.Errorf("failed to start vega network: %w", err)
 	}
 
 	if conf.Network.PostStart != nil {
 		extraJobIDs, err := r.runDockerJobs(gCtx, conf.Network.PostStart.Docker)
 		if err != nil {
-			return nil, fmt.Errorf("failed to run post start jobs: %w", err)
+			return result, fmt.Errorf("failed to run post start jobs: %w", err)
 		}
 
 		result.AddExtraJobIDs(extraJobIDs)
@@ -271,29 +272,20 @@ func (r *JobRunner) startNetwork(
 }
 
 func (r *JobRunner) stopAllJobs(ctx context.Context) error {
-	jobs, _, err := r.Client.API.Jobs().List(nil)
+	allJobs, _, err := r.Client.API.Jobs().List(nil)
 	if err != nil {
 		return err
 	}
 
-	var eg errgroup.Group
-	for _, j := range jobs {
-		j := j
-		eg.Go(func() error {
-			return r.Client.Stop(ctx, j.ID, true)
-		})
+	allJobIDs := []string{}
+	for _, job := range allJobs {
+		if job.ID == "" {
+			continue
+		}
+		allJobIDs = append(allJobIDs, job.ID)
 	}
 
-	if err := eg.Wait(); err != nil {
-		return err
-	}
-
-	log.Printf("Stopped all jobs")
-
-	// just to try - we are not interested in error
-	_ = r.Client.API.System().GarbageCollect()
-
-	return nil
+	return r.stopJobsByIDs(ctx, allJobIDs)
 }
 
 func (r *JobRunner) StopNetwork(ctx context.Context, jobs *types.NetworkJobs, nodesOnly bool) error {
@@ -306,69 +298,20 @@ func (r *JobRunner) StopNetwork(ctx context.Context, jobs *types.NetworkJobs, no
 		return nil
 	}
 
-	allJobs := []string{}
+	allJobIDs := []string{}
 	if !nodesOnly {
-		allJobs = append(jobs.ExtraJobIDs.ToSlice(), jobs.WalletJobID, jobs.FaucetJobID)
+		allJobIDs = append(jobs.ExtraJobIDs.ToSlice(), jobs.WalletJobID, jobs.FaucetJobID)
 	}
-	allJobs = append(allJobs, jobs.NodesSetsJobIDs.ToSlice()...)
-	g, ctx := errgroup.WithContext(ctx)
-	for _, jobName := range allJobs {
-		if jobName == "" {
-			continue
-		}
-		// Explicitly copy name
-		jobName := jobName
+	allJobIDs = append(allJobIDs, jobs.NodesSetsJobIDs.ToSlice()...)
 
-		g.Go(func() error {
-			if err := r.Client.Stop(ctx, jobName, true); err != nil {
-				return fmt.Errorf("cannot stop nomad job \"%s\": %w", jobName, err)
-			}
-
-			log.Printf("Stopped Job: %+v", jobName)
-			return nil
-		})
-
-	}
-
-	if err := g.Wait(); err != nil {
-		return err
-	}
-
-	// just to try - we are not interested in error
-	_ = r.Client.API.System().GarbageCollect()
-
-	return nil
+	return r.stopJobsByIDs(ctx, allJobIDs)
 }
 
 func (r *JobRunner) StopJobs(ctx context.Context, jobIDs []string) error {
-	// no jobs to stop
-	if len(jobIDs) == 0 {
-		return nil
-	}
-
-	g, ctx := errgroup.WithContext(ctx)
-	for _, jobName := range jobIDs {
-		if jobName == "" {
-			continue
-		}
-		// Explicitly copy name
-		jobName := jobName
-
-		g.Go(func() error {
-			if err := r.Client.Stop(ctx, jobName, true); err != nil {
-				return fmt.Errorf("cannot stop nomad job \"%s\": %w", jobName, err)
-			}
-
-			log.Printf("Stopped Job: %+v", jobName)
-			return nil
-		})
-
-	}
-
-	return g.Wait()
+	return r.stopJobsByIDs(ctx, jobIDs)
 }
 
-// ListExposedPortsPerJobID returns exposed ports per node
+// ListExposedPortsPerJob returns exposed ports per node
 func (r *JobRunner) ListExposedPortsPerJob(ctx context.Context, jobID string) ([]int64, error) {
 	job, err := r.Client.Info(ctx, jobID)
 	if err != nil {
@@ -397,4 +340,46 @@ func (r *JobRunner) ListExposedPorts(ctx context.Context) (map[string][]int64, e
 	}
 
 	return portsPerJob, nil
+}
+
+func (r *JobRunner) stopJobsByIDs(ctx context.Context, allJobIDs []string) error {
+	// Apparently, we can have blank job IDs, so skipping them.
+	cleanedUpJobIDs := []string{}
+	for _, jobID := range allJobIDs {
+		if jobID == "" {
+			continue
+		}
+		cleanedUpJobIDs = append(cleanedUpJobIDs, jobID)
+	}
+
+	if len(cleanedUpJobIDs) == 0 {
+		log.Println("No job to be stopped.")
+		return nil
+	}
+
+	log.Printf("Trying to stop jobs: %s\n", strings.Join(cleanedUpJobIDs, ", "))
+
+	g, ctx := errgroup.WithContext(ctx)
+	for _, jobID := range cleanedUpJobIDs {
+		cpyJobID := jobID
+		g.Go(func() error {
+			if err := r.Client.Stop(ctx, cpyJobID, true); err != nil {
+				return fmt.Errorf("cannot stop job %q: %w", cpyJobID, err)
+			}
+
+			log.Printf("Job %q stopped\n", cpyJobID)
+			return nil
+		})
+	}
+
+	if err := g.Wait(); err != nil {
+		return fmt.Errorf("could not stop all jobs: %w", err)
+	}
+
+	log.Println("Jobs have been stopped.")
+
+	// just to try - we are not interested in error
+	_ = r.Client.API.System().GarbageCollect()
+
+	return nil
 }
