@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"code.vegaprotocol.io/vegacapsule/probes"
+	"code.vegaprotocol.io/vegacapsule/types"
 	"github.com/hashicorp/nomad/api"
 )
 
@@ -120,33 +121,16 @@ func (n *Client) Run(ctx context.Context, job *api.Job) (bool, error) {
 	return false, nil
 }
 
-func (n *Client) ProbeRunAndWait(ctx context.Context, jobProbe jobWithPreProbe) error {
+func (n *Client) RunAndWait(ctx context.Context, job *api.Job, probe *types.ProbesConfig) error {
 	jobs := n.API.Jobs()
 
-	if jobProbe.Probes != nil {
-		if err := probes.Probe(ctx, *jobProbe.Probes); err != nil {
+	if probe != nil {
+		if err := probes.Probe(ctx, *probe); err != nil {
 			return fmt.Errorf("pre start probes has failed: %w", err)
 		}
 
 		fmt.Println("-------- probe is done")
 	}
-
-	job := jobProbe.Job
-
-	_, _, err := jobs.Register(job, nil)
-	if err != nil {
-		return fmt.Errorf("error running jobs: %w", err)
-	}
-
-	if err := n.waitForDeployment(ctx, *job.ID); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (n *Client) RunAndWait(ctx context.Context, job *api.Job) error {
-	jobs := n.API.Jobs()
 
 	_, _, err := jobs.Register(job, nil)
 	if err != nil {

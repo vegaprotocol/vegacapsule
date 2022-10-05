@@ -97,7 +97,10 @@ EOT
     use_data_node = true
     
     pre_start_probe {
-
+      postgres {
+        connection = "user=vega dbname=vegap password=vega port=5432 sslmode=disable"
+        query = "select 10 + 10"
+      }
     }
 
     config_templates {

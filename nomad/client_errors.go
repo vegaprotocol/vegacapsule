@@ -3,6 +3,7 @@ package nomad
 import (
 	"errors"
 	"fmt"
+	"strings"
 )
 
 type ConnectionError struct {
@@ -41,4 +42,8 @@ func newJobTimeoutErr(jobID string) *JobTimeoutError {
 func IsJobTimeoutErr(err error) bool {
 	var cerr *JobTimeoutError
 	return errors.As(err, &cerr)
+}
+
+func isCancelledError(err error) bool {
+	return strings.Contains(err.Error(), "Cancelled")
 }
