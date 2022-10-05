@@ -81,6 +81,7 @@ func (cg *ConfigGenerator) InitiateWithNetworkConfig(conf *config.WalletConfig, 
 		Network:            importOut.Name,
 		PublicKeyFilePath:  initOut.RsaKeys.PublicKeyFilePath,
 		PrivateKeyFilePath: initOut.RsaKeys.PrivateKeyFilePath,
+		BinaryPath:         *cg.conf.VegaBinary,
 	}, nil
 }
 

@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"code.vegaprotocol.io/vegacapsule/config"
 	vegagen "code.vegaprotocol.io/vegacapsule/generator/vega"
 	"code.vegaprotocol.io/vegacapsule/types"
 	"code.vegaprotocol.io/vegacapsule/utils"
@@ -29,7 +30,8 @@ func createIsolatedVegaWallet(nodeSet types.NodeSet, recoveryPhraseFilePath stri
 	}
 
 	args := []string{
-		"wallet", "import",
+		config.WalletSubCmd,
+		"import",
 		"--home", nodeSet.Vega.HomeDir,
 		"--output", "json",
 		"--recovery-phrase-file", recoveryPhraseFilePath,

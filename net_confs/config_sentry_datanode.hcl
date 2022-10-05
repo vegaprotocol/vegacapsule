@@ -18,8 +18,6 @@ EOT
   }
 
   wallet "wallet-1" {
-    binary = "vegawallet"
-    
     template = <<-EOT
 Name = "DV"
 Level = "info"
@@ -115,7 +113,7 @@ EOT
   node_set "sentry-0" {
     count = 2
     mode = "full"
-	  data_node_binary = "data-node"
+	  use_data_node = true
 
     config_templates {
       tendermint_file = "./node_set_templates/sentry/tendermint_sentry-0.tmpl"
@@ -126,7 +124,7 @@ EOT
   node_set "sentry-1" {
     count = 2
     mode = "full"
-	  data_node_binary = "data-node"
+	  use_data_node = true
 
     config_templates {
       tendermint_file = "./node_set_templates/sentry/tendermint_sentry-1.tmpl"
@@ -137,7 +135,7 @@ EOT
   node_set "sentry-2" {
     count = 2
     mode = "full"
-	  data_node_binary = "data-node"
+	  use_data_node = true
 
     config_templates {
       tendermint_file = "./node_set_templates/sentry/tendermint_sentry-2.tmpl"

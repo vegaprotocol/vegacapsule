@@ -18,8 +18,6 @@ EOT
   }
 
   wallet "wallet-1" {
-    binary = "vegawallet"
-    
     template = <<-EOT
 Name = "DV"
 Level = "info"
@@ -99,7 +97,7 @@ EOT
     count = 2
     mode = "full"
     visor_binary = "visor"
-	  data_node_binary = "data-node"
+	  use_data_node = true
 
     config_templates {
       vega_file = "./node_set_templates/default/vega_full_visor.tmpl"

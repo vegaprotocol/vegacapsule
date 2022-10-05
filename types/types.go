@@ -13,6 +13,7 @@ type Wallet struct {
 	Network            string
 	PublicKeyFilePath  string
 	PrivateKeyFilePath string
+	BinaryPath         string
 }
 
 type Faucet struct {

@@ -29,17 +29,22 @@ func NewConfigGenerator(conf *config.Config) (*ConfigGenerator, error) {
 	}, nil
 }
 
-func (dng *ConfigGenerator) Initiate(index int, dataNodeBinary string) (*types.DataNode, error) {
+func (dng *ConfigGenerator) Initiate(index int, optVegaBinary *string) (*types.DataNode, error) {
 	nodeDir := dng.nodeDir(index)
 	if err := os.MkdirAll(nodeDir, os.ModePerm); err != nil {
 		return nil, err
 	}
 
-	args := []string{"init", "-f", "--home", nodeDir}
+	vegaBinary := *dng.conf.VegaBinary
+	if optVegaBinary != nil {
+		vegaBinary = *optVegaBinary
+	}
 
-	log.Printf("Initiating data node with: %s %v", dataNodeBinary, args)
+	args := []string{config.DataNodeSubCmd, "init", "-f", "--home", nodeDir}
 
-	b, err := utils.ExecuteBinary(dataNodeBinary, args, nil)
+	log.Printf("Initiating data node with: %s %v", vegaBinary, args)
+
+	b, err := utils.ExecuteBinary(vegaBinary, args, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +63,7 @@ func (dng *ConfigGenerator) Initiate(index int, dataNodeBinary string) (*types.D
 			HomeDir:        nodeDir,
 			ConfigFilePath: confFilePath,
 		},
-		BinaryPath: dataNodeBinary,
+		BinaryPath: vegaBinary,
 	}
 
 	return initNode, nil

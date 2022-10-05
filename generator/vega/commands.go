@@ -3,6 +3,7 @@ package vega
 import (
 	"log"
 
+	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/types"
 	"code.vegaprotocol.io/vegacapsule/utils"
 )
@@ -35,7 +36,7 @@ type createWalletOutput struct {
 	} `json:"key"`
 }
 
-func (vg ConfigGenerator) initiateNode(homePath string, nodeWalletPhraseFile string, nodeMode string) (*initateNodeOutput, error) {
+func (vg ConfigGenerator) initiateNode(binaryPath, homePath string, nodeWalletPhraseFile string, nodeMode string) (*initateNodeOutput, error) {
 	args := []string{
 		"init",
 		"--home", homePath,
@@ -45,19 +46,19 @@ func (vg ConfigGenerator) initiateNode(homePath string, nodeWalletPhraseFile str
 		string(nodeMode),
 	}
 
-	log.Printf("Initiating node %q with: %s %v", nodeMode, *vg.conf.VegaBinary, args)
+	log.Printf("Initiating node %q with: %s %v", nodeMode, binaryPath, args)
 
 	out := &initateNodeOutput{}
-	if _, err := utils.ExecuteBinary(*vg.conf.VegaBinary, args, out); err != nil {
+	if _, err := utils.ExecuteBinary(binaryPath, args, out); err != nil {
 		return nil, err
 	}
 
 	return out, nil
 }
 
-func (vg ConfigGenerator) createWallet(homePath, name, walletPhraseFilePath string) (*createWalletOutput, error) {
+func (vg ConfigGenerator) createWallet(binaryPath, homePath, name, walletPhraseFilePath string) (*createWalletOutput, error) {
 	args := []string{
-		"wallet",
+		config.WalletSubCmd,
 		"--home", homePath,
 		"create",
 		"--output", "json",
@@ -65,17 +66,17 @@ func (vg ConfigGenerator) createWallet(homePath, name, walletPhraseFilePath stri
 		"--wallet", name,
 	}
 
-	log.Printf("Creating vega wallet with: %s %v", *vg.conf.VegaBinary, args)
+	log.Printf("Creating vega wallet with: %s %v", binaryPath, args)
 
 	out := &createWalletOutput{}
-	if _, err := utils.ExecuteBinary(*vg.conf.VegaBinary, args, out); err != nil {
+	if _, err := utils.ExecuteBinary(binaryPath, args, out); err != nil {
 		return nil, err
 	}
 
 	return out, nil
 }
 
-func (vg ConfigGenerator) generateNodeWallet(homePath string, nodeWalletPhraseFile string, walletPhraseFile string, walletType string) (*generateNodeWalletOutput, error) {
+func (vg ConfigGenerator) generateNodeWallet(binaryPath, homePath string, nodeWalletPhraseFile string, walletPhraseFile string, walletType string) (*generateNodeWalletOutput, error) {
 	args := []string{
 		"nodewallet",
 		"--home", homePath,
@@ -86,10 +87,10 @@ func (vg ConfigGenerator) generateNodeWallet(homePath string, nodeWalletPhraseFi
 		"--wallet-passphrase-file", walletPhraseFile,
 	}
 
-	log.Printf("Generating node %q wallet with: %s %v", walletType, *vg.conf.VegaBinary, args)
+	log.Printf("Generating node %q wallet with: %s %v", walletType, binaryPath, args)
 
 	out := &generateNodeWalletOutput{}
-	if _, err := utils.ExecuteBinary(*vg.conf.VegaBinary, args, out); err != nil {
+	if _, err := utils.ExecuteBinary(binaryPath, args, out); err != nil {
 		return nil, err
 	}
 
@@ -97,7 +98,7 @@ func (vg ConfigGenerator) generateNodeWallet(homePath string, nodeWalletPhraseFi
 }
 
 func (vg ConfigGenerator) importEthereumClefNodeWallet(
-	homePath, nodeWalletPhraseFile string,
+	homePath, binaryPath, nodeWalletPhraseFile string,
 	clefAccountAddr, clefRPCAddr string,
 ) (*importNodeWalletOutput, error) {
 	args := []string{
@@ -114,14 +115,14 @@ func (vg ConfigGenerator) importEthereumClefNodeWallet(
 	log.Printf("Importing Ethereum Clef wallet: %v", args)
 
 	nwo := &importNodeWalletOutput{}
-	if _, err := utils.ExecuteBinary(*vg.conf.VegaBinary, args, nwo); err != nil {
+	if _, err := utils.ExecuteBinary(binaryPath, args, nwo); err != nil {
 		return nil, err
 	}
 
 	return nwo, nil
 }
 
-func (vg ConfigGenerator) importTendermintNodeWallet(homePath string, nodeWalletPhraseFile string, tendermintHomePath string) (*importNodeWalletOutput, error) {
+func (vg ConfigGenerator) importTendermintNodeWallet(binaryPath, homePath string, nodeWalletPhraseFile string, tendermintHomePath string) (*importNodeWalletOutput, error) {
 	args := []string{
 		"nodewallet",
 		"--home", homePath,
@@ -135,14 +136,14 @@ func (vg ConfigGenerator) importTendermintNodeWallet(homePath string, nodeWallet
 	log.Printf("Importing tenderming wallet: %v", args)
 
 	nwo := &importNodeWalletOutput{}
-	if _, err := utils.ExecuteBinary(*vg.conf.VegaBinary, args, nwo); err != nil {
+	if _, err := utils.ExecuteBinary(binaryPath, args, nwo); err != nil {
 		return nil, err
 	}
 
 	return nwo, nil
 }
 
-func (vg ConfigGenerator) importVegaNodeWallet(homePath, nodeWalletPhraseFile, walletPhraseFile, walletFilePath string) (*importNodeWalletOutput, error) {
+func (vg ConfigGenerator) importVegaNodeWallet(binaryPath, homePath, nodeWalletPhraseFile, walletPhraseFile, walletFilePath string) (*importNodeWalletOutput, error) {
 	args := []string{
 		"nodewallet",
 		"--home", homePath,
@@ -154,10 +155,10 @@ func (vg ConfigGenerator) importVegaNodeWallet(homePath, nodeWalletPhraseFile, w
 		"--wallet-path", walletFilePath,
 	}
 
-	log.Printf("Importing node vega wallet with: %s %v", *vg.conf.VegaBinary, args)
+	log.Printf("Importing node vega wallet with: %s %v", binaryPath, args)
 
 	out := &importNodeWalletOutput{}
-	if _, err := utils.ExecuteBinary(*vg.conf.VegaBinary, args, out); err != nil {
+	if _, err := utils.ExecuteBinary(binaryPath, args, out); err != nil {
 		return nil, err
 	}
 

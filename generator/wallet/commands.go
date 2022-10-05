@@ -20,12 +20,17 @@ type initateWalletOutput struct {
 }
 
 func (cg *ConfigGenerator) initiateWallet(conf *config.WalletConfig) (*initateWalletOutput, error) {
-	args := []string{"init", "--output", "json", "--home", cg.homeDir}
+	args := []string{config.WalletSubCmd, "init", "--output", "json", "--home", cg.homeDir}
 
 	log.Printf("Initiating wallet %q with: %v", conf.Name, args)
 
+	vegaBinary := *cg.conf.VegaBinary
+	if conf.VegaBinary != nil {
+		vegaBinary = *conf.VegaBinary
+	}
+
 	out := &initateWalletOutput{}
-	if _, err := utils.ExecuteBinary(conf.Binary, args, out); err != nil {
+	if _, err := utils.ExecuteBinary(vegaBinary, args, out); err != nil {
 		return nil, err
 	}
 
@@ -33,12 +38,17 @@ func (cg *ConfigGenerator) initiateWallet(conf *config.WalletConfig) (*initateWa
 }
 
 func (cg *ConfigGenerator) importNetworkConfig(conf *config.WalletConfig) (*importNetworkOutput, error) {
-	args := []string{"network", "import", "--output", "json", "--home", cg.homeDir, "--from-file", cg.configFilePath()}
+	args := []string{config.WalletSubCmd, "network", "import", "--output", "json", "--home", cg.homeDir, "--from-file", cg.configFilePath()}
 
 	log.Printf("Importing network to wallet %q with: %v", conf.Name, args)
 
+	vegaBinary := *cg.conf.VegaBinary
+	if conf.VegaBinary != nil {
+		vegaBinary = *conf.VegaBinary
+	}
+
 	out := &importNetworkOutput{}
-	if _, err := utils.ExecuteBinary(conf.Binary, args, out); err != nil {
+	if _, err := utils.ExecuteBinary(vegaBinary, args, out); err != nil {
 		return nil, err
 	}
 

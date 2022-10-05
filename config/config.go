@@ -16,6 +16,12 @@ import (
 	"github.com/hashicorp/hcl/v2/hclwrite"
 )
 
+const (
+	WalletSubCmd   = "wallet"
+	DataNodeSubCmd = "datanode"
+	FaucetSubCmd   = "faucet"
+)
+
 type Config struct {
 	OutputDir            *string       `hcl:"-"`
 	VegaBinary           *string       `hcl:"vega_binary_path"`
@@ -97,9 +103,10 @@ type DockerConfig struct {
 }
 
 type WalletConfig struct {
-	Name     string `hcl:"name,label"`
-	Binary   string `hcl:"binary"`
-	Template string `hcl:"template,optional"`
+	Name string `hcl:"name,label"`
+	// Allows optionally use different version of Vega binary for wallet
+	VegaBinary *string `hcl:"vega_binary_path,optional"`
+	Template   string  `hcl:"template,optional"`
 }
 
 type FaucetConfig struct {
@@ -131,8 +138,9 @@ type NodeConfig struct {
 	EthereumWalletPass string `hcl:"ethereum_wallet_pass,optional" template:""`
 	VegaWalletPass     string `hcl:"vega_wallet_pass,optional" template:""`
 
-	DataNodeBinary string `hcl:"data_node_binary,optional"`
-	VisorBinary    string `hcl:"visor_binary,optional"`
+	VegaBinary  *string `hcl:"vega_binary_path,optional"`
+	UseDataNode bool    `hcl:"use_data_node,optional"`
+	VisorBinary string  `hcl:"visor_binary,optional"`
 
 	ConfigTemplates      ConfigTemplates `hcl:"config_templates,block"`
 	NomadJobTemplate     *string         `hcl:"nomad_job_template,optional"`
@@ -205,23 +213,23 @@ func (c *Config) setAbsolutePaths() error {
 
 	*c.VegaCapsuleBinary = vegaCapsuleBinPath
 
-	// Wallet binary
-	if c.Network.Wallet != nil {
-		walletBinPath, err := utils.BinaryAbsPath(c.Network.Wallet.Binary)
+	// Alternative Vega binary for Wallet
+	if c.Network.Wallet != nil && c.Network.Wallet.VegaBinary != nil {
+		walletBinPath, err := utils.BinaryAbsPath(*c.Network.Wallet.VegaBinary)
 		if err != nil {
 			return err
 		}
-		c.Network.Wallet.Binary = walletBinPath
+		c.Network.Wallet.VegaBinary = utils.ToPoint(walletBinPath)
 	}
 
-	// Data nodes binaries
+	// Node sets Visor and Vega binaries
 	for idx, nc := range c.Network.Nodes {
-		if nc.DataNodeBinary != "" {
-			dataNodeBinPath, err := utils.BinaryAbsPath(nc.DataNodeBinary)
+		if nc.VegaBinary != nil {
+			vegaBinPath, err := utils.BinaryAbsPath(*nc.VegaBinary)
 			if err != nil {
-				return fmt.Errorf("failed to set absolute path for data node binary %q: %w", nc.DataNodeBinary, err)
+				return fmt.Errorf("failed to set absolute path for data node binary %q: %w", *nc.VegaBinary, err)
 			}
-			c.Network.Nodes[idx].DataNodeBinary = dataNodeBinPath
+			c.Network.Nodes[idx].VegaBinary = utils.ToPoint(vegaBinPath)
 		}
 
 		if nc.VisorBinary != "" {
@@ -241,46 +249,17 @@ func (c *Config) SetBinaryPaths(bins installer.InstalledBins) {
 	if binName, ok := bins.VegaPath(); ok {
 		*c.VegaBinary = binName
 	}
-
-	// Wallet binary
-	if binName, ok := bins.WalletPath(); c.Network.Wallet != nil && ok {
-		c.Network.Wallet.Binary = binName
-	}
-
-	// Data nodes binaries
-	if binName, ok := bins.DataNodePath(); ok {
-		for idx, nc := range c.Network.Nodes {
-			if nc.DataNodeBinary == "" {
-				continue
-			}
-
-			c.Network.Nodes[idx].DataNodeBinary = binName
-		}
-	}
 }
 
 func (c *Config) GetVegaBinary() string {
 	return *c.VegaBinary
 }
 
-func (c *Config) GetWalletBinary() string {
+func (c *Config) GetWalletVegaBinary() *string {
 	if c.Network.Wallet == nil {
-		return ""
+		return nil
 	}
-	return c.Network.Wallet.Binary
-}
-
-// DataNodeBinaryPaths returns data node binary paths per specific node set
-func (c *Config) GetDataNodeBinaries() map[string]string {
-	pathsPerNodeSet := map[string]string{}
-
-	for _, nc := range c.Network.Nodes {
-		if nc.DataNodeBinary != "" {
-			pathsPerNodeSet[nc.Name] = nc.DataNodeBinary
-		}
-	}
-
-	return pathsPerNodeSet
+	return c.Network.Wallet.VegaBinary
 }
 
 func (c *Config) Validate(configDir string) error {

@@ -24,6 +24,7 @@ func (g *Generator) initiateNodeSet(absoluteIndex, relativeIndex, groupIndex int
 
 	initVNode, err := g.vegaGen.Initiate(
 		absoluteIndex,
+		n.VegaBinary,
 		n.Mode,
 		initTNode.HomeDir,
 		n.NodeWalletPass,
@@ -36,9 +37,8 @@ func (g *Generator) initiateNodeSet(absoluteIndex, relativeIndex, groupIndex int
 	}
 
 	var initDNode *types.DataNode
-	// if data node binary is defined it is assumed that data-node should be deployed
-	if n.DataNodeBinary != "" {
-		node, err := g.dataNodeGen.Initiate(absoluteIndex, n.DataNodeBinary)
+	if n.UseDataNode {
+		node, err := g.dataNodeGen.Initiate(absoluteIndex, nc.VegaBinary)
 		if err != nil {
 			return nil, fmt.Errorf("failed to initiate Data node id %d for node set %s: %w", absoluteIndex, n.Name, err)
 		}

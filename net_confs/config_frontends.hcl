@@ -17,9 +17,7 @@ network "testnet" {
 EOT
   }
 
-  wallet "wallet-1" {
-    binary = "vegawallet"
-    
+  wallet "wallet-1" {    
     template = <<-EOT
 Name = "DV"
 Level = "info"
@@ -150,7 +148,7 @@ EOT
   node_set "full" {
     count = 1
     mode = "full"
-	  data_node_binary = "data-node"
+	  use_data_node = true
 
     config_templates {
       vega_file = "./node_set_templates/default/vega_full.tmpl"

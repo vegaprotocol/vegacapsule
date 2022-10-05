@@ -226,7 +226,7 @@ func (r *JobRunner) startNetwork(
 
 	if generatedSvcs.Wallet != nil {
 		g.Go(func() error {
-			job := r.defaultWalletJob(conf.Network.Wallet, generatedSvcs.Wallet)
+			job := r.defaultWalletJob(generatedSvcs.Wallet)
 
 			if err := r.runAndWait(ctx, job); err != nil {
 				return fmt.Errorf("failed to run the wallet job %q: %w", *job.ID, err)
