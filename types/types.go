@@ -97,3 +97,22 @@ type SmartContractsToken struct {
 	EthereumAddress string `json:"Ethereum"`
 	VegaAddress     string `json:"Vega"`
 }
+
+type HTTPProbe struct {
+	URL string `hcl:"url"`
+}
+
+type TCPProbe struct {
+	Address string `hcl:"address"`
+}
+
+type PostgresProbe struct {
+	Connection string `hcl:"connection"`
+	Query      string `hcl:"query"`
+}
+
+type ProbesConfig struct {
+	HTTP     *HTTPProbe     `hcl:"http,block"`
+	TCP      *TCPProbe      `hcl:"tcp,block"`
+	Postgres *PostgresProbe `hcl:"postgres,block"`
+}

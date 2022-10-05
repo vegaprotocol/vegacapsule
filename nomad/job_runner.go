@@ -93,8 +93,8 @@ func (r *JobRunner) runAndWait(ctx context.Context, job *api.Job) error {
 }
 
 type jobWithPreProbe struct {
-	Job   *api.Job
-	Probe string
+	Job    *api.Job
+	Probes *types.ProbesConfig
 }
 
 func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) ([]*api.Job, error) {
@@ -104,7 +104,7 @@ func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) (
 		if ns.NomadJobRaw == nil {
 			log.Printf("adding node set %q with default Nomad job definition", ns.Name)
 
-			jobs = append(jobs, jobWithPreProbe{Job: r.defaultNodeSetJob(ns), Probe: ns.PreStartProbe})
+			jobs = append(jobs, jobWithPreProbe{Job: r.defaultNodeSetJob(ns), Probes: ns.PreStartProbe})
 			continue
 		}
 
@@ -121,7 +121,7 @@ func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) (
 
 		log.Printf("adding node set %q with custom Nomad job definition", ns.Name)
 
-		jobs = append(jobs, jobWithPreProbe{Job: job, Probe: ns.PreStartProbe})
+		jobs = append(jobs, jobWithPreProbe{Job: job, Probes: ns.PreStartProbe})
 	}
 
 	eg := new(errgroup.Group)

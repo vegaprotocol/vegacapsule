@@ -1,13 +1,12 @@
 package nomad
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"log"
-	"os/exec"
 	"time"
 
+	"code.vegaprotocol.io/vegacapsule/probes"
 	"github.com/hashicorp/nomad/api"
 )
 
@@ -121,46 +120,15 @@ func (n *Client) Run(ctx context.Context, job *api.Job) (bool, error) {
 	return false, nil
 }
 
-const ShellToUse = "bash"
-
-func Shellout(command string) (string, string, error) {
-	var stdout bytes.Buffer
-	var stderr bytes.Buffer
-
-	cmd := exec.Command(ShellToUse, "-c", command)
-
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	err := cmd.Run()
-	return stdout.String(), stderr.String(), err
-}
-
-func probe(cmd string) error {
-	for i := 0; i < 10; i++ {
-		stdOut, stdErr, err := Shellout(cmd)
-		fmt.Println("running job probe", cmd, err)
-		fmt.Println("stdout", stdOut)
-		fmt.Println("stderr", stdErr)
-
-		if err == nil {
-			return nil
-		}
-
-		if i == 9 && err != nil {
-			return fmt.Errorf("failed to finish the job start probe: %s %s", stdOut, stdErr)
-		}
-
-		time.Sleep(time.Second * 1)
-	}
-
-	return nil
-}
-
 func (n *Client) ProbeRunAndWait(ctx context.Context, jobProbe jobWithPreProbe) error {
 	jobs := n.API.Jobs()
 
-	if jobProbe.Probe != "" {
-		probe(jobProbe.Probe)
+	if jobProbe.Probes != nil {
+		if err := probes.Probe(ctx, *jobProbe.Probes); err != nil {
+			return fmt.Errorf("pre start probes has failed: %w", err)
+		}
+
+		fmt.Println("-------- probe is done")
 	}
 
 	job := jobProbe.Job
