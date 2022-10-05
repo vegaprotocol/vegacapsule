@@ -32,8 +32,7 @@ var netBootstrapCmd = &cobra.Command{
 
 		conf.OutputDir = &homePath
 
-		releaseTag := getReleaseTag()
-
+		releaseTag := getReleaseTag(installBinaries)
 		if releaseTag != "" {
 			inst := installer.New(conf.BinariesDir(), installPath)
 

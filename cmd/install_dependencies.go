@@ -41,7 +41,7 @@ var installBinariesCmd = &cobra.Command{
 
 		inst := installer.New(conf.BinariesDir(), installPath)
 
-		installedBinsPaths, err := inst.Install(cmd.Context(), getReleaseTag())
+		installedBinsPaths, err := inst.Install(cmd.Context(), getReleaseTag(true))
 		if err != nil {
 			return fmt.Errorf("failed to install dependencies: %w", err)
 		}
@@ -74,7 +74,7 @@ func init() {
 	)
 }
 
-func getReleaseTag() string {
+func getReleaseTag(installBinaries bool) string {
 	var releaseTag string
 	if installReleaseTag != "" {
 		releaseTag = installReleaseTag
