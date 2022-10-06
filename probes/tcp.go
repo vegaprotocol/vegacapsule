@@ -3,10 +3,13 @@ package probes
 import (
 	"context"
 	"fmt"
+	"log"
 	"net"
 )
 
-func ProbeTCP(ctx context.Context, address string) (bool, error) {
+func ProbeTCP(ctx context.Context, id, address string) (bool, error) {
+	log.Printf("Probing TCP with id %q address %q", id, address)
+
 	var d net.Dialer
 	ctx, cancel := context.WithTimeout(ctx, singleProbeTimeout)
 	defer cancel()

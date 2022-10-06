@@ -125,11 +125,9 @@ func (n *Client) RunAndWait(ctx context.Context, job *api.Job, probe *types.Prob
 	jobs := n.API.Jobs()
 
 	if probe != nil {
-		if err := probes.Probe(ctx, *probe); err != nil {
+		if err := probes.Probe(ctx, *job.ID, *probe); err != nil {
 			return fmt.Errorf("pre start probes has failed: %w", err)
 		}
-
-		fmt.Println("-------- probe is done")
 	}
 
 	_, _, err := jobs.Register(job, nil)

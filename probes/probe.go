@@ -2,7 +2,6 @@ package probes
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"time"
 
@@ -15,7 +14,7 @@ var (
 	singleProbeTimeout = time.Second * 2
 )
 
-func probe(ctx context.Context, call func() error) error {
+func probe(ctx context.Context, id, probeType string, call func() error) error {
 	t := time.NewTicker(time.Second * 2)
 
 	for {
@@ -23,54 +22,61 @@ func probe(ctx context.Context, call func() error) error {
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-t.C:
-			fmt.Println("probing.........")
-			if err := call(); err != nil {
+			err := call()
+			if err == nil {
+				return nil
+			}
+
+			log.Printf("Probe with id %q and type %q has failed %q", id, probeType, err)
+
+			if !IsRetryableErr(err) {
 				return err
 			}
 		}
 	}
 }
 
-func Probe(ctx context.Context, probes types.ProbesConfig) error {
-	log.Printf("running probes for: %+v", probes)
+func Probe(ctx context.Context, id string, probes types.ProbesConfig) error {
 	ctx, cancel := context.WithTimeout(context.Background(), totalProbeTimeout)
 	defer cancel()
 
 	eg, ctx := errgroup.WithContext(ctx)
 
 	if probes.HTTP != nil {
-		fmt.Println("--------- running http probe")
 		call := func() error {
-			_, err := ProbeHTTP(ctx, probes.HTTP.URL)
+			_, err := ProbeHTTP(ctx, id, probes.HTTP.URL)
 			return err
 		}
 
 		eg.Go(func() error {
-			return probe(ctx, call)
+			return probe(ctx, id, "HTTP", call)
 		})
 	}
 	if probes.TCP != nil {
-		fmt.Println("--------- running tcp probe")
 		call := func() error {
-			_, err := ProbeTCP(ctx, probes.TCP.Address)
+			_, err := ProbeTCP(ctx, id, probes.TCP.Address)
 			return err
 		}
 
 		eg.Go(func() error {
-			return probe(ctx, call)
+			return probe(ctx, id, "TCP", call)
 		})
 	}
 	if probes.Postgres != nil {
-		fmt.Println("--------- running postgres probe")
 		call := func() error {
-			_, err := ProbePostgres(ctx, probes.Postgres.Connection, probes.Postgres.Query)
+			_, err := ProbePostgres(ctx, id, probes.Postgres.Connection, probes.Postgres.Query)
 			return err
 		}
 
 		eg.Go(func() error {
-			return probe(ctx, call)
+			return probe(ctx, id, "Postgre", call)
 		})
 	}
 
-	return eg.Wait()
+	if err := eg.Wait(); err != nil {
+		log.Printf("Probe id %q has failed %s", id, err)
+		return err
+	}
+
+	return nil
 }

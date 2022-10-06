@@ -4,9 +4,12 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
+	"log"
 )
 
-func ProbePostgres(ctx context.Context, connStr, query string) ([]byte, error) {
+func ProbePostgres(ctx context.Context, id, connStr, query string) ([]byte, error) {
+	log.Printf("Probing Postgres with id %q connection %q with query %q", id, connStr, query)
+
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		return nil, err

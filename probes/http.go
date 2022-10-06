@@ -2,6 +2,7 @@ package probes
 
 import (
 	"context"
+	"log"
 	"net/http"
 
 	_ "github.com/lib/pq"
@@ -9,7 +10,9 @@ import (
 
 var httpClient = http.Client{}
 
-func ProbeHTTP(ctx context.Context, url string) (bool, error) {
+func ProbeHTTP(ctx context.Context, id, url string) (bool, error) {
+	log.Printf("Probing HTPP with id %q and url %q", id, url)
+
 	ctx, cancel := context.WithTimeout(ctx, singleProbeTimeout)
 	defer cancel()
 
