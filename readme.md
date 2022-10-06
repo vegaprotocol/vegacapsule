@@ -175,6 +175,30 @@ Procedure executed by the above command:
 
 Capsule can bootstraps network based on configuration. Please see `config.hcl` for examples.
 
+
+### HCL functions available to use in the configuration files.
+
+You can use HCL functions in the config.hcl. List of available functions is available in the source code of the [config/hcl_eval_context.go](config/hcl_eval_context.go).
+
+Example of usage function in the `config.hcl` is:
+
+```hcl
+vega_binary_path = "vega"
+
+network "testnet" {
+	ethereum {
+    chain_id   = "1440"
+    network_id = "1441"
+    endpoint   = format("https://ropsten.infura.io/v3/%s", env("INFURA_API_KEY"))
+  }
+
+  ...
+```
+
+You can find more examples in the [nomad documentation](https://www.nomadproject.io/docs/job-specification/hcl2).
+
+
+
 [TODO expand on this]
 
 ### Templating

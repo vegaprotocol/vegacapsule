@@ -17,7 +17,7 @@ func ParseConfigFile(filePath, outputDir string) (*Config, error) {
 		config.OutputDir = &outputDir
 	}
 
-	if err := hclsimple.DecodeFile(filePath, nil, config); err != nil {
+	if err := hclsimple.DecodeFile(filePath, defaultEvalContext, config); err != nil {
 		return nil, fmt.Errorf("failed to load configuration: %w", err)
 	}
 
