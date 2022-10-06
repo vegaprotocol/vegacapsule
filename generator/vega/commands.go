@@ -98,7 +98,7 @@ func (vg ConfigGenerator) generateNodeWallet(binaryPath, homePath string, nodeWa
 }
 
 func (vg ConfigGenerator) importEthereumClefNodeWallet(
-	homePath, binaryPath, nodeWalletPhraseFile string,
+	binaryPath, homePath, nodeWalletPhraseFile string,
 	clefAccountAddr, clefRPCAddr string,
 ) (*importNodeWalletOutput, error) {
 	args := []string{
