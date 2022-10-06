@@ -98,7 +98,7 @@ EOT
     
     pre_start_probe {
       postgres {
-        connection = "user=vega dbname=vega password=vega port=5232 sslmode=disable"
+        connection = "user=vega dbname=vega password=vega port=5132 sslmode=disable"
         query = "select 10 + 10"
       }
     }

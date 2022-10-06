@@ -81,7 +81,7 @@ func (r *JobRunner) runAndWait(ctx context.Context, job *api.Job, probes *types.
 		return nil
 	}
 
-	if (IsJobTimeoutErr(err) || isCancelledError(err)) && hasLogsCollectorTask(job) {
+	if (IsJobTimeoutErr(err)) && hasLogsCollectorTask(job) {
 		fmt.Printf("\nLogs from failed %s job:\n", *job.ID)
 
 		if err := logscollector.TailLastLogs(path.Join(r.logsOutputDir, *job.ID)); err != nil {

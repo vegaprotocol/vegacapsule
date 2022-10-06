@@ -47,3 +47,22 @@ func IsJobTimeoutErr(err error) bool {
 func isCancelledError(err error) bool {
 	return strings.Contains(err.Error(), "Cancelled")
 }
+
+type ProbeError struct {
+	Err error
+}
+
+func (ce *ProbeError) Error() string {
+	return fmt.Sprintf("start probes has failed: %s", ce.Err.Error())
+}
+
+func newProbeErr(err error) *ProbeError {
+	return &ProbeError{
+		Err: err,
+	}
+}
+
+func IsProbeErr(err error) bool {
+	var cerr *ProbeError
+	return errors.As(err, &cerr)
+}

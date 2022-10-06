@@ -2,6 +2,7 @@ package probes
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -17,12 +18,14 @@ var (
 func probe(ctx context.Context, id, probeType string, call func() error) error {
 	t := time.NewTicker(time.Second * 2)
 
+	var err error
 	for {
 		select {
 		case <-ctx.Done():
-			return ctx.Err()
+			fmt.Println("context is done jare: ", err)
+			return fmt.Errorf("%s: %w", ctx.Err(), err)
 		case <-t.C:
-			err := call()
+			err = call()
 			if err == nil {
 				return nil
 			}
@@ -69,13 +72,13 @@ func Probe(ctx context.Context, id string, probes types.ProbesConfig) error {
 		}
 
 		eg.Go(func() error {
-			return probe(ctx, id, "Postgre", call)
+			return probe(ctx, id, "Postgres", call)
 		})
 	}
 
 	if err := eg.Wait(); err != nil {
 		log.Printf("Probe id %q has failed %s", id, err)
-		return err
+		return fmt.Errorf("failed probes with id %q: %w", id, err)
 	}
 
 	return nil
