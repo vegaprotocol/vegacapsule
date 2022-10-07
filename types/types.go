@@ -29,6 +29,7 @@ type NodeWalletInfo struct {
 	EthereumPrivateKey     string
 	EthereumClefRPCAddress string
 
+	VegaWalletID             string
 	VegaWalletPublicKey      string
 	VegaWalletRecoveryPhrase string
 	VegaWalletName           string

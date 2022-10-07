@@ -36,6 +36,11 @@ type createWalletOutput struct {
 	} `json:"key"`
 }
 
+type walletInfoOutput struct {
+	Name string `json:"name"`
+	ID   string `json:"id"`
+}
+
 func (vg ConfigGenerator) initiateNode(binaryPath, homePath string, nodeWalletPhraseFile string, nodeMode string) (*initateNodeOutput, error) {
 	args := []string{
 		"init",
@@ -69,6 +74,26 @@ func (vg ConfigGenerator) createWallet(binaryPath, homePath, name, walletPhraseF
 	log.Printf("Creating vega wallet with: %s %v", binaryPath, args)
 
 	out := &createWalletOutput{}
+	if _, err := utils.ExecuteBinary(binaryPath, args, out); err != nil {
+		return nil, err
+	}
+
+	return out, nil
+}
+
+func (vg ConfigGenerator) walletInfo(binaryPath, homePath, name, walletPhraseFilePath string) (*walletInfoOutput, error) {
+	args := []string{
+		config.WalletSubCmd,
+		"--home", homePath,
+		"info",
+		"--output", "json",
+		"--passphrase-file", walletPhraseFilePath,
+		"--wallet", name,
+	}
+
+	log.Printf("Collecting vega node id with: %s %v", binaryPath, args)
+
+	out := &walletInfoOutput{}
 	if _, err := utils.ExecuteBinary(binaryPath, args, out); err != nil {
 		return nil, err
 	}

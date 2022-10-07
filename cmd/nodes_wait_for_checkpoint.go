@@ -97,7 +97,7 @@ func waitForCheckpointsInTheNetwork(ctx context.Context, nodeSets []types.NodeSe
 }
 
 func init() {
-	nodesStopCmd.PersistentFlags().IntVar(&checkpointsAmount,
+	nodesWaitForCheckpoint.PersistentFlags().IntVar(&checkpointsAmount,
 		"checkpoints",
 		3,
 		"Number for checkpoints to wait for",

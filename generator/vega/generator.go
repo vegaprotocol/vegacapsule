@@ -134,7 +134,14 @@ func (vg ConfigGenerator) initiateValidatorWallets(
 	}
 	log.Printf("node wallet import out: %#v", vegaImportOut)
 
+	vegaWalletInfoOut, err := vg.walletInfo(vegaBinary, nodeDir, defaultIsolatedWalletName, walletPassFilePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get info about vega wallet: %w", err)
+	}
+	log.Printf("node wallet info out: %#v", vegaWalletInfoOut)
+
 	nwi := &types.NodeWalletInfo{
+		VegaWalletID:             vegaWalletInfoOut.ID,
 		VegaWalletName:           defaultIsolatedWalletName,
 		VegaWalletPassFilePath:   walletPassFilePath,
 		VegaWalletRecoveryPhrase: vegaOut.Wallet.RecoveryPhrase,
