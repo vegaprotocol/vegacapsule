@@ -20,7 +20,7 @@ func ProbeTCP(ctx context.Context, id, address string) error {
 	}
 	conn.Close()
 
-	log.Printf("Probing TCP with id %q was successfull", id)
+	log.Printf("Probing TCP with id %q was successful", id)
 
 	return nil
 }

@@ -40,7 +40,7 @@ func ProbePostgres(ctx context.Context, id, connStr, query string) error {
 		}
 	}
 
-	log.Printf("Probing Postgres with id %q was successfull, result: %s", id, buff.String())
+	log.Printf("Probing Postgres with id %q was successful, result: %s", id, buff.String())
 
 	return nil
 }

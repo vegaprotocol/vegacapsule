@@ -37,7 +37,7 @@ func ProbeHTTP(ctx context.Context, id, url string) error {
 		return newHTTPProbeErr(url, fmt.Errorf("status code is not in a range of 200-299"))
 	}
 
-	log.Printf("Probing HTTP with id %q was successfull", id)
+	log.Printf("Probing HTTP with id %q was successful", id)
 
 	return nil
 }
