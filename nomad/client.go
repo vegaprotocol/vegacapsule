@@ -126,7 +126,7 @@ func (n *Client) RunAndWait(ctx context.Context, job *api.Job, probe *types.Prob
 
 	if probe != nil {
 		if err := probes.Probe(ctx, *job.ID, *probe); err != nil {
-			return newProbeErr(err)
+			return err
 		}
 	}
 
