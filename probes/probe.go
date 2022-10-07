@@ -31,10 +31,6 @@ func probe(ctx context.Context, id, probeType string, call func() error) error {
 			}
 
 			log.Printf("Probe with id %q and type %q has failed %q", id, probeType, err)
-
-			if !IsRetryableErr(err) {
-				return err
-			}
 		}
 	}
 }
