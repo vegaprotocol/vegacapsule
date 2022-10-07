@@ -2,6 +2,7 @@ package probes
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -10,7 +11,11 @@ import (
 
 var httpClient = http.Client{}
 
-func ProbeHTTP(ctx context.Context, id, url string) (bool, error) {
+func newHTTPProbeErr(url string, err error) error {
+	return fmt.Errorf("failed to probe HTPP url %q: %w", url, err)
+}
+
+func ProbeHTTP(ctx context.Context, id, url string) error {
 	log.Printf("Probing HTPP with id %q and url %q", id, url)
 
 	ctx, cancel := context.WithTimeout(ctx, singleProbeTimeout)
@@ -18,19 +23,21 @@ func ProbeHTTP(ctx context.Context, id, url string) (bool, error) {
 
 	req, err := http.NewRequestWithContext(ctx, "HEAD", url, nil)
 	if err != nil {
-		return false, err
+		return newHTTPProbeErr(url, err)
 	}
 
 	resp, err := httpClient.Do(req)
 	if err != nil {
-		if isConnectionErr(err) {
-			return false, newRetryableError(err)
-		}
-
-		return false, err
+		return newHTTPProbeErr(url, err)
 	}
 
 	defer resp.Body.Close()
 
-	return resp.StatusCode > 199 && resp.StatusCode < 300, nil
+	if resp.StatusCode < 200 && resp.StatusCode > 299 {
+		return newHTTPProbeErr(url, fmt.Errorf("status code is not in a range of 200-299"))
+	}
+
+	log.Printf("Probing HTTP with id %q was successfull", id)
+
+	return nil
 }

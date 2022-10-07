@@ -7,7 +7,7 @@ import (
 	"net"
 )
 
-func ProbeTCP(ctx context.Context, id, address string) (bool, error) {
+func ProbeTCP(ctx context.Context, id, address string) error {
 	log.Printf("Probing TCP with id %q address %q", id, address)
 
 	var d net.Dialer
@@ -16,12 +16,11 @@ func ProbeTCP(ctx context.Context, id, address string) (bool, error) {
 
 	conn, err := d.DialContext(ctx, "tcp", address)
 	if err != nil {
-		if isConnectionErr(err) {
-			return false, newRetryableError(err)
-		}
-		return false, fmt.Errorf("failed to connect to TCP probe address: %w", err)
+		return fmt.Errorf("failed to probe TCP address %q: %w", address, err)
 	}
 	conn.Close()
 
-	return true, nil
+	log.Printf("Probing TCP with id %q was successfull", id)
+
+	return nil
 }

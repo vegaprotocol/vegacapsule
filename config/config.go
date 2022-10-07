@@ -100,7 +100,6 @@ type DockerConfig struct {
 	StaticPort   *StaticPort       `hcl:"static_port,block"`
 	AuthSoftFail bool              `hcl:"auth_soft_fail,optional"`
 	Resources    *Resources        `hcl:"resources,block"`
-	StartProbe   []string          `hcl:"start_probe,optional"`
 }
 
 type WalletConfig struct {
@@ -133,7 +132,7 @@ type NodeConfig struct {
 
 	PreGenerate *PreGenerate `hcl:"pre_generate,block"`
 
-	PreStartProbe *types.ProbesConfig `hcl:"pre_start_probe,block"`
+	PreStartProbe *types.ProbesConfig `hcl:"pre_start_probe,block" template:""`
 
 	ClefWallet *ClefConfig `hcl:"clef_wallet,block" template:""`
 

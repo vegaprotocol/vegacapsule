@@ -70,7 +70,6 @@ EOT
       }
 
       auth_soft_fail = true
-      start_probe = ["psql", "-U", "vega", "-c", "select 10 + 10"]
     }
   }
   
@@ -98,7 +97,7 @@ EOT
     
     pre_start_probe {
       postgres {
-        connection = "user=vega dbname=vega password=vega port=5232 sslmode=disable"
+        connection = "user=vega dbname=vega{{ .NodeNumber }} password=vega port=5232 sslmode=disable"
         query = "select 10 + 10"
       }
     }

@@ -22,7 +22,6 @@ func probe(ctx context.Context, id, probeType string, call func() error) error {
 	for {
 		select {
 		case <-ctx.Done():
-			fmt.Println("context is done jare: ", err)
 			return fmt.Errorf("%s: %w", ctx.Err(), err)
 		case <-t.C:
 			err = call()
@@ -43,8 +42,7 @@ func Probe(ctx context.Context, id string, probes types.ProbesConfig) error {
 
 	if probes.HTTP != nil {
 		call := func() error {
-			_, err := ProbeHTTP(ctx, id, probes.HTTP.URL)
-			return err
+			return ProbeHTTP(ctx, id, probes.HTTP.URL)
 		}
 
 		eg.Go(func() error {
@@ -52,10 +50,7 @@ func Probe(ctx context.Context, id string, probes types.ProbesConfig) error {
 		})
 	}
 	if probes.TCP != nil {
-		call := func() error {
-			_, err := ProbeTCP(ctx, id, probes.TCP.Address)
-			return err
-		}
+		call := func() error { return ProbeTCP(ctx, id, probes.TCP.Address) }
 
 		eg.Go(func() error {
 			return probe(ctx, id, "TCP", call)
@@ -63,8 +58,12 @@ func Probe(ctx context.Context, id string, probes types.ProbesConfig) error {
 	}
 	if probes.Postgres != nil {
 		call := func() error {
-			_, err := ProbePostgres(ctx, id, probes.Postgres.Connection, probes.Postgres.Query)
-			return err
+			return ProbePostgres(
+				ctx,
+				id,
+				probes.Postgres.Connection,
+				probes.Postgres.Query,
+			)
 		}
 
 		eg.Go(func() error {

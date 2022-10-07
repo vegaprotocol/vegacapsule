@@ -99,20 +99,20 @@ type SmartContractsToken struct {
 }
 
 type HTTPProbe struct {
-	URL string `hcl:"url"`
+	URL string `hcl:"url" template:""`
 }
 
 type TCPProbe struct {
-	Address string `hcl:"address"`
+	Address string `hcl:"address" template:""`
 }
 
 type PostgresProbe struct {
-	Connection string `hcl:"connection"`
-	Query      string `hcl:"query"`
+	Connection string `hcl:"connection" template:""`
+	Query      string `hcl:"query" template:""`
 }
 
 type ProbesConfig struct {
-	HTTP     *HTTPProbe     `hcl:"http,block"`
-	TCP      *TCPProbe      `hcl:"tcp,block"`
-	Postgres *PostgresProbe `hcl:"postgres,block"`
+	HTTP     *HTTPProbe     `hcl:"http,block" template:""`
+	TCP      *TCPProbe      `hcl:"tcp,block" template:""`
+	Postgres *PostgresProbe `hcl:"postgres,block" template:""`
 }
