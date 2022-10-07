@@ -34,6 +34,7 @@
 - [246](https://github.com/vegaprotocol/vegacapsule/issues/246) Add command to view logs from jobs and print all logs from failed job
 - [276](https://github.com/vegaprotocol/vegacapsule/issues/276) Allow to mint, deposit and stake tokens on Ethereum with Capsule
 - [279](https://github.com/vegaprotocol/vegacapsule/issues/279) Use Vega binary only instead of `vegawallet` and `data-node` seperatly. Allow to define a specific vega binary version to node set and wallet
+- [263](https://github.com/vegaprotocol/vegacapsule/issues/263) Add pre start probes for node sets
 
 ### 🐛 Fixes
 - [167](https://github.com/vegaprotocol/vegacapsule/issues/167) Fix validators filter in tendermint generator
