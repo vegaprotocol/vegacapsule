@@ -28,8 +28,19 @@ var (
 var nodesWaitForCheckpoint = &cobra.Command{
 	Use:   "wait-for-checkpoint",
 	Short: "The command blocks execution until the given number of checkpoints is produced.",
-	Long: `# todod add
-	`,
+	Long: `The commands can wait for a checkpoint from the moment of calling it. There is also the
+"--search-from-beginning" flag that tells the command to wait until the network produces a 
+given number of checkpoints from the beginning.
+
+
+By default, the command prints a list of paths to the checkpoints that have been found. However, 
+you can use the "--print-last-checkpoint-path-only" flag to print the last found checkpoint path only.`,
+	Example: `
+# Wait for 6 checkpoint up to 8 min
+vegacapsule nodes wait-for-checkpoint --checkpoints 6 --timeout 8m
+
+# Wait for network to produce very first checkpoint and print its path to the stdout
+vegacapsule nodes wait-for-checkpoint --checkpoints 1 --timeout 8m --print-last-checkpoint-path-only --search-from-beginning`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		netState, err := state.LoadNetworkState(homePath)
 		if err != nil {
@@ -48,16 +59,42 @@ var nodesWaitForCheckpoint = &cobra.Command{
 
 		startTime := time.Now()
 		if searchFromBeginning {
-			startTime = startTime.AddDate(-30, 0, 0)
+			startTime = time.Time{}
 		}
 
 		files, err := waitForCheckpointsInTheNetwork(ctx, netState.GeneratedServices.NodeSets.ToSlice(), checkpointsAmount, startTime)
 		if err != nil {
 			return fmt.Errorf("failed to wait for checkpoint: %w", err)
 		}
-		printOutput(files, printLastCheckpointPath)
-		return nil
+
+		return printOutput(files, printLastCheckpointPath)
 	},
+}
+
+func init() {
+	nodesWaitForCheckpoint.PersistentFlags().IntVar(&checkpointsAmount,
+		"checkpoints",
+		3,
+		"Number for checkpoints to wait for",
+	)
+
+	nodesWaitForCheckpoint.PersistentFlags().BoolVar(&printLastCheckpointPath,
+		"print-last-checkpoint-path-only",
+		false,
+		"Print only last checkpoint path",
+	)
+
+	nodesWaitForCheckpoint.PersistentFlags().DurationVar(&checkpointWaitTimeout,
+		"timeout",
+		defaultCheckpointWaitTimeout,
+		"Timeout for the wait-for-checkpoint command",
+	)
+
+	nodesWaitForCheckpoint.PersistentFlags().BoolVar(&searchFromBeginning,
+		"search-from-beginning",
+		false,
+		"It's searching for the N checkpoints from the beginning of the networks",
+	)
 }
 
 type checkpointsResult struct {
@@ -100,32 +137,6 @@ func waitForCheckpointsInTheNetwork(ctx context.Context, nodeSets []types.NodeSe
 	case result := <-result:
 		return result.checkpointsFilesPaths, result.err
 	}
-}
-
-func init() {
-	nodesWaitForCheckpoint.PersistentFlags().IntVar(&checkpointsAmount,
-		"checkpoints",
-		3,
-		"Number for checkpoints to wait for",
-	)
-
-	nodesWaitForCheckpoint.PersistentFlags().BoolVar(&printLastCheckpointPath,
-		"print-last-checkpoint-path-only",
-		false,
-		"Print only last checkpoint path",
-	)
-
-	nodesWaitForCheckpoint.PersistentFlags().DurationVar(&checkpointWaitTimeout,
-		"timeout",
-		defaultCheckpointWaitTimeout,
-		"Timeout for the wait-for-checkpoint command",
-	)
-
-	nodesWaitForCheckpoint.PersistentFlags().BoolVar(&searchFromBeginning,
-		"search-from-beginning",
-		false,
-		"It's searching for the N checkpoints from the beginning of the networks",
-	)
 }
 
 func isCheckpointFile(file os.DirEntry) bool {
