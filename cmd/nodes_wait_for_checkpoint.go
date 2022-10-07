@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"time"
 
 	"code.vegaprotocol.io/vegacapsule/state"
@@ -21,6 +22,7 @@ var (
 	checkpointsAmount       int
 	printLastCheckpointPath bool
 	checkpointWaitTimeout   time.Duration
+	searchFromBeginning     bool
 )
 
 var nodesWaitForCheckpoint = &cobra.Command{
@@ -44,7 +46,12 @@ var nodesWaitForCheckpoint = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), checkpointWaitTimeout)
 		defer cancel()
 
-		files, err := waitForCheckpointsInTheNetwork(ctx, netState.GeneratedServices.NodeSets.ToSlice(), checkpointsAmount)
+		startTime := time.Now()
+		if searchFromBeginning {
+			startTime = startTime.AddDate(-30, 0, 0)
+		}
+
+		files, err := waitForCheckpointsInTheNetwork(ctx, netState.GeneratedServices.NodeSets.ToSlice(), checkpointsAmount, startTime)
 		if err != nil {
 			return fmt.Errorf("failed to wait for checkpoint: %w", err)
 		}
@@ -58,9 +65,7 @@ type checkpointsResult struct {
 	err                   error
 }
 
-func waitForCheckpointsInTheNetwork(ctx context.Context, nodeSets []types.NodeSet, amount int) ([]string, error) {
-	startTime := time.Now()
-
+func waitForCheckpointsInTheNetwork(ctx context.Context, nodeSets []types.NodeSet, amount int, startTime time.Time) ([]string, error) {
 	result := make(chan checkpointsResult, 1)
 
 	go func(startTime time.Time, nodeSets []types.NodeSet) {
@@ -85,6 +90,7 @@ func waitForCheckpointsInTheNetwork(ctx context.Context, nodeSets []types.NodeSe
 					return
 				}
 			}
+			time.Sleep(4 * time.Second)
 		}
 	}(startTime, nodeSets)
 
@@ -114,6 +120,12 @@ func init() {
 		defaultCheckpointWaitTimeout,
 		"Timeout for the wait-for-checkpoint command",
 	)
+
+	nodesWaitForCheckpoint.PersistentFlags().BoolVar(&searchFromBeginning,
+		"search-from-beginning",
+		false,
+		"It's searching for the N checkpoints from the beginning of the networks",
+	)
 }
 
 func isCheckpointFile(file os.DirEntry) bool {
@@ -127,6 +139,16 @@ func findCheckpointsNewerThan(directory string, startDate time.Time) ([]string, 
 	if err != nil {
 		return nil, fmt.Errorf("failed to read checkpoint directory: %w", err)
 	}
+	sort.Slice(files, func(i, j int) bool {
+		iInfo, iErr := files[i].Info()
+		jInfo, jErr := files[j].Info()
+
+		if jErr != nil || iErr != nil {
+			return false
+		}
+
+		return iInfo.ModTime().After(jInfo.ModTime())
+	})
 
 	var checkpointFiles []string
 	for _, fi := range files {
