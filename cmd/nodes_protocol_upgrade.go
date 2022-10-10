@@ -78,6 +78,10 @@ var nodesProtocolUpgradeCmd = &cobra.Command{
 		}
 
 		for _, ns := range nodeSets {
+			if !ns.IsValidator() {
+				continue
+			}
+
 			_, err := commands.VegaProtocolUpgradeProposal(
 				*netState.Config.VegaBinary,
 				ns.Vega.HomeDir,
@@ -136,7 +140,11 @@ func init() {
 	nodesProtocolUpgradeCmd.MarkFlagRequired("template-path")
 }
 
-func filtertUpgradeNodeSet(genS types.GeneratedServices, upgradeInclude, upgradeExclude []string) ([]types.NodeSet, error) {
+func filtertUpgradeNodeSet(
+	genS types.GeneratedServices,
+	upgradeInclude,
+	upgradeExclude []string,
+) ([]types.NodeSet, error) {
 	if len(upgradeInclude) != 0 {
 		var nodeSets []types.NodeSet
 
@@ -146,10 +154,7 @@ func filtertUpgradeNodeSet(genS types.GeneratedServices, upgradeInclude, upgrade
 				return nil, fmt.Errorf("failed to get requested node set: %w", err)
 			}
 
-			// TODO perhaps we want to error if node set is not validator?
-			if ns.IsValidator() {
-				nodeSets = append(nodeSets, *ns)
-			}
+			nodeSets = append(nodeSets, *ns)
 		}
 
 		return nodeSets, nil
@@ -158,7 +163,7 @@ func filtertUpgradeNodeSet(genS types.GeneratedServices, upgradeInclude, upgrade
 	if len(upgradeExclude) != 0 {
 		var nodeSets []types.NodeSet
 
-		for _, ns := range genS.GetValidators() {
+		for _, ns := range genS.NodeSets.ToSlice() {
 			for _, excludeNodeName := range upgradeExclude {
 				if ns.Name == excludeNodeName {
 					continue
@@ -171,5 +176,5 @@ func filtertUpgradeNodeSet(genS types.GeneratedServices, upgradeInclude, upgrade
 		return nodeSets, nil
 	}
 
-	return genS.GetValidators(), nil
+	return genS.NodeSets.ToSlice(), nil
 }

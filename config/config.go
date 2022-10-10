@@ -132,6 +132,8 @@ type NodeConfig struct {
 
 	PreGenerate *PreGenerate `hcl:"pre_generate,block"`
 
+	PreStartProbe *types.ProbesConfig `hcl:"pre_start_probe,block" template:""`
+
 	ClefWallet *ClefConfig `hcl:"clef_wallet,block" template:""`
 
 	NodeWalletPass     string `hcl:"node_wallet_pass,optional" template:""`

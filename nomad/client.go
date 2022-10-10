@@ -6,6 +6,8 @@ import (
 	"log"
 	"time"
 
+	"code.vegaprotocol.io/vegacapsule/probes"
+	"code.vegaprotocol.io/vegacapsule/types"
 	"github.com/hashicorp/nomad/api"
 )
 
@@ -119,8 +121,14 @@ func (n *Client) Run(ctx context.Context, job *api.Job) (bool, error) {
 	return false, nil
 }
 
-func (n *Client) RunAndWait(ctx context.Context, job *api.Job) error {
+func (n *Client) RunAndWait(ctx context.Context, job *api.Job, probe *types.ProbesConfig) error {
 	jobs := n.API.Jobs()
+
+	if probe != nil {
+		if err := probes.Probe(ctx, *job.ID, *probe); err != nil {
+			return err
+		}
+	}
 
 	_, _, err := jobs.Register(job, nil)
 	if err != nil {

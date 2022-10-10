@@ -1,6 +1,8 @@
 package types
 
-import "sort"
+import (
+	"sort"
+)
 
 type NodeSet struct {
 	GroupName string
@@ -18,6 +20,7 @@ type NodeSet struct {
 	Visor           *Visor
 	NomadJobRaw     *string `json:",omitempty"`
 	PreGenerateJobs []NomadJob
+	PreStartProbe   *ProbesConfig `hcl:"pre_start_probe,optional"  template:""`
 }
 
 // PreGenerateJobsIDs returns pre gen jobs ids per specific node set
