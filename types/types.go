@@ -29,6 +29,7 @@ type NodeWalletInfo struct {
 	EthereumPrivateKey     string
 	EthereumClefRPCAddress string
 
+	VegaWalletID             string
 	VegaWalletPublicKey      string
 	VegaWalletRecoveryPhrase string
 	VegaWalletName           string
@@ -47,9 +48,10 @@ type VegaNode struct {
 
 type TendermintNode struct {
 	GeneratedService
-	NodeID          string
-	GenesisFilePath string
-	BinaryPath      string
+	NodeID             string
+	GenesisFilePath    string
+	BinaryPath         string
+	ValidatorPublicKey string
 }
 
 type DataNode struct {
@@ -72,8 +74,14 @@ type NomadJob struct {
 	NomadJobRaw string
 }
 
+type TendermintOutput struct {
+	NodeID             string
+	ValidatorPublicKey string
+}
+
 type VegaNodeOutput struct {
 	NomadJobName string
+	Tendermint   TendermintOutput
 	VegaNode
 }
 
