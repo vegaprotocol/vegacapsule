@@ -95,6 +95,13 @@ EOT
     mode = "full"
     use_data_node = true
     
+    pre_start_probe {
+      postgres {
+        connection = "user=vega dbname=vega{{ .NodeNumber }} password=vega port=5232 sslmode=disable"
+        query = "select 10 + 10"
+      }
+    }
+
     config_templates {
       vega_file = "./node_set_templates/default/vega_full.tmpl"
       tendermint_file = "./node_set_templates/default/tendermint_full.tmpl"
