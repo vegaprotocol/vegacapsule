@@ -58,7 +58,7 @@ EOT
       env = {
         POSTGRES_USER="vega"
         POSTGRES_PASSWORD="vega"
-        POSTGRES_DBS=join(",", [for ns in generated.node_sets: "vega${ns.index}" if ns.data_node != null])
+        POSTGRES_DBS="vega0,vega1,vega2,vega3,vega4,vega5,vega6,vega7,vega8"
       }
 
       volume_mounts = concat(
