@@ -121,7 +121,12 @@ func ApplyConfigContext(conf *Config, genServices *types.GeneratedServices) (*Co
 		return nil, fmt.Errorf("failed to convert GeneratedServices to cty value: %w", err)
 	}
 
-	decodeDiags := gohcl.DecodeBody(conf.hclBody, newEvalContext(*genServicesCtyVal), conf)
+	f, err := ParseHCLFile(conf.FilePath)
+	if err != nil {
+		return nil, err
+	}
+
+	decodeDiags := gohcl.DecodeBody(f.Body, newEvalContext(*genServicesCtyVal), conf)
 	if decodeDiags.HasErrors() {
 		return nil, fmt.Errorf("failed to decode config: %w", decodeDiags)
 	}
@@ -134,6 +139,16 @@ func ApplyConfigContext(conf *Config, genServices *types.GeneratedServices) (*Co
 	return conf, nil
 }
 
+func ParseHCLFile(filePath string) (*hcl.File, error) {
+	parser := hclparse.NewParser()
+	f, parseDiags := parser.ParseHCLFile(filePath)
+	if parseDiags.HasErrors() {
+		return nil, fmt.Errorf("failed to parse HCL config file: %w", parseDiags)
+	}
+
+	return f, nil
+}
+
 func ParseConfigFile(filePath, outputDir string, genServices types.GeneratedServices) (*Config, error) {
 	config, err := DefaultConfig()
 	if err != nil {
@@ -144,15 +159,16 @@ func ParseConfigFile(filePath, outputDir string, genServices types.GeneratedServ
 		config.OutputDir = &outputDir
 	}
 
+	config.FilePath = filePath
+
 	genServicesCtyVal, err := genServices.ToCtyValue()
 	if err != nil {
 		return nil, err
 	}
 
-	parser := hclparse.NewParser()
-	f, parseDiags := parser.ParseHCLFile(filePath)
-	if parseDiags.HasErrors() {
-		return nil, fmt.Errorf("failed to parse HCL config file: %w", parseDiags)
+	f, err := ParseHCLFile(filePath)
+	if err != nil {
+		return nil, err
 	}
 
 	decodeDiags := gohcl.DecodeBody(f.Body, newEvalContext(*genServicesCtyVal), config)
@@ -164,9 +180,5 @@ func ParseConfigFile(filePath, outputDir string, genServices types.GeneratedServ
 	if err := config.Validate(dir); err != nil {
 		return nil, fmt.Errorf("failed to validate config: %w", err)
 	}
-
-	// set the parsed hcl body
-	config.hclBody = f.Body
-
 	return config, nil
 }

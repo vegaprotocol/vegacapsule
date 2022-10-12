@@ -11,7 +11,6 @@ import (
 	"code.vegaprotocol.io/vegacapsule/types"
 	"code.vegaprotocol.io/vegacapsule/utils"
 
-	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/gohcl"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 )
@@ -38,7 +37,8 @@ type Config struct {
 
 	// Internal helper variables
 	configDir string
-	hclBody   hcl.Body
+
+	FilePath string
 }
 
 type NetworkConfig struct {
