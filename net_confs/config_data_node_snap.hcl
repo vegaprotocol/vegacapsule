@@ -119,7 +119,7 @@ EOT
     config_templates {
       vega_file = "./node_set_templates/default/vega_full.tmpl"
       tendermint_file = "./node_set_templates/default/tendermint_full.tmpl"
-      data_node_file = "./node_set_templates/default/data_node_full_external_postgres.tmpl"
+      data_node_file = "./node_set_templates/default/data_node_full_snapshosts.tmpl"
     }
   }
 }

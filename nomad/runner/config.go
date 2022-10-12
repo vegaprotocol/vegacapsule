@@ -15,6 +15,12 @@ plugin "docker" {
 		auth {
 			%s
 		}
+
+		extra_labels = ["job_name", "job_id"]
+
+		volumes {
+			enabled = true
+		}
 	}
 }
 client {

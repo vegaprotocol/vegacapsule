@@ -1,12 +1,36 @@
 package types
 
-import "fmt"
+import (
+	"fmt"
+	"log"
+
+	"github.com/zclconf/go-cty/cty"
+	"github.com/zclconf/go-cty/cty/gocty"
+)
+
+var generatedServicesCtyType cty.Type
 
 type GeneratedServices struct {
 	Wallet          *Wallet
 	Faucet          *Faucet
-	NodeSets        NodeSetMap
+	NodeSets        NodeSetMap `cty:"node_sets"`
 	PreGenerateJobs []NomadJob
+}
+
+func init() {
+	var gs GeneratedServices
+	t, err := gocty.ImpliedType(gs)
+	if err != nil {
+		log.Fatalf("failed to imply type of GeneratedServices struct: %s", err)
+	}
+
+	generatedServicesCtyType = t
+}
+
+func DefaultGeneratedServices() GeneratedServices {
+	return GeneratedServices{
+		NodeSets: NodeSetMap{},
+	}
 }
 
 func NewGeneratedServices(w *Wallet, f *Faucet, ns []NodeSet) *GeneratedServices {
@@ -24,6 +48,15 @@ func NewGeneratedServices(w *Wallet, f *Faucet, ns []NodeSet) *GeneratedServices
 		NodeSets:        nsm,
 		PreGenerateJobs: preGenJobs,
 	}
+}
+
+func (gs GeneratedServices) ToCtyValue() (*cty.Value, error) {
+	val, err := gocty.ToCtyValue(gs, generatedServicesCtyType)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert GeneratedServices to cty.Value: %w", err)
+	}
+
+	return &val, nil
 }
 
 func (gs GeneratedServices) GetByName(name string) []GeneratedService {
