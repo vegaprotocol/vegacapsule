@@ -12,7 +12,7 @@ import (
 )
 
 func (g *Generator) initiateNodeSet(absoluteIndex, relativeIndex, groupIndex int, nc config.NodeConfig) (*types.NodeSet, error) {
-	n, err := templateNodeConfig(absoluteIndex, nc)
+	n, err := config.TemplateNodeConfig(config.NodeConfigTemplateContext{NodeNumber: absoluteIndex}, nc)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute node config templates for %s: %w", nc.Name, err)
 	}

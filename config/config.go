@@ -3,7 +3,6 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -23,7 +22,7 @@ const (
 )
 
 type Config struct {
-	OutputDir            *string       `hcl:"-"`
+	OutputDir            *string       `hcl:"output_dir"`
 	VegaBinary           *string       `hcl:"vega_binary_path"`
 	VegaCapsuleBinary    *string       `hcl:"vega_capsule_binary_path,optional"`
 	Prefix               *string       `hcl:"prefix"`
@@ -38,6 +37,8 @@ type Config struct {
 
 	// Internal helper variables
 	configDir string
+
+	HCLBody []byte
 }
 
 type NetworkConfig struct {
@@ -51,7 +52,7 @@ type NetworkConfig struct {
 	PreStart  *PStartConfig `hcl:"pre_start,block"`
 	PostStart *PStartConfig `hcl:"post_start,block"`
 
-	Nodes                       []NodeConfig `hcl:"node_set,block"`
+	Nodes                       []NodeConfig `hcl:"node_set,block" cty:"node_set"`
 	SmartContractsAddresses     *string      `hcl:"smart_contracts_addresses,optional"`
 	SmartContractsAddressesFile *string      `hcl:"smart_contracts_addresses_file,optional"`
 
@@ -100,6 +101,7 @@ type DockerConfig struct {
 	StaticPort   *StaticPort       `hcl:"static_port,block"`
 	AuthSoftFail bool              `hcl:"auth_soft_fail,optional"`
 	Resources    *Resources        `hcl:"resources,block"`
+	VolumeMounts []string          `hcl:"volume_mounts,optional"`
 }
 
 type WalletConfig struct {
@@ -126,9 +128,9 @@ type PreGenerate struct {
 }
 
 type NodeConfig struct {
-	Name  string `hcl:"name,label"`
-	Mode  string `hcl:"mode"`
-	Count int    `hcl:"count"`
+	Name  string `hcl:"name,label" cty:"name"`
+	Mode  string `hcl:"mode" cty:"mode"`
+	Count int    `hcl:"count" cty:"count"`
 
 	PreGenerate *PreGenerate `hcl:"pre_generate,block"`
 
@@ -136,12 +138,12 @@ type NodeConfig struct {
 
 	ClefWallet *ClefConfig `hcl:"clef_wallet,block" template:""`
 
-	NodeWalletPass     string `hcl:"node_wallet_pass,optional" template:""`
-	EthereumWalletPass string `hcl:"ethereum_wallet_pass,optional" template:""`
-	VegaWalletPass     string `hcl:"vega_wallet_pass,optional" template:""`
+	NodeWalletPass     string `hcl:"node_wallet_pass,optional" template:"" cty:"node_wallet_pass"`
+	EthereumWalletPass string `hcl:"ethereum_wallet_pass,optional" template:"" cty:"ethereum_wallet_pass"`
+	VegaWalletPass     string `hcl:"vega_wallet_pass,optional" template:"" cty:"vega_wallet_pass"`
 
 	VegaBinary  *string `hcl:"vega_binary_path,optional"`
-	UseDataNode bool    `hcl:"use_data_node,optional"`
+	UseDataNode bool    `hcl:"use_data_node,optional" cty:"use_data_node"`
 	VisorBinary string  `hcl:"visor_binary,optional"`
 
 	ConfigTemplates      ConfigTemplates `hcl:"config_templates,block"`
@@ -433,7 +435,7 @@ func (c Config) LoadConfigTemplateFile(path string) (string, error) {
 		return "", fmt.Errorf("failed to get absolute file path %q: %w", path, err)
 	}
 
-	template, err := ioutil.ReadFile(templateFile)
+	template, err := os.ReadFile(templateFile)
 	if err != nil {
 		return "", fmt.Errorf("failed to read file %q: %w", templateFile, err)
 	}
@@ -455,7 +457,7 @@ func (c Config) loadAndValidateNomadJobTemplates(nc NodeConfig) (*NodeConfig, er
 		return nil, fmt.Errorf("failed to get absolute file path %q: %w", *nc.NomadJobTemplateFile, err)
 	}
 
-	template, err := ioutil.ReadFile(templateFile)
+	template, err := os.ReadFile(templateFile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read file %q: %w", templateFile, err)
 	}
@@ -478,7 +480,7 @@ func (c *Config) loadAndValidateGenesis() error {
 			return fmt.Errorf("failed to get absolute file path %q: %w", genTemplateFile, err)
 		}
 
-		genTemplate, err := ioutil.ReadFile(genTemplateFile)
+		genTemplate, err := os.ReadFile(genTemplateFile)
 		if err != nil {
 			return fmt.Errorf("failed to read file %q: %w", genTemplateFile, err)
 		}
@@ -505,7 +507,7 @@ func (c *Config) loadAndValidatSetSmartContractsAddresses() error {
 			return fmt.Errorf("failed to get absolute file path %q: %w", smartContractsFile, err)
 		}
 
-		smartContracts, err := ioutil.ReadFile(smartContractsFile)
+		smartContracts, err := os.ReadFile(smartContractsFile)
 		if err != nil {
 			return fmt.Errorf("failed to read file %q: %w", smartContractsFile, err)
 		}
@@ -552,7 +554,9 @@ func (c Config) GetSmartContractToken(name string) *types.SmartContractsToken {
 func (c *Config) Persist() error {
 	f := hclwrite.NewEmptyFile()
 	gohcl.EncodeIntoBody(*c, f.Body())
-	return ioutil.WriteFile(filepath.Join(*c.OutputDir, "config.hcl"), f.Bytes(), 0644)
+
+	c.HCLBody = f.Bytes()
+	return os.WriteFile(filepath.Join(*c.OutputDir, "config.hcl"), c.HCLBody, 0644)
 }
 
 func (c Config) LogsDir() string {

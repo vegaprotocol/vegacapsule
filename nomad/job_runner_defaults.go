@@ -290,6 +290,7 @@ func (r *JobRunner) defaultDockerJob(ctx context.Context, conf config.DockerConf
 							"args":           conf.Args,
 							"ports":          portLabels,
 							"auth_soft_fail": conf.AuthSoftFail,
+							"volumes":        conf.VolumeMounts,
 						},
 						Env:       conf.Env,
 						LogConfig: defaultLogConfig,

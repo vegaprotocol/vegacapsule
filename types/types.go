@@ -3,9 +3,9 @@ package types
 import "github.com/hashicorp/nomad/api"
 
 type GeneratedService struct {
-	Name           string
-	HomeDir        string
-	ConfigFilePath string
+	Name           string `cty:"name"`
+	HomeDir        string `cty:"home_dir"`
+	ConfigFilePath string `cty:"config_file_path"`
 }
 
 type Wallet struct {
@@ -37,9 +37,9 @@ type NodeWalletInfo struct {
 }
 
 type VegaNode struct {
-	GeneratedService
+	GeneratedService `cty:"service"`
 
-	Mode                   string
+	Mode                   string `cty:"mode"`
 	NodeWalletPassFilePath string
 
 	NodeWalletInfo *NodeWalletInfo `json:",omitempty"`
@@ -47,16 +47,16 @@ type VegaNode struct {
 }
 
 type TendermintNode struct {
-	GeneratedService
-	NodeID             string
+	GeneratedService   `cty:"service"`
+	NodeID             string `cty:"node_id"`
 	GenesisFilePath    string
 	BinaryPath         string
 	ValidatorPublicKey string
 }
 
 type DataNode struct {
-	GeneratedService
-	BinaryPath string
+	GeneratedService `cty:"service"`
+	BinaryPath       string
 }
 
 type Visor struct {

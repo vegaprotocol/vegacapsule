@@ -58,7 +58,7 @@ EOT
       env = {
         POSTGRES_USER="vega"
         POSTGRES_PASSWORD="vega"
-        POSTGRES_DBS="vega0,vega1,vega2,vega3,vega4,vega5,vega6,vega7,vega8"
+        POSTGRES_DBS=join(",", [for ns in generated.node_sets: "vega${ns.index}" if ns.data_node != null])
       }
 
       volume_mounts = concat(
@@ -119,7 +119,7 @@ EOT
     config_templates {
       vega_file = "./node_set_templates/default/vega_full.tmpl"
       tendermint_file = "./node_set_templates/default/tendermint_full.tmpl"
-      data_node_file = "./node_set_templates/default/data_node_full_external_postgres.tmpl"
+      data_node_file = "./node_set_templates/default/data_node_full_snapshosts.tmpl"
     }
   }
 }

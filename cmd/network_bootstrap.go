@@ -7,6 +7,7 @@ import (
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/installer"
 	"code.vegaprotocol.io/vegacapsule/state"
+	"code.vegaprotocol.io/vegacapsule/types"
 	"github.com/spf13/cobra"
 )
 
@@ -16,7 +17,7 @@ var netBootstrapCmd = &cobra.Command{
 	Use:   "bootstrap",
 	Short: "Bootstrap generates and starts new network",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		conf, err := config.ParseConfigFile(configFilePath, homePath)
+		conf, err := config.ParseConfigFile(configFilePath, homePath, types.DefaultGeneratedServices())
 		if err != nil {
 			return fmt.Errorf("failed to parse config file: %w", err)
 		}

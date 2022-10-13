@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 
+	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/nomad"
 	"code.vegaprotocol.io/vegacapsule/state"
 	"github.com/spf13/cobra"
@@ -60,6 +61,12 @@ func netStart(ctx context.Context, state state.NetworkState) (*state.NetworkStat
 	if err != nil {
 		return nil, fmt.Errorf("failed to create job runner: %w", err)
 	}
+
+	conf, err := config.ApplyConfigContext(state.Config, state.GeneratedServices)
+	if err != nil {
+		return nil, fmt.Errorf("failed to apply config context: %w", err)
+	}
+	state.Config = conf
 
 	res, err := nomadRunner.StartNetwork(ctx, state.Config, state.GeneratedServices, !doNotStopAllJobsOnFailure)
 	if err != nil {
