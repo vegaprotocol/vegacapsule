@@ -1,20 +1,22 @@
 package cmd
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
+	"sync"
 
 	"code.vegaprotocol.io/vegacapsule/generator"
 	"code.vegaprotocol.io/vegacapsule/nomad"
 	"code.vegaprotocol.io/vegacapsule/state"
 	"code.vegaprotocol.io/vegacapsule/types"
 	"github.com/spf13/cobra"
+	"golang.org/x/sync/errgroup"
 )
 
 var (
 	baseOneNode string
 	startNode   bool
+	count       int
 )
 
 var nodesAddCmd = &cobra.Command{
@@ -30,31 +32,62 @@ var nodesAddCmd = &cobra.Command{
 			return networkNotBootstrappedErr("nodes add")
 		}
 
-		newNodeSet, err := nodesAddNode(*networkState, baseOneNode)
-		if err != nil {
-			return fmt.Errorf("failed to add new node: %w", err)
+		if count < 1 {
+			return fmt.Errorf("count has to be > 0")
 		}
 
-		networkState.GeneratedServices.NodeSets[newNodeSet.Name] = *newNodeSet
+		var eg errgroup.Group
+		var m sync.Mutex
+		newNodeSets := make([]*types.NodeSet, 0, count)
 
-		if startNode {
-			networkState, err = nodesStartNode(context.Background(), *networkState, newNodeSet.Name, newNodeSet.Vega.BinaryPath)
-			if err != nil {
-				return fmt.Errorf("failed start node: %w", err)
-			}
+		for i := 0; i < count; i++ {
+			i := i + 1
+			eg.Go(func() error {
+				newNodeSet, err := nodesAddNode(*networkState, i, baseOneNode)
+				if err != nil {
+					return fmt.Errorf("failed to add new node: %w", err)
+				}
 
+				m.Lock()
+				newNodeSets = append(newNodeSets, newNodeSet)
+				m.Unlock()
+
+				if startNode {
+					nomadJobID, err := nodesStartNode(cmd.Context(), newNodeSet, networkState.Config, newNodeSet.Vega.BinaryPath)
+					if err != nil {
+						return fmt.Errorf("failed start node: %w", err)
+					}
+
+					m.Lock()
+					networkState.RunningJobs.NodesSetsJobIDs[nomadJobID] = true
+					m.Unlock()
+				}
+
+				return nil
+			})
+		}
+
+		if err := eg.Wait(); err != nil {
+			return err
+		}
+
+		for _, ns := range newNodeSets {
+			networkState.GeneratedServices.NodeSets[ns.Name] = *ns
 		}
 
 		if err := networkState.Persist(); err != nil {
 			return fmt.Errorf("failed to persist network: %w", err)
 		}
 
-		newNodeJson, err := json.MarshalIndent(newNodeSet, "", "\t")
-		if err != nil {
-			return fmt.Errorf("failed to marshal validators info: %w", err)
+		for _, ns := range newNodeSets {
+			newNodeJson, err := json.MarshalIndent(ns, "", "\t")
+			if err != nil {
+				return fmt.Errorf("failed to marshal validators info: %w", err)
+			}
+
+			fmt.Println(string(newNodeJson))
 		}
 
-		fmt.Println(string(newNodeJson))
 		return nil
 	},
 }
@@ -71,9 +104,15 @@ func init() {
 		"Name of the node set that the new node set should be based on",
 	)
 	nodesAddCmd.MarkFlagRequired("base-on")
+
+	nodesAddCmd.PersistentFlags().IntVar(&count,
+		"count",
+		1,
+		"Defines how many node sets should be added",
+	)
 }
 
-func nodesAddNode(state state.NetworkState, baseOneNode string) (*types.NodeSet, error) {
+func nodesAddNode(state state.NetworkState, index int, baseOneNode string) (*types.NodeSet, error) {
 	nomadClient, err := nomad.NewClient(nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create nomad client: %w", err)
@@ -102,7 +141,7 @@ func nodesAddNode(state state.NetworkState, baseOneNode string) (*types.NodeSet,
 	groupNodeSets := state.GeneratedServices.GetNodeSetsByGroupName(nodeSet.GroupName)
 
 	newNodeSet, err := gen.AddNodeSet(
-		len(state.GeneratedServices.NodeSets),
+		len(state.GeneratedServices.NodeSets)-1+index,
 		len(groupNodeSets),
 		nodeSet.GroupIndex,
 		*nodeConfig,
