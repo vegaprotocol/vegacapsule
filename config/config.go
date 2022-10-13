@@ -22,7 +22,7 @@ const (
 )
 
 type Config struct {
-	OutputDir            *string       `hcl:"-"`
+	OutputDir            *string       `hcl:"output_dir"`
 	VegaBinary           *string       `hcl:"vega_binary_path"`
 	VegaCapsuleBinary    *string       `hcl:"vega_capsule_binary_path,optional"`
 	Prefix               *string       `hcl:"prefix"`
@@ -38,7 +38,7 @@ type Config struct {
 	// Internal helper variables
 	configDir string
 
-	FilePath string
+	HCLBody []byte
 }
 
 type NetworkConfig struct {
@@ -554,7 +554,9 @@ func (c Config) GetSmartContractToken(name string) *types.SmartContractsToken {
 func (c *Config) Persist() error {
 	f := hclwrite.NewEmptyFile()
 	gohcl.EncodeIntoBody(*c, f.Body())
-	return os.WriteFile(filepath.Join(*c.OutputDir, "config.hcl"), f.Bytes(), 0644)
+
+	c.HCLBody = f.Bytes()
+	return os.WriteFile(filepath.Join(*c.OutputDir, "config.hcl"), c.HCLBody, 0644)
 }
 
 func (c Config) LogsDir() string {

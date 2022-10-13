@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/hcl/v2/ext/tryfunc"
 	"github.com/hashicorp/hcl/v2/gohcl"
 	"github.com/hashicorp/hcl/v2/hclparse"
+	"github.com/hashicorp/hcl/v2/hclsimple"
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/function"
 	"github.com/zclconf/go-cty/cty/function/stdlib"
@@ -121,14 +122,8 @@ func ApplyConfigContext(conf *Config, genServices *types.GeneratedServices) (*Co
 		return nil, fmt.Errorf("failed to convert GeneratedServices to cty value: %w", err)
 	}
 
-	f, err := ParseHCLFile(conf.FilePath)
-	if err != nil {
+	if err := hclsimple.Decode("config.hcl", conf.HCLBody, newEvalContext(*genServicesCtyVal), conf); err != nil {
 		return nil, err
-	}
-
-	decodeDiags := gohcl.DecodeBody(f.Body, newEvalContext(*genServicesCtyVal), conf)
-	if decodeDiags.HasErrors() {
-		return nil, fmt.Errorf("failed to decode config: %w", decodeDiags)
 	}
 
 	dir, _ := filepath.Split(conf.configDir)
@@ -158,8 +153,6 @@ func ParseConfigFile(filePath, outputDir string, genServices types.GeneratedServ
 	if outputDir != "" {
 		config.OutputDir = &outputDir
 	}
-
-	config.FilePath = filePath
 
 	genServicesCtyVal, err := genServices.ToCtyValue()
 	if err != nil {
