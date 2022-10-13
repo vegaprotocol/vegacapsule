@@ -16,8 +16,8 @@ name = "genesis"
 {{ if .NodeSet.DataNode }}
 [data_node]
     [data_node.binary]
-    path = "data-node"
-    args = ["node",
+    path = "vega"
+    args = ["datanode", "node",
       "--home", "{{ .NodeSet.DataNode.HomeDir }}",
     ]
 {{ end }}
