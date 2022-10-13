@@ -113,8 +113,6 @@ func init() {
 }
 
 func nodesAddNode(state state.NetworkState, index int, baseOneNode string) (*types.NodeSet, error) {
-	fmt.Printf("nodesAddNode - index: %d, baseOneNode: %s \n", index, baseOneNode)
-
 	nomadClient, err := nomad.NewClient(nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create nomad client: %w", err)
