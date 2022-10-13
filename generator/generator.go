@@ -213,12 +213,16 @@ func (g *Generator) RemoveNodeSet(ns types.NodeSet) error {
 		return fmt.Errorf("failed to remove Vega directory %q: %w", ns.Vega.HomeDir, err)
 	}
 
-	if ns.DataNode == nil {
-		return nil
+	if ns.Visor != nil {
+		if err := os.RemoveAll(ns.Visor.HomeDir); err != nil {
+			return fmt.Errorf("failed to remove Visor directory %q: %w", ns.Vega.HomeDir, err)
+		}
 	}
 
-	if err := os.RemoveAll(ns.DataNode.HomeDir); err != nil {
-		return fmt.Errorf("failed to remove DataNode directory %q: %w", ns.DataNode.HomeDir, err)
+	if ns.DataNode != nil {
+		if err := os.RemoveAll(ns.DataNode.HomeDir); err != nil {
+			return fmt.Errorf("failed to remove DataNode directory %q: %w", ns.DataNode.HomeDir, err)
+		}
 	}
 
 	return nil
