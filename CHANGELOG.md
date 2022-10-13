@@ -37,6 +37,7 @@
 - [270](https://github.com/vegaprotocol/vegacapsule/pull/270) Add vega isolated wallet id and the tendermint info into the `vegacapsule nodes ls` command.
 - [263](https://github.com/vegaprotocol/vegacapsule/issues/263) Add pre start probes for node sets
 - [288](https://github.com/vegaprotocol/vegacapsule/issues/288) Support Docker volumes mounts and add HCL configs templating
+- [290](https://github.com/vegaprotocol/vegacapsule/issues/290) Add multiple nodes at the same time with `count` flag
 
 ### 🐛 Fixes
 - [167](https://github.com/vegaprotocol/vegacapsule/issues/167) Fix validators filter in tendermint generator
