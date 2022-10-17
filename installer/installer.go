@@ -156,7 +156,8 @@ func (i Installer) downloadAsset(ctx context.Context, asset asset, releaseTag st
 	defer os.Remove(downloadPath)
 
 	if i.installPath != "" {
-		if err := cpAndChmodxFile(binPath, i.installPath); err != nil {
+		preferedPaths := path.Join(i.installPath, asset.BinaryName)
+		if err := cpAndChmodxFile(binPath, preferedPaths); err != nil {
 			return "", fmt.Errorf("failed to copy binary to predefined path %q: %w", i.installPath, err)
 		}
 	}
@@ -209,6 +210,10 @@ func (i Installer) Install(ctx context.Context, releaseTag string) (InstalledBin
 	}
 
 	log.Printf("Successfully to install binaries to %q", i.binDirectory)
+
+	if i.installPath != "" {
+		log.Printf("Binaries also installed in the %q", i.installPath)
+	}
 
 	return installedBinsPaths, nil
 }

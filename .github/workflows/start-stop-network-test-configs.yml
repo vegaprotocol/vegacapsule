@@ -1,0 +1,52 @@
+name: start-stop network test
+on:
+  pull_request:
+
+permissions:
+  contents: read
+jobs:
+  config:
+    strategy:
+      matrix:
+        config_file: 
+          - config.hcl
+          - config_clef.hcl
+          - config_external_postgres.hcl
+
+          # TODO: Needs to be fixed. Issue: https://github.com/vegaprotocol/vegacapsule/issues/291
+          # - config_visor_only.hcl
+          # - config_visor_mixed.hcl
+    name: restart with the ${{ matrix.config_file }} config file
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.18'
+      - uses: actions/checkout@v3
+      - name: Build binary
+        env:
+          GO111MODULE: on 
+        run:
+          go build -o vegacapsule .
+      - name: Start nomad
+        run: |
+          export GOBIN=$(go env GOPATH)/bin
+          ./vegacapsule nomad&
+      - name: Wait for nomad
+        uses: cygnetdigital/wait_for_response@v2.0.0
+        with:
+          url: 'http://localhost:4646/ui/'
+          responseCode: '200,302,307'
+          timeout: 30000
+          interval: 1000
+      - name: Start the node
+        run: |
+          export GOBIN=$(go env GOPATH)/bin
+          export PATH=$GOBIN:$PATH
+          
+          ./vegacapsule install-bins --install-path $GOBIN
+          ./vegacapsule network bootstrap --config-path ./net_confs/${{ matrix.config_file }} ;
+          sleep 5;
+          ./vegacapsule nodes ls;
+          ./vegacapsule network destroy;
