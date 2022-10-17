@@ -12,8 +12,10 @@ jobs:
           - config.hcl
           - config_clef.hcl
           - config_external_postgres.hcl
-          - config_visor_only.hcl
-          - config_visor_mixed.hcl
+
+          # TODO: Needs to be fixed. Issue: https://github.com/vegaprotocol/vegacapsule/issues/291
+          # - config_visor_only.hcl
+          # - config_visor_mixed.hcl
     name: restart with the ${{ matrix.config_file }} config file
     runs-on: ubuntu-latest
     steps:
