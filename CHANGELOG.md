@@ -49,6 +49,7 @@
 - [273](https://github.com/vegaprotocol/vegacapsule/pull/273) Remove `clef-address` from `nodewallet` config file
 - [228](https://github.com/vegaprotocol/vegacapsule/pull/228) Network can now be stopped/started after previous start failed
 - [289](https://github.com/vegaprotocol/vegacapsule/pull/289) Fix remove node with Visor
+- [283](https://github.com/vegaprotocol/vegacapsule/pull/283) Fix install-bins command with custom install path
 
 
 
