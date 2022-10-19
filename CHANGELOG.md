@@ -80,3 +80,4 @@
 - [117](https://github.com/vegaprotocol/vegacapsule/pull/117) - fix nil dereference panics in config
 - [41](https://github.com/vegaprotocol/vegacapsule/issues/40) - persist the network state after it's generated in bootstrap command
 - [86](https://github.com/vegaprotocol/vegacapsule/issues/86) - allow overriding config options that default true with falue
+- [294](https://github.com/vegaprotocol/vegacapsule/issues/294) - do not prepare vegavisor upgrade for non vegavisor nodes
