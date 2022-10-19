@@ -9,6 +9,10 @@ jobs:
     strategy:
       matrix:
         settings:
+          # example:
+          # - config_file: example_config.hcl
+          #   propose_upgrade: true
+
           - config_file: config.hcl
           - config_file: config_clef.hcl
           - config_file: config_external_postgres.hcl
@@ -17,7 +21,7 @@ jobs:
 
           # TODO: Needs to be fixed. Issue: https://github.com/vegaprotocol/vegacapsule/issues/291
           # - config_visor_only.hcl
-    name: restart with the ${{ matrix.config_file }} config file
+    name: ${{ matrix.settings.config_file }}
     runs-on: ubuntu-latest
     steps:
       - name: Setup Go
@@ -55,10 +59,19 @@ jobs:
           export PATH=$GOBIN:$PATH
 
           ./vegacapsule nodes ls;
-      - name: Network propose update
+      - name: Network propose upgrade
         if: ${{ matrix.settings.propose_upgrade }}
         run: |
-          echo "TBD"
+          export GOBIN=$(go env GOPATH)/bin
+          export PATH=$GOBIN:$PATH
+
+          ./vegacapsule nodes protocol-upgrade \
+            --propose \
+            --release-tag v0.58.0 \
+            --template-path "net_confs/node_set_templates/default/visor_run.tmpl" \
+            --height 5500 \
+            --force
+
       - name: Network destroy
         run: |
           export GOBIN=$(go env GOPATH)/bin
