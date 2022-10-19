@@ -38,6 +38,7 @@
 - [263](https://github.com/vegaprotocol/vegacapsule/issues/263) Add pre start probes for node sets
 - [288](https://github.com/vegaprotocol/vegacapsule/issues/288) Support Docker volumes mounts and add HCL configs templating
 - [290](https://github.com/vegaprotocol/vegacapsule/issues/290) Add multiple nodes at the same time with `count` flag
+- [291](https://github.com/vegaprotocol/vegacapsule/issues/291) Install vegavisor binary with install-bins command
 
 ### 🐛 Fixes
 - [167](https://github.com/vegaprotocol/vegacapsule/issues/167) Fix validators filter in tendermint generator
@@ -50,6 +51,7 @@
 - [228](https://github.com/vegaprotocol/vegacapsule/pull/228) Network can now be stopped/started after previous start failed
 - [289](https://github.com/vegaprotocol/vegacapsule/pull/289) Fix remove node with Visor
 - [283](https://github.com/vegaprotocol/vegacapsule/pull/283) Fix install-bins command with custom install path
+- [294](https://github.com/vegaprotocol/vegacapsule/issues/294) - do not prepare vegavisor upgrade for non vegavisor nodes
 
 
 
@@ -80,4 +82,3 @@
 - [117](https://github.com/vegaprotocol/vegacapsule/pull/117) - fix nil dereference panics in config
 - [41](https://github.com/vegaprotocol/vegacapsule/issues/40) - persist the network state after it's generated in bootstrap command
 - [86](https://github.com/vegaprotocol/vegacapsule/issues/86) - allow overriding config options that default true with falue
-- [294](https://github.com/vegaprotocol/vegacapsule/issues/294) - do not prepare vegavisor upgrade for non vegavisor nodes
