@@ -3,9 +3,12 @@ GatewayEnabled = true
 [SQLStore]
   Enabled = true
   [SQLStore.ConnectionConfig]
+    Database = "vega{{.NodeNumber}}"
+    Host = "localhost"
+    Password = "vega"
     Port = 5232
     UseTransactions = true
-    Database = "vega{{.NodeNumber}}"
+    Username = "vega"
   
 
 [API]
