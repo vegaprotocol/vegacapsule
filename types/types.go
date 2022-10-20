@@ -49,7 +49,6 @@ type VegaNode struct {
 type TendermintNode struct {
 	GeneratedService   `cty:"service"`
 	NodeID             string `cty:"node_id"`
-	ChainID            string
 	GenesisFilePath    string
 	BinaryPath         string
 	ValidatorPublicKey string

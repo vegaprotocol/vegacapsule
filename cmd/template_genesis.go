@@ -68,7 +68,7 @@ func templateGenesis(templateRaw string, netState *state.NetworkState) error {
 			return err
 		}
 
-		buff, err = gen.Generate(netState.GeneratedServices.GetValidators(), tendermintGen.GenesisValidators())
+		buff, err = gen.Generate(netState.GeneratedServices.GetValidators(), tendermintGen.GenesisValidators(), nil)
 	}
 	if err != nil {
 		return err
