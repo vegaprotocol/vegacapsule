@@ -151,6 +151,11 @@ func (tg *ConfigGenerator) Initiate(index int, mode, groupName string) (*types.T
 		index:     index,
 	})
 
+	genesis, err := loadGenesis(config.BaseConfig.GenesisFile())
+	if err != nil {
+		return nil, fmt.Errorf("failed to load genesis: %w", err)
+	}
+
 	initNode := &types.TendermintNode{
 		GeneratedService: types.GeneratedService{
 			Name:           nodeName,
@@ -158,6 +163,7 @@ func (tg *ConfigGenerator) Initiate(index int, mode, groupName string) (*types.T
 			ConfigFilePath: confFilePath,
 		},
 		NodeID:          nodeID,
+		ChainID:         genesis.ChainID,
 		GenesisFilePath: config.BaseConfig.GenesisFile(),
 		BinaryPath:      *tg.conf.VegaBinary,
 	}
@@ -175,6 +181,15 @@ func (tg *ConfigGenerator) Initiate(index int, mode, groupName string) (*types.T
 	tg.genValidators = append(tg.genValidators, *genValidator)
 
 	return initNode, nil
+}
+
+func loadGenesis(filePath string) (*tmtypes.GenesisDoc, error) {
+	genesis, err := tmtypes.GenesisDocFromFile(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load and parse genesis file: %w", err)
+	}
+
+	return genesis, nil
 }
 
 func (tg ConfigGenerator) GenesisValidators() []tmtypes.GenesisValidator {
