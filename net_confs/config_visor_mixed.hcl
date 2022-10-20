@@ -51,6 +51,40 @@ EOT
       }
       auth_soft_fail = true
     }
+    docker_service "postgres-1" {
+      image = "vegaprotocol/timescaledb:2.8.0-pg14"
+      cmd = "postgres"
+      args = []
+      env = {
+        POSTGRES_USER="vega"
+        POSTGRES_PASSWORD="vega"
+        POSTGRES_DBS="vega0,vega1,vega2,vega3,vega4,vega5,vega6,vega7,vega8"
+      }
+
+      volume_mounts = concat(
+          [
+            for ns in generated.node_sets:
+              "${ns.data_node.service.home_dir}/dehistory/snapshotsCopyTo:/snapshotsCopyTo${ns.index}"
+            if ns.data_node != null
+          ],
+          [
+            for ns in generated.node_sets:
+              "${ns.data_node.service.home_dir}/dehistory/snapshotsCopyFrom:/snapshotsCopyFrom${ns.index}"
+            if ns.data_node != null
+          ]
+      )
+      
+      static_port {
+        value = 5232
+        to = 5432
+      }
+      resources {
+        cpu = 600
+        memory = 900
+      }
+
+      auth_soft_fail = true
+    }
   }
   
   genesis_template_file = "./genesis.tmpl"
@@ -73,14 +107,22 @@ EOT
   node_set "full" {
     count = 1
     mode = "full"
-	  use_data_node = true
+    use_data_node = true
+    
+    pre_start_probe {
+      postgres {
+        connection = "user=vega dbname=vega{{ .NodeNumber }} password=vega port=5232 sslmode=disable"
+        query = "select 10 + 10"
+      }
+    }
 
     config_templates {
       vega_file = "./node_set_templates/default/vega_full.tmpl"
       tendermint_file = "./node_set_templates/default/tendermint_full.tmpl"
-      data_node_file = "./node_set_templates/default/data_node_full.tmpl"
+      data_node_file = "./node_set_templates/default/data_node_full_external_postgres.tmpl"
     }
   }
+
 
   node_set "visor" {
     count = 2
@@ -96,7 +138,8 @@ EOT
       vega_file = "./node_set_templates/default/vega_full.tmpl"
       tendermint_file = "./node_set_templates/default/tendermint_full.tmpl"
       visor_run_conf_file = "./node_set_templates/default/visor_run.tmpl"
-      data_node_file = "./node_set_templates/default/data_node_full.tmpl"
+      visor_conf_file = "./node_set_templates/default/visor_config.tmpl"
+      data_node_file = "./node_set_templates/default/data_node_full_external_postgres.tmpl"
     }
   }
 }

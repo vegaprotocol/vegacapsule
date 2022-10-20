@@ -8,15 +8,20 @@ jobs:
   config:
     strategy:
       matrix:
-        config_file: 
-          - config.hcl
-          - config_clef.hcl
-          - config_external_postgres.hcl
+        settings:
+          # example:
+          # - config_file: example_config.hcl
+          #   propose_upgrade: true
+
+          - config_file: config.hcl
+          - config_file: config_clef.hcl
+          - config_file: config_external_postgres.hcl
+          - config_file: config_visor_mixed.hcl
+            propose_upgrade: true
 
           # TODO: Needs to be fixed. Issue: https://github.com/vegaprotocol/vegacapsule/issues/291
           # - config_visor_only.hcl
-          # - config_visor_mixed.hcl
-    name: restart with the ${{ matrix.config_file }} config file
+    name: ${{ matrix.settings.config_file }}
     runs-on: ubuntu-latest
     steps:
       - name: Setup Go
@@ -44,9 +49,32 @@ jobs:
         run: |
           export GOBIN=$(go env GOPATH)/bin
           export PATH=$GOBIN:$PATH
-          
+
           ./vegacapsule install-bins --install-path $GOBIN
-          ./vegacapsule network bootstrap --config-path ./net_confs/${{ matrix.config_file }} ;
+          ./vegacapsule network bootstrap --config-path ./net_confs/${{ matrix.settings.config_file }} ;
           sleep 5;
+      - name: List nodes
+        run: |
+          export GOBIN=$(go env GOPATH)/bin
+          export PATH=$GOBIN:$PATH
+
           ./vegacapsule nodes ls;
+      - name: Network propose upgrade
+        if: ${{ matrix.settings.propose_upgrade }}
+        run: |
+          export GOBIN=$(go env GOPATH)/bin
+          export PATH=$GOBIN:$PATH
+
+          ./vegacapsule nodes protocol-upgrade \
+            --propose \
+            --release-tag v0.58.0 \
+            --template-path "net_confs/node_set_templates/default/visor_run.tmpl" \
+            --height 5500 \
+            --force
+
+      - name: Network destroy
+        run: |
+          export GOBIN=$(go env GOPATH)/bin
+          export PATH=$GOBIN:$PATH
+
           ./vegacapsule network destroy;

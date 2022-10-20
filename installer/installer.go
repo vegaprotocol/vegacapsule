@@ -21,13 +21,15 @@ const (
 	repository      = "vega"
 	repositoryOwner = "vegaprotocol"
 
-	vegaBinName = "vega"
+	vegaBinName  = "vega"
+	visorBinName = "visor"
 )
 
 var (
 	minSupportedVersion = semver.MustParse("0.54.0")
 	assetsToInstall     = map[string]string{
-		formatAssetName(vegaBinName): vegaBinName,
+		formatAssetName(vegaBinName):  vegaBinName,
+		formatAssetName(visorBinName): visorBinName,
 	}
 )
 

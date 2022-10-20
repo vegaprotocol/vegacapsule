@@ -64,6 +64,10 @@ var nodesProtocolUpgradeCmd = &cobra.Command{
 		}
 
 		for _, ns := range nodeSets {
+			if ns.Visor == nil {
+				continue
+			}
+
 			if err := visorGen.PrepareUpgrade(ns.Index, upgradeReleaseTag, ns, visorRunTmpl, upgradeForce); err != nil {
 				return err
 			}
@@ -136,6 +140,7 @@ func init() {
 		false,
 		"Forces to run upgrade",
 	)
+
 	nodesProtocolUpgradeCmd.MarkFlagRequired("release-tag")
 	nodesProtocolUpgradeCmd.MarkFlagRequired("template-path")
 }

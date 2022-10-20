@@ -97,6 +97,10 @@ func (g Generator) PrepareUpgrade(
 		}
 	}
 
+	if upgradeFolderExists, _ := utils.FileExists(upgradeFolderName); upgradeFolderExists {
+		return fmt.Errorf("protocol upgrade to that particular version already exist, use --force flag to override it")
+	}
+
 	log.Printf("Preparing upgrade folder %q for visor %q", upgradeFolderName, visorDir)
 
 	if err := os.Mkdir(upgradeFolderName, os.ModePerm); err != nil {
