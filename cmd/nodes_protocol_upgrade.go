@@ -64,8 +64,6 @@ var nodesProtocolUpgradeCmd = &cobra.Command{
 		}
 
 		for _, ns := range nodeSets {
-			// upgrade cannot be prepared if is not running with vegavisor because
-			// visor is not initiated.
 			if ns.Visor == nil {
 				continue
 			}
