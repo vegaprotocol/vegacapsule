@@ -38,7 +38,7 @@ func (g *Generator) initiateNodeSet(absoluteIndex, relativeIndex, groupIndex int
 
 	var initDNode *types.DataNode
 	if n.UseDataNode {
-		node, err := g.dataNodeGen.Initiate(absoluteIndex, nc.VegaBinary)
+		node, err := g.dataNodeGen.Initiate(absoluteIndex, g.vegaChainID(), nc.VegaBinary)
 		if err != nil {
 			return nil, fmt.Errorf("failed to initiate Data node id %d for node set %s: %w", absoluteIndex, n.Name, err)
 		}

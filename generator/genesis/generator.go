@@ -66,8 +66,8 @@ func (g *Generator) ExecuteTemplate() (*bytes.Buffer, error) {
 	return buff, nil
 }
 
-func (g *Generator) GenerateAndSave(validatorsSets []types.NodeSet, nonValidatorsSets []types.NodeSet, genValidators []tmtypes.GenesisValidator) error {
-	genDoc, err := g.generate(validatorsSets, genValidators)
+func (g *Generator) GenerateAndSave(chainID *string, validatorsSets []types.NodeSet, nonValidatorsSets []types.NodeSet, genValidators []tmtypes.GenesisValidator) error {
+	genDoc, err := g.generate(validatorsSets, genValidators, chainID)
 	if err != nil {
 		return err
 	}
@@ -81,8 +81,8 @@ func (g *Generator) GenerateAndSave(validatorsSets []types.NodeSet, nonValidator
 	return nil
 }
 
-func (g *Generator) Generate(validatorsSets []types.NodeSet, genValidators []tmtypes.GenesisValidator) (*bytes.Buffer, error) {
-	genDoc, err := g.generate(validatorsSets, genValidators)
+func (g *Generator) Generate(validatorsSets []types.NodeSet, genValidators []tmtypes.GenesisValidator, chainID *string) (*bytes.Buffer, error) {
+	genDoc, err := g.generate(validatorsSets, genValidators, chainID)
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +110,7 @@ func (g *Generator) Generate(validatorsSets []types.NodeSet, genValidators []tmt
 	return buffOut, nil
 }
 
-func (g *Generator) generate(nodeSets []types.NodeSet, genValidators []tmtypes.GenesisValidator) (*tmtypes.GenesisDoc, error) {
+func (g *Generator) generate(nodeSets []types.NodeSet, genValidators []tmtypes.GenesisValidator, chainID *string) (*tmtypes.GenesisDoc, error) {
 	templatedOverride, err := g.ExecuteTemplate()
 	if err != nil {
 		return nil, err
@@ -132,6 +132,10 @@ func (g *Generator) generate(nodeSets []types.NodeSet, genValidators []tmtypes.G
 		doc, state, err := genesis.GenesisFromJSON(updatedGenesis.RawOutput)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get genesis from JSON: %w", err)
+		}
+
+		if chainID != nil {
+			doc.ChainID = *chainID
 		}
 
 		if genDoc == nil {

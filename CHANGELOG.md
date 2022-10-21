@@ -39,6 +39,7 @@
 - [288](https://github.com/vegaprotocol/vegacapsule/issues/288) Support Docker volumes mounts and add HCL configs templating
 - [290](https://github.com/vegaprotocol/vegacapsule/issues/290) Add multiple nodes at the same time with `count` flag
 - [291](https://github.com/vegaprotocol/vegacapsule/issues/291) Install vegavisor binary with install-bins command
+- [297](https://github.com/vegaprotocol/vegacapsule/pull/297) Pass chain-id to the data-node
 
 ### 🐛 Fixes
 - [167](https://github.com/vegaprotocol/vegacapsule/issues/167) Fix validators filter in tendermint generator

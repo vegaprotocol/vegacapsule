@@ -113,6 +113,10 @@ func (g *Generator) configureNodeSets(nss *nodeSets, fc *types.Faucet) error {
 	return nil
 }
 
+func (g *Generator) vegaChainID() string {
+	return g.conf.Network.Name
+}
+
 func (g *Generator) Generate() (genSvc *types.GeneratedServices, err error) {
 	var fc *types.Faucet
 	if g.conf.Network.Faucet != nil {
@@ -142,7 +146,7 @@ func (g *Generator) Generate() (genSvc *types.GeneratedServices, err error) {
 		return nil, err
 	}
 
-	if err := g.genesisGen.GenerateAndSave(ns.validators, ns.nonValidators, g.tendermintGen.GenesisValidators()); err != nil {
+	if err := g.genesisGen.GenerateAndSave(utils.ToPoint(g.vegaChainID()), ns.validators, ns.nonValidators, g.tendermintGen.GenesisValidators()); err != nil {
 		return nil, fmt.Errorf("failed to generate genesis: %w", err)
 	}
 
