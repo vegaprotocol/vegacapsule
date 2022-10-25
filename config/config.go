@@ -21,19 +21,34 @@ const (
 	FaucetSubCmd   = "faucet"
 )
 
+/*
+descriptin: Config is a root entity in configuration
+*/
 type Config struct {
-	OutputDir            *string       `hcl:"output_dir"`
-	VegaBinary           *string       `hcl:"vega_binary_path"`
-	VegaCapsuleBinary    *string       `hcl:"vega_capsule_binary_path,optional"`
-	Prefix               *string       `hcl:"prefix"`
-	NodeDirPrefix        *string       `hcl:"node_dir_prefix"`
-	TendermintNodePrefix *string       `hcl:"tendermint_node_prefix"`
-	VegaNodePrefix       *string       `hcl:"vega_node_prefix"`
-	DataNodePrefix       *string       `hcl:"data_node_prefix"`
-	WalletPrefix         *string       `hcl:"wallet_prefix"`
-	FaucetPrefix         *string       `hcl:"faucet_prefix"`
-	VisorPrefix          *string       `hcl:"visor_prefix"`
-	Network              NetworkConfig `hcl:"network,block"`
+	// description: OutputDir is customisable field
+	OutputDir *string `hcl:"output_dir"`
+	// description: VegaBinary is customisable field
+	VegaBinary *string `hcl:"vega_binary_path"`
+	// description: VegaCapsuleBinary is customisable field
+	VegaCapsuleBinary *string `hcl:"vega_capsule_binary_path,optional"`
+	// description: Prefix is customisable field
+	Prefix *string `hcl:"prefix"`
+	// description: NodeDirPrefix is customisable field
+	NodeDirPrefix *string `hcl:"node_dir_prefix"`
+	// description: TendermintNodePrefix is customisable field
+	TendermintNodePrefix *string `hcl:"tendermint_node_prefix"`
+	// description: VegaNodePrefix is customisable field
+	VegaNodePrefix *string `hcl:"vega_node_prefix"`
+	// description: DataNodePrefix is customisable field
+	DataNodePrefix *string `hcl:"data_node_prefix"`
+	// description: WalletPrefix is customisable field
+	WalletPrefix *string `hcl:"wallet_prefix"`
+	// description: FaucetPrefix is customisable field
+	FaucetPrefix *string `hcl:"faucet_prefix"`
+	// description: VisorPrefix is customisable field
+	VisorPrefix *string `hcl:"visor_prefix"`
+	// description: Network is customisable field
+	Network NetworkConfig `hcl:"network,block"`
 
 	// Internal helper variables
 	configDir string
@@ -106,7 +121,7 @@ type DockerConfig struct {
 
 type WalletConfig struct {
 	Name string `hcl:"name,label"`
-	// Allows optionally use different version of Vega binary for wallet
+	// description: Allows optionally use different version of Vega binary for wallet
 	VegaBinary *string `hcl:"vega_binary_path,optional"`
 	Template   string  `hcl:"template,optional"`
 }
