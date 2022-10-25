@@ -122,7 +122,7 @@ func ApplyConfigContext(conf *Config, genServices *types.GeneratedServices) (*Co
 		return nil, fmt.Errorf("failed to convert GeneratedServices to cty value: %w", err)
 	}
 
-	if err := hclsimple.Decode("config.hcl", conf.HCLBody, newEvalContext(*genServicesCtyVal), conf); err != nil {
+	if err := hclsimple.Decode("config.hcl", conf.HCLBodyRaw, newEvalContext(*genServicesCtyVal), conf); err != nil {
 		return nil, err
 	}
 
@@ -163,6 +163,12 @@ func ParseConfigFile(filePath, outputDir string, genServices types.GeneratedServ
 	if err != nil {
 		return nil, err
 	}
+
+	configContent, err := os.ReadFile(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load file from disk: %w", err)
+	}
+	config.HCLBodyRaw = configContent
 
 	decodeDiags := gohcl.DecodeBody(f.Body, newEvalContext(*genServicesCtyVal), config)
 	if decodeDiags.HasErrors() {

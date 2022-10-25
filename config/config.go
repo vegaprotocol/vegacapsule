@@ -38,7 +38,8 @@ type Config struct {
 	// Internal helper variables
 	configDir string
 
-	HCLBody []byte
+	HCLBody    []byte
+	HCLBodyRaw []byte
 }
 
 type NetworkConfig struct {
