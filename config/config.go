@@ -38,7 +38,6 @@ type Config struct {
 	// Internal helper variables
 	configDir string
 
-	HCLBody    []byte
 	HCLBodyRaw []byte
 }
 
@@ -556,8 +555,7 @@ func (c *Config) Persist() error {
 	f := hclwrite.NewEmptyFile()
 	gohcl.EncodeIntoBody(*c, f.Body())
 
-	c.HCLBody = f.Bytes()
-	return os.WriteFile(filepath.Join(*c.OutputDir, "config.hcl"), c.HCLBody, 0644)
+	return os.WriteFile(filepath.Join(*c.OutputDir, "config.hcl"), c.HCLBodyRaw, 0644)
 }
 
 func (c Config) LogsDir() string {
