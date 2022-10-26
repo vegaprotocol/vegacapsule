@@ -3,36 +3,49 @@ package docsgenerator
 import (
 	"fmt"
 	"go/ast"
-	"go/doc"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
 const optionalTag = "optional"
 
 type TypeDocGenerator struct {
-	fileContent string
-	fileTypes   map[string]*doc.Type
+	fileTypes map[string]docTypeWithFileContent
 
 	tagName string
 }
 
-func NewTypeDocGenerator(filepath, tagName string) (*TypeDocGenerator, error) {
-	fileContentRaw, err := os.ReadFile(filepath)
+func NewTypeDocGenerator(dir, tagName string) (*TypeDocGenerator, error) {
+	match := fmt.Sprintf(`%s/*.go`, dir)
+
+	filePaths, err := filepath.Glob(match)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read file %q: %w", filepath, err)
+		return nil, fmt.Errorf("failed to look for files in dir %q: %w", dir, err)
 	}
 
-	fileContent := string(fileContentRaw)
-	types, err := extractTypesFromFile(filepath, fileContent)
-	if err != nil {
-		return nil, fmt.Errorf("failed to extract types from file %q: %w", filepath, err)
+	types := map[string]docTypeWithFileContent{}
+
+	for _, filepath := range filePaths {
+		fileContentRaw, err := os.ReadFile(filepath)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read file %q: %w", filepath, err)
+		}
+
+		fileContent := string(fileContentRaw)
+		fileTypes, err := extractDocTypesFromFile(filepath, fileContent)
+		if err != nil {
+			return nil, fmt.Errorf("failed to extract types from file %q: %w", filepath, err)
+		}
+
+		for k, v := range fileTypes {
+			types[k] = v
+		}
 	}
 
 	return &TypeDocGenerator{
-		fileContent: fileContent,
-		fileTypes:   types,
-		tagName:     tagName,
+		fileTypes: types,
+		tagName:   tagName,
 	}, nil
 }
 
@@ -48,7 +61,7 @@ func (gen *TypeDocGenerator) Generate(typesNames ...string) ([]*TypeDoc, error) 
 
 		t, ok := gen.fileTypes[name]
 		if !ok {
-			return nil, fmt.Errorf("type %s not found in the file", name)
+			return nil, fmt.Errorf("type %s not found in the directory", name)
 		}
 
 		for _, s := range t.Decl.Specs {
@@ -68,7 +81,7 @@ func (gen *TypeDocGenerator) Generate(typesNames ...string) ([]*TypeDoc, error) 
 			}
 
 			typeDoc := &TypeDoc{
-				Name:        t.Name,
+				Name:        c.Name,
 				Type:        t.Name,
 				Description: c.Description,
 				Note:        c.Note,
@@ -77,7 +90,7 @@ func (gen *TypeDocGenerator) Generate(typesNames ...string) ([]*TypeDoc, error) 
 			}
 
 			for _, field := range typeStruct.Fields.List {
-				fieldDoc, err := gen.processField(field)
+				fieldDoc, err := gen.processField(getFieldType(t.fileContent, field), field)
 				if err != nil {
 					return nil, err
 				}
@@ -107,20 +120,7 @@ func (gen *TypeDocGenerator) Generate(typesNames ...string) ([]*TypeDoc, error) 
 	return typeDocs, nil
 }
 
-func (gen TypeDocGenerator) getFieldType(field *ast.Field) string {
-	typeExpr := field.Type
-
-	start := typeExpr.Pos() - 1
-	end := typeExpr.End() - 1
-
-	// grab it in source
-	return gen.fileContent[start:end]
-}
-
-func (gen TypeDocGenerator) processField(field *ast.Field) (*FieldDoc, error) {
-	// grab it in source
-	fieldType := gen.getFieldType(field)
-
+func (gen TypeDocGenerator) processField(fieldType string, field *ast.Field) (*FieldDoc, error) {
 	if field.Tag == nil {
 		return nil, nil
 	}
@@ -167,8 +167,20 @@ func (gen TypeDocGenerator) processField(field *ast.Field) (*FieldDoc, error) {
 		Note:        comment.Note,
 		Examples:    comment.Examples,
 		Optional:    isOptional,
+		Default:     comment.Default,
 		Options:     options,
+		Values:      comment.Values,
 
 		lookType: lookupType,
 	}, nil
+}
+
+func getFieldType(fileContent string, field *ast.Field) string {
+	typeExpr := field.Type
+
+	start := typeExpr.Pos() - 1
+	end := typeExpr.End() - 1
+
+	// grab it in source
+	return fileContent[start:end]
 }

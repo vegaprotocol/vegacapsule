@@ -22,180 +22,57 @@ const (
 )
 
 /*
-descriptin: Config is a root entity in configuration
+name: Root
+description: |
+
+	All paramaters from this types are use directly in the config file.
+	Most of the paramaters here are optional and can be left alone.
+	Please see the example below.
+
+example:
+
+	type: hcl
+	value: |
+			vega_binary_path = "/path/to/vega"
+
+			network "your_network_name" {
+				...
+			}
 */
 type Config struct {
-	// description: OutputDir is customisable field
-	OutputDir *string `hcl:"output_dir"`
-	// description: VegaBinary is customisable field
-	VegaBinary *string `hcl:"vega_binary_path"`
-	// description: VegaCapsuleBinary is customisable field
-	VegaCapsuleBinary *string `hcl:"vega_capsule_binary_path,optional"`
-	// description: Prefix is customisable field
-	Prefix *string `hcl:"prefix"`
-	// description: NodeDirPrefix is customisable field
-	NodeDirPrefix *string `hcl:"node_dir_prefix"`
-	// description: TendermintNodePrefix is customisable field
-	TendermintNodePrefix *string `hcl:"tendermint_node_prefix"`
-	// description: VegaNodePrefix is customisable field
-	VegaNodePrefix *string `hcl:"vega_node_prefix"`
-	// description: DataNodePrefix is customisable field
-	DataNodePrefix *string `hcl:"data_node_prefix"`
-	// description: WalletPrefix is customisable field
-	WalletPrefix *string `hcl:"wallet_prefix"`
-	// description: FaucetPrefix is customisable field
-	FaucetPrefix *string `hcl:"faucet_prefix"`
-	// description: VisorPrefix is customisable field
-	VisorPrefix *string `hcl:"visor_prefix"`
-	// description: Network is customisable field
+	// description: Configuration of Vega network and it's dependencies.
 	Network NetworkConfig `hcl:"network,block"`
+	/*
+		description: |
+			Directory path (relative or absolute) where Capsule stores generated folders, files, logs and configurations for network.
+		default: ~/.vegacapsule/testnet
+	*/
+	OutputDir *string `hcl:"output_dir"`
+	// description: Path (relative or absolute) to vega binary that will be used to generate and run the network.
+	// default: vega
+	VegaBinary *string `hcl:"vega_binary_path"`
+	/*
+		description: |
+			Path (relative or absolute) of a Capsule binary. The Capsule binary is used by Nomad to aggregate logs from running jobs
+			and save them to local disk in Capsule home directory.
+			See `vegacapsule nomad logscollector` for more info.
+		default: Currently running Capsule instance binary
+		note: This optional paramater is used internally. There should never be need to set it to anything else then default.
+	*/
+	VegaCapsuleBinary *string `hcl:"vega_capsule_binary_path,optional"`
 
-	// Internal helper variables
+	// Non configurable section - internal variables
+	NodeDirPrefix        string
+	TendermintNodePrefix string
+	VegaNodePrefix       string
+	DataNodePrefix       string
+	WalletPrefix         string
+	FaucetPrefix         string
+	VisorPrefix          string
+
 	configDir string
 
 	HCLBodyRaw []byte
-}
-
-type NetworkConfig struct {
-	Name                string         `hcl:"name,label"`
-	GenesisTemplate     *string        `hcl:"genesis_template"`
-	GenesisTemplateFile *string        `hcl:"genesis_template_file"`
-	Ethereum            EthereumConfig `hcl:"ethereum,block"`
-	Wallet              *WalletConfig  `hcl:"wallet,block"`
-	Faucet              *FaucetConfig  `hcl:"faucet,block"`
-
-	PreStart  *PStartConfig `hcl:"pre_start,block"`
-	PostStart *PStartConfig `hcl:"post_start,block"`
-
-	Nodes                       []NodeConfig `hcl:"node_set,block" cty:"node_set"`
-	SmartContractsAddresses     *string      `hcl:"smart_contracts_addresses,optional"`
-	SmartContractsAddressesFile *string      `hcl:"smart_contracts_addresses_file,optional"`
-
-	TokenAddresses map[string]types.SmartContractsToken
-}
-
-func (nc NetworkConfig) GetNodeConfig(name string) (*NodeConfig, error) {
-	for _, nodeConf := range nc.Nodes {
-		if nodeConf.Name == name {
-			return &nodeConf, nil
-		}
-	}
-
-	return nil, fmt.Errorf("node config with name %q not found", name)
-}
-
-type EthereumConfig struct {
-	ChainID   string `hcl:"chain_id"`
-	NetworkID string `hcl:"network_id"`
-	Endpoint  string `hcl:"endpoint"`
-}
-
-type PStartConfig struct {
-	Docker []DockerConfig `hcl:"docker_service,block"`
-}
-
-type StaticPort struct {
-	To    int `hcl:"to,optional"`
-	Value int `hcl:"value"`
-}
-
-type Resources struct {
-	CPU         *int `hcl:"cpu,optional"`
-	Cores       *int `hcl:"cores,optional"`
-	MemoryMB    *int `hcl:"memory,optional"`
-	MemoryMaxMB *int `hcl:"memory_max,optional"`
-	DiskMB      *int `hcl:"disk,optional"`
-}
-
-type DockerConfig struct {
-	Name         string            `hcl:"name,label"`
-	Image        string            `hcl:"image"`
-	Command      string            `hcl:"cmd,optional"`
-	Args         []string          `hcl:"args"`
-	Env          map[string]string `hcl:"env,optional"`
-	StaticPort   *StaticPort       `hcl:"static_port,block"`
-	AuthSoftFail bool              `hcl:"auth_soft_fail,optional"`
-	Resources    *Resources        `hcl:"resources,block"`
-	VolumeMounts []string          `hcl:"volume_mounts,optional"`
-}
-
-type WalletConfig struct {
-	Name string `hcl:"name,label"`
-	// description: Allows optionally use different version of Vega binary for wallet
-	VegaBinary *string `hcl:"vega_binary_path,optional"`
-	Template   string  `hcl:"template,optional"`
-}
-
-type FaucetConfig struct {
-	Name     string `hcl:"name,label"`
-	Pass     string `hcl:"wallet_pass"`
-	Template string `hcl:"template,optional"`
-}
-
-type NomadConfig struct {
-	Name            string  `hcl:"name,label"`
-	JobTemplate     *string `hcl:"job_template,optional"`
-	JobTemplateFile *string `hcl:"job_template_file,optional"`
-}
-
-type PreGenerate struct {
-	Nomad []NomadConfig `hcl:"nomad_job,block"`
-}
-
-type NodeConfig struct {
-	Name  string `hcl:"name,label" cty:"name"`
-	Mode  string `hcl:"mode" cty:"mode"`
-	Count int    `hcl:"count" cty:"count"`
-
-	PreGenerate *PreGenerate `hcl:"pre_generate,block"`
-
-	PreStartProbe *types.ProbesConfig `hcl:"pre_start_probe,block" template:""`
-
-	ClefWallet *ClefConfig `hcl:"clef_wallet,block" template:""`
-
-	NodeWalletPass     string `hcl:"node_wallet_pass,optional" template:"" cty:"node_wallet_pass"`
-	EthereumWalletPass string `hcl:"ethereum_wallet_pass,optional" template:"" cty:"ethereum_wallet_pass"`
-	VegaWalletPass     string `hcl:"vega_wallet_pass,optional" template:"" cty:"vega_wallet_pass"`
-
-	VegaBinary  *string `hcl:"vega_binary_path,optional"`
-	UseDataNode bool    `hcl:"use_data_node,optional" cty:"use_data_node"`
-	VisorBinary string  `hcl:"visor_binary,optional"`
-
-	ConfigTemplates      ConfigTemplates `hcl:"config_templates,block"`
-	NomadJobTemplate     *string         `hcl:"nomad_job_template,optional"`
-	NomadJobTemplateFile *string         `hcl:"nomad_job_template_file,optional"`
-}
-
-func (nc NodeConfig) Clone() (*NodeConfig, error) {
-	origJSON, err := json.Marshal(nc)
-	if err != nil {
-		return nil, err
-	}
-
-	clone := NodeConfig{}
-	if err = json.Unmarshal(origJSON, &clone); err != nil {
-		return nil, err
-	}
-
-	return &clone, nil
-}
-
-type ClefConfig struct {
-	AccountAddresses []string `hcl:"ethereum_account_addresses" template:""`
-	ClefRPCAddr      string   `hcl:"clef_rpc_address" template:""`
-}
-
-type ConfigTemplates struct {
-	Vega             *string `hcl:"vega,optional"`
-	VegaFile         *string `hcl:"vega_file,optional"`
-	Tendermint       *string `hcl:"tendermint,optional"`
-	TendermintFile   *string `hcl:"tendermint_file,optional"`
-	DataNode         *string `hcl:"data_node,optional"`
-	DataNodeFile     *string `hcl:"data_node_file,optional"`
-	VisorRunConf     *string `hcl:"visor_run_conf,optional"`
-	VisorRunConfFile *string `hcl:"visor_run_conf_file,optional"`
-	VisorConf        *string `hcl:"visor_conf,optional"`
-	VisorConfFile    *string `hcl:"visor_conf_file,optional"`
 }
 
 func (c *Config) setAbsolutePaths() error {
@@ -589,14 +466,13 @@ func DefaultConfig() (*Config, error) {
 
 	return &Config{
 		OutputDir:            &outputDir,
-		Prefix:               utils.ToPoint("st-local"),
-		NodeDirPrefix:        utils.ToPoint("node"),
-		TendermintNodePrefix: utils.ToPoint("tendermint"),
-		VegaNodePrefix:       utils.ToPoint("vega"),
-		DataNodePrefix:       utils.ToPoint("data"),
-		WalletPrefix:         utils.ToPoint("wallet"),
-		FaucetPrefix:         utils.ToPoint("faucet"),
-		VisorPrefix:          utils.ToPoint("visor"),
+		NodeDirPrefix:        "node",
+		TendermintNodePrefix: "tendermint",
+		VegaNodePrefix:       "vega",
+		DataNodePrefix:       "data-node",
+		WalletPrefix:         "wallet",
+		FaucetPrefix:         "faucet",
+		VisorPrefix:          "visor",
 		VegaBinary:           utils.ToPoint("vega"),
 	}, nil
 }

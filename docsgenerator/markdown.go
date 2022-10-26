@@ -30,28 +30,17 @@ Examples:
 
 {{ end }}
 
+# {{ .Name }}
 {{ .Description }}
-{{- $tick := "` + "`" + `" -}}
+
 {{ range $type := .Types }}
-## {{ $type.Type }}
+### {{ if $type.Name }}{{ $type.Name }} - {{ end }}*{{ $type.Type }}*
 {{ if $type.Description -}}
 {{ $type.Description }}
 {{ end }}
 
-{{ if .Example.Value -}}
-### Example:
-
-{{ if eq .Example.Type "hcl" }}
-{{ $formated_example := formatHCL .Example.Value }}
-{{ codeBlock $formated_example }}
-{{ else }}
-{{ codeBlock .Example.Value }}
-{{ end }}
-
-{{ end -}}
-
 {{ if $type.Fields -}}
-### Fields:
+**Fields**:
 <hr />
 
 {{ range $field := $type.Fields -}}
@@ -72,6 +61,10 @@ Valid values:
 {{ end -}}
 {{ end -}}
 
+{{ if $field.Default }}
+Default value: <code>{{ $field.Default }}</code>
+{{ end }}
+
 {{- if $field.Note }}
 > {{ $field.Note }}
 {{ end -}}
@@ -85,6 +78,18 @@ Valid values:
 <hr />
 
 {{ end }}
+
+{{ if .Example.Value -}}
+**Example**:
+
+{{ if eq .Example.Type "hcl" }}
+{{ $formated_example := formatHCL .Example.Value }}
+{{ codeBlock $formated_example }}
+{{ else }}
+{{ codeBlock .Example.Value }}
+{{ end }}
+
+{{ end -}}
 
 {{ end -}}
 

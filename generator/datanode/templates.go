@@ -17,7 +17,6 @@ import (
 )
 
 type ConfigTemplateContext struct {
-	Prefix      string
 	NodeHomeDir string
 	NodeNumber  int
 	NodeSet     types.NodeSet
@@ -47,7 +46,6 @@ func NewConfigTemplate(templateRaw string) (*template.Template, error) {
 
 func (dng ConfigGenerator) TemplateConfig(ns types.NodeSet, configTemplate *template.Template) (*bytes.Buffer, error) {
 	templateCtx := ConfigTemplateContext{
-		Prefix:      *dng.conf.Prefix,
 		NodeNumber:  ns.Index,
 		NodeHomeDir: dng.homeDir,
 		NodeSet:     ns,

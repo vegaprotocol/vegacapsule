@@ -340,7 +340,7 @@ EOT
 log_level = "info"
 
 proxy_app = "tcp://127.0.0.1:266{{.NodeNumber}}8"
-moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
+moniker = "{{.TendermintNodePrefix}}-{{.NodeNumber}}"
 
 [rpc]
   laddr = "tcp://0.0.0.0:266{{.NodeNumber}}7"
@@ -466,7 +466,7 @@ EOT
 log_level = "info"
 
 proxy_app = "tcp://127.0.0.1:266{{.NodeNumber}}8"
-moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
+moniker = "{{.TendermintNodePrefix}}-{{.NodeNumber}}"
 
 [rpc]
   laddr = "tcp://0.0.0.0:266{{.NodeNumber}}7"

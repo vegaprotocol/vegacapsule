@@ -16,8 +16,14 @@ func tabToSpace(input string) string {
 	return strings.ReplaceAll(input, "\t", " ")
 }
 
-func extractTypesFromFile(fileName, fileContent string) (map[string]*doc.Type, error) {
+type docTypeWithFileContent struct {
+	*doc.Type
+	fileContent string
+}
+
+func extractDocTypesFromFile(fileName, fileContent string) (map[string]docTypeWithFileContent, error) {
 	fset := token.NewFileSet()
+
 	f, err := parser.ParseFile(fset, fileName, fileContent, parser.ParseComments)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse file: %w", err)
@@ -28,9 +34,12 @@ func extractTypesFromFile(fileName, fileContent string) (map[string]*doc.Type, e
 		return nil, fmt.Errorf("failed to parse docs from file: %w", err)
 	}
 
-	types := map[string]*doc.Type{}
+	types := map[string]docTypeWithFileContent{}
 	for _, t := range p.Types {
-		types[t.Name] = t
+		types[t.Name] = docTypeWithFileContent{
+			Type:        t,
+			fileContent: fileContent,
+		}
 	}
 
 	return types, nil

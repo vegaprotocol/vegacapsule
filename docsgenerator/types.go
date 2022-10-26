@@ -1,5 +1,18 @@
 package docsgenerator
 
+/*
+Example of usage:
+
+name: Type Document
+type: TypeDoc
+description: TypeDoc represents types documentation in a file
+node: A not to be displayd at the end of doc
+example:
+
+	type: json
+	name: JSON usage
+	value: { "Name": "name", "Type": "type", "Description": "description" }
+*/
 type TypeDoc struct {
 	// Name represents struct name or field name.
 	Name string
@@ -49,8 +62,11 @@ type Example struct {
 }
 
 type Comment struct {
+	Name        string    `yaml:"name"`
 	Description string    `yaml:"description"`
 	Note        string    `yaml:"note"`
+	Default     string    `yaml:"default"`
 	Examples    []Example `yaml:"examples"`
 	Example     Example   `yaml:"example"`
+	Values      []string  `yaml:"values"`
 }

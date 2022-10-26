@@ -8,15 +8,23 @@ import (
 )
 
 var (
-	tagName  string
-	typeName string
-	filePath string
+	tagName       string
+	typeName      string
+	directoryPath string
 )
+
+var description = `Capsule configuration is used by vegacapsule CLI network generate and bootstrap commands.
+It allows to configue and customise Vega network running on Capsule.
+
+The configuration is using [HCL](https://github.com/hashicorp/hcl) language syntax also used for example by [Terraform](https://www.terraform.io/).
+
+This document explains all possible configuration options in Capsule.
+`
 
 func init() {
 	flag.StringVar(&tagName, "tag-name", "", "name of the tag")
 	flag.StringVar(&typeName, "type-name", "", "type to be processed")
-	flag.StringVar(&filePath, "filepath", "", "path of the file to generate docs from")
+	flag.StringVar(&directoryPath, "dir-path", "", "directory path of the file to generate docs from")
 }
 
 func main() {
@@ -28,11 +36,11 @@ func main() {
 	if typeName == "" {
 		panic("missing required `type-name` flag")
 	}
-	if filePath == "" {
-		panic("missing required `filePath` flag")
+	if directoryPath == "" {
+		panic("missing required `dir-path` flag")
 	}
 
-	gen, err := docsgenerator.NewTypeDocGenerator(filePath, tagName)
+	gen, err := docsgenerator.NewTypeDocGenerator(directoryPath, tagName)
 	if err != nil {
 		panic(err)
 	}
@@ -43,8 +51,8 @@ func main() {
 	}
 
 	fd := docsgenerator.NewFileDoc(
-		"Capsule configuration",
-		"This Capsule configuration file allows to configurate custom Vega network.",
+		"Capsule configuration docs",
+		description,
 		typeDocs,
 	)
 

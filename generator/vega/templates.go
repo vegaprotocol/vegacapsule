@@ -17,7 +17,6 @@ import (
 )
 
 type ConfigTemplateContext struct {
-	Prefix               string
 	TendermintNodePrefix string
 	VegaNodePrefix       string
 	DataNodePrefix       string
@@ -40,10 +39,9 @@ func NewConfigTemplate(templateRaw string) (*template.Template, error) {
 
 func (vg ConfigGenerator) TemplateConfig(ns types.NodeSet, fc *types.Faucet, configTemplate *template.Template) (*bytes.Buffer, error) {
 	templateCtx := ConfigTemplateContext{
-		Prefix:               *vg.conf.Prefix,
-		TendermintNodePrefix: *vg.conf.TendermintNodePrefix,
-		VegaNodePrefix:       *vg.conf.VegaNodePrefix,
-		DataNodePrefix:       *vg.conf.DataNodePrefix,
+		TendermintNodePrefix: vg.conf.TendermintNodePrefix,
+		VegaNodePrefix:       vg.conf.VegaNodePrefix,
+		DataNodePrefix:       vg.conf.DataNodePrefix,
 		ETHEndpoint:          vg.conf.Network.Ethereum.Endpoint,
 		NodeMode:             ns.Mode,
 		NodeNumber:           ns.Index,
