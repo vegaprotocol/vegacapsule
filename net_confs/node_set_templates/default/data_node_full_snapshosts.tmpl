@@ -2,10 +2,10 @@ GatewayEnabled = true
 [SQLStore]
   Enabled = true
   [SQLStore.ConnectionConfig]
-    Database = "vega"
+    Database = "vega{{.NodeNumber}}"
     Host = "localhost"
     Password = "vega"
-    Port = 5{{.NodeNumber}}32
+    Port = 5232
     UseTransactions = true
     Username = "vega"
 
@@ -48,7 +48,7 @@ GatewayEnabled = true
   AddSnapshotsToStore = true
   AddSnapshotsInterval = "5s"
   [DeHistory.Store]
-    IdSeed = "{{ b64enc "system-tests" }}-3479-439f-b7b7-{{.NodeNumber}}"
+    IdSeed = "{{ b64enc "testsnet" }}-3479-439f-b7b7-{{.NodeNumber}}"
     UseIpfsDefaultPeers = true
     BootstrapPeers = []
     SwarmPort = 40{{.NodeNumber}}5
