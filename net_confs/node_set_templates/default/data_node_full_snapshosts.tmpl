@@ -1,12 +1,13 @@
 GatewayEnabled = true
-
 [SQLStore]
   Enabled = true
   [SQLStore.ConnectionConfig]
+    Database = "vega{{.NodeNumber}}"
+    Host = "localhost"
+    Password = "vega"
     Port = 5232
     UseTransactions = true
-    Database = "vega{{.NodeNumber}}"
-  
+    Username = "vega"
 
 [API]
   Level = "Info"
@@ -15,7 +16,7 @@ GatewayEnabled = true
 
 [Pprof]
   Level = "Info"
-  Enabled = false
+  Enabled = true
   Port = 6{{.NodeNumber}}60
   ProfilesDir = "{{.NodeHomeDir}}"
 
@@ -27,7 +28,7 @@ GatewayEnabled = true
     Port = 30{{.NodeNumber}}8
   [Gateway.REST]
     Port = 30{{.NodeNumber}}9
-	
+
 [Metrics]
   Level = "Info"
   Timeout = "5s"
@@ -36,25 +37,23 @@ GatewayEnabled = true
 [Broker]
   Level = "Info"
   UseEventFile = false
+  PanicOnError = false
   [Broker.SocketConfig]
     Port = 30{{.NodeNumber}}5
 
 [DeHistory]
   Level = "Info"
   Enabled = true
-  WipeOnStartup = false
-  SaveSnapshots = true
-  SaveInterval = "5s"
+  WipeOnStartup = true
+  AddSnapshotsToStore = true
+  AddSnapshotsInterval = "5s"
   [DeHistory.Store]
-    IdSeed = "b648808b-3479-439f-b7b7-7a350839f956"
-    SwarmKey = "laodofguffbarson"
+    IdSeed = "{{ b64enc "testsnet" }}-3479-439f-b7b7-{{.NodeNumber}}"
     UseIpfsDefaultPeers = true
     BootstrapPeers = []
-    SwarmPort = 4001
+    SwarmPort = 40{{.NodeNumber}}5
     StartWebUI = false
-    WebUIPort = 5001
+    WebUIPort = 50{{.NodeNumber}}5
   [DeHistory.Snapshot]
     PanicOnSnapshotCreationError = true
-    DatabaseSnapshotsCopyToPath = "/snapshotsCopyTo"
-    DatabaseSnapshotsCopyFromPath = "/snapshotsCopyFrom"
     WaitForCreationLockTimeout = "5s"
