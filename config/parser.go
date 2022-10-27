@@ -40,13 +40,9 @@ var envFunc = function.New(&function.Spec{
 	},
 })
 
-func newEvalContext(genServices cty.Value, homePath string) *hcl.EvalContext {
-
+func newEvalContext(genServices cty.Value) *hcl.EvalContext {
 	return &hcl.EvalContext{
-		Variables: map[string]cty.Value{
-			"generated":         genServices,
-			"network_home_path": cty.StringVal(homePath),
-		},
+		Variables: map[string]cty.Value{"generated": genServices},
 		Functions: map[string]function.Function{
 			"abs":             stdlib.AbsoluteFunc,
 			"base64decode":    encoding.Base64DecodeFunc,
@@ -126,7 +122,7 @@ func ApplyConfigContext(conf *Config, genServices *types.GeneratedServices) (*Co
 		return nil, fmt.Errorf("failed to convert GeneratedServices to cty value: %w", err)
 	}
 
-	if err := hclsimple.Decode("config.hcl", conf.HCLBodyRaw, newEvalContext(*genServicesCtyVal, *conf.OutputDir), conf); err != nil {
+	if err := hclsimple.Decode("config.hcl", conf.HCLBody, newEvalContext(*genServicesCtyVal), conf); err != nil {
 		return nil, err
 	}
 
@@ -168,13 +164,7 @@ func ParseConfigFile(filePath, outputDir string, genServices types.GeneratedServ
 		return nil, err
 	}
 
-	configContent, err := os.ReadFile(filePath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load file from disk: %w", err)
-	}
-	config.HCLBodyRaw = configContent
-
-	decodeDiags := gohcl.DecodeBody(f.Body, newEvalContext(*genServicesCtyVal, *config.OutputDir), config)
+	decodeDiags := gohcl.DecodeBody(f.Body, newEvalContext(*genServicesCtyVal), config)
 	if decodeDiags.HasErrors() {
 		return nil, fmt.Errorf("failed to decode config: %w", decodeDiags)
 	}
