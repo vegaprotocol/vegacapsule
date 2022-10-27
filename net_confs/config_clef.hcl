@@ -51,7 +51,6 @@ EOT
       }
       auth_soft_fail = true
     }
-    
     docker_service "postgres-1" {
       image = "vegaprotocol/timescaledb:2.8.0-pg14"
       cmd = "postgres"

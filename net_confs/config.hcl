@@ -60,6 +60,19 @@ EOT
         POSTGRES_PASSWORD="vega"
         POSTGRES_DBS="vega0,vega1,vega2,vega3,vega4,vega5,vega6,vega7,vega8"
       }
+
+      volume_mounts = concat(
+          [
+            for ns in generated.node_sets:
+              "${ns.data_node.service.home_dir}/dehistory/snapshotsCopyTo:/snapshotsCopyTo${ns.index}"
+            if ns.data_node != null
+          ],
+          [
+            for ns in generated.node_sets:
+              "${ns.data_node.service.home_dir}/dehistory/snapshotsCopyFrom:/snapshotsCopyFrom${ns.index}"
+            if ns.data_node != null
+          ]
+      )
       
       static_port {
         value = 5232
