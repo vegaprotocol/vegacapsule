@@ -21,6 +21,7 @@ type Faucet struct {
 	PublicKey          string
 	WalletFilePath     string
 	WalletPassFilePath string
+	BinaryPath         string
 }
 
 type NodeWalletInfo struct {

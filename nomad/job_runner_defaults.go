@@ -215,7 +215,7 @@ func (r *JobRunner) defaultWalletJob(wallet *types.Wallet) *api.Job {
 	}
 }
 
-func (r *JobRunner) defaultFaucetJob(binary string, conf *config.FaucetConfig, fc *types.Faucet) *api.Job {
+func (r *JobRunner) defaultFaucetJob(conf *config.FaucetConfig, fc *types.Faucet) *api.Job {
 	return &api.Job{
 		ID:          &fc.Name,
 		Datacenters: []string{"dc1"},
@@ -233,7 +233,7 @@ func (r *JobRunner) defaultFaucetJob(binary string, conf *config.FaucetConfig, f
 						Driver: "raw_exec",
 						Leader: true,
 						Config: map[string]interface{}{
-							"command": binary,
+							"command": fc.BinaryPath,
 							"args": []string{
 								config.FaucetSubCmd,
 								"run",
