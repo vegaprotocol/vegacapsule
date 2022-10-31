@@ -221,7 +221,7 @@ func (r *JobRunner) startNetwork(
 	// create new error group to be able to call the `wait` function again
 	if generatedSvcs.Faucet != nil {
 		g.Go(func() error {
-			job := r.defaultFaucetJob(*conf.VegaBinary, conf.Network.Faucet, generatedSvcs.Faucet)
+			job := r.defaultFaucetJob(conf.Network.Faucet, generatedSvcs.Faucet)
 
 			if err := r.runAndWait(ctx, job, nil); err != nil {
 				return fmt.Errorf("failed to run the faucet job %q: %w", *job.ID, err)

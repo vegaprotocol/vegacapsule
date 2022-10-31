@@ -96,6 +96,7 @@ func (cg *ConfigGenerator) Initiate(conf *config.FaucetConfig) (*types.Faucet, e
 		PublicKey:          initOut.PublicKey,
 		WalletFilePath:     initOut.FaucetWalletFilePath,
 		WalletPassFilePath: walletPassFilePath,
+		BinaryPath:         *cg.conf.VegaBinary,
 	}, nil
 }
 
