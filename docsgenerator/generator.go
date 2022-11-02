@@ -77,7 +77,7 @@ func (gen *TypeDocGenerator) Generate(typesNames ...string) ([]*TypeDoc, error) 
 
 			c, err := parseComment(t.Doc)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("failed for type %q: %w", name, err)
 			}
 
 			typeDoc := &TypeDoc{
@@ -92,7 +92,7 @@ func (gen *TypeDocGenerator) Generate(typesNames ...string) ([]*TypeDoc, error) 
 			for _, field := range typeStruct.Fields.List {
 				fieldDoc, err := gen.processField(getFieldType(t.fileContent, field), field)
 				if err != nil {
-					return nil, err
+					return nil, fmt.Errorf("failed for type %q: %w", name, err)
 				}
 
 				if fieldDoc == nil {
@@ -132,14 +132,14 @@ func (gen TypeDocGenerator) processField(fieldType string, field *ast.Field) (*F
 
 	comment, err := parseComment(field.Doc.Text())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed for field %q: %w", fieldType, err)
 	}
 
 	var options []string
 	var isOptional bool
 
 	for _, opt := range tag.Options {
-		if opt == optionalTag {
+		if opt == optionalTag && comment.OptionalIf == "" {
 			isOptional = true
 			continue
 		}
@@ -154,7 +154,9 @@ func (gen TypeDocGenerator) processField(fieldType string, field *ast.Field) (*F
 	case *ast.StarExpr:
 		lookupType = strings.TrimLeft(fieldType, "*")
 		fieldType = lookupType
-		isOptional = true
+		if comment.OptionalIf == "" {
+			isOptional = true
+		}
 	case *ast.ArrayType:
 		lookupType = strings.TrimLeft(fieldType, "[]")
 		fieldType = fmt.Sprintf("list(%s)", lookupType)
@@ -166,6 +168,8 @@ func (gen TypeDocGenerator) processField(fieldType string, field *ast.Field) (*F
 		Description: comment.Description,
 		Note:        comment.Note,
 		Examples:    comment.Examples,
+		OptionalIf:  comment.OptionalIf,
+		RequiredIf:  comment.RequiredlIf,
 		Optional:    isOptional,
 		Default:     comment.Default,
 		Options:     options,

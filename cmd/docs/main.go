@@ -14,7 +14,7 @@ var (
 )
 
 var description = `Capsule configuration is used by vegacapsule CLI network generate and bootstrap commands.
-It allows to configue and customise Vega network running on Capsule.
+It allows to configure and customise Vega network running on Capsule.
 
 The configuration is using [HCL](https://github.com/hashicorp/hcl) language syntax also used for example by [Terraform](https://www.terraform.io/).
 

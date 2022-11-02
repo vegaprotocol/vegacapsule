@@ -132,12 +132,13 @@ All Nomad jobs are prefix with the name.
 
 <div class="dd">
 
-<code>genesis_template</code>  *string*  - optional
+<code>genesis_template</code>  *string*  - required | optional if <code>genesis_template_file</code> defined)
 
 </div>
 <div class="dt">
 
-Template of genesis file that will be used to bootrap the Vega network.
+Go template of genesis file that will be used to bootrap the Vega network.
+[Example of templated mainnet genesis file](https://github.com/vegaprotocol/networks/blob/master/mainnet1/genesis.json)
 
 
 
@@ -181,31 +182,24 @@ EOH
 </div>
 <div class="dt">
 
-
-
-</div>
-
-<hr />
-
-<div class="dd">
-
-<code>smart_contracts_addresses</code>  *string*  - optional
-
-</div>
-<div class="dt">
+Same as `genesis_template` but it allows to link the genesis file template as an external file.
 
 
 
-</div>
 
-<hr />
+Examples:
 
-<div class="dd">
 
-<code>smart_contracts_addresses_file</code>  *string*  - optional
 
-</div>
-<div class="dt">
+
+
+
+```
+genesis_template_file = "/your_path/genesis.tmpl"
+
+```
+
+
 
 
 
@@ -220,6 +214,108 @@ EOH
 </div>
 <div class="dt">
 
+Allows to define Ethereum network configuration.
+This is necessery because Vega needs to be connected to [Ethereum bridges](https://docs.vega.xyz/mainnet/api/bridge)
+or it cannot function otherwise.
+
+
+
+
+Examples:
+
+
+
+
+
+
+```
+ethereum {
+  ...
+}
+
+```
+
+
+
+
+
+</div>
+
+<hr />
+
+<div class="dd">
+
+<code>smart_contracts_addresses</code>  *string*  - required | optional if <code>smart_contracts_addresses_file</code> defined), optional 
+
+</div>
+<div class="dt">
+
+Smart contract addresses are addresses of [Ethereum bridges](https://docs.vega.xyz/mainnet/api/bridge) contracts in JSON format.
+
+These addresses should correspond to the choosen network by [Ethereum network](#EthereumConfig) and
+can be used in various different types of templates in Capsule.
+[Example of smart contract address from mainnet](https://github.com/vegaprotocol/networks/blob/master/mainnet1/smart-contracts.json).
+
+
+
+> It is recomended to use `smart_contracts_addresses_file` param instead.
+In case both `smart_contracts_addresses` and `smart_contracts_addresses_file` are defined the `genesis_template`
+overrides `smart_contracts_addresses_file`.
+
+
+
+Examples:
+
+
+
+
+
+
+```
+smart_contracts_addresses = <<EOH
+ {
+  "erc20_bridge": "...",
+  "staking_bridge": "...",
+  ...
+ }
+EOH
+
+```
+
+
+
+
+
+</div>
+
+<hr />
+
+<div class="dd">
+
+<code>smart_contracts_addresses_file</code>  *string*  - optional
+
+</div>
+<div class="dt">
+
+Same as `smart_contracts_addresses` but it allows to link the smart contracts as an external file.
+
+
+
+
+Examples:
+
+
+
+
+
+
+```
+smart_contracts_addresses_file = "/your_path/smart-contratcs.json"
+
+```
+
+
+
 
 
 </div>
@@ -232,6 +328,42 @@ EOH
 
 </div>
 <div class="dt">
+
+Allows to define multiple nodes set and their specific configuration.
+A node set is a representation of Vega and Data Node nodes.
+This is building unit of the Vega network.
+
+
+
+
+Examples:
+
+
+**Validators node set**
+
+
+
+```
+node_set "validator-nodes" {
+  ...
+}
+
+```
+
+
+
+**Full nodes node set**
+
+
+
+```
+node_set "full-nodes" {
+  ...
+}
+
+```
+
+
 
 
 
@@ -246,6 +378,28 @@ EOH
 </div>
 <div class="dt">
 
+Allows to deploy and configure [Vega Wallet](https://docs.vega.xyz/mainnet/tools/vega-wallet) instance.
+Wallet will not be deployed if this block is not defined.
+
+
+
+
+Examples:
+
+
+
+
+
+
+```
+wallet "wallet-name" {
+  ...
+}
+
+```
+
+
+
 
 
 </div>
@@ -258,6 +412,28 @@ EOH
 
 </div>
 <div class="dt">
+
+Allows to deploy and configure [Vega Core Faucet](https://github.com/vegaprotocol/vega/tree/develop/core/faucet#faucet) instance.
+Faucet will not be deployed if this block is not defined.
+
+
+
+
+Examples:
+
+
+
+
+
+
+```
+faucet "faucet-name" {
+  ...
+}
+
+```
+
+
 
 
 
@@ -272,6 +448,33 @@ EOH
 </div>
 <div class="dt">
 
+Allows to define jobs that should run before the node sets starts.
+It can be used for node sets dependencies like databases or mock Ethereum chain etc..
+
+
+
+
+Examples:
+
+
+
+
+
+
+```
+pre_start {
+  docker_service "ganache-1" {
+    ...
+  }
+  docker_service "postgres-1" {
+    ...
+  }
+}
+
+```
+
+
+
 
 
 </div>
@@ -284,6 +487,33 @@ EOH
 
 </div>
 <div class="dt">
+
+Allows to define jobs that should run after the node sets started.
+It can be used for services that depends not already running network like block explorer or console.
+
+
+
+
+Examples:
+
+
+
+
+
+
+```
+post_start {
+  docker_service "bloc-explorer-1" {
+    ...
+  }
+  docker_service "vega-console-1" {
+    ...
+  }
+}
+
+```
+
+
 
 
 
@@ -324,6 +554,11 @@ network "testnet" {
 
 
 ### *EthereumConfig*
+
+Allows to define specific Ethereum network to be used.
+It can either some of the [Public networks](https://ethereum.org/en/developers/docs/networks/#public-networks) or
+local instance of Ganache.
+
 
 
 **Fields**:
@@ -370,8 +605,27 @@ network "testnet" {
 
 
 
+**Example**:
+
+
+
+```
+ethereum {
+  chain_id   = "1440"
+  network_id = "1441"
+  endpoint   = "http://127.0.0.1:8545/"
+}
+
+```
+
+
 
 ### *NodeConfig*
+
+Represents and allows to configure set of Vega (with Tendermint) and Data Node nodes.
+One node set definition can be used by applied to multiple node sets (see `count` field) and it uses
+templating to distinguish between different nodes and names/ports and other collisions.
+
 
 
 **Fields**:
@@ -384,6 +638,8 @@ network "testnet" {
 </div>
 <div class="dt">
 
+Name of the node set.
+Nomad that are part of this nodes are prefix with the name.
 
 
 </div>
@@ -397,8 +653,16 @@ network "testnet" {
 </div>
 <div class="dt">
 
+Determines what mode the node set should run in.
 
 
+
+Valid values:
+
+
+  - <code>validator</code>
+
+  - <code>full</code>
 </div>
 
 <hr />
@@ -410,6 +674,7 @@ network "testnet" {
 </div>
 <div class="dt">
 
+Defines how many nodes sets with this exact configuration should be created.
 
 
 </div>
@@ -418,12 +683,12 @@ network "testnet" {
 
 <div class="dd">
 
-<code>node_wallet_pass</code>  *string*  - optional
+<code>node_wallet_pass</code>  *string*  - optional | required if <code>mode=validator</code> defined)
 
 </div>
 <div class="dt">
 
-
+Defines password for automatically generated node wallet assosiated with the created node.
 
 </div>
 
@@ -572,6 +837,28 @@ network "testnet" {
 
 <hr />
 
+
+
+**Example**:
+
+
+
+```
+node_set "validators" {
+  count = 2
+  mode  = "validator"
+
+  node_wallet_pass     = "n0d3w4ll3t-p4ssphr4e3"
+  vega_wallet_pass     = "w4ll3t-p4ssphr4e3"
+  ethereum_wallet_pass = "ch41nw4ll3t-3th3r3um-p4ssphr4e3"
+
+  config_templates {
+    vega_file       = "./path/vega_validator.tmpl"
+    tendermint_file = "./path/tendermint_validator.tmpl"
+  }
+}
+
+```
 
 
 

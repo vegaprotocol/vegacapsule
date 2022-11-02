@@ -46,7 +46,7 @@ Examples:
 {{ range $field := $type.Fields -}}
 <div class="dd">
 
-<code>{{ $field.Name }}</code>  *{{ encodeType $field.Type }}* {{ if $field.Optional}} - optional{{else}} - required{{end}}{{ range $opt := $field.Options }}, {{ $opt }} {{ end }}
+<code>{{ $field.Name }}</code>  *{{ encodeType $field.Type }}* {{ if $field.Optional }} - optional{{ if $field.RequiredIf }} | required if <code>{{ $field.RequiredIf }}</code> defined{{ end }}{{else}} - required{{ if $field.OptionalIf }} | optional if <code>{{ $field.OptionalIf }}</code> defined{{ end }}{{end}}{{ range $opt := $field.Options }}, {{ $opt }} {{ end }}
 
 </div>
 <div class="dt">

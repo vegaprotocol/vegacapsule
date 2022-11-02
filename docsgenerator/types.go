@@ -39,8 +39,10 @@ type FieldDoc struct {
 	// Note is rendered as a note for the example in markdown file.
 	Note string
 
-	Optional bool
-	Default  string
+	Optional   bool
+	OptionalIf string
+	RequiredIf string
+	Default    string
 
 	// Examples list of example values for the item.
 	Examples []Example
@@ -69,4 +71,7 @@ type Comment struct {
 	Examples    []Example `yaml:"examples"`
 	Example     Example   `yaml:"example"`
 	Values      []string  `yaml:"values"`
+	// Makes item param if specified param is defined
+	OptionalIf  string `yaml:"optional_if"`
+	RequiredlIf string `yaml:"required_if"`
 }
