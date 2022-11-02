@@ -10,8 +10,7 @@ jobs:
   add_issue:
     runs-on: ubuntu-latest
     steps:
-      - name: Add issue core project board
-        if: contains(github.event.issue.labels.*.name, 'devops') != true
+      - name: Add Issue to New Core Project Board
         env:
           GITHUB_TOKEN: ${{ secrets.GH_NEW_CARD_TO_PROJECT }}
           PROJECT_ID: ${{ secrets.CORE_PROJECT_ID }}
@@ -19,26 +18,20 @@ jobs:
         run: |
           gh api graphql -f query='
             mutation($project:ID!, $issue:ID!) {
-              addProjectNextItem(input: {projectId: $project, contentId: $issue}) {
-                projectNextItem {
+              addProjectV2ItemById(input: {projectId: $project, contentId: $issue}) {
+                item {
                   id
                 }
               }
-            }' -f project=$PROJECT_ID -f issue=$ISSUE_ID --jq '.data.addProjectNextItem.projectNextItem.id'
-
-      - name: Add issue to devops project board
-        if: contains(github.event.issue.labels.*.name, 'devops')
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_NEW_CARD_TO_PROJECT }}
-          PROJECT_ID: ${{ secrets.DEVOPS_PROJECT_ID }}
-          ISSUE_ID: ${{ github.event.issue.node_id }}
-        run: |
-          gh api graphql -f query='
-            mutation($project:ID!, $issue:ID!) {
-              addProjectNextItem(input: {projectId: $project, contentId: $issue}) {
-                projectNextItem {
-                  id
-                }
-              }
-            }' -f project=$PROJECT_ID -f issue=$ISSUE_ID --jq '.data.addProjectNextItem.projectNextItem.id'
+            }' -f project=$PROJECT_ID -f issue=$ISSUE_ID --jq '.data.addProjectV2ItemById.item.id'
+  label_issues:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: "Add vegacapsule label"
+        uses: andymckay/labeler@5c59dabdfd4dd5bd9c6e6d255b01b9d764af4414
+        with:
+          add-labels: "vegacapsule "
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
 
