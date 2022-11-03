@@ -14,6 +14,9 @@ const (
 	dataNodeProcessName = "data-node"
 	walletProcessName   = "vegawallet"
 
+	dataNodeCmdName = "datanode"
+	walletCmdName   = "wallet"
+
 	portStatusListen = "LISTEN"
 	nomadProcessName = "nomad"
 	visorProcessName = "visor"
@@ -71,9 +74,17 @@ func ScanNetworkProcessesPorts() (map[int64]string, error) {
 				continue
 			}
 
-			// Check if command is faucet
-			if len(cmds) != 0 && cmds[1] == faucetProcessName {
+			if len(cmds) == 0 {
+				continue
+			}
+
+			switch cmds[1] {
+			case faucetProcessName:
 				outName = faucetProcessName
+			case dataNodeCmdName:
+				outName = dataNodeProcessName
+			case walletCmdName:
+				outName = walletCmdName
 			}
 		}
 
