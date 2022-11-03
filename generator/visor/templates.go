@@ -89,7 +89,7 @@ func (g Generator) OverwriteConfig(ns types.NodeSet, configTemplate *template.Te
 	}
 
 	configPath := configFilePath(ns.Visor.HomeDir)
-	return mergeAndSaveConfig(ns, buff, configPath, vsconfig.VegaConfig{}, vsconfig.VegaConfig{})
+	return mergeAndSaveConfig(ns, buff, configPath, vsconfig.VisorConfigFile{}, vsconfig.VisorConfigFile{})
 }
 
 // OverwriteRunConfig overwrites run config with template in a given path.
@@ -107,7 +107,7 @@ func (g Generator) OverwriteRunConfig(ns types.NodeSet, configTemplate *template
 	return mergeAndSaveConfig(ns, buff, configPath, vsconfig.RunConfig{}, vsconfig.RunConfig{})
 }
 
-func mergeAndSaveConfig[T vsconfig.RunConfig | vsconfig.VegaConfig](
+func mergeAndSaveConfig[T vsconfig.RunConfig | vsconfig.VisorConfigFile](
 	ns types.NodeSet,
 	tmpldConf *bytes.Buffer,
 	configPath string,

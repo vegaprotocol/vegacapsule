@@ -59,7 +59,7 @@ func newConfigOverride(gen *Generator, n config.NodeConfig) (*configOverride, er
 
 	var visorConfTmpl *template.Template
 	if n.VisorBinary != "" && n.ConfigTemplates.VisorConf != nil {
-		visorConfTmpl, err = visor.NewConfigTemplate(*n.ConfigTemplates.VisorRunConf)
+		visorConfTmpl, err = visor.NewConfigTemplate(*n.ConfigTemplates.VisorConf)
 		if err != nil {
 			return nil, err
 		}
@@ -94,10 +94,16 @@ func (co *configOverride) Overwrite(nc config.NodeConfig, ns types.NodeSet, fc *
 			return fmt.Errorf("failed to overwrite Data Node config for id %d: %w", ns.Index, err)
 		}
 	}
-	if ns.Visor != nil && co.visorRunTmpl != nil {
+	if ns.Visor != nil && co.visorConfTmpl != nil {
 		log.Printf("Overwriting Visor config for nodeset %s", ns.Name)
-		if err := co.gen.visorGen.OverwriteConfigs(ns, co.visorConfTmpl, co.visorRunTmpl); err != nil {
+		if err := co.gen.visorGen.OverwriteConfig(ns, co.visorConfTmpl); err != nil {
 			return fmt.Errorf("failed to overwrite Visor config for id %d: %w", ns.Index, err)
+		}
+	}
+	if ns.Visor != nil && co.visorRunTmpl != nil {
+		log.Printf("Overwriting Visor genesis run config for nodeset %s", ns.Name)
+		if err := co.gen.visorGen.OverwriteRunConfig(ns, co.visorRunTmpl, ""); err != nil {
+			return fmt.Errorf("failed to overwrite Visor genesis run config for id %d: %w", ns.Index, err)
 		}
 	}
 

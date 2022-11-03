@@ -16,6 +16,7 @@ const (
 
 	portStatusListen = "LISTEN"
 	nomadProcessName = "nomad"
+	visorProcessName = "visor"
 )
 
 var networkProcessesNames = map[string]struct{}{
@@ -44,7 +45,7 @@ func ScanNetworkProcessesPorts() (map[int64]string, error) {
 			continue
 		}
 
-		if !strings.Contains(parentName, nomadProcessName) {
+		if !(strings.Contains(parentName, nomadProcessName) || strings.Contains(parentName, visorProcessName)) {
 			continue
 		}
 
