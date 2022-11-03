@@ -72,7 +72,11 @@ func (r *JobRunner) RunRawNomadJobs(ctx context.Context, rawJobs []string) ([]ty
 	return jobs, nil
 }
 
-func (r *JobRunner) runAndWait(ctx context.Context, job *api.Job, probes *types.ProbesConfig) error {
+func (r *JobRunner) runAndWait(
+	ctx context.Context,
+	job *api.Job,
+	probes *types.ProbesConfig,
+) error {
 	err := r.Client.RunAndWait(ctx, job, probes)
 	if err == nil {
 		return nil
@@ -153,6 +157,11 @@ func (r *JobRunner) runDockerJobs(ctx context.Context, dockerConfigs []config.Do
 		// capture in the loop by copy
 		dc := dc
 		g.Go(func() error {
+			// Skip for already running jobs
+			if r.Client.JobRunning(ctx, dc.Name) {
+				return nil
+			}
+
 			job := r.defaultDockerJob(ctx, dc)
 
 			if err := r.runAndWait(ctx, job, nil); err != nil {
@@ -221,6 +230,11 @@ func (r *JobRunner) startNetwork(
 	// create new error group to be able to call the `wait` function again
 	if generatedSvcs.Faucet != nil {
 		g.Go(func() error {
+			// Skip for already running faucet
+			if r.Client.JobRunning(ctx, generatedSvcs.Faucet.Name) {
+				return nil
+			}
+
 			job := r.defaultFaucetJob(conf.Network.Faucet, generatedSvcs.Faucet)
 
 			if err := r.runAndWait(ctx, job, nil); err != nil {
@@ -237,6 +251,11 @@ func (r *JobRunner) startNetwork(
 
 	if generatedSvcs.Wallet != nil {
 		g.Go(func() error {
+			// Skip for already running wallet
+			if r.Client.JobRunning(ctx, generatedSvcs.Wallet.Name) {
+				return nil
+			}
+
 			job := r.defaultWalletJob(generatedSvcs.Wallet)
 
 			if err := r.runAndWait(ctx, job, nil); err != nil {

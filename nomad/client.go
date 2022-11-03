@@ -142,6 +142,15 @@ func (n *Client) RunAndWait(ctx context.Context, job *api.Job, probe *types.Prob
 	return nil
 }
 
+func (n *Client) JobRunning(ctx context.Context, jobID string) bool {
+	j, _, err := n.API.Jobs().Info(jobID, nil)
+	if err == nil && j != nil && *j.Status == "running" {
+		return true
+	}
+
+	return false
+}
+
 // Stop stops a specific job
 func (n *Client) Stop(ctx context.Context, jobID string, purge bool) error {
 	jobs := n.API.Jobs()
