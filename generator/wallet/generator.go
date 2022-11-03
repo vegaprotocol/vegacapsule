@@ -13,8 +13,8 @@ import (
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/types"
 
+	"github.com/BurntSushi/toml"
 	"github.com/Masterminds/sprig"
-	"github.com/zannen/toml"
 )
 
 type ConfigTemplateContext struct {
@@ -104,7 +104,7 @@ func (cg ConfigGenerator) generateNetworkConfig(validators, nonValidators []type
 
 	overrideConfig := vwconfig.Network{}
 
-	if _, err := toml.DecodeReader(buff, &overrideConfig); err != nil {
+	if _, err := toml.NewDecoder(buff).Decode(&overrideConfig); err != nil {
 		return fmt.Errorf("failed decode override config: %w", err)
 	}
 

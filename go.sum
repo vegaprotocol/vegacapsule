@@ -1319,8 +1319,6 @@ github.com/yuin/goldmark v1.4.0/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1
 github.com/yuin/goldmark v1.4.1/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
 github.com/yusufpapurcu/wmi v1.2.2 h1:KBNDSne4vP5mbSWnJbO+51IMOXJB67QiYCSBrubbPRg=
 github.com/yusufpapurcu/wmi v1.2.2/go.mod h1:SBZ9tNy3G9/m5Oi98Zks0QjeHVDvuK0qfxQmPyzfmi0=
-github.com/zannen/toml v0.3.2 h1:IYPp4GVtabUyQpzSU6xP1VDyKR3Ico3qhNP2VxCkl2Y=
-github.com/zannen/toml v0.3.2/go.mod h1:17qwsU2a1aZpHAu+nMR+zAzGupaxRIaCvxBhvCp5YGk=
 github.com/zclconf/go-cty v1.0.0/go.mod h1:xnAOWiHeOqg2nWS62VtQ7pbOu17FtxJNW8RLEih+O3s=
 github.com/zclconf/go-cty v1.2.0/go.mod h1:hOPWgoHbaTUnI5k4D2ld+GRpFJSCe6bCM7m1q/N4PQ8=
 github.com/zclconf/go-cty v1.4.0/go.mod h1:nHzOclRkoj++EU9ZjSrZvRG0BXIWt8c7loYc0qXAFGQ=

@@ -10,9 +10,9 @@ import (
 	"code.vegaprotocol.io/shared/paths"
 	vsconfig "code.vegaprotocol.io/vega/visor/config"
 	"code.vegaprotocol.io/vegacapsule/types"
+	"github.com/BurntSushi/toml"
 	"github.com/Masterminds/sprig"
 	"github.com/imdario/mergo"
-	"github.com/zannen/toml"
 )
 
 type ConfigTemplateContext struct {
@@ -113,8 +113,7 @@ func mergeAndSaveConfig[T vsconfig.RunConfig | vsconfig.VisorConfigFile](
 	configPath string,
 	overrideConfig, originalConfig T,
 ) error {
-	if _, err := toml.DecodeReader(tmpldConf, &overrideConfig); err != nil {
-		fmt.Println(tmpldConf)
+	if _, err := toml.NewDecoder(tmpldConf).Decode(&overrideConfig); err != nil {
 		return fmt.Errorf("failed decode override config: %w", err)
 	}
 
