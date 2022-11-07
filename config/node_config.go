@@ -62,7 +62,7 @@ type NodeConfig struct {
 	Count int `hcl:"count" cty:"count"`
 
 	/*
-		description: Defines password for automatically generated node wallet assosiated with the created node.
+		description: Defines the password for the automatically generated node wallet associated with the created node.
 		required_if: mode=validator
 	*/
 	NodeWalletPass string `hcl:"node_wallet_pass,optional" template:"" cty:"node_wallet_pass"`
