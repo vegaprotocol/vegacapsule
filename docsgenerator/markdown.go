@@ -14,7 +14,6 @@ import (
 
 var markdownTemplate = `
 {{ define "fieldExamples" }}
-Examples:
 
 {{ range $example := .Examples }}
 {{ if $example.Name }}**{{ $example.Name }}**{{ end }}
@@ -30,35 +29,34 @@ Examples:
 
 {{ end }}
 
+
 # {{ .Name }}
 {{ .Description }}
 
 {{ range $type := .Types }}
-### {{ if $type.Name }}{{ $type.Name }} - {{ end }}*{{ $type.Type }}*
+## {{ if $type.Name }}{{ $type.Name }} - {{ end }}*{{ $type.Type }}*
 {{ if $type.Description -}}
 {{ $type.Description }}
 {{ end }}
 
 {{ if $type.Fields -}}
-**Fields**:
-<hr />
+### Fields
 
+<dl>
 {{ range $field := $type.Fields -}}
-<div class="dd">
+<dt><code>{{ $field.Name }}</code>  <strong>{{ encodeType $field.Type }}</strong> {{ if $field.Optional }} - optional{{ if $field.RequiredIf }} | required if <code>{{ $field.RequiredIf }}</code> defined{{ end }}{{else}} - required{{ if $field.OptionalIf }} | optional if <code>{{ $field.OptionalIf }}</code> defined{{ end }}{{end}}{{ range $opt := $field.Options }}, {{ $opt }} {{ end }}</dt>
 
-<code>{{ $field.Name }}</code>  *{{ encodeType $field.Type }}* {{ if $field.Optional }} - optional{{ if $field.RequiredIf }} | required if <code>{{ $field.RequiredIf }}</code> defined{{ end }}{{else}} - required{{ if $field.OptionalIf }} | optional if <code>{{ $field.OptionalIf }}</code> defined{{ end }}{{end}}{{ range $opt := $field.Options }}, {{ $opt }} {{ end }}
-
-</div>
-<div class="dt">
-
+<dd>
 {{ $field.Description }}
 
 {{ if $field.Values }}
 Valid values:
 
+<ul>
 {{ range $value := $field.Values }}
-  - <code>{{ $value }}</code>
+<li><code>{{ $value }}</code></li>
 {{ end -}}
+</ul>
 {{ end -}}
 
 {{ if $field.Default }}
@@ -66,21 +64,22 @@ Default value: <code>{{ $field.Default }}</code>
 {{ end }}
 
 {{- if $field.Note }}
-> {{ $field.Note }}
+<blockquote>{{ $field.Note }}</blockquote>
 {{ end -}}
 
 {{- if $field.Examples }}
+<br />
+
+#### <code>{{ $field.Name }}</code> example
 {{ template "fieldExamples" $field }}
 {{ end -}}
 
-</div>
-
-<hr />
+</dd>
 
 {{ end }}
 
 {{ if .Example.Value -}}
-**Example**:
+### Complete example
 
 {{ if eq .Example.Type "hcl" }}
 {{ $formated_example := formatHCL .Example.Value }}
@@ -92,6 +91,9 @@ Default value: <code>{{ $field.Default }}</code>
 {{ end -}}
 
 {{ end -}}
+</dl>
+
+---
 
 {{ end }}`
 
@@ -188,7 +190,7 @@ func (fd *FileDoc) encodeType(t string) string {
 }
 
 func codeBlock(text string) string {
-	return "```\n" + text + "\n```"
+	return "```hcl\n" + text + "\n```"
 }
 
 func formatLink(text, link string) string {
