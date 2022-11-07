@@ -44,9 +44,12 @@ var markdownTemplate = `
 
 <dl>
 {{ range $field := $type.Fields -}}
-<dt><code>{{ $field.Name }}</code>  <strong>{{ encodeType $field.Type }}</strong> {{ if $field.Optional }} - optional{{ if $field.RequiredIf }} | required if <code>{{ $field.RequiredIf }}</code> defined{{ end }}{{else}} - required{{ if $field.OptionalIf }} | optional if <code>{{ $field.OptionalIf }}</code> defined{{ end }}{{end}}{{ range $opt := $field.Options }}, {{ $opt }} {{ end }}</dt>
+<dt>
+	<code>{{ $field.Name }}</code>  <strong>{{ encodeType $field.Type }}</strong> {{ if $field.Optional }} - optional{{ if $field.RequiredIf }} | required if <code>{{ $field.RequiredIf }}</code> defined{{ end }}{{else}} - required{{ if $field.OptionalIf }} | optional if <code>{{ $field.OptionalIf }}</code> defined{{ end }}{{end}}{{ range $opt := $field.Options }}, {{ $opt }} {{ end }}
+</dt>
 
 <dd>
+
 {{ $field.Description }}
 
 {{ if $field.Values }}
