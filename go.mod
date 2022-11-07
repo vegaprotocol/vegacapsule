@@ -15,7 +15,7 @@ require (
 	github.com/stretchr/testify v1.8.0
 	github.com/tendermint/tendermint v0.34.20
 	github.com/tomwright/dasel v1.24.3
-	github.com/zannen/toml v0.3.2
+
 	golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f
 )
 

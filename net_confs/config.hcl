@@ -69,6 +69,8 @@ EOT
         cpu = 600
         memory = 900
       }
+      
+      volume_mounts = ["${network_home_path}:${network_home_path}"]
 
       auth_soft_fail = true
     }

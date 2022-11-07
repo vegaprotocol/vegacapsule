@@ -11,7 +11,8 @@ import (
 	"code.vegaprotocol.io/vegacapsule/types"
 	"github.com/Masterminds/sprig"
 	"github.com/imdario/mergo"
-	"github.com/zannen/toml"
+
+	"github.com/BurntSushi/toml"
 )
 
 type ConfigTemplateContext struct {
@@ -100,7 +101,7 @@ func (dng ConfigGenerator) mergeAndSaveConfig(
 ) error {
 	overrideConfig := map[string]interface{}{}
 
-	if _, err := toml.DecodeReader(tmpldConf, &overrideConfig); err != nil {
+	if _, err := toml.NewDecoder(tmpldConf).Decode(&overrideConfig); err != nil {
 		return fmt.Errorf("failed decode override config: %w", err)
 	}
 
