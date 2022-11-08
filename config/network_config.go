@@ -79,7 +79,7 @@ type NetworkConfig struct {
 
 	/*
 		description: |
-			Same as `genesis_template` but it allows to link the genesis file template as an external file.
+			Same as `genesis_template` but it allows the user to link the genesis file template as an external file.
 		examples:
 			- type: hcl
 			  value: |
