@@ -160,7 +160,7 @@ type NetworkConfig struct {
 
 	/*
 		description: |
-			Allows to deploy and configure [Vega Wallet](https://docs.vega.xyz/mainnet/tools/vega-wallet) instance.
+			Allows for deploying and configuring the [Vega Wallet](https://docs.vega.xyz/mainnet/tools/vega-wallet) instance.
 			Wallet will not be deployed if this block is not defined.
 		examples:
 			- type: hcl
