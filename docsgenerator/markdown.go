@@ -104,7 +104,7 @@ Default value: <code>{{ $field.Default }}</code>
 type FileDoc struct {
 	// Name will be used in md file name pattern.
 	Name string
-	// Description file description, supports markdown.
+	// Description: File description, supports markdown.
 	Description string
 	// Types structs defined in the file.
 	Types   []*TypeDoc
