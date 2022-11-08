@@ -57,7 +57,7 @@ type NodeConfig struct {
 
 	/*
 		description: |
-			Defines how many nodes sets with this exact configuration should be created.
+			Defines how many node sets with this exact configuration should be created.
 	*/
 	Count int `hcl:"count" cty:"count"`
 
