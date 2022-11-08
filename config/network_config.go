@@ -129,7 +129,7 @@ type NetworkConfig struct {
 
 	/*
 		description: |
-			Same as `smart_contracts_addresses` but it allows to link the smart contracts as an external file.
+			Same as `smart_contracts_addresses` but it allows you to link the smart contracts as an external file.
 		examples:
 			- type: hcl
 			  value: |
