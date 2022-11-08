@@ -204,8 +204,8 @@ type NetworkConfig struct {
 
 	/*
 		description: |
-			Allows to define jobs that should run after the node sets started.
-			It can be used for services that depends not already running network like block explorer or console.
+			Allows the user to define jobs that should run after the node sets start.
+			It can be used for services that depend on a network that is already running, like block explorer or Console.
 		examples:
 			- type: hcl
 			  value: |
