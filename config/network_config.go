@@ -106,11 +106,11 @@ type NetworkConfig struct {
 		description: |
 			Smart contract addresses are addresses of [Ethereum bridges](https://docs.vega.xyz/mainnet/api/bridge) contracts in JSON format.
 
-			These addresses should correspond to the choosen network by [Ethereum network](#EthereumConfig) and
-			can be used in various different types of templates in Capsule.
+			These addresses should correspond to the chosen network in [Ethereum network](#EthereumConfig) and
+			can be used in various types of templates in Capsule.
 			[Example of smart contract address from mainnet](https://github.com/vegaprotocol/networks/blob/master/mainnet1/smart-contracts.json).
 		note: |
-				It is recomended to use `smart_contracts_addresses_file` param instead.
+				It is recommended that you use the `smart_contracts_addresses_file` param instead.
 				In case both `smart_contracts_addresses` and `smart_contracts_addresses_file` are defined the `genesis_template`
 				overrides `smart_contracts_addresses_file`.
 		optional_if: smart_contracts_addresses_file
