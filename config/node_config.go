@@ -87,8 +87,8 @@ type NodeConfig struct {
 	/*
 		description: |
 					Path to [Visor](https://github.com/vegaprotocol/vega/tree/develop/visor) binary.
-					If defined Visor is automatically used to deploy Vega and Data nodes.
-					Relative or absolute path can be used or if only binary name is defined it automatically looks up in $PATH.
+					If defined, Visor is automatically used to deploy Vega and Data nodes.
+					The relative or absolute path can be used, if only the binary name is defined it automatically looks for it in $PATH.
 	*/
 	VisorBinary string `hcl:"visor_binary,optional"`
 
