@@ -102,7 +102,7 @@ Default value: <code>{{ $field.Default }}</code>
 
 // FileDoc represents a single go file documentation.
 type FileDoc struct {
-	// Name will be used in md file name pattern.
+	// Name will be used in .md file name pattern.
 	Name string
 	// Description: File description, supports markdown.
 	Description string
