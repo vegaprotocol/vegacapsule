@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
+	"os"
 	"text/template"
 
 	"code.vegaprotocol.io/shared/paths"
@@ -56,7 +56,7 @@ func (vg *Generator) TemplateAndMergeConfig(ns types.NodeSet, configTemplate *te
 		return nil, err
 	}
 
-	fileBytes, err := ioutil.ReadFile(genRunConfigFilePath)
+	fileBytes, err := os.ReadFile(genRunConfigFilePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read save config file %q: %w", genRunConfigFilePath, err)
 	}

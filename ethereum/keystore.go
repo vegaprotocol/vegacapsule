@@ -2,7 +2,7 @@ package ethereum
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -36,7 +36,7 @@ func (l SignersList) EthPrivateKeys() []string {
 }
 
 func DescribeKeyPair(keyFilePath, password string) (*KeyPair, error) {
-	keys, err := ioutil.ReadFile(keyFilePath)
+	keys, err := os.ReadFile(keyFilePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read keystore file: %w", err)
 	}
@@ -67,7 +67,7 @@ func ImportPrivateKeyIntoKeystore(privateKeyHex, passwordFilePath string, keysto
 		return nil, fmt.Errorf("failed to read keystore file: %w", err)
 	}
 
-	passwordBytes, err := ioutil.ReadFile(passwordFilePath)
+	passwordBytes, err := os.ReadFile(passwordFilePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read password file: %w", err)
 	}
@@ -111,7 +111,7 @@ func ImportPrivateKeyIntoKeystore(privateKeyHex, passwordFilePath string, keysto
 func filterEthAccountFileName(keystorePath, publicKey string) (string, error) {
 	publicKey = strings.ToLower(strings.TrimPrefix(publicKey, "0x"))
 
-	files, err := ioutil.ReadDir(keystorePath)
+	files, err := os.ReadDir(keystorePath)
 	if err != nil {
 		return "", fmt.Errorf("failed to read keystore directory: %w", err)
 	}

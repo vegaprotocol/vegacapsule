@@ -165,7 +165,7 @@ func (n *Client) Stop(ctx context.Context, jobID string, purge bool) error {
 	for {
 		allocs, _, err := jobs.Allocations(jobID, true, nil)
 		if err != nil {
-			return nil
+			return nil //nolint:nilerr
 		}
 
 		if len(allocs) == 0 {

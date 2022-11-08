@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -68,7 +67,7 @@ func installNomadBinary(localBinPath, binInstallPath string) (err error) {
 		return fmt.Errorf("failed to get nomad binary release with bad status: %q", resp.Status)
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf("failed to read request body: %w", err)
 	}

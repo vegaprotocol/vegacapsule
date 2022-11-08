@@ -3,7 +3,7 @@ package installer
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -131,7 +131,7 @@ func (i Installer) downloadAsset(ctx context.Context, asset asset, releaseTag st
 	}
 	defer file.Close()
 
-	all, err := ioutil.ReadAll(ra)
+	all, err := io.ReadAll(ra)
 	if err != nil {
 		return "", fmt.Errorf("failed to read  %q: %w", downloadPath, err)
 	}

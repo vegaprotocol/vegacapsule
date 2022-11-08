@@ -3,8 +3,8 @@ package importer
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"strings"
 
 	"code.vegaprotocol.io/vegacapsule/config"
@@ -29,7 +29,7 @@ func verifyTendermintNode(vegaBinary, tendermintHomePath, expectedNodeID string)
 		return fmt.Errorf("tendermint node is invalid: expected \"%s\", got \"%s\"", expectedNodeID, tendermintNodeID)
 	}
 
-	nodeKeyFileBytes, err := ioutil.ReadFile(tmgen.NodeKeyFilePath(tendermintHomePath))
+	nodeKeyFileBytes, err := os.ReadFile(tmgen.NodeKeyFilePath(tendermintHomePath))
 	if err != nil {
 		return fmt.Errorf("failed to read content of the node_key.json file: %w", err)
 	}
