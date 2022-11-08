@@ -107,10 +107,10 @@ type NodeConfig struct {
 
 	/*
 		description: |
-					Alows to define a Vega binary to be used in specific node set only.
-					Relative or absolute path can be used or if only binary name is defined it automatically looks up in $PATH.
-					This can help with testing of different version compatibilities or protocol upgrade.
-		note: Using versions that are not compatible might break the network - therefore this should be use in advance cases only.
+					Allows user to define a Vega binary to be used in specific node set only.
+					A relative or absolute path can be used. If only the binary name is defined, it automatically looks for it in $PATH.
+					This can help with testing different version compatibilities or a protocol upgrade.
+		note: Using versions that are not compatible could break the network - therefore this should be used in advanced cases only.
 	*/
 	VegaBinary *string `hcl:"vega_binary_path,optional"`
 
