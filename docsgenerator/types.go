@@ -46,7 +46,7 @@ type FieldDoc struct {
 
 	// Examples: List of example values for the item.
 	Examples []Example
-	// Values is only used to render valid values list in the documentation.
+	// Values is only used to render valid values listed in the documentation.
 	Values []string
 
 	// Options renders extra options for this field.
