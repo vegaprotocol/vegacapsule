@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	code.vegaprotocol.io/shared v0.0.0-20220816105810-a519d6b44f35
-	code.vegaprotocol.io/vega v0.61.1-0.20221107162732-44362496635b
+	code.vegaprotocol.io/vega v0.61.1-0.20221107194431-b8e6faf483c0
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/ethereum/go-ethereum v1.10.21
 	github.com/hashicorp/hcl/v2 v2.9.2-0.20210407182552-eb14f8319bdc
