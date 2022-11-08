@@ -186,8 +186,8 @@ type NetworkConfig struct {
 
 	/*
 		description: |
-			Allows to define jobs that should run before the node sets starts.
-			It can be used for node sets dependencies like databases or mock Ethereum chain etc..
+			Allows the user to define jobs that should run before the node sets start.
+			It can be used for node sets' dependencies, like databases, mock Ethereum chain, etc..
 		examples:
 			- type: hcl
 			  value: |
