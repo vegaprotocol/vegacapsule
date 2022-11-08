@@ -57,7 +57,7 @@ type Config struct {
 			and save them to local disk in Capsule home directory.
 			See `vegacapsule nomad logscollector` for more info.
 		default: Currently running Capsule instance binary
-		note: This optional paramater is used internally. There should never be need to set it to anything else then default.
+		note: This optional parameter is used internally. There should never be any need to set it to anything other than default.
 	*/
 	VegaCapsuleBinary *string `hcl:"vega_capsule_binary_path,optional"`
 
