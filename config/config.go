@@ -40,7 +40,7 @@ example:
 			}
 */
 type Config struct {
-	// description: Configuration of Vega network and it's dependencies.
+	// description: Configuration of Vega network and its dependencies.
 	Network NetworkConfig `hcl:"network,block"`
 	/*
 		description: |
