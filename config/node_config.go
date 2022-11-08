@@ -9,7 +9,7 @@ import (
 /*
 description: |
 
-	Represents and allows to configure set of Vega (with Tendermint) and Data Node nodes.
+	Represents, and allows the user to configure, a set of Vega (with Tendermint) and Data Node nodes.
 	One node set definition can be used by applied to multiple node sets (see `count` field) and it uses
 	templating to distinguish between different nodes and names/ports and other collisions.
 
