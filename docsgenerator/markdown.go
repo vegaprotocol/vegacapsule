@@ -137,7 +137,7 @@ func NewFileDoc(name, description string, types []*TypeDoc) *FileDoc {
 	return fd
 }
 
-// Encode encodes file documentation as MD file.
+// Encode: Encodes file documentation as .md file.
 func (fd *FileDoc) Encode() ([]byte, error) {
 	buf := bytes.Buffer{}
 
