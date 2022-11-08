@@ -50,7 +50,7 @@ Building from source is a more flexible (recomended for local development) becau
 
 **Caveat** - not all binaries versions works with current version of Capsule. For more convenient fast installation please refer to [automatic install](#install-automatically)
 
-Prequsities - this step will require Go 1.18+ installed. [Get Go](https://go.dev/doc/install).
+Prequsities - this step will require Go 1.19+ installed. [Get Go](https://go.dev/doc/install).
 ```bash
 go version
 ```
