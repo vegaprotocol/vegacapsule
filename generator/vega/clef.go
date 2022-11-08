@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"time"
@@ -31,7 +31,7 @@ func waitForClef(url string, payload string, timeout time.Duration) (err error) 
 			return fmt.Errorf("failed to send request %q to Clef %q: %w", payload, url, err)
 		}
 
-		b, err := ioutil.ReadAll(res.Body)
+		b, err := io.ReadAll(res.Body)
 		if err != nil {
 			return fmt.Errorf("failed to read Clef %q response: %w", url, err)
 		}

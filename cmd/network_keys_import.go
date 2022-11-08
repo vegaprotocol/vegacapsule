@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 
 	"code.vegaprotocol.io/vegacapsule/importer"
 	"code.vegaprotocol.io/vegacapsule/state"
@@ -106,7 +106,7 @@ func netKeysImport(ctx context.Context, state state.NetworkState, dataFilePath s
 }
 
 func loadKeysData(filePath string) (*importer.NodesKeysData, error) {
-	data, err := ioutil.ReadFile(filePath)
+	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read keys from the \"%s\" file: %w", filePath, err)
 	}

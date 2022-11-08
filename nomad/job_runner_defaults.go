@@ -32,6 +32,7 @@ var (
 		Attempts:  utils.ToPoint(0),
 		Unlimited: utils.ToPoint(false),
 	}
+	defaultKillTimeout = utils.ToPoint(time.Duration(time.Second * 20))
 )
 
 func mergeResourcesWithDefault(customRes *config.Resources) *api.Resources {
@@ -87,8 +88,9 @@ func (r *JobRunner) defaultLogCollectorTask(jobName string) *api.Task {
 				"--out-dir", path.Join(r.logsOutputDir, jobName),
 			},
 		},
-		LogConfig: defaultLogConfig,
-		Resources: defaultResourcesConfig,
+		LogConfig:   defaultLogConfig,
+		Resources:   defaultResourcesConfig,
+		KillTimeout: defaultKillTimeout,
 	}
 }
 
@@ -110,6 +112,7 @@ func (r *JobRunner) defaultNodeSetTasks(ns types.NodeSet) []*api.Task {
 					CPU:      utils.ToPoint(1000),
 					MemoryMB: utils.ToPoint(1024),
 				},
+				KillTimeout: defaultKillTimeout,
 			},
 			r.defaultLogCollectorTask(ns.Name),
 		}
@@ -131,8 +134,9 @@ func (r *JobRunner) defaultNodeSetTasks(ns types.NodeSet) []*api.Task {
 					"--nodewallet-passphrase-file", ns.Vega.NodeWalletPassFilePath,
 				},
 			},
-			LogConfig: defaultLogConfig,
-			Resources: defaultResourcesConfig,
+			LogConfig:   defaultLogConfig,
+			Resources:   defaultResourcesConfig,
+			KillTimeout: defaultKillTimeout,
 		},
 		r.defaultLogCollectorTask(ns.Name),
 	)
@@ -149,8 +153,9 @@ func (r *JobRunner) defaultNodeSetTasks(ns types.NodeSet) []*api.Task {
 					"--home", ns.DataNode.HomeDir,
 				},
 			},
-			LogConfig: defaultLogConfig,
-			Resources: defaultResourcesConfig,
+			LogConfig:   defaultLogConfig,
+			Resources:   defaultResourcesConfig,
+			KillTimeout: defaultKillTimeout,
 		})
 	}
 
@@ -205,8 +210,9 @@ func (r *JobRunner) defaultWalletJob(wallet *types.Wallet) *api.Job {
 								"--home", wallet.HomeDir,
 							},
 						},
-						LogConfig: defaultLogConfig,
-						Resources: defaultResourcesConfig,
+						LogConfig:   defaultLogConfig,
+						Resources:   defaultResourcesConfig,
+						KillTimeout: defaultKillTimeout,
 					},
 					r.defaultLogCollectorTask(wallet.Name),
 				},
@@ -241,8 +247,9 @@ func (r *JobRunner) defaultFaucetJob(conf *config.FaucetConfig, fc *types.Faucet
 								"--home", fc.HomeDir,
 							},
 						},
-						LogConfig: defaultLogConfig,
-						Resources: defaultResourcesConfig,
+						LogConfig:   defaultLogConfig,
+						Resources:   defaultResourcesConfig,
+						KillTimeout: defaultKillTimeout,
 					},
 					r.defaultLogCollectorTask(fc.Name),
 				},
@@ -292,9 +299,10 @@ func (r *JobRunner) defaultDockerJob(ctx context.Context, conf config.DockerConf
 							"auth_soft_fail": conf.AuthSoftFail,
 							"volumes":        conf.VolumeMounts,
 						},
-						Env:       conf.Env,
-						LogConfig: defaultLogConfig,
-						Resources: mergeResourcesWithDefault(conf.Resources),
+						Env:         conf.Env,
+						LogConfig:   defaultLogConfig,
+						Resources:   mergeResourcesWithDefault(conf.Resources),
+						KillTimeout: defaultKillTimeout,
 					},
 					r.defaultLogCollectorTask(conf.Name),
 				},

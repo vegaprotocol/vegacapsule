@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 )
@@ -77,12 +76,12 @@ func CreateFile(p string) (*os.File, error) {
 }
 
 func CopyFile(srcFile, dstFile string) error {
-	input, err := ioutil.ReadFile(srcFile)
+	input, err := os.ReadFile(srcFile)
 	if err != nil {
 		return fmt.Errorf("failed to read file %q: %w", srcFile, err)
 	}
 
-	if err := ioutil.WriteFile(dstFile, input, 0644); err != nil {
+	if err := os.WriteFile(dstFile, input, 0644); err != nil {
 		return fmt.Errorf("failed to write to file %q: %w", dstFile, err)
 	}
 

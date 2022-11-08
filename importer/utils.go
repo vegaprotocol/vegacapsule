@@ -3,7 +3,7 @@ package importer
 import (
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	"github.com/tendermint/tendermint/crypto/ed25519"
 )
@@ -32,7 +32,7 @@ func decodeBase64TendermintPrivateKey(privateKey string) (*tendermintKey, error)
 }
 
 func createTempFile(content string) (string, error) {
-	file, err := ioutil.TempFile("", "vegacapsule_import")
+	file, err := os.CreateTemp("", "vegacapsule_import")
 	if err != nil {
 		return "", fmt.Errorf("failed to create temporary file: %w", err)
 	}
