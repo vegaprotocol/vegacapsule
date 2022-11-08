@@ -111,7 +111,7 @@ type NetworkConfig struct {
 			[Example of smart contract address from mainnet](https://github.com/vegaprotocol/networks/blob/master/mainnet1/smart-contracts.json).
 		note: |
 				It is recommended that you use the `smart_contracts_addresses_file` param instead.
-				In case both `smart_contracts_addresses` and `smart_contracts_addresses_file` are defined the `genesis_template`
+				If both `smart_contracts_addresses` and `smart_contracts_addresses_file` are defined, then `genesis_template`
 				overrides `smart_contracts_addresses_file`.
 		optional_if: smart_contracts_addresses_file
 		examples:
