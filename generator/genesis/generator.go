@@ -117,7 +117,7 @@ func (g *Generator) generate(nodeSets []types.NodeSet, genValidators []tmtypes.G
 	}
 
 	var genDoc *tmtypes.GenesisDoc
-	var genState *genesis.GenesisState
+	var genState *genesis.State
 
 	for _, ns := range nodeSets {
 		updatedGenesis, err := g.updateGenesis(
@@ -129,7 +129,7 @@ func (g *Generator) generate(nodeSets []types.NodeSet, genValidators []tmtypes.G
 			return nil, fmt.Errorf("failed to update genesis for %q from %q: %w", ns.Tendermint.HomeDir, ns.Vega.HomeDir, err)
 		}
 
-		doc, state, err := genesis.GenesisFromJSON(updatedGenesis.RawOutput)
+		doc, state, err := genesisFromJSON(updatedGenesis.RawOutput)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get genesis from JSON: %w", err)
 		}
@@ -173,7 +173,7 @@ func (g *Generator) generate(nodeSets []types.NodeSet, genValidators []tmtypes.G
 		return nil, fmt.Errorf("failed to override genesis json: %w", err)
 	}
 
-	mergedGenDoc, _, err := genesis.GenesisFromJSON(b)
+	mergedGenDoc, _, err := genesisFromJSON(b)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get merged config from json: %w", err)
 	}
@@ -224,6 +224,24 @@ func mergeJSON(dst, src []byte) ([]byte, error) {
 	}
 
 	return b, nil
+}
+
+func genesisFromJSON(data []byte) (*tmtypes.GenesisDoc, *genesis.State, error) {
+	doc := &tmtypes.GenesisDoc{}
+	err := tmjson.Unmarshal(data, doc)
+	if err != nil {
+		return nil, nil, fmt.Errorf("couldn't unmarshal the genesis document: %w", err)
+	}
+
+	state := &genesis.State{}
+
+	if len(doc.AppState) != 0 {
+		if err := json.Unmarshal(doc.AppState, state); err != nil {
+			return nil, nil, fmt.Errorf("couldn't unmarshal genesis state: %w", err)
+		}
+	}
+
+	return doc, state, nil
 }
 
 func ConfigFilePath(nodeDir string) string {
