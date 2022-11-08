@@ -5,8 +5,8 @@ Example of usage:
 
 name: Type Document
 type: TypeDoc
-description: TypeDoc represents types documentation in a file
-node: A not to be displayd at the end of doc
+description: TypeDoc represents the types of documentation in a file
+node: A note to be displayed at the end of the doc
 example:
 
 	type: json
