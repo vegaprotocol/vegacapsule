@@ -93,7 +93,7 @@ type NodeConfig struct {
 	VisorBinary string `hcl:"visor_binary,optional"`
 
 	/*
-		description: Templates that allows configurations of Vega, Data, Tendermint and other services.
+		description: Templates that can be used for configurations of Vega and Data nodes, Tendermint and other services.
 		example:
 				type: hcl
 				value: |
