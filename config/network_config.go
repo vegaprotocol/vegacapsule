@@ -59,8 +59,8 @@ type NetworkConfig struct {
 			[Example of templated mainnet genesis file](https://github.com/vegaprotocol/networks/blob/master/mainnet1/genesis.json)
 		optional_if: genesis_template_file
 		note: |
-				It is recomended to use `genesis_template_file` param instead.
-				In case both `genesis_template` and `genesis_template_file` are defined the `genesis_template`
+				It is recommended that you use `genesis_template_file` param instead.
+				If both `genesis_template` and `genesis_template_file` are defined, then `genesis_template`
 				overrides `genesis_template_file`.
 		examples:
 			- type: hcl
