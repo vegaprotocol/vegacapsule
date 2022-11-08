@@ -36,7 +36,7 @@ type NodeConfig struct {
 	/*
 		description: |
 			Name of the node set.
-			Nomad that are part of this nodes are prefix with the name.
+			Nomad instances that are part of these nodes are prefixed with this name.
 		example:
 			type: hcl
 			value: |
