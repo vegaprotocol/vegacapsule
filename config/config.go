@@ -25,8 +25,8 @@ const (
 name: Root
 description: |
 
-	All paramaters from this types are use directly in the config file.
-	Most of the paramaters here are optional and can be left alone.
+	All parameters from this types are used directly in the config file.
+	Most of the parameters here are optional and can be left alone.
 	Please see the example below.
 
 example:
