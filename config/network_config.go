@@ -173,7 +173,7 @@ type NetworkConfig struct {
 
 	/*
 		description: |
-			Allows to deploy and configure [Vega Core Faucet](https://github.com/vegaprotocol/vega/tree/develop/core/faucet#faucet) instance.
+			Allows for deploying and configuring the [Vega Core Faucet](https://github.com/vegaprotocol/vega/tree/develop/core/faucet#faucet) instance, for supplying builtin assets.
 			Faucet will not be deployed if this block is not defined.
 		examples:
 			- type: hcl
