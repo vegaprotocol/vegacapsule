@@ -3,9 +3,9 @@ package config
 /*
 description: |
 
-	Allows to define specific Ethereum network to be used.
-	It can either some of the [Public networks](https://ethereum.org/en/developers/docs/networks/#public-networks) or
-	local instance of Ganache.
+	Allows the user to define the specific Ethereum network to be used.
+	It can either be one of the [public networks](https://ethereum.org/en/developers/docs/networks/#public-networks) or
+	a local instance of Ganache.
 
 note: |
 
