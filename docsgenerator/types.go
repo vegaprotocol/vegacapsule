@@ -44,7 +44,7 @@ type FieldDoc struct {
 	RequiredIf string
 	Default    string
 
-	// Examples list of example values for the item.
+	// Examples: List of example values for the item.
 	Examples []Example
 	// Values is only used to render valid values list in the documentation.
 	Values []string
