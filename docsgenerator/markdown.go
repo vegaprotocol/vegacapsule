@@ -148,7 +148,7 @@ func (fd *FileDoc) Encode() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// Write dumps documentation string to folder.
+// Write: Dumps documentation string to folder.
 func (fd *FileDoc) Write(path, frontmatter string) error {
 	data, err := fd.Encode()
 	if err != nil {
