@@ -1,2 +1,1453 @@
-jedu
-filePaths: [main.go]
+
+
+
+
+# Capsule configuration docs
+Capsule configuration is used by vegacapsule CLI network to generate and bootstrap commands.
+It allows a user to configure and customise Vega network running on Capsule.
+
+The configuration uses the [HCL](https://github.com/hashicorp/hcl) language syntax, which is also used, for example, by [Terraform](https://www.terraform.io/).
+
+This document explains all possible configuration options in Capsule.
+
+
+
+## Root - *Config*
+
+All parameters from this types are used directly in the config file.
+Most of the parameters here are optional and can be left alone.
+Please see the example below.
+
+
+
+### Fields
+
+<dl>
+<dt>
+	<code>network</code>  <strong><a href="#networkconfig">NetworkConfig</a></strong>  - required, block 
+</dt>
+
+<dd>
+
+Configuration of Vega network and its dependencies.
+
+</dd>
+
+<dt>
+	<code>output_dir</code>  <strong>string</strong>  - optional
+</dt>
+
+<dd>
+
+Directory path (relative or absolute) where Capsule stores generated folders, files, logs and configurations for network.
+
+
+
+Default value: <code>~/.vegacapsule/testnet</code>
+</dd>
+
+<dt>
+	<code>vega_binary_path</code>  <strong>string</strong>  - optional
+</dt>
+
+<dd>
+
+Path (relative or absolute) to vega binary that will be used to generate and run the network.
+
+
+Default value: <code>vega</code>
+</dd>
+
+<dt>
+	<code>vega_capsule_binary_path</code>  <strong>string</strong>  - optional
+</dt>
+
+<dd>
+
+Path (relative or absolute) of a Capsule binary. The Capsule binary is used by Nomad to aggregate logs from running jobs
+and save them to local disk in Capsule home directory.
+See `vegacapsule nomad logscollector` for more info.
+
+
+
+Default value: <code>Currently running Capsule instance binary</code>
+
+<blockquote>This optional parameter is used internally. There should never be any need to set it to anything other than default.</blockquote>
+</dd>
+
+
+
+### Complete example
+
+
+
+```hcl
+vega_binary_path = "/path/to/vega"
+
+network "your_network_name" {
+  ...
+}
+
+```
+
+
+</dl>
+
+---
+
+
+## *NetworkConfig*
+
+Network configuration allows a user to customise the Capsule Vega network into different shapes based on personal needs.
+It also allows the configuration and deployment of different Vega nodes' setups (validator, full) and their dependencies (like Ethereum or Postgres).
+It can run custom Docker images before and after the network nodes have started and much more.
+
+
+
+### Fields
+
+<dl>
+<dt>
+	<code>name</code>  <strong>string</strong>  - required, label 
+</dt>
+
+<dd>
+
+Name of the network.
+All folders generated are placed in the folder with this name.
+All Nomad jobs are prefix with the name.
+
+
+</dd>
+
+<dt>
+	<code>genesis_template</code>  <strong>string</strong>  - required | optional if <code>genesis_template_file</code> defined
+</dt>
+
+<dd>
+
+Go template of genesis file that will be used to bootrap the Vega network.
+[Example of templated mainnet genesis file](https://github.com/vegaprotocol/networks/blob/master/mainnet1/genesis.json)
+
+
+
+<blockquote>It is recommended that you use `genesis_template_file` param instead.
+If both `genesis_template` and `genesis_template_file` are defined, then `genesis_template`
+overrides `genesis_template_file`.
+</blockquote>
+
+<br />
+
+#### <code>genesis_template</code> example
+
+
+
+
+
+
+
+```hcl
+genesis_template = <<EOH
+ {
+  "app_state": {
+   ...
+  }
+  ..
+ }
+EOH
+
+```
+
+
+
+
+
+</dd>
+
+<dt>
+	<code>genesis_template_file</code>  <strong>string</strong>  - optional
+</dt>
+
+<dd>
+
+Same as `genesis_template` but it allows the user to link the genesis file template as an external file.
+
+
+
+<br />
+
+#### <code>genesis_template_file</code> example
+
+
+
+
+
+
+
+```hcl
+genesis_template_file = "/your_path/genesis.tmpl"
+
+```
+
+
+
+
+
+</dd>
+
+<dt>
+	<code>ethereum</code>  <strong><a href="#ethereumconfig">EthereumConfig</a></strong>  - required, block 
+</dt>
+
+<dd>
+
+Allows the user to define Ethereum network configuration.
+This is necessary because Vega needs to be connected to [Ethereum bridges](https://docs.vega.xyz/mainnet/api/bridge)
+or it cannot function.
+
+
+
+<br />
+
+#### <code>ethereum</code> example
+
+
+
+
+
+
+
+```hcl
+ethereum {
+  ...
+}
+
+```
+
+
+
+
+
+</dd>
+
+<dt>
+	<code>smart_contracts_addresses</code>  <strong>string</strong>  - required | optional if <code>smart_contracts_addresses_file</code> defined, optional 
+</dt>
+
+<dd>
+
+Smart contract addresses are addresses of [Ethereum bridges](https://docs.vega.xyz/mainnet/api/bridge) contracts in JSON format.
+
+These addresses should correspond to the chosen network in [Ethereum network](#EthereumConfig) and
+can be used in various types of templates in Capsule.
+[Example of smart contract address from mainnet](https://github.com/vegaprotocol/networks/blob/master/mainnet1/smart-contracts.json).
+
+
+
+<blockquote>It is recommended that you use the `smart_contracts_addresses_file` param instead.
+If both `smart_contracts_addresses` and `smart_contracts_addresses_file` are defined, then `genesis_template`
+overrides `smart_contracts_addresses_file`.
+</blockquote>
+
+<br />
+
+#### <code>smart_contracts_addresses</code> example
+
+
+
+
+
+
+
+```hcl
+smart_contracts_addresses = <<EOH
+ {
+  "erc20_bridge": "...",
+  "staking_bridge": "...",
+  ...
+ }
+EOH
+
+```
+
+
+
+
+
+</dd>
+
+<dt>
+	<code>smart_contracts_addresses_file</code>  <strong>string</strong>  - optional
+</dt>
+
+<dd>
+
+Same as `smart_contracts_addresses` but it allows you to link the smart contracts as an external file.
+
+
+
+<br />
+
+#### <code>smart_contracts_addresses_file</code> example
+
+
+
+
+
+
+
+```hcl
+smart_contracts_addresses_file = "/your_path/smart-contratcs.json"
+
+```
+
+
+
+
+
+</dd>
+
+<dt>
+	<code>node_set</code>  <strong>list(<a href="#nodeconfig">NodeConfig</a>)</strong>  - required, block 
+</dt>
+
+<dd>
+
+Allows a user to define multiple nodes sets and their specific configurations.
+A node set is a representation of Vega and Data Node nodes.
+This is the essential building block of the Vega network.
+
+
+
+<br />
+
+#### <code>node_set</code> example
+
+
+
+**Validators node set**
+
+
+
+```hcl
+node_set "validator-nodes" {
+  ...
+}
+
+```
+
+
+
+**Full nodes node set**
+
+
+
+```hcl
+node_set "full-nodes" {
+  ...
+}
+
+```
+
+
+
+
+
+</dd>
+
+<dt>
+	<code>wallet</code>  <strong><a href="#walletconfig">WalletConfig</a></strong>  - optional, block 
+</dt>
+
+<dd>
+
+Allows for deploying and configuring the [Vega Wallet](https://docs.vega.xyz/mainnet/tools/vega-wallet) instance.
+Wallet will not be deployed if this block is not defined.
+
+
+
+<br />
+
+#### <code>wallet</code> example
+
+
+
+
+
+
+
+```hcl
+wallet "wallet-name" {
+  ...
+}
+
+```
+
+
+
+
+
+</dd>
+
+<dt>
+	<code>faucet</code>  <strong><a href="#faucetconfig">FaucetConfig</a></strong>  - optional, block 
+</dt>
+
+<dd>
+
+Allows for deploying and configuring the [Vega Core Faucet](https://github.com/vegaprotocol/vega/tree/develop/core/faucet#faucet) instance, for supplying builtin assets.
+Faucet will not be deployed if this block is not defined.
+
+
+
+<br />
+
+#### <code>faucet</code> example
+
+
+
+
+
+
+
+```hcl
+faucet "faucet-name" {
+  ...
+}
+
+```
+
+
+
+
+
+</dd>
+
+<dt>
+	<code>pre_start</code>  <strong><a href="#pstartconfig">PStartConfig</a></strong>  - optional, block 
+</dt>
+
+<dd>
+
+Allows the user to define jobs that should run before the node sets start.
+It can be used for node sets' dependencies, like databases, mock Ethereum chain, etc..
+
+
+
+<br />
+
+#### <code>pre_start</code> example
+
+
+
+
+
+
+
+```hcl
+pre_start {
+  docker_service "ganache-1" {
+    ...
+  }
+  docker_service "postgres-1" {
+    ...
+  }
+}
+
+```
+
+
+
+
+
+</dd>
+
+<dt>
+	<code>post_start</code>  <strong><a href="#pstartconfig">PStartConfig</a></strong>  - optional, block 
+</dt>
+
+<dd>
+
+Allows the user to define jobs that should run after the node sets start.
+It can be used for services that depend on a network that is already running, like block explorer or Console.
+
+
+
+<br />
+
+#### <code>post_start</code> example
+
+
+
+
+
+
+
+```hcl
+post_start {
+  docker_service "bloc-explorer-1" {
+    ...
+  }
+  docker_service "vega-console-1" {
+    ...
+  }
+}
+
+```
+
+
+
+
+
+</dd>
+
+
+
+### Complete example
+
+
+
+```hcl
+network "testnet" {
+  ethereum {
+    ...
+  }
+
+  pre_start {
+    ...
+  }
+
+  genesis_template_file          = "..."
+  smart_contracts_addresses_file = "..."
+
+  node_set "validator-nodes" {
+    ...
+  }
+
+  node_set "full-nodes" {
+    ...
+  }
+}
+
+```
+
+
+</dl>
+
+---
+
+
+## *EthereumConfig*
+
+Allows the user to define the specific Ethereum network to be used.
+It can either be one of the [public networks](https://ethereum.org/en/developers/docs/networks/#public-networks) or
+a local instance of Ganache.
+
+
+
+### Fields
+
+<dl>
+<dt>
+	<code>chain_id</code>  <strong>string</strong>  - required
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+<dt>
+	<code>network_id</code>  <strong>string</strong>  - required
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+<dt>
+	<code>endpoint</code>  <strong>string</strong>  - required
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+
+
+### Complete example
+
+
+
+```hcl
+ethereum {
+  chain_id   = "1440"
+  network_id = "1441"
+  endpoint   = "http://127.0.0.1:8545/"
+}
+
+```
+
+
+</dl>
+
+---
+
+
+## *NodeConfig*
+
+Represents, and allows the user to configure, a set of Vega (with Tendermint) and Data Node nodes.
+One node set definition can be used by applied to multiple node sets (see `count` field) and it uses
+templating to distinguish between different nodes and names/ports and other collisions.
+
+
+
+### Fields
+
+<dl>
+<dt>
+	<code>name</code>  <strong>string</strong>  - required, label 
+</dt>
+
+<dd>
+
+Name of the node set.
+Nomad instances that are part of these nodes are prefixed with this name.
+
+
+</dd>
+
+<dt>
+	<code>mode</code>  <strong>string</strong>  - required
+</dt>
+
+<dd>
+
+Determines what mode the node set should run in.
+
+
+
+Valid values:
+
+<ul>
+
+<li><code>validator</code></li>
+
+<li><code>full</code></li>
+</ul>
+</dd>
+
+<dt>
+	<code>count</code>  <strong>int</strong>  - required
+</dt>
+
+<dd>
+
+Defines how many node sets with this exact configuration should be created.
+
+
+</dd>
+
+<dt>
+	<code>node_wallet_pass</code>  <strong>string</strong>  - required
+</dt>
+
+<dd>
+
+Defines the password for the automatically generated node wallet associated with the created node.
+
+</dd>
+
+<dt>
+	<code>ethereum_wallet_pass</code>  <strong>string</strong>  - required
+</dt>
+
+<dd>
+
+Defines password for automatically generated Ethereum wallet in node wallet.
+
+</dd>
+
+<dt>
+	<code>vega_wallet_pass</code>  <strong>string</strong>  - required
+</dt>
+
+<dd>
+
+Defines password for automatically generated Vega wallet in node wallet.
+
+</dd>
+
+<dt>
+	<code>use_data_node</code>  <strong>bool</strong>  - required
+</dt>
+
+<dd>
+
+Whether or not Data Node should be deployed on node set.
+
+</dd>
+
+<dt>
+	<code>visor_binary</code>  <strong>string</strong>  - required
+</dt>
+
+<dd>
+
+Path to [Visor](https://github.com/vegaprotocol/vega/tree/develop/visor) binary.
+If defined, Visor is automatically used to deploy Vega and Data nodes.
+The relative or absolute path can be used, if only the binary name is defined it automatically looks for it in $PATH.
+
+
+</dd>
+
+<dt>
+	<code>config_templates</code>  <strong><a href="#configtemplates">ConfigTemplates</a></strong>  - required, block 
+</dt>
+
+<dd>
+
+Templates that can be used for configurations of Vega and Data nodes, Tendermint and other services.
+
+</dd>
+
+<dt>
+	<code>vega_binary_path</code>  <strong>string</strong>  - optional
+</dt>
+
+<dd>
+
+Allows user to define a Vega binary to be used in specific node set only.
+A relative or absolute path can be used. If only the binary name is defined, it automatically looks for it in $PATH.
+This can help with testing different version compatibilities or a protocol upgrade.
+
+
+
+<blockquote>Using versions that are not compatible could break the network - therefore this should be used in advanced cases only.</blockquote>
+</dd>
+
+<dt>
+	<code>pre_generate</code>  <strong><a href="#pregenerate">PreGenerate</a></strong>  - optional, block 
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+<dt>
+	<code>pre_start_probe</code>  <strong>types.ProbesConfig</strong>  - optional, block 
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+<dt>
+	<code>clef_wallet</code>  <strong><a href="#clefconfig">ClefConfig</a></strong>  - optional, block 
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+<dt>
+	<code>nomad_job_template</code>  <strong>string</strong>  - optional
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+<dt>
+	<code>nomad_job_template_file</code>  <strong>string</strong>  - optional
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+
+
+### Complete example
+
+
+
+```hcl
+node_set "validators" {
+  count = 2
+  mode  = "validator"
+
+  node_wallet_pass     = "n0d3w4ll3t-p4ssphr4e3"
+  vega_wallet_pass     = "w4ll3t-p4ssphr4e3"
+  ethereum_wallet_pass = "ch41nw4ll3t-3th3r3um-p4ssphr4e3"
+
+  config_templates {
+    vega_file       = "./path/vega_validator.tmpl"
+    tendermint_file = "./path/tendermint_validator.tmpl"
+  }
+}
+
+```
+
+
+</dl>
+
+---
+
+
+## *WalletConfig*
+
+
+### Fields
+
+<dl>
+<dt>
+	<code>name</code>  <strong>string</strong>  - required, label 
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+<dt>
+	<code>vega_binary_path</code>  <strong>string</strong>  - optional
+</dt>
+
+<dd>
+
+Allows the user to optionally use a different version of Vega binary for wallet
+
+</dd>
+
+<dt>
+	<code>template</code>  <strong>string</strong>  - required
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+
+
+</dl>
+
+---
+
+
+## *FaucetConfig*
+
+
+### Fields
+
+<dl>
+<dt>
+	<code>name</code>  <strong>string</strong>  - required, label 
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+<dt>
+	<code>wallet_pass</code>  <strong>string</strong>  - required
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+<dt>
+	<code>template</code>  <strong>string</strong>  - required
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+
+
+</dl>
+
+---
+
+
+## *PStartConfig*
+
+
+### Fields
+
+<dl>
+<dt>
+	<code>docker_service</code>  <strong>list(<a href="#dockerconfig">DockerConfig</a>)</strong>  - required, block 
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+
+
+</dl>
+
+---
+
+
+## *ConfigTemplates*
+
+Allow to add configuration template for certain services deployed by Capsule.
+Learn more about how configuration templating work here
+
+
+
+### Fields
+
+<dl>
+<dt>
+	<code>vega</code>  <strong>string</strong>  - required | optional if <code>vega_file</code> defined, optional 
+</dt>
+
+<dd>
+
+Go template of Vega config.
+
+
+<blockquote>It is recommended that you use `vega_file` param instead.
+If both `vega` and `vega_file` are defined, then `vega`
+overrides `vega_file`.
+</blockquote>
+
+<br />
+
+#### <code>vega</code> example
+
+
+
+
+
+
+
+```hcl
+vega = <<EOH
+ ...
+EOH
+
+```
+
+
+
+
+
+</dd>
+
+<dt>
+	<code>vega_file</code>  <strong>string</strong>  - optional
+</dt>
+
+<dd>
+
+Same as `vega` but it allows the user to link the Vega config template as an external file.
+
+
+
+<br />
+
+#### <code>vega_file</code> example
+
+
+
+
+
+
+
+```hcl
+vega_file = "/your_path/vega_config.tmpl"
+
+```
+
+
+
+
+
+</dd>
+
+<dt>
+	<code>tendermint</code>  <strong>string</strong>  - required | optional if <code>tendermint_file</code> defined, optional 
+</dt>
+
+<dd>
+
+Go template of Tendermint config.
+
+
+<blockquote>It is recommended that you use `tendermint_file` param instead.
+If both `tendermint` and `tendermint_file` are defined, then `tendermint`
+overrides `tendermint_file`.
+</blockquote>
+
+<br />
+
+#### <code>tendermint</code> example
+
+
+
+
+
+
+
+```hcl
+tendermint = <<EOH
+ ...
+EOH
+
+```
+
+
+
+
+
+</dd>
+
+<dt>
+	<code>tendermint_file</code>  <strong>string</strong>  - optional
+</dt>
+
+<dd>
+
+Same as `tendermint` but it allows the user to link the Tendermint config template as an external file.
+
+
+
+<br />
+
+#### <code>tendermint_file</code> example
+
+
+
+
+
+
+
+```hcl
+tendermint_file = "/your_path/tendermint_config.tmpl"
+
+```
+
+
+
+
+
+</dd>
+
+<dt>
+	<code>data_node</code>  <strong>string</strong>  - required | optional if <code>data_node_file</code> defined, optional 
+</dt>
+
+<dd>
+
+Go template of Data Node config.
+
+
+<blockquote>It is recommended that you use `data_node_file` param instead.
+If both `data_node` and `data_node_file` are defined, then `data_node`
+overrides `data_node_file`.
+</blockquote>
+</dd>
+
+<dt>
+	<code>data_node_file</code>  <strong>string</strong>  - optional
+</dt>
+
+<dd>
+
+Same as `data_node` but it allows the user to link the Data Node config template as an external file.
+
+
+</dd>
+
+<dt>
+	<code>visor_run_conf</code>  <strong>string</strong>  - required | optional if <code>visor_run_conf_file</code> defined, optional 
+</dt>
+
+<dd>
+
+Go template of Visor genesis run config.
+Current Vega binary is automatically copied to the Visor genesis folder by Capsule
+so it can be used from this template.
+
+
+
+<blockquote>It is recommended that you use `visor_run_conf_file` param instead.
+If both `visor_run_conf` and `visor_run_conf_file` are defined, then `visor_run_conf`
+overrides `visor_run_conf_file`.
+</blockquote>
+</dd>
+
+<dt>
+	<code>visor_run_conf_file</code>  <strong>string</strong>  - optional
+</dt>
+
+<dd>
+
+Same as `visor_run_conf` but it allows the user to link the Visor genesis run config template as an external file.
+
+
+</dd>
+
+<dt>
+	<code>visor_conf</code>  <strong>string</strong>  - required | optional if <code>visor_conf_file</code> defined, optional 
+</dt>
+
+<dd>
+
+Go template of Visor config.
+
+
+<blockquote>It is recommended that you use `visor_conf_file` param instead.
+If both `visor_conf` and `visor_conf_file` are defined, then `visor_conf`
+overrides `visor_conf_file`.
+</blockquote>
+</dd>
+
+<dt>
+	<code>visor_conf_file</code>  <strong>string</strong>  - optional
+</dt>
+
+<dd>
+
+Same as `visor_conf` but it allows the user to link the Visor genesis run config template as an external file.
+
+
+</dd>
+
+
+
+</dl>
+
+---
+
+
+## *PreGenerate*
+
+
+### Fields
+
+<dl>
+<dt>
+	<code>nomad_job</code>  <strong>list(<a href="#nomadconfig">NomadConfig</a>)</strong>  - required, block 
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+
+
+</dl>
+
+---
+
+
+## *ClefConfig*
+
+
+### Fields
+
+<dl>
+<dt>
+	<code>ethereum_account_addresses</code>  <strong>list(string)</strong>  - required
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+<dt>
+	<code>clef_rpc_address</code>  <strong>string</strong>  - required
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+
+
+</dl>
+
+---
+
+
+## *DockerConfig*
+
+
+### Fields
+
+<dl>
+<dt>
+	<code>name</code>  <strong>string</strong>  - required, label 
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+<dt>
+	<code>image</code>  <strong>string</strong>  - required
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+<dt>
+	<code>cmd</code>  <strong>string</strong>  - required
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+<dt>
+	<code>args</code>  <strong>list(string)</strong>  - required
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+<dt>
+	<code>env</code>  <strong>map[string]string</strong>  - required
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+<dt>
+	<code>static_port</code>  <strong><a href="#staticport">StaticPort</a></strong>  - optional, block 
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+<dt>
+	<code>auth_soft_fail</code>  <strong>bool</strong>  - required
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+<dt>
+	<code>resources</code>  <strong><a href="#resources">Resources</a></strong>  - optional, block 
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+<dt>
+	<code>volume_mounts</code>  <strong>list(string)</strong>  - required
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+
+
+</dl>
+
+---
+
+
+## *NomadConfig*
+
+
+### Fields
+
+<dl>
+<dt>
+	<code>name</code>  <strong>string</strong>  - required, label 
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+<dt>
+	<code>job_template</code>  <strong>string</strong>  - optional
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+<dt>
+	<code>job_template_file</code>  <strong>string</strong>  - optional
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+
+
+</dl>
+
+---
+
+
+## *StaticPort*
+
+
+### Fields
+
+<dl>
+<dt>
+	<code>to</code>  <strong>int</strong>  - required
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+<dt>
+	<code>value</code>  <strong>int</strong>  - required
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+
+
+</dl>
+
+---
+
+
+## *Resources*
+
+
+### Fields
+
+<dl>
+<dt>
+	<code>cpu</code>  <strong>int</strong>  - optional
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+<dt>
+	<code>cores</code>  <strong>int</strong>  - optional
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+<dt>
+	<code>memory</code>  <strong>int</strong>  - optional
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+<dt>
+	<code>memory_max</code>  <strong>int</strong>  - optional
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+<dt>
+	<code>disk</code>  <strong>int</strong>  - optional
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+
+
+</dl>
+
+---
+
+

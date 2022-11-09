@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"strings"
 
 	"code.vegaprotocol.io/vegacapsule/docsgenerator"
 )
@@ -23,14 +24,14 @@ This document explains all possible configuration options in Capsule.
 
 func init() {
 	flag.StringVar(&tagName, "tag-name", "", "name of the tag")
-	flag.StringVar(&typeName, "type-names", "", "type to be processed")
+	flag.StringVar(&typeNames, "type-names", "", "comma seperated types to be processed")
 	flag.StringVar(&directoryPath, "dir-path", "", "directory path of the file to generate docs from")
 }
 
 func main() {
 	flag.Parse()
 
-	if typeName == "" {
+	if typeNames == "" {
 		panic("missing required `type-name` flag")
 	}
 	if directoryPath == "" {
@@ -41,7 +42,9 @@ func main() {
 		panic(err)
 	}
 
-	typeDocs, err := gen.Generate(typeName)
+	names := strings.Split(typeNames, ",")
+
+	typeDocs, err := gen.Generate(names...)
 	if err != nil {
 		panic(err)
 	}

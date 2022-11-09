@@ -5,6 +5,7 @@ import (
 	"go/ast"
 	"os"
 	"strings"
+	"unicode"
 )
 
 const optionalTag = "optional"
@@ -43,6 +44,31 @@ func NewTypeDocGenerator(dir, tagName string) (*TypeDocGenerator, error) {
 	}, nil
 }
 
+func (gen *TypeDocGenerator) formatTypeName(packageName, typeName string) string {
+	if gen.tagName != "" {
+		return typeName
+	}
+
+	if len(strings.Split(typeName, ".")) == 1 {
+
+		trim := strings.TrimRight(typeName, "*")
+
+		if len(trim) > 5 {
+			if trim[0:5] == "list(" {
+				return "list(" + formatLookupKey(packageName, trim[5:len(trim)-1]) + ")" // TODO do lists and maps
+			}
+		}
+
+		if !unicode.IsUpper(rune(trim[0])) {
+			return typeName
+		}
+
+		return formatLookupKey(packageName, typeName)
+	}
+
+	return typeName
+}
+
 func (gen *TypeDocGenerator) Generate(typesNames ...string) ([]*TypeDoc, error) {
 	typeDocs := []*TypeDoc{}
 
@@ -76,7 +102,7 @@ func (gen *TypeDocGenerator) Generate(typesNames ...string) ([]*TypeDoc, error) 
 
 			typeDoc := &TypeDoc{
 				Name:        c.Name,
-				Type:        t.Name,
+				Type:        gen.formatTypeName(t.packageName, t.Name),
 				Description: c.Description,
 				Note:        c.Note,
 				Example:     c.Example,
@@ -184,9 +210,8 @@ func (gen TypeDocGenerator) processField(packageName, fieldType string, field *a
 	}
 
 	return &FieldDoc{
-		// TODO - implement function to extract the name properly
 		Name:        name,
-		Type:        fi.fieldType,
+		Type:        gen.formatTypeName(packageName, fi.fieldType),
 		Description: comment.Description,
 		Note:        comment.Note,
 		Examples:    comment.Examples,
