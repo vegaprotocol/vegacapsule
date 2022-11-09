@@ -83,6 +83,8 @@
 - [136](https://github.com/vegaprotocol/vegacapsule/issues/136) New templates for a sentry node with data node setup
 
 ### 🐛 Fixes
-- [117](https://github.com/vegaprotocol/vegacapsule/pull/117) - fix nil dereference panics in config
-- [41](https://github.com/vegaprotocol/vegacapsule/issues/40) - persist the network state after it's generated in bootstrap command
-- [86](https://github.com/vegaprotocol/vegacapsule/issues/86) - allow overriding config options that default true with falue
+
+- [117](https://github.com/vegaprotocol/vegacapsule/pull/117) - Fix nil dereference panics in config
+- [41](https://github.com/vegaprotocol/vegacapsule/issues/40) - Persist the network state after it's generated in bootstrap command
+- [86](https://github.com/vegaprotocol/vegacapsule/issues/86) - Allow overriding config options that default true with falue
+- [323](https://github.com/vegaprotocol/vegacapsule/pull/323) - 
