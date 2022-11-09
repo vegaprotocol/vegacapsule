@@ -13,6 +13,7 @@ import (
 	tmconfig "github.com/tendermint/tendermint/config"
 )
 
+// ignore_tag: true
 type ConfigTemplateContext struct {
 	TendermintNodePrefix string
 	VegaNodePrefix       string

@@ -16,6 +16,7 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
+// ignore_tag: true
 type ConfigTemplateContext struct {
 	NodeHomeDir string
 	NodeNumber  int

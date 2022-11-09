@@ -9,7 +9,7 @@ import (
 
 var (
 	tagName       string
-	typeName      string
+	typeNames     string
 	directoryPath string
 )
 
@@ -23,23 +23,19 @@ This document explains all possible configuration options in Capsule.
 
 func init() {
 	flag.StringVar(&tagName, "tag-name", "", "name of the tag")
-	flag.StringVar(&typeName, "type-name", "", "type to be processed")
+	flag.StringVar(&typeName, "type-names", "", "type to be processed")
 	flag.StringVar(&directoryPath, "dir-path", "", "directory path of the file to generate docs from")
 }
 
 func main() {
 	flag.Parse()
 
-	if tagName == "" {
-		panic("missing required `tag-name` flag")
-	}
 	if typeName == "" {
 		panic("missing required `type-name` flag")
 	}
 	if directoryPath == "" {
 		panic("missing required `dir-path` flag")
 	}
-
 	gen, err := docsgenerator.NewTypeDocGenerator(directoryPath, tagName)
 	if err != nil {
 		panic(err)

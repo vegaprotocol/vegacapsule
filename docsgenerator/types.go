@@ -52,9 +52,9 @@ type FieldDoc struct {
 	// Options renders extra options for this field.
 	Options []string
 
-	// lookType is for internal usage only.
+	// lookupKey is for internal usage only.
 	// It is the field type stripped of pointer and array symbols (*, [])
-	lookType string
+	lookupKey string
 }
 
 type Example struct {
@@ -74,4 +74,6 @@ type Comment struct {
 	// Makes item param if specified param is defined
 	OptionalIf  string `yaml:"optional_if"`
 	RequiredlIf string `yaml:"required_if"`
+
+	IgnoreTag bool `yaml:"ignore_tag"`
 }

@@ -5,6 +5,7 @@ import (
 	"reflect"
 )
 
+// ignore_tag: true
 type NodeConfigTemplateContext struct {
 	NodeNumber int
 }

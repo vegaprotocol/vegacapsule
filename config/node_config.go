@@ -133,17 +133,153 @@ type ClefConfig struct {
 	ClefRPCAddr      string   `hcl:"clef_rpc_address" template:""`
 }
 
+/*
+description: |
+
+	Allow to add configuration template for certain services deployed by Capsule.
+	Learn more about how configuration templating work here
+*/
 type ConfigTemplates struct {
-	Vega             *string `hcl:"vega,optional"`
-	VegaFile         *string `hcl:"vega_file,optional"`
-	Tendermint       *string `hcl:"tendermint,optional"`
-	TendermintFile   *string `hcl:"tendermint_file,optional"`
-	DataNode         *string `hcl:"data_node,optional"`
-	DataNodeFile     *string `hcl:"data_node_file,optional"`
-	VisorRunConf     *string `hcl:"visor_run_conf,optional"`
+	/*
+		description: Go template of Vega config.
+		optional_if: vega_file
+		note: |
+				It is recommended that you use `vega_file` param instead.
+				If both `vega` and `vega_file` are defined, then `vega`
+				overrides `vega_file`.
+		examples:
+			- type: hcl
+			  value: |
+						vega = <<EOH
+							...
+						EOH
+
+	*/
+	Vega *string `hcl:"vega,optional"`
+
+	/*
+		description: |
+			Same as `vega` but it allows the user to link the Vega config template as an external file.
+		examples:
+			- type: hcl
+			  value: |
+						vega_file = "/your_path/vega_config.tmpl"
+
+	*/
+	VegaFile *string `hcl:"vega_file,optional"`
+
+	/*
+		description: Go template of Tendermint config.
+		optional_if: tendermint_file
+		note: |
+				It is recommended that you use `tendermint_file` param instead.
+				If both `tendermint` and `tendermint_file` are defined, then `tendermint`
+				overrides `tendermint_file`.
+		examples:
+			- type: hcl
+			  value: |
+						tendermint = <<EOH
+							...
+						EOH
+
+	*/
+	Tendermint *string `hcl:"tendermint,optional"`
+	/*
+		description: |
+			Same as `tendermint` but it allows the user to link the Tendermint config template as an external file.
+		examples:
+			- type: hcl
+			  value: |
+						tendermint_file = "/your_path/tendermint_config.tmpl"
+
+	*/
+	TendermintFile *string `hcl:"tendermint_file,optional"`
+
+	/*
+		description: Go template of Data Node config.
+		optional_if: data_node_file
+		note: |
+				It is recommended that you use `data_node_file` param instead.
+				If both `data_node` and `data_node_file` are defined, then `data_node`
+				overrides `data_node_file`.
+		example:
+			type: hcl
+			value: |
+					data_node = <<EOH
+						...
+					EOH
+
+	*/
+	DataNode *string `hcl:"data_node,optional"`
+
+	/*
+		description: |
+			Same as `data_node` but it allows the user to link the Data Node config template as an external file.
+		example:
+			type: hcl
+			value: |
+					data_node_file = "/your_path/data_node_config.tmpl"
+
+	*/
+	DataNodeFile *string `hcl:"data_node_file,optional"`
+
+	/*
+		description: |
+						Go template of Visor genesis run config.
+						Current Vega binary is automatically copied to the Visor genesis folder by Capsule
+						so it can be used from this template.
+		optional_if: visor_run_conf_file
+		note: |
+				It is recommended that you use `visor_run_conf_file` param instead.
+				If both `visor_run_conf` and `visor_run_conf_file` are defined, then `visor_run_conf`
+				overrides `visor_run_conf_file`.
+		example:
+			type: hcl
+			value: |
+					visor_run_conf = <<EOH
+						...
+					EOH
+
+	*/
+	VisorRunConf *string `hcl:"visor_run_conf,optional"`
+	/*
+		description: |
+			Same as `visor_run_conf` but it allows the user to link the Visor genesis run config template as an external file.
+		example:
+			type: hcl
+			value: |
+					visor_run_conf_file = "/your_path/visor_run_config.tmpl"
+
+	*/
 	VisorRunConfFile *string `hcl:"visor_run_conf_file,optional"`
-	VisorConf        *string `hcl:"visor_conf,optional"`
-	VisorConfFile    *string `hcl:"visor_conf_file,optional"`
+
+	/*
+		description: Go template of Visor config.
+		optional_if: visor_conf_file
+		note: |
+				It is recommended that you use `visor_conf_file` param instead.
+				If both `visor_conf` and `visor_conf_file` are defined, then `visor_conf`
+				overrides `visor_conf_file`.
+		example:
+			type: hcl
+			value: |
+					visor_conf = <<EOH
+						...
+					EOH
+
+	*/
+	VisorConf *string `hcl:"visor_conf,optional"`
+
+	/*
+		description: |
+			Same as `visor_conf` but it allows the user to link the Visor genesis run config template as an external file.
+		example:
+			type: hcl
+			value: |
+					visor_conf_file = "/your_path/visor_config.tmpl"
+
+	*/
+	VisorConfFile *string `hcl:"visor_conf_file,optional"`
 }
 
 func (nc NodeConfig) Clone() (*NodeConfig, error) {

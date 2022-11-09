@@ -8,11 +8,11 @@ type NodeSet struct {
 	GroupName string `cty:"group_name"`
 	Name      string `cty:"name"`
 	Mode      string `cty:"mode"`
-	// Index is a node set counter over all created node sets.
+	// description: Index is a node set counter over all created node sets.
 	Index int `cty:"index"`
-	// RelativeIndex is a counter relative to current node set group. Related to GroupName.
+	// description: RelativeIndex is a counter relative to current node set group. Related to GroupName.
 	RelativeIndex int
-	// GroupIndex is a index of the group where this node set belongs to. Related to GroupName.
+	// description: GroupIndex is a index of the group where this node set belongs to. Related to GroupName.
 	GroupIndex      int
 	Vega            VegaNode       `cty:"vega"`
 	Tendermint      TendermintNode `cty:"tendermint"`

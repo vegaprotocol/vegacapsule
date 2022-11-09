@@ -6,6 +6,8 @@ import (
 	"go/doc"
 	"go/parser"
 	"go/token"
+	"io/fs"
+	"path/filepath"
 	"strings"
 
 	"github.com/fatih/structtag"
@@ -19,11 +21,11 @@ func tabToSpace(input string) string {
 type docTypeWithFileContent struct {
 	*doc.Type
 	fileContent string
+	packageName string
 }
 
 func extractDocTypesFromFile(fileName, fileContent string) (map[string]docTypeWithFileContent, error) {
 	fset := token.NewFileSet()
-
 	f, err := parser.ParseFile(fset, fileName, fileContent, parser.ParseComments)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse file: %w", err)
@@ -39,6 +41,7 @@ func extractDocTypesFromFile(fileName, fileContent string) (map[string]docTypeWi
 		types[t.Name] = docTypeWithFileContent{
 			Type:        t,
 			fileContent: fileContent,
+			packageName: f.Name.Name,
 		}
 	}
 
@@ -66,4 +69,18 @@ func parseTag(tags, tagName string) (*structtag.Tag, error) {
 	}
 
 	return tag, nil
+}
+
+func findFiles(root, ext string) []string {
+	var a []string
+	filepath.WalkDir(root, func(s string, d fs.DirEntry, e error) error {
+		if e != nil {
+			return e
+		}
+		if filepath.Ext(d.Name()) == ext {
+			a = append(a, s)
+		}
+		return nil
+	})
+	return a
 }

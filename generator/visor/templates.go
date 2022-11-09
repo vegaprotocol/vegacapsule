@@ -15,6 +15,7 @@ import (
 	"github.com/imdario/mergo"
 )
 
+// ignore_tag: true
 type ConfigTemplateContext struct {
 	NodeSet types.NodeSet
 }

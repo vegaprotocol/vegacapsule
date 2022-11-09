@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"go/ast"
 	"os"
-	"path/filepath"
 	"strings"
 )
 
@@ -17,12 +16,7 @@ type TypeDocGenerator struct {
 }
 
 func NewTypeDocGenerator(dir, tagName string) (*TypeDocGenerator, error) {
-	match := fmt.Sprintf(`%s/*.go`, dir)
-
-	filePaths, err := filepath.Glob(match)
-	if err != nil {
-		return nil, fmt.Errorf("failed to look for files in dir %q: %w", dir, err)
-	}
+	filePaths := findFiles(dir, ".go")
 
 	types := map[string]docTypeWithFileContent{}
 
@@ -39,7 +33,7 @@ func NewTypeDocGenerator(dir, tagName string) (*TypeDocGenerator, error) {
 		}
 
 		for k, v := range fileTypes {
-			types[k] = v
+			types[formatLookupKey(v.packageName, k)] = v
 		}
 	}
 
@@ -90,7 +84,15 @@ func (gen *TypeDocGenerator) Generate(typesNames ...string) ([]*TypeDoc, error) 
 			}
 
 			for _, field := range typeStruct.Fields.List {
-				fieldDoc, err := gen.processField(getFieldType(t.fileContent, field), field)
+				var fieldDoc *FieldDoc
+
+				// TODO - field.Tag == nil is not good enough. Need to figure out what to do without tag for private fields on struct.
+				if c.IgnoreTag || gen.tagName == "" {
+					fieldDoc, err = gen.processField(t.packageName, getFieldType(t.fileContent, field), field)
+				} else {
+					fieldDoc, err = gen.processFieldWithTag(t.packageName, getFieldType(t.fileContent, field), field)
+				}
+
 				if err != nil {
 					return nil, fmt.Errorf("failed for type %q: %w", name, err)
 				}
@@ -101,14 +103,14 @@ func (gen *TypeDocGenerator) Generate(typesNames ...string) ([]*TypeDoc, error) 
 
 				typeDoc.Fields = append(typeDoc.Fields, *fieldDoc)
 
-				if _, ok := gen.fileTypes[fieldDoc.lookType]; !ok {
+				if _, ok := gen.fileTypes[fieldDoc.lookupKey]; !ok {
 					continue
 				}
 
-				if _, ok := processedTypes[fieldDoc.lookType]; !ok {
+				if _, ok := processedTypes[fieldDoc.lookupKey]; !ok {
 					// Enqueue next type
-					typesNames = append(typesNames, fieldDoc.lookType)
-					processedTypes[fieldDoc.lookType] = struct{}{}
+					typesNames = append(typesNames, fieldDoc.lookupKey)
+					processedTypes[fieldDoc.lookupKey] = struct{}{}
 				}
 
 			}
@@ -120,7 +122,7 @@ func (gen *TypeDocGenerator) Generate(typesNames ...string) ([]*TypeDoc, error) 
 	return typeDocs, nil
 }
 
-func (gen TypeDocGenerator) processField(fieldType string, field *ast.Field) (*FieldDoc, error) {
+func (gen TypeDocGenerator) processFieldWithTag(packageName, fieldType string, field *ast.Field) (*FieldDoc, error) {
 	if field.Tag == nil {
 		return nil, nil
 	}
@@ -147,36 +149,105 @@ func (gen TypeDocGenerator) processField(fieldType string, field *ast.Field) (*F
 		options = append(options, opt)
 	}
 
-	var lookupType string
-	switch field.Type.(type) {
-	case *ast.Ident:
-		lookupType = fieldType
-	case *ast.StarExpr:
-		lookupType = strings.TrimLeft(fieldType, "*")
-		fieldType = lookupType
-		if comment.OptionalIf == "" {
-			isOptional = true
-		}
-	case *ast.ArrayType:
-		lookupType = strings.TrimLeft(fieldType, "[]")
-		fieldType = fmt.Sprintf("list(%s)", lookupType)
-	}
+	fi := getFieldInfo(packageName, fieldType, field, comment, isOptional)
 
 	return &FieldDoc{
 		Name:        tag.Name,
-		Type:        fieldType,
+		Type:        fi.fieldType,
 		Description: comment.Description,
 		Note:        comment.Note,
 		Examples:    comment.Examples,
 		OptionalIf:  comment.OptionalIf,
 		RequiredIf:  comment.RequiredlIf,
-		Optional:    isOptional,
+		Optional:    fi.isOptional,
 		Default:     comment.Default,
 		Options:     options,
 		Values:      comment.Values,
 
-		lookType: lookupType,
+		lookupKey: fi.lookupKey,
 	}, nil
+}
+
+func (gen TypeDocGenerator) processField(packageName, fieldType string, field *ast.Field) (*FieldDoc, error) {
+	comment, err := parseComment(field.Doc.Text())
+	if err != nil {
+		return nil, fmt.Errorf("failed for field %q: %w", fieldType, err)
+	}
+
+	fi := getFieldInfo(packageName, fieldType, field, comment, false)
+
+	var name string
+	if len(field.Names) > 0 {
+		name = field.Names[0].Name
+	} else {
+		name = fi.fieldType
+	}
+
+	return &FieldDoc{
+		// TODO - implement function to extract the name properly
+		Name:        name,
+		Type:        fi.fieldType,
+		Description: comment.Description,
+		Note:        comment.Note,
+		Examples:    comment.Examples,
+		OptionalIf:  comment.OptionalIf,
+		RequiredIf:  comment.RequiredlIf,
+		Optional:    fi.isOptional,
+		Default:     comment.Default,
+		Values:      comment.Values,
+
+		lookupKey: fi.lookupKey,
+	}, nil
+}
+
+// formatLookupKey formats strings to "packageName.TypeName"
+func formatLookupKey(packageName, typeName string) string {
+	return fmt.Sprintf("%s.%s", packageName, typeName)
+}
+
+type fieldInfo struct {
+	fieldType  string
+	lookupKey  string
+	isOptional bool
+}
+
+func getFieldInfo(
+	currentPackageName, fieldType string,
+	field *ast.Field,
+	comment *Comment,
+	isOptional bool,
+) fieldInfo {
+	fi := fieldInfo{
+		fieldType: fieldType,
+	}
+
+	packageName := currentPackageName
+
+	typeSplit := strings.Split(fi.fieldType, ".")
+	if len(typeSplit) > 1 {
+		packageName = typeSplit[0]
+		fi.lookupKey = typeSplit[1]
+	} else {
+		fi.lookupKey = typeSplit[0]
+	}
+
+	switch field.Type.(type) {
+	case *ast.Ident:
+		fi.lookupKey = fi.fieldType
+	case *ast.StarExpr:
+		fi.lookupKey = strings.TrimLeft(fi.fieldType, "*")
+		fi.fieldType = fi.lookupKey
+		if comment.OptionalIf == "" {
+			fi.isOptional = true
+		}
+	case *ast.ArrayType:
+		fi.lookupKey = strings.TrimLeft(fi.fieldType, "[]")
+		fi.fieldType = fmt.Sprintf("list(%s)", fi.lookupKey)
+	}
+
+	fi.lookupKey = formatLookupKey(packageName, fi.lookupKey)
+
+	return fi
 }
 
 func getFieldType(fileContent string, field *ast.Field) string {
