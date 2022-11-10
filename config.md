@@ -127,7 +127,9 @@ All Nomad jobs are prefix with the name.
 <dd>
 
 Go template of genesis file that will be used to bootrap the Vega network.
-[Example of templated mainnet genesis file](https://github.com/vegaprotocol/networks/blob/master/mainnet1/genesis.json)
+[Example of templated mainnet genesis file](https://github.com/vegaprotocol/networks/blob/master/mainnet1/genesis.json).
+
+The variables availible inside the template can be viewed [here](context.md#genesistemplatecontext)
 
 
 
@@ -308,7 +310,7 @@ smart_contracts_addresses_file = "/your_path/smart-contratcs.json"
 </dd>
 
 <dt>
-	<code>node_set</code>  <strong>list(<a href="#nodeconfig">NodeConfig</a>)</strong>  - required, block 
+	<code>node_set</code>  <strong>[]<a href="#nodeconfig">NodeConfig</a></strong>  - required, block 
 </dt>
 
 <dd>
@@ -654,7 +656,7 @@ Defines how many node sets with this exact configuration should be created.
 </dd>
 
 <dt>
-	<code>node_wallet_pass</code>  <strong>string</strong>  - required
+	<code>node_wallet_pass</code>  <strong>string</strong>  - optional | required if <code>mode=validator</code> defined
 </dt>
 
 <dd>
@@ -664,7 +666,7 @@ Defines the password for the automatically generated node wallet associated with
 </dd>
 
 <dt>
-	<code>ethereum_wallet_pass</code>  <strong>string</strong>  - required
+	<code>ethereum_wallet_pass</code>  <strong>string</strong>  - optional | required if <code>mode=validator</code> defined
 </dt>
 
 <dd>
@@ -674,7 +676,7 @@ Defines password for automatically generated Ethereum wallet in node wallet.
 </dd>
 
 <dt>
-	<code>vega_wallet_pass</code>  <strong>string</strong>  - required
+	<code>vega_wallet_pass</code>  <strong>string</strong>  - optional | required if <code>mode=validator</code> defined
 </dt>
 
 <dd>
@@ -684,7 +686,7 @@ Defines password for automatically generated Vega wallet in node wallet.
 </dd>
 
 <dt>
-	<code>use_data_node</code>  <strong>bool</strong>  - required
+	<code>use_data_node</code>  <strong>bool</strong>  - optional
 </dt>
 
 <dd>
@@ -694,7 +696,7 @@ Whether or not Data Node should be deployed on node set.
 </dd>
 
 <dt>
-	<code>visor_binary</code>  <strong>string</strong>  - required
+	<code>visor_binary</code>  <strong>string</strong>  - optional
 </dt>
 
 <dd>
@@ -837,7 +839,7 @@ Allows the user to optionally use a different version of Vega binary for wallet
 </dd>
 
 <dt>
-	<code>template</code>  <strong>string</strong>  - required
+	<code>template</code>  <strong>string</strong>  - optional
 </dt>
 
 <dd>
@@ -880,7 +882,7 @@ Allows the user to optionally use a different version of Vega binary for wallet
 </dd>
 
 <dt>
-	<code>template</code>  <strong>string</strong>  - required
+	<code>template</code>  <strong>string</strong>  - optional
 </dt>
 
 <dd>
@@ -903,7 +905,7 @@ Allows the user to optionally use a different version of Vega binary for wallet
 
 <dl>
 <dt>
-	<code>docker_service</code>  <strong>list(<a href="#dockerconfig">DockerConfig</a>)</strong>  - required, block 
+	<code>docker_service</code>  <strong>[]<a href="#dockerconfig">DockerConfig</a></strong>  - required, block 
 </dt>
 
 <dd>
@@ -1160,7 +1162,7 @@ Same as `visor_conf` but it allows the user to link the Visor genesis run config
 
 <dl>
 <dt>
-	<code>nomad_job</code>  <strong>list(<a href="#nomadconfig">NomadConfig</a>)</strong>  - required, block 
+	<code>nomad_job</code>  <strong>[]<a href="#nomadconfig">NomadConfig</a></strong>  - required, block 
 </dt>
 
 <dd>
@@ -1183,7 +1185,7 @@ Same as `visor_conf` but it allows the user to link the Visor genesis run config
 
 <dl>
 <dt>
-	<code>ethereum_account_addresses</code>  <strong>list(string)</strong>  - required
+	<code>ethereum_account_addresses</code>  <strong>[]string</strong>  - required
 </dt>
 
 <dd>
@@ -1236,7 +1238,7 @@ Same as `visor_conf` but it allows the user to link the Visor genesis run config
 </dd>
 
 <dt>
-	<code>cmd</code>  <strong>string</strong>  - required
+	<code>cmd</code>  <strong>string</strong>  - optional
 </dt>
 
 <dd>
@@ -1246,7 +1248,7 @@ Same as `visor_conf` but it allows the user to link the Visor genesis run config
 </dd>
 
 <dt>
-	<code>args</code>  <strong>list(string)</strong>  - required
+	<code>args</code>  <strong>[]string</strong>  - required
 </dt>
 
 <dd>
@@ -1256,7 +1258,7 @@ Same as `visor_conf` but it allows the user to link the Visor genesis run config
 </dd>
 
 <dt>
-	<code>env</code>  <strong>map[string]string</strong>  - required
+	<code>env</code>  <strong>map[string]string</strong>  - optional
 </dt>
 
 <dd>
@@ -1276,7 +1278,7 @@ Same as `visor_conf` but it allows the user to link the Visor genesis run config
 </dd>
 
 <dt>
-	<code>auth_soft_fail</code>  <strong>bool</strong>  - required
+	<code>auth_soft_fail</code>  <strong>bool</strong>  - optional
 </dt>
 
 <dd>
@@ -1296,7 +1298,7 @@ Same as `visor_conf` but it allows the user to link the Visor genesis run config
 </dd>
 
 <dt>
-	<code>volume_mounts</code>  <strong>list(string)</strong>  - required
+	<code>volume_mounts</code>  <strong>[]string</strong>  - optional
 </dt>
 
 <dd>
@@ -1362,7 +1364,7 @@ Same as `visor_conf` but it allows the user to link the Visor genesis run config
 
 <dl>
 <dt>
-	<code>to</code>  <strong>int</strong>  - required
+	<code>to</code>  <strong>int</strong>  - optional
 </dt>
 
 <dd>

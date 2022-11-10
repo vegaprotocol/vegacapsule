@@ -12,7 +12,6 @@ type SmartContract struct {
 	Vega     string `json:"Vega"`
 }
 
-// ignore_tag: true
 type TemplateContext struct {
 	Addresses map[string]SmartContract
 	ChainID   string

@@ -17,7 +17,6 @@ import (
 	"github.com/Masterminds/sprig"
 )
 
-// ignore_tag: true
 type ConfigTemplateContext struct {
 	TendermintNodePrefix string
 	VegaNodePrefix       string

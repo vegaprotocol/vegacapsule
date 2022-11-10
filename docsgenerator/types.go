@@ -74,6 +74,4 @@ type Comment struct {
 	// Makes item param if specified param is defined
 	OptionalIf  string `yaml:"optional_if"`
 	RequiredlIf string `yaml:"required_if"`
-
-	IgnoreTag bool `yaml:"ignore_tag"`
 }

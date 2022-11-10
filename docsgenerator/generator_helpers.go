@@ -84,3 +84,72 @@ func findFiles(root, ext string) []string {
 	})
 	return a
 }
+
+// formatLookupKey formats strings to "packageName.TypeName"
+func formatLookupKey(packageName, typeName string) string {
+	return fmt.Sprintf("%s.%s", packageName, typeName)
+}
+
+type fieldInfo struct {
+	lookupKey  string
+	isOptional bool
+}
+
+func getFieldInfo(
+	currentPackageName, fieldType string,
+	field *ast.Field,
+	comment *Comment,
+	isOptional bool,
+) fieldInfo {
+	fi := fieldInfo{
+		isOptional: isOptional,
+	}
+
+	packageName := currentPackageName
+
+	typeSplit := strings.Split(fieldType, ".")
+	if len(typeSplit) > 1 {
+		packageName = typeSplit[0]
+		fi.lookupKey = typeSplit[1]
+	} else {
+		fi.lookupKey = typeSplit[0]
+	}
+
+	switch field.Type.(type) {
+	case *ast.ArrayType:
+		fi.lookupKey = strings.TrimLeft(fieldType, "[]")
+	case *ast.MapType:
+		fi.lookupKey = valueTypeFromMap(fieldType)
+	case *ast.Ident:
+		fi.lookupKey = fieldType
+	case *ast.StarExpr:
+		fi.lookupKey = strings.TrimLeft(fi.lookupKey, "*")
+		if comment.OptionalIf == "" {
+			fi.isOptional = true
+		}
+	}
+
+	fi.lookupKey = formatLookupKey(packageName, fi.lookupKey)
+
+	return fi
+}
+
+func typesFromMap(mapType string) (string, string) {
+	sm := mapRegex.FindStringSubmatch(mapType)
+	return sm[1], sm[2]
+}
+
+func valueTypeFromMap(mapType string) string {
+	_, val := typesFromMap(mapType)
+	return val
+}
+
+func getFieldType(fileContent string, field *ast.Field) string {
+	typeExpr := field.Type
+
+	start := typeExpr.Pos() - 1
+	end := typeExpr.End() - 1
+
+	// grab it in source
+	return fileContent[start:end]
+}

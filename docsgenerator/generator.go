@@ -4,14 +4,20 @@ import (
 	"fmt"
 	"go/ast"
 	"os"
-	"strings"
+	"regexp"
 	"unicode"
 )
 
 const optionalTag = "optional"
 
+var (
+	mapRegex = regexp.MustCompile(`map\[(.*)\](.*)`)
+)
+
 type TypeDocGenerator struct {
 	fileTypes map[string]docTypeWithFileContent
+
+	documentStructsMode bool
 
 	tagName string
 }
@@ -38,35 +44,16 @@ func NewTypeDocGenerator(dir, tagName string) (*TypeDocGenerator, error) {
 		}
 	}
 
+	var documentStructsMode bool
+	if tagName == "" {
+		documentStructsMode = true
+	}
+
 	return &TypeDocGenerator{
-		fileTypes: types,
-		tagName:   tagName,
+		fileTypes:           types,
+		tagName:             tagName,
+		documentStructsMode: documentStructsMode,
 	}, nil
-}
-
-func (gen *TypeDocGenerator) formatTypeName(packageName, typeName string) string {
-	if gen.tagName != "" {
-		return typeName
-	}
-
-	if len(strings.Split(typeName, ".")) == 1 {
-
-		trim := strings.TrimRight(typeName, "*")
-
-		if len(trim) > 5 {
-			if trim[0:5] == "list(" {
-				return "list(" + formatLookupKey(packageName, trim[5:len(trim)-1]) + ")" // TODO do lists and maps
-			}
-		}
-
-		if !unicode.IsUpper(rune(trim[0])) {
-			return typeName
-		}
-
-		return formatLookupKey(packageName, typeName)
-	}
-
-	return typeName
 }
 
 func (gen *TypeDocGenerator) Generate(typesNames ...string) ([]*TypeDoc, error) {
@@ -102,7 +89,7 @@ func (gen *TypeDocGenerator) Generate(typesNames ...string) ([]*TypeDoc, error) 
 
 			typeDoc := &TypeDoc{
 				Name:        c.Name,
-				Type:        gen.formatTypeName(t.packageName, t.Name),
+				Type:        gen.formatFieldType(t.packageName, t.Name),
 				Description: c.Description,
 				Note:        c.Note,
 				Example:     c.Example,
@@ -112,8 +99,7 @@ func (gen *TypeDocGenerator) Generate(typesNames ...string) ([]*TypeDoc, error) 
 			for _, field := range typeStruct.Fields.List {
 				var fieldDoc *FieldDoc
 
-				// TODO - field.Tag == nil is not good enough. Need to figure out what to do without tag for private fields on struct.
-				if c.IgnoreTag || gen.tagName == "" {
+				if gen.documentStructsMode {
 					fieldDoc, err = gen.processField(t.packageName, getFieldType(t.fileContent, field), field)
 				} else {
 					fieldDoc, err = gen.processFieldWithTag(t.packageName, getFieldType(t.fileContent, field), field)
@@ -179,7 +165,7 @@ func (gen TypeDocGenerator) processFieldWithTag(packageName, fieldType string, f
 
 	return &FieldDoc{
 		Name:        tag.Name,
-		Type:        fi.fieldType,
+		Type:        gen.formatFieldType(packageName, fieldType),
 		Description: comment.Description,
 		Note:        comment.Note,
 		Examples:    comment.Examples,
@@ -206,12 +192,12 @@ func (gen TypeDocGenerator) processField(packageName, fieldType string, field *a
 	if len(field.Names) > 0 {
 		name = field.Names[0].Name
 	} else {
-		name = fi.fieldType
+		name = fieldType
 	}
 
 	return &FieldDoc{
 		Name:        name,
-		Type:        gen.formatTypeName(packageName, fi.fieldType),
+		Type:        gen.formatFieldType(packageName, fieldType),
 		Description: comment.Description,
 		Note:        comment.Note,
 		Examples:    comment.Examples,
@@ -225,62 +211,29 @@ func (gen TypeDocGenerator) processField(packageName, fieldType string, field *a
 	}, nil
 }
 
-// formatLookupKey formats strings to "packageName.TypeName"
-func formatLookupKey(packageName, typeName string) string {
-	return fmt.Sprintf("%s.%s", packageName, typeName)
-}
-
-type fieldInfo struct {
-	fieldType  string
-	lookupKey  string
-	isOptional bool
-}
-
-func getFieldInfo(
-	currentPackageName, fieldType string,
-	field *ast.Field,
-	comment *Comment,
-	isOptional bool,
-) fieldInfo {
-	fi := fieldInfo{
-		fieldType: fieldType,
+// TODO - consider implemeting by using actual ast types rather then matching strings
+func (gen TypeDocGenerator) formatFieldType(packageName, fieldType string) string {
+	// pointer
+	if fieldType[0] == '*' {
+		return gen.formatFieldType(packageName, fieldType[1:])
 	}
 
-	packageName := currentPackageName
-
-	typeSplit := strings.Split(fi.fieldType, ".")
-	if len(typeSplit) > 1 {
-		packageName = typeSplit[0]
-		fi.lookupKey = typeSplit[1]
-	} else {
-		fi.lookupKey = typeSplit[0]
+	// slice
+	if fieldType[0:2] == "[]" {
+		return fmt.Sprintf("[]%s", gen.formatFieldType(packageName, fieldType[2:]))
 	}
 
-	switch field.Type.(type) {
-	case *ast.Ident:
-		fi.lookupKey = fi.fieldType
-	case *ast.StarExpr:
-		fi.lookupKey = strings.TrimLeft(fi.fieldType, "*")
-		fi.fieldType = fi.lookupKey
-		if comment.OptionalIf == "" {
-			fi.isOptional = true
-		}
-	case *ast.ArrayType:
-		fi.lookupKey = strings.TrimLeft(fi.fieldType, "[]")
-		fi.fieldType = fmt.Sprintf("list(%s)", fi.lookupKey)
+	// map
+	if len(fieldType) > 4 && fieldType[0:4] == "map[" {
+		key, val := typesFromMap(fieldType)
+		return fmt.Sprintf("map[%s]%s", key, gen.formatFieldType(packageName, val))
 	}
 
-	fi.lookupKey = formatLookupKey(packageName, fi.lookupKey)
+	// struct - only structs can start with uppercase letter
+	if unicode.IsUpper(rune(fieldType[0])) && gen.documentStructsMode {
+		return formatLookupKey(packageName, fieldType)
+	}
 
-	return fi
-}
-
-func getFieldType(fileContent string, field *ast.Field) string {
-	typeExpr := field.Type
-
-	start := typeExpr.Pos() - 1
-	end := typeExpr.End() - 1
-
-	// grab it in source
-	return fileContent[start:end]
+	// scalar or simple struct type without package prepend
+	return fieldType
 }
