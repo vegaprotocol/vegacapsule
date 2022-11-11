@@ -141,7 +141,10 @@ description: |
 */
 type ConfigTemplates struct {
 	/*
-		description: Go template of Vega config.
+		description: |
+					[Go template](templates.md) of Vega config.
+
+					The [vega.ConfigTemplateContext](templates.md#vegaconfigtemplatecontext) can be used in the template. Example [example](net_confs/node_set_templates/default/vega_validators.tmpl).
 		optional_if: vega_file
 		note: |
 				It is recommended that you use `vega_file` param instead.
@@ -169,7 +172,10 @@ type ConfigTemplates struct {
 	VegaFile *string `hcl:"vega_file,optional"`
 
 	/*
-		description: Go template of Tendermint config.
+		description: |
+					[Go template](templates.md) of Tendermint config.
+
+					The [vega.ConfigTemplateContext](templates.md#vegaconfigtemplatecontext) can be used in the template. Example [example](net_confs/node_set_templates/default/vega_validators.tmpl).
 		optional_if: tendermint_file
 		note: |
 				It is recommended that you use `tendermint_file` param instead.

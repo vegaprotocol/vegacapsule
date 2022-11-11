@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"os"
-	"path/filepath"
 	"regexp"
 	"strings"
 	"text/template"
@@ -29,8 +28,6 @@ var markdownTemplate = `
 
 {{ end }}
 
-
-# {{ .Name }}
 {{ .Description }}
 
 {{ range $type := .Types }}
@@ -102,8 +99,6 @@ Default value: <code>{{ $field.Default }}</code>
 
 // FileDoc represents a single go file documentation.
 type FileDoc struct {
-	// Name will be used in .md file name pattern.
-	Name string
 	// Description: File description, supports markdown.
 	Description string
 	// Types structs defined in the file.
@@ -113,14 +108,13 @@ type FileDoc struct {
 	t *template.Template
 }
 
-func NewFileDoc(name, description string, types []*TypeDoc) *FileDoc {
+func NewFileDoc(description string, types []*TypeDoc) *FileDoc {
 	anchors := map[string]string{}
 	for _, t := range types {
 		anchors[t.Type] = strings.ToLower(t.Type)
 	}
 
 	fd := &FileDoc{
-		Name:        name,
 		Description: description,
 		Anchors:     anchors,
 		Types:       types,
@@ -165,7 +159,7 @@ func (fd *FileDoc) Write(path, frontmatter string) error {
 		}
 	}
 
-	f, err := os.Create(filepath.Join(path, fmt.Sprintf("%s.%s", strings.ToLower(fd.Name), "md")))
+	f, err := os.Create(path)
 	if err != nil {
 		return err
 	}

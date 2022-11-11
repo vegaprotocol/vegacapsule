@@ -1,3 +1,5 @@
+#Capsule configuration docs
+
 Capsule configuration is used by vegacapsule CLI network to generate and bootstrap commands.
 It allows a user to configure and customise Vega network running on Capsule.
 

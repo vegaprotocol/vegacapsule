@@ -54,7 +54,6 @@ func main() {
 	}
 
 	fd := docsgenerator.NewFileDoc(
-		"Capsule configuration docs",
 		string(description),
 		typeDocs,
 	)
