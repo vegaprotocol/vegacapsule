@@ -58,7 +58,9 @@ type NetworkConfig struct {
 			Go template of genesis file that will be used to bootrap the Vega network.
 			[Example of templated mainnet genesis file](https://github.com/vegaprotocol/networks/blob/master/mainnet1/genesis.json).
 
-			The variables availible inside the template can be viewed [here](context.md#genesistemplatecontext)
+			This can be templated with Capsule, see [templating](#templating) for more info.
+
+			The [GenesisTemplateContext](context.md#genesistemplatecontext) can be used in the template, please see [example](net_confs/genesis.tmpl).
 		optional_if: genesis_template_file
 		note: |
 				It is recommended that you use `genesis_template_file` param instead.

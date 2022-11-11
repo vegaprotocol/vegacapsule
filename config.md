@@ -3,13 +3,7 @@
 
 
 # Capsule configuration docs
-Capsule configuration is used by vegacapsule CLI network to generate and bootstrap commands.
-It allows a user to configure and customise Vega network running on Capsule.
-
-The configuration uses the [HCL](https://github.com/hashicorp/hcl) language syntax, which is also used, for example, by [Terraform](https://www.terraform.io/).
-
-This document explains all possible configuration options in Capsule.
-
+Capsule templates.....
 
 
 ## Root - *Config*
@@ -129,7 +123,9 @@ All Nomad jobs are prefix with the name.
 Go template of genesis file that will be used to bootrap the Vega network.
 [Example of templated mainnet genesis file](https://github.com/vegaprotocol/networks/blob/master/mainnet1/genesis.json).
 
-The variables availible inside the template can be viewed [here](context.md#genesistemplatecontext)
+This can be templated with Capsule, see [templating](#templating) for more info.
+
+The [GenesisTemplateContext](context.md#genesistemplatecontext) can be used in the template, please see [example](net_confs/genesis.tmpl).
 
 
 
