@@ -25,8 +25,10 @@ func GenerateNodeSetTemplate(templateRaw string, ns types.NodeSet) (*bytes.Buffe
 }
 
 type PreGenerateTemplateCtx struct {
-	Name  string
-	Index int
+	Name          string
+	Index         int
+	LogsDir       string
+	CapsuleBinary string
 }
 
 func GeneratePreGenerateTemplate(templateRaw string, ctx PreGenerateTemplateCtx) (*bytes.Buffer, error) {

@@ -35,8 +35,10 @@ func (g *Generator) templatePreGenerateJobs(preGenConf *config.PreGenerate, inde
 		}
 
 		template, err := nomad.GeneratePreGenerateTemplate(*nc.JobTemplate, nomad.PreGenerateTemplateCtx{
-			Name:  nc.Name,
-			Index: index,
+			Name:          nc.Name,
+			Index:         index,
+			LogsDir:       g.conf.LogsDir(),
+			CapsuleBinary: *g.conf.VegaCapsuleBinary,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("failed to template nomad job for pre generate %q: %w", nc.Name, err)

@@ -24,8 +24,8 @@ plugin "docker" {
 	}
 }
 client {
-	cpu_total_compute = 20000
-	memory_total_mb = 16000
+	cpu_total_compute = 30000
+	memory_total_mb = 30000
 }
 `
 
