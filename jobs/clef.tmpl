@@ -23,5 +23,28 @@ job "{{ .Name }}-{{ .Index }}" {
         memory = 2000
       }
     }
+    
+    task "logger" {
+      driver = "raw_exec"
+
+      config {
+        command = "bash"
+        args = [
+          "-c",
+          join(" ", [
+            "{{ .CapsuleBinary }}",
+              "nomad", "logscollector",
+              "--out-dir", "{{ .LogsDir }}/{{ .Name }}-{{ .Index }}"
+          ])
+        ]
+      }
+
+      resources {
+        cpu    = 100
+        memory = 100
+        memory_max = 300
+      }
+    }
+
   }
 }
