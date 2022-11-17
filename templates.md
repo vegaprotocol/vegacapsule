@@ -458,6 +458,26 @@ vegacapsule template node-sets --type vega --path net_confs/node_set_templates/d
 
 </dd>
 
+<dt>
+	<code>LogsDir</code>  <strong>string</strong>  - required
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+<dt>
+	<code>CapsuleBinary</code>  <strong>string</strong>  - required
+</dt>
+
+<dd>
+
+
+
+</dd>
+
 
 
 </dl>
