@@ -28,6 +28,105 @@ vegacapsule template node-sets --type vega --path net_confs/node_set_templates/d
 ## Template contexts
 
 
+## *config.NodeConfigTemplateContext*
+
+
+### Fields
+
+<dl>
+<dt>
+	<code>NodeNumber</code>  <strong>int</strong>  - required
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+
+
+</dl>
+
+---
+
+
+## *datanode.ConfigTemplateContext*
+
+
+### Fields
+
+<dl>
+<dt>
+	<code>NodeHomeDir</code>  <strong>string</strong>  - required
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+<dt>
+	<code>NodeNumber</code>  <strong>int</strong>  - required
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+<dt>
+	<code>NodeSet</code>  <strong><a href="#typesnodeset">types.NodeSet</a></strong>  - required
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+
+
+</dl>
+
+---
+
+
+## *faucet.ConfigTemplateContext*
+
+
+### Fields
+
+<dl>
+<dt>
+	<code>HomeDir</code>  <strong>string</strong>  - required
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+<dt>
+	<code>PublicKey</code>  <strong>string</strong>  - required
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+
+
+</dl>
+
+---
+
+
 ## *genesis.TemplateContext*
 
 
@@ -56,6 +155,69 @@ vegacapsule template node-sets --type vega --path net_confs/node_set_templates/d
 
 <dt>
 	<code>NetworkID</code>  <strong>string</strong>  - required
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+
+
+</dl>
+
+---
+
+
+## *tendermint.ConfigTemplateContext*
+
+
+### Fields
+
+<dl>
+<dt>
+	<code>TendermintNodePrefix</code>  <strong>string</strong>  - required
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+<dt>
+	<code>VegaNodePrefix</code>  <strong>string</strong>  - required
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+<dt>
+	<code>NodeNumber</code>  <strong>int</strong>  - required
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+<dt>
+	<code>NodesCount</code>  <strong>int</strong>  - required
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+<dt>
+	<code>NodeSet</code>  <strong><a href="#typesnodeset">types.NodeSet</a></strong>  - required
 </dt>
 
 <dd>
@@ -174,112 +336,6 @@ vegacapsule template node-sets --type vega --path net_confs/node_set_templates/d
 ---
 
 
-## *tendermint.ConfigTemplateContext*
-
-
-### Fields
-
-<dl>
-<dt>
-	<code>TendermintNodePrefix</code>  <strong>string</strong>  - required
-</dt>
-
-<dd>
-
-
-
-</dd>
-
-<dt>
-	<code>VegaNodePrefix</code>  <strong>string</strong>  - required
-</dt>
-
-<dd>
-
-
-
-</dd>
-
-<dt>
-	<code>NodeNumber</code>  <strong>int</strong>  - required
-</dt>
-
-<dd>
-
-
-
-</dd>
-
-<dt>
-	<code>NodesCount</code>  <strong>int</strong>  - required
-</dt>
-
-<dd>
-
-
-
-</dd>
-
-<dt>
-	<code>NodeSet</code>  <strong><a href="#typesnodeset">types.NodeSet</a></strong>  - required
-</dt>
-
-<dd>
-
-
-
-</dd>
-
-
-
-</dl>
-
----
-
-
-## *datanode.ConfigTemplateContext*
-
-
-### Fields
-
-<dl>
-<dt>
-	<code>NodeHomeDir</code>  <strong>string</strong>  - required
-</dt>
-
-<dd>
-
-
-
-</dd>
-
-<dt>
-	<code>NodeNumber</code>  <strong>int</strong>  - required
-</dt>
-
-<dd>
-
-
-
-</dd>
-
-<dt>
-	<code>NodeSet</code>  <strong><a href="#typesnodeset">types.NodeSet</a></strong>  - required
-</dt>
-
-<dd>
-
-
-
-</dd>
-
-
-
-</dl>
-
----
-
-
 ## *visor.ConfigTemplateContext*
 
 
@@ -376,14 +432,14 @@ vegacapsule template node-sets --type vega --path net_confs/node_set_templates/d
 ---
 
 
-## *faucet.ConfigTemplateContext*
+## *nomad.PreGenerateTemplateCtx*
 
 
 ### Fields
 
 <dl>
 <dt>
-	<code>HomeDir</code>  <strong>string</strong>  - required
+	<code>Name</code>  <strong>string</strong>  - required
 </dt>
 
 <dd>
@@ -393,63 +449,7 @@ vegacapsule template node-sets --type vega --path net_confs/node_set_templates/d
 </dd>
 
 <dt>
-	<code>PublicKey</code>  <strong>string</strong>  - required
-</dt>
-
-<dd>
-
-
-
-</dd>
-
-
-
-</dl>
-
----
-
-
-## *config.NodeConfigTemplateContext*
-
-
-### Fields
-
-<dl>
-<dt>
-	<code>NodeNumber</code>  <strong>int</strong>  - required
-</dt>
-
-<dd>
-
-
-
-</dd>
-
-
-
-</dl>
-
----
-
-
-## *genesis.SmartContract*
-
-
-### Fields
-
-<dl>
-<dt>
-	<code>Ethereum</code>  <strong>string</strong>  - required
-</dt>
-
-<dd>
-
-
-
-</dd>
-
-<dt>
-	<code>Vega</code>  <strong>string</strong>  - required
+	<code>Index</code>  <strong>int</strong>  - required
 </dt>
 
 <dd>
@@ -593,6 +593,39 @@ GroupIndex is a index of the group where this node set belongs to. Related to Gr
 
 <dt>
 	<code>PreStartProbe</code>  <strong><a href="#typesprobesconfig">types.ProbesConfig</a></strong>  - optional
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+
+
+</dl>
+
+---
+
+
+## *genesis.SmartContract*
+
+
+### Fields
+
+<dl>
+<dt>
+	<code>Ethereum</code>  <strong>string</strong>  - required
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+<dt>
+	<code>Vega</code>  <strong>string</strong>  - required
 </dt>
 
 <dd>

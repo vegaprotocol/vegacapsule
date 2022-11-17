@@ -80,7 +80,7 @@ Default value: <code>vega</code>
 
 <dd>
 
-Path (relative or absolute) of a Capsule binary. The Capsule binary is used by Nomad to aggregate logs from running jobs
+Path (relative or absolute) of a Capsule binary. The Capsule binary is used to aggregate logs from running jobs
 and save them to local disk in Capsule home directory.
 See `vegacapsule nomad logscollector` for more info.
 
@@ -145,7 +145,7 @@ All Nomad jobs are prefix with the name.
 [Go template](templates.md) of genesis file that will be used to bootrap the Vega network.
 [Example of templated mainnet genesis file](https://github.com/vegaprotocol/networks/blob/master/mainnet1/genesis.json).
 
-The [GenesisTemplateContext](templates.md#genesistemplatecontext) can be used in the template, please see [example](net_confs/genesis.tmpl).
+The [GenesisTemplateContext](templates.md#genesistemplatecontext) can be used in the template. Example [example](net_confs/genesis.tmpl).
 
 
 
@@ -755,8 +755,16 @@ This can help with testing different version compatibilities or a protocol upgra
 
 <dd>
 
+Allows to run a custom services before the node set is generated.
+This can be very useful when generation of the node set might have some extenal depenency for example
+a [Clef wallet](https://geth.ethereum.org/docs/clef/introduction).
 
 
+
+<blockquote>Clef wallet is a good example - since generating a validator node set requires Ethereum key
+to be generated, Clef can be started before the generation starts so that Capsule can generate
+the Ethereum key inside of during the generation process.
+</blockquote>
 </dd>
 
 <dt>
@@ -765,8 +773,12 @@ This can help with testing different version compatibilities or a protocol upgra
 
 <dd>
 
+Allows to run checks that has to be fulfilled before the node starts.
 
 
+<blockquote>This can be useful for checking wheter some depedent services has already started or not.
+For example databases, mocked services etc.
+</blockquote>
 </dd>
 
 <dt>
@@ -775,6 +787,13 @@ This can help with testing different version compatibilities or a protocol upgra
 
 <dd>
 
+[Clef](https://geth.ethereum.org/docs/clef/introduction) is one of the
+[supported Ethereum wallets](https://docs.vega.xyz/mainnet/node-operators/setup-validator#using-clef) for Vega node.
+Capsule supports using Clef and can import pre-generated Ethereum keys from Clef during node set
+generation process automatically.
+
+By configuring this paramater Capsule will automatically generate Ethereum keys in Clef and tells Vega to use them.
+An example Capsule config setup with Clef can be seen [here](net_confs/config_clef.hcl).
 
 
 </dd>
@@ -785,8 +804,23 @@ This can help with testing different version compatibilities or a protocol upgra
 
 <dd>
 
+[Go template](templates.md) of custom Nomad job for node set.
+
+By default Capsule uses predefined Nomad jobs to run the node set on Nomad.
+This parameter allows to provide custom Nomad job to represent the generated node set.
+
+The [types.NodeSet](templates.md#types.nodeset) can be used in the template.
+
+Using custom Nomad jobs for node set can break Capsule function properly,
+very detailed knowledge is required - therefore it is recommened to leave this parameter
+that should be used in advanced cases only.
 
 
+
+<blockquote>It is recommended that you use `nomad_job_template_file` param instead.
+If both `nomad_job_template` and `nomad_job_template_file` are defined, then `vega`
+overrides `nomad_job_template_file`.
+</blockquote>
 </dd>
 
 <dt>
@@ -794,6 +828,27 @@ This can help with testing different version compatibilities or a protocol upgra
 </dt>
 
 <dd>
+
+Same as `nomad_job_template` but it allows the user to link the Nomad job template as an external file.
+
+
+
+<br />
+
+#### <code>nomad_job_template_file</code> example
+
+
+
+
+
+
+
+```hcl
+nomad_job_template_file = "/your_path/vega_config.tmpl"
+
+```
+
+
 
 
 
@@ -953,7 +1008,10 @@ Learn more about how configuration templating work here
 
 <dd>
 
-Go template of Vega config.
+[Go template](templates.md) of Vega config.
+
+The [vega.ConfigTemplateContext](templates.md#vegaconfigtemplatecontext) can be used in the template. Example [example](net_confs/node_set_templates/default/vega_validators.tmpl).
+
 
 
 <blockquote>It is recommended that you use `vega_file` param instead.
@@ -1021,7 +1079,10 @@ vega_file = "/your_path/vega_config.tmpl"
 
 <dd>
 
-Go template of Tendermint config.
+[Go template](templates.md) of Tendermint config.
+
+The [tendermint.ConfigTemplateContext](templates.md#tendermintconfigtemplatecontext) can be used in the template. Example [example](net_confs/node_set_templates/default/tendermint_validators.tmpl).
+
 
 
 <blockquote>It is recommended that you use `tendermint_file` param instead.
@@ -1089,7 +1150,10 @@ tendermint_file = "/your_path/tendermint_config.tmpl"
 
 <dd>
 
-Go template of Data Node config.
+[Go template](templates.md) of Data Node config.
+
+The [datanode.ConfigTemplateContext](templates.md#datanodeconfigtemplatecontext) can be used in the template. Example [example](net_confs/node_set_templates/default/data_node_full_external_postgres.tmpl).
+
 
 
 <blockquote>It is recommended that you use `data_node_file` param instead.
@@ -1115,7 +1179,10 @@ Same as `data_node` but it allows the user to link the Data Node config template
 
 <dd>
 
-Go template of Visor genesis run config.
+[Go template](templates.md) of Visor genesis run config.
+
+The [visor.ConfigTemplateContext](templates.md#visorconfigtemplatecontext) can be used in the template. Example [example](net_confs/node_set_templates/default/visor_run.tmpl).
+
 Current Vega binary is automatically copied to the Visor genesis folder by Capsule
 so it can be used from this template.
 
@@ -1144,7 +1211,10 @@ Same as `visor_run_conf` but it allows the user to link the Visor genesis run co
 
 <dd>
 
-Go template of Visor config.
+[Go template](templates.md) of Visor config.
+
+The [visor.ConfigTemplateContext](templates.md#visorconfigtemplatecontext) can be used in the template. Example [example](net_confs/node_set_templates/default/visor_config.tmpl).
+
 
 
 <blockquote>It is recommended that you use `visor_conf_file` param instead.
@@ -1172,6 +1242,7 @@ Same as `visor_conf` but it allows the user to link the Visor genesis run config
 
 
 ## *PreGenerate*
+Allows to define service that will run before generation step.
 
 
 ### Fields
@@ -1183,10 +1254,24 @@ Same as `visor_conf` but it allows the user to link the Visor genesis run config
 
 <dd>
 
-
+Allows to define raw [Nomad jobs](https://developer.hashicorp.com/nomad/docs/job-specification).
 
 </dd>
 
+
+
+### Complete example
+
+
+
+```hcl
+pre_generate {
+  nomad_job "clef" {
+    ...
+  }
+}
+
+```
 
 
 </dl>
@@ -1195,6 +1280,9 @@ Same as `visor_conf` but it allows the user to link the Visor genesis run config
 
 
 ## *ClefConfig*
+
+Allows to configure connetion to [Clef](https://geth.ethereum.org/docs/clef/introduction) Ethereum wallet.
+
 
 
 ### Fields
@@ -1206,8 +1294,14 @@ Same as `visor_conf` but it allows the user to link the Visor genesis run config
 
 <dd>
 
+List of Clef pre-generated Ethereum addresses that can be used by node set.
 
 
+
+<blockquote>There should be enough available addresses for each node set.
+So when node set has `count = 2` there has to be minimum 2 addresses defined
+similarly when `count = 4` there has to be minimum 4 addresses defined etc.
+</blockquote>
 </dd>
 
 <dt>
@@ -1216,10 +1310,23 @@ Same as `visor_conf` but it allows the user to link the Visor genesis run config
 
 <dd>
 
-
+Address of running Clef instance
 
 </dd>
 
+
+
+### Complete example
+
+
+
+```hcl
+clef_wallet {
+  ethereum_account_addresses = ["0xc0ffee254729296a45a3885639AC7E10F9d54979", "0x999999cf1046e68e36E1aA2E0E07105eDDD1f08E"]
+  clef_rpc_address           = "http://localhost:8555"
+}
+
+```
 
 
 </dl>
@@ -1332,6 +1439,9 @@ Same as `visor_conf` but it allows the user to link the Visor genesis run config
 
 ## *NomadConfig*
 
+Allows to configure a [Nomad job](https://developer.hashicorp.com/nomad/docs/job-specification) definition to be run on Capsule.
+
+
 
 ### Fields
 
@@ -1342,15 +1452,46 @@ Same as `visor_conf` but it allows the user to link the Visor genesis run config
 
 <dd>
 
+Name of the Nomad job.
 
 
 </dd>
 
 <dt>
-	<code>job_template</code>  <strong>string</strong>  - optional
+	<code>job_template</code>  <strong>string</strong>  - required | optional if <code>job_template_file</code> defined, optional 
 </dt>
 
 <dd>
+
+[Go template](templates.md) of a Nomad job template.
+
+The [nomad.PreGenerateTemplateCtx](templates.md#nomadpregeneratetemplatectx) can be used in the template. Example [example](jobs/clef.tmpl).
+
+
+
+<blockquote>It is recommended that you use `job_template_file` param instead.
+If both `job_template` and `job_template_file` are defined, then `job_template`
+overrides `job_template_file`.
+</blockquote>
+
+<br />
+
+#### <code>job_template</code> example
+
+
+
+
+
+
+
+```hcl
+job_template = <<EOH
+ ...
+EOH
+
+```
+
+
 
 
 
@@ -1362,10 +1503,43 @@ Same as `visor_conf` but it allows the user to link the Visor genesis run config
 
 <dd>
 
+Same as `job_template` but it allows the user to link the Nomad job template as an external file.
+
+
+
+<br />
+
+#### <code>job_template_file</code> example
+
+
+
+
+
+
+
+```hcl
+job_template_file = "/your_path/nomad-job.tmpl"
+
+```
+
+
+
 
 
 </dd>
 
+
+
+### Complete example
+
+
+
+```hcl
+nomad_job "clef" {
+  job_template = "/path-to/nomad-job.tmpl"
+}
+
+```
 
 
 </dl>

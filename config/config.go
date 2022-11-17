@@ -53,7 +53,7 @@ type Config struct {
 	VegaBinary *string `hcl:"vega_binary_path"`
 	/*
 		description: |
-			Path (relative or absolute) of a Capsule binary. The Capsule binary is used by Nomad to aggregate logs from running jobs
+			Path (relative or absolute) of a Capsule binary. The Capsule binary is used to aggregate logs from running jobs
 			and save them to local disk in Capsule home directory.
 			See `vegacapsule nomad logscollector` for more info.
 		default: Currently running Capsule instance binary
