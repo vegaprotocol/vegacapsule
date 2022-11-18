@@ -24,10 +24,21 @@ type Faucet struct {
 	BinaryPath         string
 }
 
+// description: Information about node wallets.
 type NodeWalletInfo struct {
-	EthereumPassFilePath   string
-	EthereumAddress        string
-	EthereumPrivateKey     string
+	/*
+		description: Ethereum account address.
+		note: Only available when Key Store wallet is used.
+	*/
+	EthereumAddress string
+
+	EthereumPrivateKey string
+	// description: Path to file where Ethereum wallet key is stored.
+	EthereumPassFilePath string
+	/*
+		description: Address of Clef wallet.
+		note: Only available when Clef wallet is used.
+	*/
 	EthereumClefRPCAddress string
 
 	VegaWalletID             string
@@ -37,14 +48,27 @@ type NodeWalletInfo struct {
 	VegaWalletPassFilePath   string
 }
 
+// description: Represents generated Vega node.
 type VegaNode struct {
+	// description: Path to binary used to generate and run the node.
 	GeneratedService `cty:"service"`
 
-	Mode                   string `cty:"mode"`
+	// description: Mode of the node - `validator` or `full`.
+	Mode string `cty:"mode"`
+
+	/*
+		description: Path to generated node wallet passphrase file.
+		note: Only present if `mode = validator`.
+	*/
 	NodeWalletPassFilePath string
 
+	/*
+		description: Information about generated/imported node wallets.
+		note: Only present if `mode = validator`.
+	*/
 	NodeWalletInfo *NodeWalletInfo `json:",omitempty"`
-	BinaryPath     string
+	// description: Path to binary used to generate and run the node.
+	BinaryPath string
 }
 
 type TendermintNode struct {
@@ -105,23 +129,4 @@ type SmartContractsInfo struct {
 type SmartContractsToken struct {
 	EthereumAddress string `json:"Ethereum"`
 	VegaAddress     string `json:"Vega"`
-}
-
-type HTTPProbe struct {
-	URL string `hcl:"url" template:""`
-}
-
-type TCPProbe struct {
-	Address string `hcl:"address" template:""`
-}
-
-type PostgresProbe struct {
-	Connection string `hcl:"connection" template:""`
-	Query      string `hcl:"query" template:""`
-}
-
-type ProbesConfig struct {
-	HTTP     *HTTPProbe     `hcl:"http,block" template:""`
-	TCP      *TCPProbe      `hcl:"tcp,block" template:""`
-	Postgres *PostgresProbe `hcl:"postgres,block" template:""`
 }

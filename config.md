@@ -1,31 +1,18 @@
 
 
 
-# Capsulte templating docs
+#Capsule configuration docs
 
-Capsule allows templating for genesis file and [node-sets](#nodeconfig) configurations
-like Vega, Tendermint, and Nomad. This is useful for generating configurations specific to a network
-or using one configuration for all node set.
+Capsule it's not a real network deployment tool - it is rather a tool that allows to run a custom network simulation locally on single a machine.
+This means that it is a incredibly useful tool for anybody who wants to try Vega network without using a real network.
 
-Capsule is using Go's [text/template](https://pkg.go.dev/text/template) templating engine extended by useful functions from [Sprig](http://masterminds.github.io/sprig/) library.
+Capsule configuration is used by vegacapsule CLI network to generate and bootstrap commands and can be customised to personal need.
+Under the hood Capsule will use this configuration to generate a new network a stores all it's files in a single directory and then
+it uses [Nomad](https://www.nomadproject.io/) to deploy all generated services from the generation step.
 
-Every single template gets it's [template context](#template-contexts) - a set of (usually runtime generated) variables pass to the template by Capsule
-that can be use in the template. These template contexts are documented below.
+The configuration uses the [HCL](https://github.com/hashicorp/hcl) language syntax, which is also used, for example, by [Terraform](https://www.terraform.io/).
 
-There are some basic templates provided by Capsule and use by some provided configurations in *net_confs* folder.
-
-## Template tool
-There is a useful tool as par of Capsule to test these templates before they get used in [network config](config.md).
-Plese check `vegacapsule template --help`.
-
-You can test the *template tool* by using some of the provided default templates after the network has been generated.
-
-For example try to run command below and compare the outcome with [the template](net_confs/node_set_templates/default/vega_validators.tmpl).
-```bash
-vegacapsule template node-sets --type vega --path net_confs/node_set_templates/default/vega_validators.tmpl --nodeset-name testnet-nodeset-validators-0-validator
-```
-
-## Template contexts
+This document explains all possible configuration options in Capsule.
 
 
 ## Root - *Config*
@@ -885,6 +872,9 @@ node_set "validators" {
 
 ## *WalletConfig*
 
+Represents a configuration of a Vega Wallet service.
+
+
 
 ### Fields
 
@@ -895,7 +885,7 @@ node_set "validators" {
 
 <dd>
 
-
+Name of the wallet that is going to be use as an identifier when wallet runs.
 
 </dd>
 
@@ -905,8 +895,14 @@ node_set "validators" {
 
 <dd>
 
-Allows the user to optionally use a different version of Vega binary for wallet
+By default wallet config inherits Vega binary from main network config but this paramater allows user to
+define a different Vega binary to be used in wallet.
+This can be used in case differnt wallet version is required.
+A relative or absolute path can be used. If only the binary name is defined, it automatically looks for it in $PATH.
 
+
+
+<blockquote>Using wallet version that is not compatible with network will not work - therefore this should be used in advanced cases only.</blockquote>
 </dd>
 
 <dt>
@@ -915,10 +911,51 @@ Allows the user to optionally use a different version of Vega binary for wallet
 
 <dd>
 
+[Go template](templates.md) of a Vega Wallet config.
+
+The [wallet.ConfigTemplateContext](templates.md#walletconfigtemplatecontext) can be used in the template.
+Example can be found in [default network config](net_confs/config.hcl).
+
+
+
+<br />
+
+#### <code>template</code> example
+
+
+
+
+
+
+
+```hcl
+template = <<EOH
+ ...
+EOH
+
+```
+
+
+
 
 
 </dd>
 
+
+
+### Complete example
+
+
+
+```hcl
+wallet "wallet-1" {
+  template = <<-EOT
+  ...
+ EOT
+
+}
+
+```
 
 
 </dl>
@@ -927,6 +964,9 @@ Allows the user to optionally use a different version of Vega binary for wallet
 
 
 ## *FaucetConfig*
+
+Represents a configuration of a Vega Faucet service.
+
 
 
 ### Fields
@@ -938,7 +978,7 @@ Allows the user to optionally use a different version of Vega binary for wallet
 
 <dd>
 
-
+Name of the faucet that is going to be use as an identifier when facet runs.
 
 </dd>
 
@@ -948,7 +988,7 @@ Allows the user to optionally use a different version of Vega binary for wallet
 
 <dd>
 
-
+Passphrase for the wallet.
 
 </dd>
 
@@ -958,10 +998,51 @@ Allows the user to optionally use a different version of Vega binary for wallet
 
 <dd>
 
+[Go template](templates.md) of a Vega Faucet config.
+
+The [faucet.ConfigTemplateContext](templates.md#faucetconfigtemplatecontext) can be used in the template.
+Example can be found in [default network config](net_confs/config.hcl).
+
+
+
+<br />
+
+#### <code>template</code> example
+
+
+
+
+
+
+
+```hcl
+template = <<EOH
+ ...
+EOH
+
+```
+
+
+
 
 
 </dd>
 
+
+
+### Complete example
+
+
+
+```hcl
+faucet "faucet-1" { {
+  wallet_pass = "wallet_pass"
+  template    = <<-EOT
+  ...
+ EOT
+  }
+
+```
 
 
 </dl>
@@ -970,6 +1051,9 @@ Allows the user to optionally use a different version of Vega binary for wallet
 
 
 ## *PStartConfig*
+
+Allows to configure services that will run before or after the network starts.
+
 
 
 ### Fields
@@ -981,10 +1065,25 @@ Allows the user to optionally use a different version of Vega binary for wallet
 
 <dd>
 
+Allows to define multiple services to be run inside [Docker](https://www.docker.com/).
 
 
 </dd>
 
+
+
+### Complete example
+
+
+
+```hcl
+post_start {
+  docker_service "bloc-explorer-1" {
+    ...
+  }
+}
+
+```
 
 
 </dl>
@@ -1336,6 +1435,9 @@ clef_wallet {
 
 ## *DockerConfig*
 
+Allows to configure Docker container services that will run before or after the Vega network starts.
+
+
 
 ### Fields
 
@@ -1346,7 +1448,7 @@ clef_wallet {
 
 <dd>
 
-
+Name of the service that is going to be use as an identifier when service runs.
 
 </dd>
 
@@ -1356,7 +1458,7 @@ clef_wallet {
 
 <dd>
 
-
+Name of publicly available Docker image.
 
 </dd>
 
@@ -1366,7 +1468,7 @@ clef_wallet {
 
 <dd>
 
-
+Command that will run at the image startup.
 
 </dd>
 
@@ -1376,7 +1478,7 @@ clef_wallet {
 
 <dd>
 
-
+List of arguments that will be added to cmd.
 
 </dd>
 
@@ -1386,7 +1488,7 @@ clef_wallet {
 
 <dd>
 
-
+Allows to set enviroment varibles for the container.
 
 </dd>
 
@@ -1396,7 +1498,7 @@ clef_wallet {
 
 <dd>
 
-
+Allows to open a static port from container to host.
 
 </dd>
 
@@ -1406,8 +1508,10 @@ clef_wallet {
 
 <dd>
 
+Defines whether or not the task fails on an auth failure.
 
 
+<blockquote>Should be always `true` for public images.</blockquote>
 </dd>
 
 <dt>
@@ -1416,8 +1520,10 @@ clef_wallet {
 
 <dd>
 
+Allows to to define minimun required hardware resources for the container.
 
 
+<blockquote>In most cases the default values (not defined) should be sufficent.</blockquote>
 </dd>
 
 <dt>
@@ -1430,6 +1536,30 @@ clef_wallet {
 
 </dd>
 
+
+
+### Complete example
+
+
+
+```hcl
+docker_service "ganache-1" {
+  image = "vegaprotocol/ganache:latest"
+  cmd   = "ganache-cli"
+  args = [
+    "--blockTime", "1",
+    "--chainId", "1440",
+    "--networkId", "1441",
+    "-h", "0.0.0.0",
+  ]
+  static_port {
+    value = 8545
+    to    = 8545
+  }
+  auth_soft_fail = true
+}
+
+```
 
 
 </dl>
@@ -1548,31 +1678,45 @@ nomad_job "clef" {
 
 
 ## *StaticPort*
+Represents static port mapping from host to container.
 
 
 ### Fields
 
 <dl>
 <dt>
-	<code>to</code>  <strong>int</strong>  - optional
-</dt>
-
-<dd>
-
-
-
-</dd>
-
-<dt>
 	<code>value</code>  <strong>int</strong>  - required
 </dt>
 
 <dd>
 
-
+Represents port value on the host.
 
 </dd>
 
+<dt>
+	<code>to</code>  <strong>int</strong>  - optional
+</dt>
+
+<dd>
+
+Represents port value inside of the container.
+
+</dd>
+
+
+
+### Complete example
+
+
+
+```hcl
+static_port {
+  value = 8001
+  to    = 8002
+}
+
+```
 
 
 </dl>
@@ -1581,6 +1725,7 @@ nomad_job "clef" {
 
 
 ## *Resources*
+Allows to define hardware resoucers requirements
 
 
 ### Fields
@@ -1592,7 +1737,7 @@ nomad_job "clef" {
 
 <dd>
 
-
+Minimum required CPU in MHz
 
 </dd>
 
@@ -1602,7 +1747,7 @@ nomad_job "clef" {
 
 <dd>
 
-
+Num of minimum required CPU cores
 
 </dd>
 
@@ -1612,7 +1757,7 @@ nomad_job "clef" {
 
 <dd>
 
-
+Minimum required RAM in Mb
 
 </dd>
 
@@ -1622,7 +1767,7 @@ nomad_job "clef" {
 
 <dd>
 
-
+Maximum allowed RAM in Mb
 
 </dd>
 
@@ -1632,10 +1777,24 @@ nomad_job "clef" {
 
 <dd>
 
-
+Minimum required disk space in Mb
 
 </dd>
 
+
+
+### Complete example
+
+
+
+```hcl
+resources {
+  cpu        = 100
+  memory     = 100
+  memory_max = 300
+}
+
+```
 
 
 </dl>

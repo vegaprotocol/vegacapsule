@@ -5,22 +5,37 @@ import (
 )
 
 type NodeSet struct {
+	// description: Name that represents a group of same node sets.
 	GroupName string `cty:"group_name"`
-	Name      string `cty:"name"`
-	Mode      string `cty:"mode"`
-	// description: Index is a node set counter over all created node sets.
+	// description: Name of a specific node set in a node sets group.
+	Name string `cty:"name"`
+	//	description: Mode of the node set. Can be `validator` or `full`.
+	Mode string `cty:"mode"`
+	/*
+		description: |
+			Index is a position and order in which node set has been generated respective to all other created node sets.
+			It goes from 0-N where N is the number of node sets.
+	*/
 	Index int `cty:"index"`
 	// description: RelativeIndex is a counter relative to current node set group. Related to GroupName.
 	RelativeIndex int
 	// description: GroupIndex is a index of the group where this node set belongs to. Related to GroupName.
-	GroupIndex      int
-	Vega            VegaNode       `cty:"vega"`
-	Tendermint      TendermintNode `cty:"tendermint"`
-	DataNode        *DataNode      `cty:"data_node"`
-	Visor           *Visor
-	NomadJobRaw     *string `json:",omitempty"`
+	GroupIndex int
+
+	// description: Information about genrated Vega node.
+	Vega VegaNode `cty:"vega"`
+	// description: Information about genrated Tendermint node.
+	Tendermint TendermintNode `cty:"tendermint"`
+	// description: Information about genrated Data node.
+	DataNode *DataNode `cty:"data_node"`
+	// description: Information about genrated Visor instance.
+	Visor *Visor
+	// description: Jobs that has been started before nodes has been generated.
 	PreGenerateJobs []NomadJob
-	PreStartProbe   *ProbesConfig `hcl:"pre_start_probe,optional"  template:""`
+	// description: Pre start probes.
+	PreStartProbe *ProbesConfig `hcl:"pre_start_probe,optional"  template:""`
+	// description: Stores custom Nomad job definition of this node set.
+	NomadJobRaw *string `json:",omitempty"`
 }
 
 // PreGenerateJobsIDs returns pre gen jobs ids per specific node set

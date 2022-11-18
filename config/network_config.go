@@ -225,7 +225,33 @@ type NetworkConfig struct {
 	TokenAddresses map[string]types.SmartContractsToken
 }
 
+/*
+description: |
+
+	Allows to configure services that will run before or after the network starts.
+
+example:
+
+	type: hcl
+	value: |
+			post_start {
+				docker_service "bloc-explorer-1" {
+					...
+				}
+			}
+*/
 type PStartConfig struct {
+	/*
+		description: |
+				Allows to define multiple services to be run inside [Docker](https://www.docker.com/).
+		example:
+
+			type: hcl
+			value: |
+					docker_service "service-1" {
+						...
+					}
+	*/
 	Docker []DockerConfig `hcl:"docker_service,block"`
 }
 
