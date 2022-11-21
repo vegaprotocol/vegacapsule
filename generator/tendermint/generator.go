@@ -1,6 +1,7 @@
 package tendermint
 
 import (
+	"encoding/base64"
 	"fmt"
 	"log"
 	"os"
@@ -72,7 +73,6 @@ func NewConfigGenerator(conf *config.Config, generatedNodeSets []types.NodeSet) 
 			id:        tn.Tendermint.NodeID,
 			index:     tn.Index,
 		})
-
 
 		if tn.Mode != types.NodeModeValidator {
 			continue
@@ -167,6 +167,7 @@ func (tg *ConfigGenerator) Initiate(index int, mode, groupName string) (*types.T
 	if err != nil {
 		return nil, err
 	}
+	initNode.ValidatorPublicKey = base64.StdEncoding.EncodeToString(genValidator.PubKey.Bytes())
 
 	tg.genValidators = append(tg.genValidators, *genValidator)
 

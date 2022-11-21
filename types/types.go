@@ -7,7 +7,13 @@ import (
 	"github.com/hashicorp/nomad/api"
 )
 
+type TendermintOutput struct {
+	NodeID             string
+	ValidatorPublicKey string
+}
+
 type VegaNodeOutput struct {
+	Tendermint   TendermintOutput
 	NomadJobName string
 	VegaNode
 }
@@ -22,11 +28,12 @@ type VegaNode struct {
 }
 
 type TendermintNode struct {
-	Name            string
-	NodeID          string
-	HomeDir         string
-	GenesisFilePath string
-	BinaryPath      string
+	Name               string
+	NodeID             string
+	HomeDir            string
+	GenesisFilePath    string
+	BinaryPath         string
+	ValidatorPublicKey string
 }
 
 type DataNode struct {
@@ -231,6 +238,10 @@ func (gs GeneratedServices) ListValidators() []VegaNodeOutput {
 		validators = append(validators, VegaNodeOutput{
 			VegaNode:     nodeSet.Vega,
 			NomadJobName: nodeSet.Name,
+			Tendermint: TendermintOutput{
+				NodeID:             nodeSet.Tendermint.NodeID,
+				ValidatorPublicKey: nodeSet.Tendermint.ValidatorPublicKey,
+			},
 		})
 	}
 
@@ -296,6 +307,7 @@ func (nj NetworkJobs) ToSlice() []string {
 }
 
 type NodeWalletInfo struct {
+	VegaWalletID             string
 	EthereumAddress          string
 	EthereumPrivateKey       string
 	EthereumClefRPCAddress   string
