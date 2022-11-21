@@ -206,7 +206,7 @@ Procedure executed by the above command:
 
 ## Configuration
 
-Capsule can bootstraps network based on configuration. Please see `config.hcl` for example.
+Capsule can bootstrap a network based on configuration. Please see `config.hcl` for example.
 
 [TODO expand on this]
 
