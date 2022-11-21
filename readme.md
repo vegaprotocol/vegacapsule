@@ -187,6 +187,8 @@ vegacapsule  network start --home-path=/var/tmp/veganetwork/testnetwork
 vegacapsule network destroy --home-path=/var/tmp/veganetwork/testnetwork
 ```
 
+> ℹ️ NOTE: Capsule preserves some files when starting and stopping the network for example any pre-generated keys, the genesis file or any node configurations in the the [network configuration file](https://github.com/vegaprotocol/vegacapsule/tree/main/net_confs) being used. In order to start network with new values in these files the `vegacapsule network destroy` command must be used.
+
 ### Commands for ethereum network
 
 You can set up the multisig smart contract with the following command:
@@ -204,7 +206,7 @@ Procedure executed by the above command:
 
 ## Configuration
 
-Capsule can bootstraps network based on configuration. Please see `config.hcl` for examples.
+Capsule can bootstraps network based on configuration. Please see `config.hcl` for example.
 
 [TODO expand on this]
 
