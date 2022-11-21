@@ -8,6 +8,7 @@ import (
 	"text/template"
 
 	"code.vegaprotocol.io/shared/paths"
+	"code.vegaprotocol.io/vega/datanode/dehistory/store"
 	"code.vegaprotocol.io/vegacapsule/types"
 	"github.com/Masterminds/sprig"
 	"github.com/imdario/mergo"
@@ -20,6 +21,19 @@ type ConfigTemplateContext struct {
 	NodeHomeDir string
 	NodeNumber  int
 	NodeSet     types.NodeSet
+}
+
+func (tc ConfigTemplateContext) GetDehistoryPeerIDSeed(nodeNumber int) string {
+	return fmt.Sprintf("ipfs-seed-%d", nodeNumber)
+}
+
+func (tc ConfigTemplateContext) GetDehistoryPeerID(nodeNumber int) string {
+	seed := tc.GetDehistoryPeerIDSeed(nodeNumber)
+	id, err := store.CreateIdentityFromSeed([]byte(seed))
+	if err != nil {
+		panic("couldn't create ipfs peer identity")
+	}
+	return id.PeerID
 }
 
 func NewConfigTemplate(templateRaw string) (*template.Template, error) {
