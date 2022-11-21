@@ -71,11 +71,12 @@ func nodesStopNode(ctx context.Context, state state.NetworkState, name string, s
 		toRemove = append(toRemove, ns.PreGenerateJobsIDs()...)
 	}
 
-	if err := nomadRunner.StopJobs(ctx, toRemove); err != nil {
+	stoppedJobs, err := nomadRunner.StopJobs(ctx, toRemove)
+	if err != nil {
 		return nil, fmt.Errorf("failed to stop nomad job %q: %w", name, err)
 	}
 
-	delete(state.RunningJobs.NodesSetsJobIDs, name)
+	state.RunningJobs.RemoveRunningJobsIDs(stoppedJobs)
 
 	log.Printf("stopping %s node set success", name)
 	return &state, nil

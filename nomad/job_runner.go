@@ -192,7 +192,7 @@ func (r *JobRunner) StartNetwork(
 	netJobs, err := r.startNetwork(ctx, conf, generatedSvcs)
 	if err != nil {
 		if stopAllJobsOnFailure {
-			if err := r.stopAllJobs(ctx); err != nil {
+			if _, err := r.stopAllJobs(ctx); err != nil {
 				log.Printf("Failed to stop all registered jobs - please clean up Nomad manually: %s", err)
 			}
 			return nil, err
@@ -301,10 +301,10 @@ func (r *JobRunner) startNetwork(
 	return result, nil
 }
 
-func (r *JobRunner) stopAllJobs(ctx context.Context) error {
+func (r *JobRunner) stopAllJobs(ctx context.Context) ([]string, error) {
 	allJobs, _, err := r.Client.API.Jobs().List(nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	allJobIDs := []string{}
@@ -318,14 +318,14 @@ func (r *JobRunner) stopAllJobs(ctx context.Context) error {
 	return r.stopJobsByIDs(ctx, allJobIDs)
 }
 
-func (r *JobRunner) StopNetwork(ctx context.Context, jobs *types.NetworkJobs, nodesOnly bool) error {
+func (r *JobRunner) StopNetwork(ctx context.Context, jobs *types.NetworkJobs, nodesOnly bool) ([]string, error) {
 	// no jobs, no network started
 	if jobs == nil {
 		if !nodesOnly {
 			return r.stopAllJobs(ctx)
 		}
 
-		return nil
+		return nil, nil
 	}
 
 	allJobIDs := []string{}
@@ -337,7 +337,7 @@ func (r *JobRunner) StopNetwork(ctx context.Context, jobs *types.NetworkJobs, no
 	return r.stopJobsByIDs(ctx, allJobIDs)
 }
 
-func (r *JobRunner) StopJobs(ctx context.Context, jobIDs []string) error {
+func (r *JobRunner) StopJobs(ctx context.Context, jobIDs []string) ([]string, error) {
 	return r.stopJobsByIDs(ctx, jobIDs)
 }
 
@@ -372,7 +372,7 @@ func (r *JobRunner) ListExposedPorts(ctx context.Context) (map[string][]int64, e
 	return portsPerJob, nil
 }
 
-func (r *JobRunner) stopJobsByIDs(ctx context.Context, allJobIDs []string) error {
+func (r *JobRunner) stopJobsByIDs(ctx context.Context, allJobIDs []string) ([]string, error) {
 	// Apparently, we can have blank job IDs, so skipping them.
 	cleanedUpJobIDs := []string{}
 	for _, jobID := range allJobIDs {
@@ -384,7 +384,7 @@ func (r *JobRunner) stopJobsByIDs(ctx context.Context, allJobIDs []string) error
 
 	if len(cleanedUpJobIDs) == 0 {
 		log.Println("No job to be stopped.")
-		return nil
+		return nil, nil
 	}
 
 	log.Printf("Trying to stop jobs: %s\n", strings.Join(cleanedUpJobIDs, ", "))
@@ -403,7 +403,7 @@ func (r *JobRunner) stopJobsByIDs(ctx context.Context, allJobIDs []string) error
 	}
 
 	if err := g.Wait(); err != nil {
-		return fmt.Errorf("could not stop all jobs: %w", err)
+		return nil, fmt.Errorf("could not stop all jobs: %w", err)
 	}
 
 	log.Println("Jobs have been stopped.")
@@ -411,5 +411,5 @@ func (r *JobRunner) stopJobsByIDs(ctx context.Context, allJobIDs []string) error
 	// just to try - we are not interested in error
 	_ = r.Client.API.System().GarbageCollect()
 
-	return nil
+	return cleanedUpJobIDs, nil
 }
