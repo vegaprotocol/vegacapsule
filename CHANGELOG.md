@@ -41,6 +41,7 @@
 - [291](https://github.com/vegaprotocol/vegacapsule/issues/291) Install vegavisor binary with install-bins command
 - [297](https://github.com/vegaprotocol/vegacapsule/pull/297) Pass chain-id to the data-node
 - [322](https://github.com/vegaprotocol/vegacapsule/pull/322) Improve stop command & update vega core dependency
+- [329](https://github.com/vegaprotocol/vegacapsule/pull/329) Add template functions for generating `IPFS peer ids`.
 
 ### 🐛 Fixes
 - [167](https://github.com/vegaprotocol/vegacapsule/issues/167) Fix validators filter in tendermint generator

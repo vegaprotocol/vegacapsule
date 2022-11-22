@@ -48,9 +48,9 @@ GatewayEnabled = true
   AddSnapshotsToStore = true
   AddSnapshotsInterval = "5s"
   [DeHistory.Store]
-    IdSeed = "{{ b64enc "testsnet" }}-3479-439f-b7b7-{{.NodeNumber}}"
-    UseIpfsDefaultPeers = true
-    BootstrapPeers = []
+    IDSeed = "{{.GetDehistoryPeerIDSeed .NodeNumber}}"
+    BootstrapPeers = ["/ip4/127.0.0.1/tcp/4025/{{.GetDehistoryPeerID 2}}"]
+    UseIpfsDefaultPeers = false
     SwarmPort = 40{{.NodeNumber}}5
     StartWebUI = false
     WebUIPort = 50{{.NodeNumber}}5
