@@ -28,7 +28,7 @@ cd vegacapsule
 ```
 - Build Capsule from source
 ```bash
-go install
+go install ./...
 ```
 - Validate Capsule installation
 ```bash
@@ -51,7 +51,7 @@ vegacapsule nomad
 
 In another Terminal window run bootstrap command to generate and start new network.
 
-#### Bootstrap with preinstalled binaries ####
+#### Bootstrap with preinstalled binaries
 This step requires preinstalled **vega**, **data-node** and **vegawallet** binaries.
 Plese refer to [Install Vega binaries](install_vega_bins.md).
 
@@ -59,7 +59,7 @@ Plese refer to [Install Vega binaries](install_vega_bins.md).
 vegacapsule network bootstrap --config-path=net_confs/config.hcl
 ```
 
-#### Bootstrap with autoinstall ####
+#### Bootstrap with autoinstall
 Bootstrap with autoinstall will automatically download required binaries as a first step of the process.
 Either **--install** or **--install-release-tag** flags can be used. The former installes latest version and the 
 latter installes from given release tag.
@@ -92,11 +92,11 @@ vegacapsule nodes restore-checkpoint --checkpoint-file PATH_TO_YOUR_CHECKPOINT_F
 vegacapsule network start
 ```
 
-### Restoring on existing network
+### Restoring an existing network
 
 1. Stop the currently running network first (if the network is running)
 ```bash
-vegacapsule network stop
+vegacapsule network stop --nodes-only
 ```
 
 2. Reset current network nodes state
@@ -220,7 +220,7 @@ Capsule is using Go's [text/template](https://pkg.go.dev/text/template) templati
 
 ### Troubleshooting
 
-#### Missing the `GOBIN` environment variable 
+#### Missing the `GOBIN` environment variable
 
 ```
 Error: GOBIN environment variable has not been found - please set install-path flag instead
