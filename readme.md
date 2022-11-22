@@ -187,7 +187,8 @@ vegacapsule  network start --home-path=/var/tmp/veganetwork/testnetwork
 vegacapsule network destroy --home-path=/var/tmp/veganetwork/testnetwork
 ```
 
-> ℹ️ NOTE: Capsule preserves some files when starting and stopping the network, for example any pre-generated keys, the genesis file, and any node configurations in the [network configuration file](https://github.com/vegaprotocol/vegacapsule/tree/main/net_confs). In order to start network with new values in these files, use  the `vegacapsule network destroy` command.
+> ⚠️ Information:
+> Capsule preserves some files when starting and stopping the network, for example any pre-generated keys, the genesis file, and any node configurations in the [network configuration file](https://github.com/vegaprotocol/vegacapsule/tree/main/net_confs). In order to start network with new values in these files, use  the `vegacapsule network destroy` command.
 
 ### Commands for ethereum network
 
