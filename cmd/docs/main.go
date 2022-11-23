@@ -18,7 +18,7 @@ var (
 
 func init() {
 	flag.StringVar(&tagName, "tag-name", "", "name of the tag")
-	flag.StringVar(&typeNames, "type-names", "", "comma seperated types to be processed")
+	flag.StringVar(&typeNames, "type-names", "", "comma separated types to be processed")
 	flag.StringVar(&directoryPath, "dir-path", "", "directory path of the file to generate docs from")
 	flag.StringVar(&descriptionPath, "description-path", "", "path of file with description")
 }

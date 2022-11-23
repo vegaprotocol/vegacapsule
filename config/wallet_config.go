@@ -31,7 +31,7 @@ type WalletConfig struct {
 		description: |
 					By default wallet config inherits Vega binary from main network config but this paramater allows user to
 					define a different Vega binary to be used in wallet.
-					This can be used in case differnt wallet version is required.
+					This can be used in case different wallet version is required.
 					A relative or absolute path can be used. If only the binary name is defined, it automatically looks for it in $PATH.
 		note: Using wallet version that is not compatible with network will not work - therefore this should be used in advanced cases only.
 		example:

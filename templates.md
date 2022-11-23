@@ -40,7 +40,7 @@ vegacapsule template node-sets --type vega --path net_confs/node_set_templates/d
 
 <dd>
 
-
+Absolute index of the generated node.
 
 </dd>
 
@@ -106,7 +106,7 @@ vegacapsule template node-sets --type vega --path net_confs/node_set_templates/d
 
 <dd>
 
-
+Path to home directory of the Faucet.
 
 </dd>
 
@@ -116,7 +116,7 @@ vegacapsule template node-sets --type vega --path net_confs/node_set_templates/d
 
 <dd>
 
-
+Public key of the Faucet.
 
 </dd>
 
@@ -681,7 +681,7 @@ Represents generated Vega node.
 
 <dd>
 
-Path to binary used to generate and run the node.
+General information about the node.
 
 </dd>
 
@@ -737,6 +737,7 @@ Path to binary used to generate and run the node.
 
 
 ## *types.TendermintNode*
+Represents generated Tendermint node.
 
 
 ### Fields
@@ -748,7 +749,7 @@ Path to binary used to generate and run the node.
 
 <dd>
 
-
+General information about the node.
 
 </dd>
 
@@ -758,7 +759,7 @@ Path to binary used to generate and run the node.
 
 <dd>
 
-
+ID of the Tendermint node.
 
 </dd>
 
@@ -768,7 +769,7 @@ Path to binary used to generate and run the node.
 
 <dd>
 
-
+File path of the genesis file used to bootstrap the network.
 
 </dd>
 
@@ -778,7 +779,7 @@ Path to binary used to generate and run the node.
 
 <dd>
 
-
+Path to binary used to generate and run the node.
 
 </dd>
 
@@ -788,7 +789,7 @@ Path to binary used to generate and run the node.
 
 <dd>
 
-
+Generated public key of the Tendermint validator.
 
 </dd>
 
@@ -811,7 +812,7 @@ Path to binary used to generate and run the node.
 
 <dd>
 
-
+General information about the node.
 
 </dd>
 
@@ -821,7 +822,7 @@ Path to binary used to generate and run the node.
 
 <dd>
 
-
+Path to binary used to generate and run the node.
 
 </dd>
 
@@ -844,7 +845,7 @@ Path to binary used to generate and run the node.
 
 <dd>
 
-
+General information about the Visor.
 
 </dd>
 
@@ -854,7 +855,7 @@ Path to binary used to generate and run the node.
 
 <dd>
 
-
+Path to binary used to generate and run the node.
 
 </dd>
 
@@ -866,6 +867,7 @@ Path to binary used to generate and run the node.
 
 
 ## *types.NomadJob*
+Represent a raw Nomad job.
 
 
 ### Fields
@@ -877,7 +879,7 @@ Path to binary used to generate and run the node.
 
 <dd>
 
-
+Custom selected ID - name of the job.
 
 </dd>
 
@@ -887,7 +889,7 @@ Path to binary used to generate and run the node.
 
 <dd>
 
-
+Nomad job definition.
 
 </dd>
 
@@ -955,6 +957,7 @@ pre_start_probe {
 
 
 ## *types.GeneratedService*
+Represents any generated Capsule service.
 
 
 ### Fields
@@ -966,7 +969,7 @@ pre_start_probe {
 
 <dd>
 
-
+Name of the service.
 
 </dd>
 
@@ -976,7 +979,7 @@ pre_start_probe {
 
 <dd>
 
-
+Path to home directory of the service.
 
 </dd>
 
@@ -986,7 +989,7 @@ pre_start_probe {
 
 <dd>
 
-
+Path to service configuration.
 
 </dd>
 
@@ -1049,12 +1052,22 @@ Address of Clef wallet.
 </dd>
 
 <dt>
+	<code>VegaWalletName</code>  <strong>string</strong>  - required
+</dt>
+
+<dd>
+
+Name of the Vega wallet.
+
+</dd>
+
+<dt>
 	<code>VegaWalletID</code>  <strong>string</strong>  - required
 </dt>
 
 <dd>
 
-
+ID of Vega wallet.
 
 </dd>
 
@@ -1064,7 +1077,7 @@ Address of Clef wallet.
 
 <dd>
 
-
+Public key used from the Vega wallet.
 
 </dd>
 
@@ -1074,17 +1087,7 @@ Address of Clef wallet.
 
 <dd>
 
-
-
-</dd>
-
-<dt>
-	<code>VegaWalletName</code>  <strong>string</strong>  - required
-</dt>
-
-<dd>
-
-
+Recovery phrase from the Vega wallet.
 
 </dd>
 
@@ -1094,7 +1097,7 @@ Address of Clef wallet.
 
 <dd>
 
-
+File path of the Vega wallet passphrase.
 
 </dd>
 

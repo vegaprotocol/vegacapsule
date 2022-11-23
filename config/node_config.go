@@ -136,7 +136,7 @@ type NodeConfig struct {
 	/*
 		description: Allows to run checks that has to be fulfilled before the node starts.
 		note: |
-				This can be useful for checking wheter some depedent services has already started or not.
+				This can be useful for checking whether some depedent services has already started or not.
 				For example databases, mocked services etc.
 		example:
 			type: hcl
@@ -176,7 +176,7 @@ type NodeConfig struct {
 					The [types.NodeSet](templates.md#types.nodeset) can be used in the template.
 
 					Using custom Nomad jobs for node set can break Capsule function properly,
-					very detailed knowledge is required - therefore it is recommened to leave this parameter
+					very detailed knowledge is required - therefore it is recommend to leave this parameter
 					that should be used in advanced cases only.
 		note: |
 				It is recommended that you use `nomad_job_template_file` param instead.

@@ -68,7 +68,7 @@ type DockerConfig struct {
 	Args []string `hcl:"args"`
 
 	/*
-		description: Allows to set enviroment varibles for the container.
+		description: Allows to set environment varibles for the container.
 		example:
 			type: hcl
 			value: |
@@ -103,7 +103,7 @@ type DockerConfig struct {
 
 	/*
 		description: Allows to to define minimun required hardware resources for the container.
-		note: In most cases the default values (not defined) should be sufficent.
+		note: In most cases the default values (not defined) should be sufficient.
 		example:
 			type: hcl
 			value: |
