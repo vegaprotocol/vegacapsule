@@ -197,7 +197,7 @@ This details commonly seen issues users may face when setting up a Vega Capsule 
 
 #### Missing the `GOBIN` environment variable
 
-When trying to start Nomad with the following command `vegacapsule nomad` command, this error may be presented:
+When trying to start Nomad with the `vegacapsule nomad` command, this error may be presented:
 
 ```
 Error: GOBIN environment variable has not been found - please set install-path flag instead
@@ -208,3 +208,13 @@ To solve it, set the environment variable with the following command:
 ```bash
 export GOBIN="$HOME/go/bin"
 ```
+
+#### Being on a different branch
+
+When trying to bootstrap the network with the `vegacapsule network bootstrap` command, this error may be presented:
+
+```
+Error: failed to start network: failed to start network: failed to start vega network: failed to run node sets: failed to wait for node sets: failed to run testnet-nodeset-xxxxxxx job: starting deadline has been exceeded
+```
+
+To solve it, ensure that you are on the `main` branch. This can be checked with the command `git branch`
