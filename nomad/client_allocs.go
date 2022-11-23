@@ -161,7 +161,7 @@ func (n *Client) jobTimedOut(ctx context.Context, t *time.Ticker, jobID string) 
 		}
 
 		if allocs.startedOrFinishedWithoutError() {
-			log.Printf("All tasks for job %q started or finished witout an error", jobID)
+			log.Printf("All tasks for job %q started or finished without an error", jobID)
 			return false, nil
 		}
 
