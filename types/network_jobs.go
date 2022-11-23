@@ -17,6 +17,32 @@ type NetworkJobs struct {
 	WalletJobID     string
 }
 
+func (nj *NetworkJobs) MergeNetworkJobs(toMerge NetworkJobs) {
+	if toMerge.FaucetJobID != "" {
+		nj.FaucetJobID = toMerge.FaucetJobID
+	}
+
+	if toMerge.WalletJobID != "" {
+		nj.WalletJobID = toMerge.WalletJobID
+	}
+
+	for id := range toMerge.NodesSetsJobIDs {
+		if nj.NodesSetsJobIDs == nil {
+			nj.NodesSetsJobIDs = JobIDMap{}
+		}
+
+		nj.NodesSetsJobIDs[id] = true
+	}
+
+	for id := range toMerge.ExtraJobIDs {
+		if nj.ExtraJobIDs == nil {
+			nj.NodesSetsJobIDs = JobIDMap{}
+		}
+
+		nj.ExtraJobIDs[id] = true
+	}
+}
+
 func (nj NetworkJobs) Exists(jobID string) bool {
 	if _, ok := nj.NodesSetsJobIDs[jobID]; ok {
 		return true
@@ -34,13 +60,31 @@ func (nj NetworkJobs) Exists(jobID string) bool {
 	return false
 }
 
-func (nj NetworkJobs) AddExtraJobIDs(ids []string) {
+func (nj *NetworkJobs) AddExtraJobIDs(ids []string) {
 	if nj.ExtraJobIDs == nil {
 		nj.ExtraJobIDs = JobIDMap{}
 	}
 
 	for _, id := range ids {
 		nj.ExtraJobIDs[id] = true
+	}
+}
+
+func (nj *NetworkJobs) RemoveRunningJobsIDs(ids []string) {
+	for _, id := range ids {
+		if nj.NodesSetsJobIDs != nil {
+			delete(nj.NodesSetsJobIDs, id)
+		}
+		if nj.ExtraJobIDs != nil {
+			delete(nj.ExtraJobIDs, id)
+		}
+
+		if nj.FaucetJobID == id {
+			nj.FaucetJobID = ""
+		}
+		if nj.WalletJobID == id {
+			nj.WalletJobID = ""
+		}
 	}
 }
 

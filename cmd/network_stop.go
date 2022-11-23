@@ -27,11 +27,12 @@ var netStopCmd = &cobra.Command{
 			return networkNotBootstrappedErr("stop")
 		}
 
-		if err := netStop(context.Background(), netState); err != nil {
+		updatedState, err := netStop(context.Background(), *netState)
+		if err != nil {
 			return fmt.Errorf("failed to stop network: %w", err)
 		}
 
-		return nil
+		return updatedState.Persist()
 	},
 }
 
@@ -43,12 +44,12 @@ func init() {
 	)
 }
 
-func netStop(ctx context.Context, state *state.NetworkState) error {
+func netStop(ctx context.Context, state state.NetworkState) (*state.NetworkState, error) {
 	log.Println("Stopping network...")
 
 	nomadClient, err := nomad.NewClient(nil)
 	if err != nil {
-		return fmt.Errorf("failed to initialize nomad client: %w", err)
+		return nil, fmt.Errorf("failed to initialize nomad client: %w", err)
 	}
 
 	var logsDir, vegaCapsuleBinary string
@@ -62,13 +63,18 @@ func netStop(ctx context.Context, state *state.NetworkState) error {
 
 	nomadRunner, err := nomad.NewJobRunner(nomadClient, vegaCapsuleBinary, logsDir)
 	if err != nil {
-		return fmt.Errorf("failed to create job runner: %w", err)
+		return nil, fmt.Errorf("failed to create job runner: %w", err)
 	}
 
-	if err := nomadRunner.StopNetwork(ctx, state.RunningJobs, stopNodesOnly); err != nil {
-		return fmt.Errorf("failed to stop network: %w", err)
+	stoppedJobs, err := nomadRunner.StopNetwork(ctx, state.RunningJobs, stopNodesOnly)
+	if err != nil {
+		return nil, fmt.Errorf("failed to stop network: %w", err)
+	}
+
+	if state.RunningJobs != nil {
+		state.RunningJobs.RemoveRunningJobsIDs(stoppedJobs)
 	}
 
 	log.Println("Network successfully stopped.")
-	return nil
+	return &state, nil
 }

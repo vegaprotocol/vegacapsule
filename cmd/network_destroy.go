@@ -20,7 +20,7 @@ var netDestroyCmd = &cobra.Command{
 			return err
 		}
 
-		if err := netStop(context.Background(), netState); err != nil {
+		if _, err := netStop(context.Background(), *netState); err != nil {
 			if nomad.IsConnectionErr(err) {
 				log.Println("Couldn't connect to nomad, skipping network shutdown...")
 			} else {
