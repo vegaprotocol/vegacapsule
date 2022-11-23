@@ -2,9 +2,13 @@ package types
 
 import "github.com/hashicorp/nomad/api"
 
+// description: Represents any generated Capsule service.
 type GeneratedService struct {
-	Name           string `cty:"name"`
-	HomeDir        string `cty:"home_dir"`
+	// description: Name of the service.
+	Name string `cty:"name"`
+	// description: Path to home directory of the service.
+	HomeDir string `cty:"home_dir"`
+	// description: Path to service configuration.
 	ConfigFilePath string `cty:"config_file_path"`
 }
 
@@ -41,16 +45,21 @@ type NodeWalletInfo struct {
 	*/
 	EthereumClefRPCAddress string
 
-	VegaWalletID             string
-	VegaWalletPublicKey      string
+	// description: Name of the Vega wallet.
+	VegaWalletName string
+	// description: ID of Vega wallet.
+	VegaWalletID string
+	// description: Public key used from the Vega wallet.
+	VegaWalletPublicKey string
+	// description: Recovery phrase from the Vega wallet.
 	VegaWalletRecoveryPhrase string
-	VegaWalletName           string
-	VegaWalletPassFilePath   string
+	// description: File path of the Vega wallet passphrase.
+	VegaWalletPassFilePath string
 }
 
 // description: Represents generated Vega node.
 type VegaNode struct {
-	// description: Path to binary used to generate and run the node.
+	// description: General information about the node.
 	GeneratedService `cty:"service"`
 
 	// description: Mode of the node - `validator` or `full`.
@@ -71,21 +80,32 @@ type VegaNode struct {
 	BinaryPath string
 }
 
+// description: Represents generated Tendermint node.
 type TendermintNode struct {
-	GeneratedService   `cty:"service"`
-	NodeID             string `cty:"node_id"`
-	GenesisFilePath    string
-	BinaryPath         string
+	// description: General information about the node.
+	GeneratedService `cty:"service"`
+
+	// description: ID of the Tendermint node.
+	NodeID string `cty:"node_id"`
+	// description: File path of the genesis file used to bootstrap the network.
+	GenesisFilePath string
+	// description: Path to binary used to generate and run the node.
+	BinaryPath string
+	// description: Generated public key of the Tendermint validator.
 	ValidatorPublicKey string
 }
 
 type DataNode struct {
+	// description: General information about the node.
 	GeneratedService `cty:"service"`
-	BinaryPath       string
+	// description: Path to binary used to generate and run the node.
+	BinaryPath string
 }
 
 type Visor struct {
+	// description: General information about the Visor.
 	GeneratedService
+	// description: Path to binary used to generate and run the node.
 	BinaryPath string
 }
 
@@ -94,8 +114,11 @@ type RawJobWithNomadJob struct {
 	NomadJob *api.Job
 }
 
+// description: Represent a raw Nomad job.
 type NomadJob struct {
-	ID          string
+	// description: Custom selected ID - name of the job.
+	ID string
+	// description: Nomad job definition.
 	NomadJobRaw string
 }
 

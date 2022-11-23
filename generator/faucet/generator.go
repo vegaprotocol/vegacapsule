@@ -18,7 +18,9 @@ import (
 )
 
 type ConfigTemplateContext struct {
-	HomeDir   string
+	// description: Path to home directory of the Faucet.
+	HomeDir string
+	// description: Public key of the Faucet.
 	PublicKey string
 }
 
