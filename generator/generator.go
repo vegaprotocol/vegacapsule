@@ -37,7 +37,7 @@ func (ns nodeSets) GetAllByGroupName(groupName string) []types.NodeSet {
 
 type jobRunner interface {
 	RunRawNomadJobs(ctx context.Context, rawJobs []string) ([]types.RawJobWithNomadJob, error)
-	StopNetwork(ctx context.Context, jobs *types.NetworkJobs, nodesOnly bool) error
+	StopNetwork(ctx context.Context, jobs *types.NetworkJobs, nodesOnly bool) ([]string, error)
 }
 
 type Generator struct {
