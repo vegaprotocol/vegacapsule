@@ -98,6 +98,8 @@ type jobWithPreProbe struct {
 	Probes *types.ProbesConfig
 }
 
+// RunNodeSets returns list of started jobs.
+// When one of the jobs fails during startup it returns jobs that has alredy started before that.
 func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) ([]*api.Job, error) {
 	jobs := make([]jobWithPreProbe, 0, len(nodeSets))
 
@@ -125,26 +127,31 @@ func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) (
 		jobs = append(jobs, jobWithPreProbe{Job: job, Probes: ns.PreStartProbe})
 	}
 
+	var mut sync.Mutex
+	startedJobs := make([]*api.Job, 0, len(nodeSets))
+
 	eg := new(errgroup.Group)
 	for _, j := range jobs {
 		j := j
 
 		eg.Go(func() error {
-			return r.runAndWait(ctx, j.Job, j.Probes)
+			if err := r.runAndWait(ctx, j.Job, j.Probes); err != nil {
+				return err
+			}
+
+			mut.Lock()
+			startedJobs = append(startedJobs, j.Job)
+			mut.Unlock()
+
+			return nil
 		})
 	}
 
 	if err := eg.Wait(); err != nil {
-		return nil, fmt.Errorf("failed to wait for node sets: %w", err)
+		return startedJobs, fmt.Errorf("failed to wait for node sets: %w", err)
 	}
 
-	jobsRaw := make([]*api.Job, 0, len(nodeSets))
-
-	for _, j := range jobs {
-		jobsRaw = append(jobsRaw, j.Job)
-	}
-
-	return jobsRaw, nil
+	return startedJobs, nil
 }
 
 func (r *JobRunner) runDockerJobs(ctx context.Context, dockerConfigs []config.DockerConfig) ([]string, error) {
@@ -272,15 +279,16 @@ func (r *JobRunner) startNetwork(
 
 	g.Go(func() error {
 		jobs, err := r.RunNodeSets(ctx, generatedSvcs.NodeSets.ToSlice())
-		if err != nil {
-			return fmt.Errorf("failed to run node sets: %w", err)
-		}
 
 		lock.Lock()
 		for _, job := range jobs {
 			result.NodesSetsJobIDs[*job.ID] = true
 		}
 		lock.Unlock()
+
+		if err != nil {
+			return fmt.Errorf("failed to run node sets: %w", err)
+		}
 
 		return nil
 	})

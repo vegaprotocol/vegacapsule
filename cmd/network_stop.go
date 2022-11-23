@@ -71,7 +71,9 @@ func netStop(ctx context.Context, state state.NetworkState) (*state.NetworkState
 		return nil, fmt.Errorf("failed to stop network: %w", err)
 	}
 
-	state.RunningJobs.RemoveRunningJobsIDs(stoppedJobs)
+	if state.RunningJobs != nil {
+		state.RunningJobs.RemoveRunningJobsIDs(stoppedJobs)
+	}
 
 	log.Println("Network successfully stopped.")
 	return &state, nil
