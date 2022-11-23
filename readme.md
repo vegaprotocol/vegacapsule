@@ -17,7 +17,7 @@ In order to use Vega Capsule you will need to install Go and Docker:
 go version
 ```
 
-1. Install [Docker](https://docs.docker.com/get-docker/) locally on your machine. Check you have the correct version installed using the following command:
+2. Install [Docker](https://docs.docker.com/get-docker/) locally on your machine. Check you have the correct version installed using the following command:
 ```bash
 docker version
 ```
@@ -40,7 +40,7 @@ go install
 vegacapsule --help
 ```
 
-1. Start Nomad
+2. Start Nomad
 - Nomad comes built in with the installed Vega Capsule binaries 
 ```bash
 vegacapsule nomad
@@ -48,7 +48,7 @@ vegacapsule nomad
 > ⚠️ Information: 
 > You may need to set the `GOBIN` environment variable to start Nomad. If this is required see the <a href="#common-issues">Common Issues</a> information.
 
-1. Bootstrap with auto-installed dependancies
+3. Bootstrap with auto-installed dependancies
 - Bootstrap with auto-install will automatically download the required Vega binaries during the bootstrapping process. 
 
 - Use **--install** to install the latest version of Vega
@@ -64,7 +64,7 @@ vegacapsule network bootstrap --config-path=net_confs/config.hcl --install-relea
 > ⚠️ Information:
 > The example bootstrap commands use the base default network configuration. The [network configurations](./net_confs) directory contains a number of defaults for various use cases for example with front end dApps or nullblockchain defined. Find out more about the <a href="#configuration">Configuration</a> fields.
 
-1. Check Nomad console is running by opening http://localhost:4646/
+4. Check Nomad console is running by opening the [Nomad UI](http://localhost:4646/) in a web browser.
 
 ## Configuration and templates
 
@@ -165,8 +165,6 @@ vegacapsule network destroy --home-path=/var/tmp/veganetwork/testnetwork
 > ⚠️ Information:
 > Capsule preserves some files when starting and stopping the network, for example any pre-generated keys, the genesis file, and any node configurations in the [network configuration file](https://github.com/vegaprotocol/vegacapsule/tree/main/net_confs). In order to start network with new values in these files, use  the `vegacapsule network destroy` command.
 
-
-
 ## Troubleshooting
 
 ### Logs
@@ -217,4 +215,4 @@ When trying to bootstrap the network with the `vegacapsule network bootstrap` co
 Error: failed to start network: failed to start network: failed to start vega network: failed to run node sets: failed to wait for node sets: failed to run testnet-nodeset-xxxxxxx job: starting deadline has been exceeded
 ```
 
-To solve it, ensure that you are on the `main` branch. This can be checked with the command `git branch`
+To solve it, ensure that you are on the `main` branch. This can be checked with the command `git branch`.
