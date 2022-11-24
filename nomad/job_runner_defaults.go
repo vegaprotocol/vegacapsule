@@ -110,7 +110,7 @@ func (r *JobRunner) defaultNodeSetTasks(ns types.NodeSet) []*api.Task {
 				LogConfig: defaultLogConfig,
 				Resources: &api.Resources{
 					CPU:      utils.ToPoint(1000),
-					MemoryMB: utils.ToPoint(1024),
+					MemoryMB: utils.ToPoint(512),
 				},
 				KillTimeout: defaultKillTimeout,
 			},
