@@ -21,19 +21,31 @@ type ConfigTemplateContext struct {
 	NodeHomeDir string
 	NodeNumber  int
 	NodeSet     types.NodeSet
+
+	nodes []node
 }
 
 func (tc ConfigTemplateContext) GetDehistoryPeerIDSeed(nodeNumber int) string {
 	return fmt.Sprintf("ipfs-seed-%d", nodeNumber)
 }
 
-func (tc ConfigTemplateContext) GetDehistoryPeerID(nodeNumber int) string {
-	seed := tc.GetDehistoryPeerIDSeed(nodeNumber)
-	id, err := store.CreateIdentityFromSeed([]byte(seed))
-	if err != nil {
-		panic("couldn't create ipfs peer identity")
+func (tc ConfigTemplateContext) IPSFPeersIDs() []string {
+	peersIDs := []string{}
+	for _, node := range tc.nodes {
+		if len(tc.nodes) != 1 && node.index == tc.NodeSet.Index {
+			continue
+		}
+
+		seed := tc.GetDehistoryPeerIDSeed(node.index)
+		id, err := store.CreateIdentityFromSeed([]byte(seed))
+		if err != nil {
+			panic("couldn't create ipfs peer identity")
+		}
+
+		peersIDs = append(peersIDs, id.PeerID)
 	}
-	return id.PeerID
+
+	return peersIDs
 }
 
 func NewConfigTemplate(templateRaw string) (*template.Template, error) {
@@ -51,6 +63,7 @@ func (dng ConfigGenerator) TemplateConfig(ns types.NodeSet, configTemplate *temp
 		NodeNumber:  ns.Index,
 		NodeHomeDir: dng.homeDir,
 		NodeSet:     ns,
+		nodes:       dng.nodes,
 	}
 
 	buff := bytes.NewBuffer([]byte{})
