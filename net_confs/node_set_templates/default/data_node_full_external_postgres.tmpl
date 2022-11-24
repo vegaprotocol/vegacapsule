@@ -50,7 +50,7 @@ GatewayEnabled = true
     {{ $nodeNumber := .NodeNumber }}
     BootstrapPeers = [{{- range $i, $peerID := .IPSFPeersIDs -}}
       {{- if ne $i 0 }},{{end -}}
-      "/ip4/127.0.0.1/tcp/40{{ $nodeNumber }}5/ipfs/{{ $peerID }}"
+      "/ip4/127.0.0.1/tcp/{{add 400 .NodeNumber}}5/ipfs/{{ $peerID }}"
     {{- end -}}]
 
     UseIpfsDefaultPeers = false
