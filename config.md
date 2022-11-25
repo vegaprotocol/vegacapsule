@@ -3,7 +3,7 @@
 
 # Capsule configuration docs
 
-Capsule it's not a real network deployment tool - it is rather a tool that allows to run a custom network simulation locally on single a machine.
+Capsule is a tool that allows you to run a custom network simulation locally on single a machine. It is an incredibly useful tool for anybody who wants to try experimenting on or with a Vega network without using a real network.
 This means that it is a incredibly useful tool for anybody who wants to try Vega network without using a real network.
 
 Capsule configuration is used by vegacapsule CLI network to generate and bootstrap commands and can be customised to personal need.
