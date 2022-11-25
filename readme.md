@@ -54,16 +54,16 @@ vegacapsule nomad
 
 - Use **--install** to install the latest version of Vega
 ```bash
-vegacapsule network bootstrap --config-path=net_confs/config.hcl --install
+vegacapsule network bootstrap --config-path=net_confs/config_frontends.hcl --install
 ```
 
 - Use **--install-release-tag** to install a given version of Vega
 ```bash
-vegacapsule network bootstrap --config-path=net_confs/config.hcl --install-release-tag v0.54.0
+vegacapsule network bootstrap --config-path=net_confs/config_frontends.hcl --install-release-tag v0.54.0
 ```
 
 > ⚠️ Information:
-> The example bootstrap commands use the base default network configuration. The [network configurations](./net_confs) directory contains a number of defaults for various use cases, such as Capsule with front end dApps or nullblockchain defined. Find out more about the <a href="#configuration">Configuration</a> fields.
+> The example bootstrap commands use a base default network configuration with front end dApps configured. The [network configurations](./net_confs) directory contains a number of defaults for various use cases, such as Capsule with front end dApps or nullblockchain defined. Find out more about the <a href="#configuration">Configuration</a> fields.
 
 4. Check Nomad console is running by opening the [Nomad UI](http://localhost:4646/) in a web browser.
 
@@ -85,6 +85,12 @@ The installed software comes with a number of defaults that can be used, these a
 
 ## Using Vega Capsule
 In order to start using Vega Capsule to create assets and markets, you'll need to set up the following: Ethereum smart contracts and a Vega Wallet.
+
+The bootstrapping examples in this readme will generate the following front end dApps:
+
+- [Block Explorer](https://localhost:4220)
+- [Trading Console](https://localhost:4200)
+- [Token dApp](https://localhost:4210)
 
 ### Commands for the Ethereum network
 
