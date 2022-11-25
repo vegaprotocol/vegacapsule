@@ -1,7 +1,7 @@
 
 
 
-#Capsule configuration docs
+# Capsule configuration docs
 
 Capsule is a tool that allows users to run a custom Vega network simulation locally on single a machine.
 This means that it is a incredibly useful tool for anybody who wants to try Vega network without using a real network.
