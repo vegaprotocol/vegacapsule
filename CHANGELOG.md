@@ -59,6 +59,7 @@
 - [300](https://github.com/vegaprotocol/vegacapsule/pull/300) - Use raw hcl body to template it second time
 - [315](https://github.com/vegaprotocol/vegacapsule/pull/315) - Do no start jobs that already runs
 - [331](https://github.com/vegaprotocol/vegacapsule/pull/331) - Persist stopped jobs & merge running jobs on start
+- [342](https://github.com/vegaprotocol/vegacapsule/pull/342) - Stop failed jobs
 
 
 
