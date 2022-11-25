@@ -27,7 +27,7 @@ Host = "0.0.0.0"
 
 [API]
   [API.GRPC]
-    Hosts = [{{range $i, $v := .Validators}}{{if ne $i 0}},{{end}}"127.0.0.1:30{{$i}}2"{{end}}]
+    Hosts = [{{range $i, $v := .Validators}}{{if ne $i 0}},{{end}}"127.0.0.1:{{add 300 $i}}2"{{end}}]
     Retries = 5
 EOT
   }
@@ -58,7 +58,7 @@ EOT
       env = {
         POSTGRES_USER="vega"
         POSTGRES_PASSWORD="vega"
-        POSTGRES_DBS="vega0,vega1,vega2,vega3,vega4,vega5,vega6,vega7,vega8"
+        POSTGRES_DBS="vega0,vega1,vega2,vega3,vega4,vega5,vega6,vega7,vega8,vega9,vega10,vega11,vega12,vega13,vega14,vega15,vega16,vega17,vega18,vega19,vega20,vega21,vega22,vega23,vega24,vega25"
       }
       
       static_port {

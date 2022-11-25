@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	code.vegaprotocol.io/shared v0.0.0-20220816105810-a519d6b44f35
-	code.vegaprotocol.io/vega v0.62.2-0.20221121170134-50635a8fa30f
+	code.vegaprotocol.io/vega v0.62.2-0.20221125123811-d89ea86d633b
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/ethereum/go-ethereum v1.10.21
 	github.com/hashicorp/hcl/v2 v2.9.2-0.20210407182552-eb14f8319bdc
@@ -13,7 +13,7 @@ require (
 	github.com/nxadm/tail v1.4.8
 	github.com/spf13/viper v1.13.0
 	github.com/stretchr/testify v1.8.0
-	github.com/tendermint/tendermint v0.34.23
+	github.com/tendermint/tendermint v0.34.24
 	github.com/tomwright/dasel v1.24.3
 	golang.org/x/sync v0.0.0-20220929204114-8fcdb60fdcc0
 )
@@ -339,7 +339,7 @@ require (
 	github.com/spf13/afero v1.8.2 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
-	github.com/spf13/pflag v1.0.5
+	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.4.1 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20220614013038-64ee5596c38a // indirect
 	github.com/tendermint/tm-db v0.6.7 // indirect

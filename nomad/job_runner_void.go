@@ -23,9 +23,9 @@ func (r *VoidJobRunner) RunRawNomadJobs(ctx context.Context, rawJobs []string) (
 	return nil, nil
 }
 
-func (r *VoidJobRunner) StopNetwork(ctx context.Context, jobs *types.NetworkJobs, nodesOnly bool) error {
+func (r *VoidJobRunner) StopNetwork(ctx context.Context, jobs *types.NetworkJobs, nodesOnly bool) ([]string, error) {
 	r.printCaveat()
-	return nil
+	return nil, nil
 }
 
 func (r *VoidJobRunner) GetJobPorts(job *api.Job) []int64 {

@@ -42,6 +42,7 @@
 - [297](https://github.com/vegaprotocol/vegacapsule/pull/297) Pass chain-id to the data-node
 - [322](https://github.com/vegaprotocol/vegacapsule/pull/322) Improve stop command & update vega core dependency
 - [329](https://github.com/vegaprotocol/vegacapsule/pull/329) Add template functions for generating `IPFS peer ids`.
+- [337](https://github.com/vegaprotocol/vegacapsule/issues/337) Allow > 9 and < 100 nodes to be created.
 
 ### 🐛 Fixes
 - [167](https://github.com/vegaprotocol/vegacapsule/issues/167) Fix validators filter in tendermint generator
@@ -57,6 +58,7 @@
 - [294](https://github.com/vegaprotocol/vegacapsule/issues/294) - Do not prepare vegavisor upgrade for non vegavisor nodes
 - [300](https://github.com/vegaprotocol/vegacapsule/pull/300) - Use raw hcl body to template it second time
 - [315](https://github.com/vegaprotocol/vegacapsule/pull/315) - Do no start jobs that already runs
+- [331](https://github.com/vegaprotocol/vegacapsule/pull/331) - Persist stopped jobs & merge running jobs on start
 
 
 
