@@ -25,8 +25,26 @@ type ConfigTemplateContext struct {
 	nodes []node
 }
 
-func (tc ConfigTemplateContext) GetDehistoryPeerIDSeed(nodeNumber int) string {
+func (tc ConfigTemplateContext) getDehistoryPeerIDSeed(nodeNumber int) string {
 	return fmt.Sprintf("ipfs-seed-%d", nodeNumber)
+}
+
+func (tc ConfigTemplateContext) GetDehistoryPeerID(nodeNumber int) string {
+	seed := tc.getDehistoryPeerIDSeed(nodeNumber)
+	id, err := store.GenerateIdentityFromSeed([]byte(seed))
+	if err != nil {
+		panic("couldn't create ipfs peer identity")
+	}
+	return id.PeerID
+}
+
+func (tc ConfigTemplateContext) GetDehistoryPrivKey(nodeNumber int) string {
+	seed := tc.getDehistoryPeerIDSeed(nodeNumber)
+	id, err := store.GenerateIdentityFromSeed([]byte(seed))
+	if err != nil {
+		panic("couldn't create ipfs peer identity")
+	}
+	return id.PrivKey
 }
 
 func (tc ConfigTemplateContext) IPSFPeersIDs() []string {
@@ -36,8 +54,8 @@ func (tc ConfigTemplateContext) IPSFPeersIDs() []string {
 			continue
 		}
 
-		seed := tc.GetDehistoryPeerIDSeed(node.index)
-		id, err := store.CreateIdentityFromSeed([]byte(seed))
+		seed := tc.getDehistoryPeerIDSeed(node.index)
+		id, err := store.GenerateIdentityFromSeed([]byte(seed))
 		if err != nil {
 			panic("couldn't create ipfs peer identity")
 		}

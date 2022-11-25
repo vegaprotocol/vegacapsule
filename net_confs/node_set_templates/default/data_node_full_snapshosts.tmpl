@@ -48,7 +48,8 @@ GatewayEnabled = true
   AddSnapshotsToStore = true
   AddSnapshotsInterval = "5s"
   [DeHistory.Store]
-    IDSeed = "{{.GetDehistoryPeerIDSeed .NodeNumber}}"
+    PeerID = "{{.GetDehistoryPeerID .NodeNumber}}"
+    PrivKey = "{{.GetDehistoryPrivKey .NodeNumber}}"
 
     {{ $nodeNumber := .NodeNumber }}
     BootstrapPeers = [{{- range $i, $peerID := .IPSFPeersIDs -}}

@@ -45,7 +45,8 @@ GatewayEnabled = true
 [DeHistory]
   Enabled = true
   [DeHistory.Store]
-    IDSeed = "{{.GetDehistoryPeerIDSeed .NodeNumber}}"
+    PeerID = "{{.GetDehistoryPeerID .NodeNumber}}"
+    PrivKey = "{{.GetDehistoryPrivKey .NodeNumber}}"
 
     {{ $nodeNumber := .NodeNumber }}
     BootstrapPeers = [{{- range $i, $peerID := .IPSFPeersIDs -}}
