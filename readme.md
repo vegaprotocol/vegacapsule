@@ -61,8 +61,8 @@ vegacapsule network bootstrap --config-path=net_confs/config.hcl
 
 #### Bootstrap with autoinstall ####
 Bootstrap with autoinstall will automatically download required binaries as a first step of the process.
-Either **--install** or **--install-release-tag** flags can be used. The former installes latest version and the 
-latter installes from given release tag.
+Either **--install** or **--install-release-tag** flags can be used. The former installs latest version and the 
+latter installs from given release tag.
 
 ```bash
 vegacapsule network bootstrap --config-path=net_confs/config.hcl --install

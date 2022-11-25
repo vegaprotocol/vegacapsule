@@ -45,6 +45,7 @@ GatewayEnabled = true
 [DeHistory]
   Enabled = true
   [DeHistory.Store]
-    IDSeed = "{{.GetDehistoryPeerIDSeed .NodeNumber}}"
+    terPeerID = "{{.GetDehistoryPeerID .NodeNumber}}"
+    PrivKey = "{{.GetDehistoryPrivKey .NodeNumber}}"
     BootstrapPeers = ["/ip4/127.0.0.1/tcp/4025/ipfs/{{.GetDehistoryPeerID 2}}"]
     UseIpfsDefaultPeers = false
