@@ -16,6 +16,9 @@
 # Dependency directories
 vendor/
 
+
+.idea/
+
 # VS Code launch file
 launch.json
 
