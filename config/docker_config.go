@@ -68,7 +68,7 @@ type DockerConfig struct {
 	Args []string `hcl:"args"`
 
 	/*
-		description: Allows to set environment varibles for the container.
+		description: Allows the user to set environment varibles for the container.
 		example:
 			type: hcl
 			value: |
