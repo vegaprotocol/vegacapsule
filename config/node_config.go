@@ -116,8 +116,8 @@ type NodeConfig struct {
 
 	/*
 		description: |
-					Allows to run a custom services before the node set is generated.
-					This can be very useful when generation of the node set might have some extenal depenency for example
+					Allows a user to run a custom service before the node set is generated.
+					This can be very useful when generating the node set might have some extenal dependency, such as
 					a [Clef wallet](https://geth.ethereum.org/docs/clef/introduction).
 		note: |
 				Clef wallet is a good example - since generating a validator node set requires Ethereum key
