@@ -103,7 +103,7 @@ type DataNode struct {
 }
 
 type Visor struct {
-	// description: General information about the Visor.
+	// description: General information about Visor.
 	GeneratedService
 	// description: Path to binary used to generate and run the node.
 	BinaryPath string
