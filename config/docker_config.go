@@ -27,7 +27,7 @@ example:
 */
 type DockerConfig struct {
 	/*
-		description: Name of the service that is going to be use as an identifier when service runs.
+		description: Name of the service that is going to be used as an identifier when service runs.
 		example:
 			type: hcl
 			value: |
