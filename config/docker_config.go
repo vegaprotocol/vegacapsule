@@ -102,8 +102,8 @@ type DockerConfig struct {
 	AuthSoftFail bool `hcl:"auth_soft_fail,optional"`
 
 	/*
-		description: Allows to to define minimun required hardware resources for the container.
-		note: In most cases the default values (not defined) should be sufficient.
+		description: Allows the user to define the minimum required hardware resources for the container.
+		Note: In most cases the default values (not defined) should be sufficient.
 		example:
 			type: hcl
 			value: |
