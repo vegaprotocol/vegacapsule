@@ -49,7 +49,7 @@ type ProbesConfig struct {
 }
 
 /*
-description: Allows to probe HTTP endpoint.
+description: Allows the user to probe HTTP endpoint.
 example:
 
 	type: hcl
