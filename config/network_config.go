@@ -108,7 +108,7 @@ type NetworkConfig struct {
 		description: |
 			Smart contract addresses are addresses of [Ethereum bridge](https://docs.vega.xyz/mainnet/api/bridge) contracts in JSON format.
 
-			These addresses should correspond to the chosen network in [Ethereum network](#EthereumConfig) and
+			These addresses need to correspond to the chosen network in [Ethereum network](#EthereumConfig) and
 			can be used in various types of templates in Capsule.
 			[Example of smart contract address from mainnet](https://github.com/vegaprotocol/networks/blob/master/mainnet1/smart-contracts.json).
 		note: |
