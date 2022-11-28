@@ -55,7 +55,7 @@ type NetworkConfig struct {
 
 	/*
 		description: |
-			[Go template](templates.md) of genesis file that will be used to bootrap the Vega network.
+			[Go template](templates.md) of the genesis file that will be used to bootrap the Vega network.
 			[Example of templated mainnet genesis file](https://github.com/vegaprotocol/networks/blob/master/mainnet1/genesis.json).
 
 			The [GenesisTemplateContext](templates.md#genesistemplatecontext) can be used in the template. Example [example](net_confs/genesis.tmpl).
