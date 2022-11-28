@@ -54,7 +54,7 @@ Default value: <code>~/.vegacapsule/testnet</code>
 
 <dd>
 
-Path (relative or absolute) to vega binary that will be used to generate and run the network.
+Path (relative or absolute) to Vega binary that will be used to generate and run the network.
 
 
 Default value: <code>vega</code>
