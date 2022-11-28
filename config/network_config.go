@@ -141,9 +141,9 @@ type NetworkConfig struct {
 
 	/*
 		description: |
-			Allows a user to define multiple nodes sets and their specific configurations.
+			Allows a user to define multiple node sets and their specific configurations.
 			A node set is a representation of Vega and Data Node nodes.
-			This is the essential building block of the Vega network.
+			The node set is the essential building block of the Vega network.
 		examples:
 			- type: hcl
 			  name: Validators node set
