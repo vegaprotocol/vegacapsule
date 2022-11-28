@@ -10,7 +10,8 @@ import (
 description: |
 
 	Network configuration allows a user to customise the Capsule Vega network into different shapes based on personal needs.
-	It also allows the configuration and deployment of different Vega nodes' setups (validator, full) and their dependencies (like Ethereum or Postgres).
+	It also allows the configuration and deployment of different Vega nodes' setups (validator, full - full means a non validating node)
+	and their dependencies (like Ethereum or Postgres).
 	It can run custom Docker images before and after the network nodes have started and much more.
 
 example:

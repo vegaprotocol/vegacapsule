@@ -9,7 +9,7 @@ type NodeSet struct {
 	GroupName string `cty:"group_name"`
 	// description: Name of a specific node set in a node sets group.
 	Name string `cty:"name"`
-	//	description: Mode of the node set. Can be `validator` or `full`.
+	// description: Mode of the node set. Can be `validator` or `full` (full means a non validating node).
 	Mode string `cty:"mode"`
 	/*
 		description: |
