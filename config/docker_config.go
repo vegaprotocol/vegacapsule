@@ -151,7 +151,7 @@ example:
 type Resources struct {
 	// description: Minimum required CPU in MHz
 	CPU *int `hcl:"cpu,optional"`
-	// description: Num of minimum required CPU cores
+	// description: Number of minimum required CPU cores
 	Cores *int `hcl:"cores,optional"`
 	// description: Minimum required RAM in Mb
 	MemoryMB *int `hcl:"memory,optional"`
