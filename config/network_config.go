@@ -243,7 +243,7 @@ example:
 type PStartConfig struct {
 	/*
 		description: |
-				Allows to define multiple services to be run inside [Docker](https://www.docker.com/).
+				Allows the user to define multiple services to be run inside [Docker](https://www.docker.com/).
 		example:
 
 			type: hcl
