@@ -117,7 +117,7 @@ It can run custom Docker images before and after the network nodes have started 
 
 Name of the network.
 All folders generated are placed in the folder with this name.
-All Nomad jobs are prefix with the name.
+All Nomad jobs are prefixed with this name.
 
 
 </dd>
