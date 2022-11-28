@@ -92,7 +92,7 @@ type DockerConfig struct {
 	StaticPort *StaticPort `hcl:"static_port,block"`
 
 	/*
-		description: Defines whether or not the task fails on an auth failure.
+		description: Defines whether or not the task fails on an authentication failure.
 		note: Should be always `true` for public images.
 		example:
 			type: hcl
