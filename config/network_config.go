@@ -92,8 +92,8 @@ type NetworkConfig struct {
 
 	/*
 		description: |
-			Allows the user to define Ethereum network configuration.
-			This is necessary because Vega needs to be connected to [Ethereum bridges](https://docs.vega.xyz/mainnet/api/bridge)
+			Allows the user to define the applicable Ethereum network configuration.
+			This is necessary because the Vega network needs to be connected to [Ethereum bridges](https://docs.vega.xyz/mainnet/api/bridge)
 			or it cannot function.
 		examples:
 			- type: hcl
