@@ -12,20 +12,39 @@ import (
 	"code.vegaprotocol.io/vegacapsule/utils"
 )
 
+type node struct {
+	name  string
+	index int
+}
+
 type ConfigGenerator struct {
 	conf    *config.Config
 	homeDir string
+
+	nodes []node
 }
 
-func NewConfigGenerator(conf *config.Config) (*ConfigGenerator, error) {
+func NewConfigGenerator(conf *config.Config, generatedNodeSets []types.NodeSet) (*ConfigGenerator, error) {
 	homeDir, err := filepath.Abs(path.Join(*conf.OutputDir, *conf.DataNodePrefix))
 	if err != nil {
 		return nil, err
 	}
 
+	nodes := []node{}
+	for _, n := range generatedNodeSets {
+		if n.DataNode == nil {
+			continue
+		}
+		nodes = append(nodes, node{
+			name:  n.DataNode.Name,
+			index: n.Index,
+		})
+	}
+
 	return &ConfigGenerator{
 		conf:    conf,
 		homeDir: homeDir,
+		nodes:   nodes,
 	}, nil
 }
 
@@ -70,6 +89,11 @@ func (dng *ConfigGenerator) Initiate(index int, chainID string, optVegaBinary *s
 		},
 		BinaryPath: vegaBinary,
 	}
+
+	dng.nodes = append(dng.nodes, node{
+		name:  initNode.Name,
+		index: index,
+	})
 
 	return initNode, nil
 }

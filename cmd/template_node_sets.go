@@ -148,7 +148,7 @@ func templateNodeSets(tmplType templateKindType, templateRaw string, netState *s
 			return err
 		}
 
-		gen, err := datanode.NewConfigGenerator(netState.Config)
+		gen, err := datanode.NewConfigGenerator(netState.Config, netState.GeneratedServices.NodeSets.ToSlice())
 		if err != nil {
 			return err
 		}
