@@ -228,7 +228,7 @@ type NetworkConfig struct {
 /*
 description: |
 
-	Allows to configure services that will run before or after the network starts.
+	Allows the user to configure services that will run before or after the network starts.
 
 example:
 
