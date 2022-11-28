@@ -134,10 +134,10 @@ type NodeConfig struct {
 	PreGenerate *PreGenerate `hcl:"pre_generate,block"`
 
 	/*
-		description: Allows to run checks that has to be fulfilled before the node starts.
+		description: Allows the user to run checks that have to be fulfilled before the node starts.
 		note: |
-				This can be useful for checking whether some depedent services has already started or not.
-				For example databases, mocked services etc.
+				This can be useful for checking whether some dependent services have already started or not.
+				Examples: databases, mocked services, etc..
 		example:
 			type: hcl
 			value: |
