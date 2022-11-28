@@ -114,7 +114,7 @@ type RawJobWithNomadJob struct {
 	NomadJob *api.Job
 }
 
-// description: Represent a raw Nomad job.
+// description: Represents a raw Nomad job.
 type NomadJob struct {
 	// description: Custom selected ID - name of the job.
 	ID string
