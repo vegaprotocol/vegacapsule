@@ -120,9 +120,9 @@ type NodeConfig struct {
 					This can be very useful when generating the node set might have some extenal dependency, such as
 					a [Clef wallet](https://geth.ethereum.org/docs/clef/introduction).
 		note: |
-				Clef wallet is a good example - since generating a validator node set requires Ethereum key
+				Clef wallet is a good example - since generating a validator node set requires the Ethereum key
 				to be generated, Clef can be started before the generation starts so that Capsule can generate
-				the Ethereum key inside of during the generation process.
+				the Ethereum key inside of it during the generation process.
 		example:
 			type: hcl
 			value: |
