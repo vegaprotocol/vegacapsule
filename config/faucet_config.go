@@ -18,7 +18,7 @@ example:
 */
 type FaucetConfig struct {
 	/*
-		description: Name of the faucet that is going to be use as an identifier when facet runs.
+		description: Name of the faucet. It will be used as an identifier when the faucet runs.
 		example:
 			type: hcl
 			value: |
