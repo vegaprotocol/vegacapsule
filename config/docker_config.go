@@ -80,7 +80,7 @@ type DockerConfig struct {
 	Env map[string]string `hcl:"env,optional"`
 
 	/*
-		description: Allows to open a static port from container to host.
+		description: Allows the user to open a static port from container to host.
 		example:
 			type: hcl
 			value: |
