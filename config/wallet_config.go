@@ -18,7 +18,7 @@ example:
 */
 type WalletConfig struct {
 	/*
-		description: Name of the wallet that is going to be use as an identifier when wallet runs.
+		description: Name of the wallet. It will be used as an identifier when wallet runs.
 		example:
 			type: hcl
 			value: |
@@ -29,11 +29,11 @@ type WalletConfig struct {
 	Name string `hcl:"name,label"`
 	/*
 		description: |
-					By default wallet config inherits Vega binary from main network config but this paramater allows user to
+					By default, the wallet config inherits the Vega binary from the main network config, but this paramater allows a user to
 					define a different Vega binary to be used in wallet.
-					This can be used in case different wallet version is required.
+					This can be used if a different wallet version is required.
 					A relative or absolute path can be used. If only the binary name is defined, it automatically looks for it in $PATH.
-		note: Using wallet version that is not compatible with network will not work - therefore this should be used in advanced cases only.
+		note: Using a Vega wallet version that is not compatible with the network version will not work - therefore this should be used in advanced cases only.
 		example:
 			type: hcl
 			value: vega_binary_path = "binary_path"

@@ -22,11 +22,11 @@ description: |
 	- `.GetVegaContractID "contract_name"` - returns contract vega ID based on name.
 */
 type TemplateContext struct {
-	// description: Ethereum smart contracts addresses managed by Vega. These can represent bridges or ERC20 tokens.
+	// description: Ethereum smart contract addresses created by Vega. These can represent bridges or ERC20 tokens.
 	Addresses map[string]SmartContract
-	// description: Ethereum network id.
+	// description: Ethereum network ID.
 	NetworkID string
-	// description: Ethereum chain id.
+	// description: Ethereum chain ID.
 	ChainID string
 	// GenValidators []tmtypes.GenesisValidator // TODO add this to the template context
 }

@@ -3,7 +3,7 @@ package config
 /*
 description: |
 
-	Allows to configure a [Nomad job](https://developer.hashicorp.com/nomad/docs/job-specification) definition to be run on Capsule.
+	Allows the user to configure a [Nomad job](https://developer.hashicorp.com/nomad/docs/job-specification) definition to be run on Capsule.
 
 example:
 

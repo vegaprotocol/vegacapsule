@@ -5,7 +5,7 @@ import (
 )
 
 type NodeSet struct {
-	// description: Name that represents a group of same node sets.
+	// description: Name that represents a group of the same node sets.
 	GroupName string `cty:"group_name"`
 	// description: Name of a specific node set in a node sets group.
 	Name string `cty:"name"`
@@ -13,24 +13,24 @@ type NodeSet struct {
 	Mode string `cty:"mode"`
 	/*
 		description: |
-			Index is a position and order in which node set has been generated respective to all other created node sets.
-			It goes from 0-N where N is the number of node sets.
+			Index is a position and order in which the node set has been generated respective to all other created node sets.
+			It goes from 0-N where N is the total number of node sets.
 	*/
 	Index int `cty:"index"`
 	// description: RelativeIndex is a counter relative to current node set group. Related to GroupName.
 	RelativeIndex int
-	// description: GroupIndex is a index of the group where this node set belongs to. Related to GroupName.
+	// description: GroupIndex is an index of the group that this node set belongs to. Related to GroupName.
 	GroupIndex int
 
-	// description: Information about genrated Vega node.
+	// description: Information about generated Vega node.
 	Vega VegaNode `cty:"vega"`
-	// description: Information about genrated Tendermint node.
+	// description: Information about generated Tendermint node.
 	Tendermint TendermintNode `cty:"tendermint"`
-	// description: Information about genrated Data node.
+	// description: Information about generated Data node.
 	DataNode *DataNode `cty:"data_node"`
-	// description: Information about genrated Visor instance.
+	// description: Information about generated Visor instance.
 	Visor *Visor
-	// description: Jobs that has been started before nodes has been generated.
+	// description: Jobs that have been started before the nodes were generated.
 	PreGenerateJobs []NomadJob
 	// description: Pre start probes.
 	PreStartProbe *ProbesConfig `hcl:"pre_start_probe,optional"  template:""`

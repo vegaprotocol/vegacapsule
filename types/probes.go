@@ -1,7 +1,7 @@
 package types
 
 /*
-description: Allows define pre start probes on external services.
+description: Allows the user to define pre start probes on external services.
 example:
 
 	type: hcl
@@ -12,7 +12,7 @@ example:
 */
 type ProbesConfig struct {
 	/*
-		description: Allows to probe HTTP endpoint.
+		description: Allows the user to probe HTTP endpoint.
 		example:
 
 			type: hcl
@@ -24,7 +24,7 @@ type ProbesConfig struct {
 	HTTP *HTTPProbe `hcl:"http,block" template:""`
 
 	/*
-		description: Allows to probe TCP socker.
+		description: Allows the user to probe TCP socker.
 		example:
 
 			type: hcl
@@ -36,7 +36,7 @@ type ProbesConfig struct {
 	TCP *TCPProbe `hcl:"tcp,block" template:""`
 
 	/*
-		description: Allows to probe Postgres database with a query.
+		description: Allows the user to probe Postgres database with a query.
 		example:
 
 			type: hcl
