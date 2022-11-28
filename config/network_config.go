@@ -43,7 +43,7 @@ type NetworkConfig struct {
 		description: |
 			Name of the network.
 			All folders generated are placed in the folder with this name.
-			All Nomad jobs are prefix with the name.
+			All Nomad jobs are prefixed with this name.
 		example:
 			type: hcl
 			value: |
