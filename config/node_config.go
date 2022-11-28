@@ -175,9 +175,9 @@ type NodeConfig struct {
 
 					The [types.NodeSet](templates.md#types.nodeset) can be used in the template.
 
-					Using custom Nomad jobs for node set can break Capsule function properly,
-					very detailed knowledge is required - therefore it is recommend to leave this parameter
-					that should be used in advanced cases only.
+					Using custom Nomad jobs for node sets can break Capsule functionality.
+					Very detailed knowledge is required - therefore it is not recommend to use this parameter
+					unless you are an advanced user.
 		note: |
 				It is recommended that you use `nomad_job_template_file` param instead.
 				If both `nomad_job_template` and `nomad_job_template_file` are defined, then `vega`
