@@ -151,11 +151,11 @@ type NodeConfig struct {
 		description: |
 					[Clef](https://geth.ethereum.org/docs/clef/introduction) is one of the
 					[supported Ethereum wallets](https://docs.vega.xyz/mainnet/node-operators/setup-validator#using-clef) for Vega node.
-					Capsule supports using Clef and can import pre-generated Ethereum keys from Clef during node set
-					generation process automatically.
+					Capsule supports using Clef and can automatically import pre-generated Ethereum keys from Clef during node set
+					generation process.
 
-					By configuring this paramater Capsule will automatically generate Ethereum keys in Clef and tells Vega to use them.
-					An example Capsule config setup with Clef can be seen [here](net_confs/config_clef.hcl).
+					By configuring this paramater, Capsule will automatically generate Ethereum keys in Clef and tell Vega to use them.
+					An example Capsule config setup with Clef can be seen in [config_clef](net_confs/config_clef.hcl).
 		example:
 			type: hcl
 			value: |
