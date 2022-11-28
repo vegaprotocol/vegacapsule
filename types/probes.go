@@ -64,7 +64,7 @@ type HTTPProbe struct {
 }
 
 /*
-description: Allows to probe TCP socket.
+description: Allows the user to probe TCP socket.
 example:
 
 	type: hcl
