@@ -137,7 +137,7 @@ type StaticPort struct {
 }
 
 /*
-description: Allows to define hardware resoucers requirements
+description: Allows the user to define hardware resource requirements
 example:
 
 	type: hcl
