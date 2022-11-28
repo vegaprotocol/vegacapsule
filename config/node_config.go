@@ -171,7 +171,7 @@ type NodeConfig struct {
 					[Go template](templates.md) of custom Nomad job for node set.
 
 					By default Capsule uses predefined Nomad jobs to run the node set on Nomad.
-					This parameter allows to provide custom Nomad job to represent the generated node set.
+					This parameter allows users to provide a custom Nomad job to represent the generated node set.
 
 					The [types.NodeSet](templates.md#types.nodeset) can be used in the template.
 
