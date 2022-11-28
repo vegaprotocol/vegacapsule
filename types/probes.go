@@ -79,7 +79,7 @@ type TCPProbe struct {
 }
 
 /*
-description: Allows to probe Postgres database.
+description: Allows the user to probe Postgres database.
 example:
 
 	type: hcl
