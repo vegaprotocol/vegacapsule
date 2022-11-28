@@ -16,6 +16,11 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
+type IPSFPeer struct {
+	Index int
+	ID    string
+}
+
 type ConfigTemplateContext struct {
 	Prefix      string
 	NodeHomeDir string
@@ -47,8 +52,8 @@ func (tc ConfigTemplateContext) GetDehistoryPrivKey(nodeNumber int) string {
 	return id.PrivKey
 }
 
-func (tc ConfigTemplateContext) IPSFPeersIDs() []string {
-	peersIDs := []string{}
+func (tc ConfigTemplateContext) IPSFPeers() []IPSFPeer {
+	peersIDs := []IPSFPeer{}
 	for _, node := range tc.nodes {
 		if len(tc.nodes) != 1 && node.index == tc.NodeSet.Index {
 			continue
@@ -60,7 +65,10 @@ func (tc ConfigTemplateContext) IPSFPeersIDs() []string {
 			panic("couldn't create ipfs peer identity")
 		}
 
-		peersIDs = append(peersIDs, id.PeerID)
+		peersIDs = append(peersIDs, IPSFPeer{
+			Index: node.index,
+			ID:    id.PeerID,
+		})
 	}
 
 	return peersIDs
