@@ -3,7 +3,7 @@ package config
 /*
 description: |
 
-	Allows to configure Docker container services that will run before or after the Vega network starts.
+	Allows the user to configure Docker container services that will run before or after the Vega network starts.
 
 example:
 
