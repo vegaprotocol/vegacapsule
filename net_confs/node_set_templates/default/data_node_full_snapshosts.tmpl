@@ -51,10 +51,9 @@ GatewayEnabled = true
     PeerID = "{{.GetDehistoryPeerID .NodeNumber}}"
     PrivKey = "{{.GetDehistoryPrivKey .NodeNumber}}"
 
-    {{ $nodeNumber := .NodeNumber }}
-    BootstrapPeers = [{{- range $i, $peerID := .IPSFPeersIDs -}}
+    BootstrapPeers = [{{- range $i, $peer := .IPSFPeers -}}
       {{- if ne $i 0 }},{{end -}}
-      "/ip4/127.0.0.1/tcp/{{add 400 $nodeNumber}}5/ipfs/{{ $peerID }}"
+      "/ip4/127.0.0.1/tcp/{{add 400 $peer.Index}}5/ipfs/{{ $peer.ID }}"
     {{- end -}}]
 
     UseIpfsDefaultPeers = false
