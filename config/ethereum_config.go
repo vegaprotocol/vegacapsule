@@ -9,7 +9,7 @@ description: |
 
 note: |
 
-	The chosen network needs to have deployed [Ethereum bridges](https://docs.vega.xyz/mainnet/api/bridge) on it.
+	The chosen network needs to have deployed [Ethereum bridges](https://docs.vega.xyz/mainnet/api/bridge) on it that match the Ethereum network.
 
 example:
 
