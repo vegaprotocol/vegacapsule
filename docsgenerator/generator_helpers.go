@@ -73,6 +73,7 @@ func parseTag(tags, tagName string) (*structtag.Tag, error) {
 
 func findFiles(root, ext string) []string {
 	var a []string
+	// nolint
 	filepath.WalkDir(root, func(s string, d fs.DirEntry, e error) error {
 		if e != nil {
 			return e
