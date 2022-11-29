@@ -18,8 +18,9 @@ import (
 )
 
 type ConfigTemplateContext struct {
-	Prefix    string
-	HomeDir   string
+	// description: Path to home directory of the Faucet.
+	HomeDir string
+	// description: Public key of the Faucet.
 	PublicKey string
 }
 
@@ -38,7 +39,7 @@ type ConfigGenerator struct {
 }
 
 func NewConfigGenerator(conf *config.Config) (*ConfigGenerator, error) {
-	homeDir, err := filepath.Abs(path.Join(*conf.OutputDir, *conf.FaucetPrefix))
+	homeDir, err := filepath.Abs(path.Join(*conf.OutputDir, conf.FaucetPrefix))
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +102,6 @@ func (cg *ConfigGenerator) Initiate(conf *config.FaucetConfig) (*types.Faucet, e
 
 func (cg ConfigGenerator) OverwriteConfig(fc *types.Faucet, configTemplate *template.Template) error {
 	templateCtx := ConfigTemplateContext{
-		Prefix:    *cg.conf.Prefix,
 		HomeDir:   cg.homeDir,
 		PublicKey: fc.PublicKey,
 	}

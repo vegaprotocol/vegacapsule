@@ -18,7 +18,6 @@ import (
 )
 
 type ConfigTemplateContext struct {
-	Prefix               string
 	TendermintNodePrefix string
 	VegaNodePrefix       string
 	DataNodePrefix       string
@@ -42,7 +41,7 @@ type ConfigGenerator struct {
 }
 
 func NewConfigGenerator(conf *config.Config) (*ConfigGenerator, error) {
-	homeDir, err := filepath.Abs(path.Join(*conf.OutputDir, *conf.WalletPrefix))
+	homeDir, err := filepath.Abs(path.Join(*conf.OutputDir, conf.WalletPrefix))
 	if err != nil {
 		return nil, err
 	}
@@ -87,11 +86,10 @@ func (cg *ConfigGenerator) InitiateWithNetworkConfig(conf *config.WalletConfig, 
 
 func (cg ConfigGenerator) generateNetworkConfig(validators, nonValidators []types.NodeSet, configTemplate *template.Template) error {
 	templateCtx := ConfigTemplateContext{
-		Prefix:               *cg.conf.Prefix,
-		TendermintNodePrefix: *cg.conf.TendermintNodePrefix,
-		VegaNodePrefix:       *cg.conf.VegaNodePrefix,
-		DataNodePrefix:       *cg.conf.DataNodePrefix,
-		WalletPrefix:         *cg.conf.VegaNodePrefix,
+		TendermintNodePrefix: cg.conf.TendermintNodePrefix,
+		VegaNodePrefix:       cg.conf.VegaNodePrefix,
+		DataNodePrefix:       cg.conf.DataNodePrefix,
+		WalletPrefix:         cg.conf.VegaNodePrefix,
 		Validators:           validators,
 		NonValidators:        nonValidators,
 	}
