@@ -16,23 +16,61 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
+type IPSFPeer struct {
+	Index int
+	ID    string
+}
+
 type ConfigTemplateContext struct {
 	NodeHomeDir string
 	NodeNumber  int
 	NodeSet     types.NodeSet
+
+	nodes []node
 }
 
-func (tc ConfigTemplateContext) GetDehistoryPeerIDSeed(nodeNumber int) string {
+func (tc ConfigTemplateContext) getDehistoryPeerIDSeed(nodeNumber int) string {
 	return fmt.Sprintf("ipfs-seed-%d", nodeNumber)
 }
 
 func (tc ConfigTemplateContext) GetDehistoryPeerID(nodeNumber int) string {
-	seed := tc.GetDehistoryPeerIDSeed(nodeNumber)
-	id, err := store.CreateIdentityFromSeed([]byte(seed))
+	seed := tc.getDehistoryPeerIDSeed(nodeNumber)
+	id, err := store.GenerateIdentityFromSeed([]byte(seed))
 	if err != nil {
 		panic("couldn't create ipfs peer identity")
 	}
 	return id.PeerID
+}
+
+func (tc ConfigTemplateContext) GetDehistoryPrivKey(nodeNumber int) string {
+	seed := tc.getDehistoryPeerIDSeed(nodeNumber)
+	id, err := store.GenerateIdentityFromSeed([]byte(seed))
+	if err != nil {
+		panic("couldn't create ipfs peer identity")
+	}
+	return id.PrivKey
+}
+
+func (tc ConfigTemplateContext) IPSFPeers() []IPSFPeer {
+	peersIDs := []IPSFPeer{}
+	for _, node := range tc.nodes {
+		if len(tc.nodes) != 1 && node.index == tc.NodeSet.Index {
+			continue
+		}
+
+		seed := tc.getDehistoryPeerIDSeed(node.index)
+		id, err := store.GenerateIdentityFromSeed([]byte(seed))
+		if err != nil {
+			panic("couldn't create ipfs peer identity")
+		}
+
+		peersIDs = append(peersIDs, IPSFPeer{
+			Index: node.index,
+			ID:    id.PeerID,
+		})
+	}
+
+	return peersIDs
 }
 
 func NewConfigTemplate(templateRaw string) (*template.Template, error) {
@@ -49,6 +87,7 @@ func (dng ConfigGenerator) TemplateConfig(ns types.NodeSet, configTemplate *temp
 		NodeNumber:  ns.Index,
 		NodeHomeDir: dng.homeDir,
 		NodeSet:     ns,
+		nodes:       dng.nodes,
 	}
 
 	buff := bytes.NewBuffer([]byte{})
