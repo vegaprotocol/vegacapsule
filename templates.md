@@ -1,31 +1,30 @@
 
 
 
-# Capsulte templating docs
+# Capsule templating docs
 
-Capsule allows templating for genesis file and [node-sets](#nodeconfig) configurations
-like Vega, Tendermint, and Nomad. This is useful for generating configurations specific to a network
-or using one configuration for all node set.
+Capsule allows templating for genesis file and [node-set](#nodeconfig) configurations like Vega, Tendermint, and Nomad. This is useful for generating configurations specific to a network, or for using one configuration for all node sets.
 
-Capsule is using Go's [text/template](https://pkg.go.dev/text/template) templating engine extended by useful functions from [Sprig](http://masterminds.github.io/sprig/) library.
+Capsule uses Go's [text/template](https://pkg.go.dev/text/template) templating engine, extended by useful functions from the [Sprig](http://masterminds.github.io/sprig/) library.
 
-Every single template gets it's [template context](#template-contexts) - a set of (usually runtime generated) variables pass to the template by Capsule
-that can be use in the template. These template contexts are documented below.
+Every template has a [template context](#template-contexts) - a set of (usually runtime generated) variables passed to the template by Capsule
+and then used in the template. These template contexts are documented below.
 
-There are some basic templates provided by Capsule and use by some provided configurations in *net_confs* folder.
+There are some basic templates provided by Capsule and used by some of the provided configurations in the *net_confs* folder in the Vega Capsule GitHub repo.
 
 ## Template tool
-There is a useful tool as par of Capsule to test these templates before they get used in [network config](config.md).
-Plese check `vegacapsule template --help`.
+Capsule includes a tool to test these templates before they get used in [network config](config.md). Plese check `vegacapsule template --help` for more information.
 
 You can test the *template tool* by using some of the provided default templates after the network has been generated.
 
-For example try to run command below and compare the outcome with [the template](net_confs/node_set_templates/default/vega_validators.tmpl).
+For example, run command below and compare the outcome with the [template](net_confs/node_set_templates/default/vega_validators.tmpl).
+
 ```bash
 vegacapsule template node-sets --type vega --path net_confs/node_set_templates/default/vega_validators.tmpl --nodeset-name testnet-nodeset-validators-0-validator
 ```
 
 ## Template contexts
+
 
 
 ## *config.NodeConfigTemplateContext*
@@ -144,7 +143,7 @@ Template context also includes functions:
 
 <dd>
 
-Ethereum smart contracts addresses managed by Vega. These can represent bridges or ERC20 tokens.
+Ethereum smart contract addresses created by Vega. These can represent bridges or ERC20 tokens.
 
 </dd>
 
@@ -154,7 +153,7 @@ Ethereum smart contracts addresses managed by Vega. These can represent bridges 
 
 <dd>
 
-Ethereum network id.
+Ethereum network ID.
 
 </dd>
 
@@ -164,7 +163,7 @@ Ethereum network id.
 
 <dd>
 
-Ethereum chain id.
+Ethereum chain ID.
 
 </dd>
 
@@ -502,7 +501,7 @@ Ethereum chain id.
 
 <dd>
 
-Name that represents a group of same node sets.
+Name that represents a group of the same node sets.
 
 </dd>
 
@@ -522,7 +521,7 @@ Name of a specific node set in a node sets group.
 
 <dd>
 
-Mode of the node set. Can be `validator` or `full`.
+Mode of the node set. Can be `validator` or `full` (full means a non validating node).
 
 </dd>
 
@@ -532,8 +531,8 @@ Mode of the node set. Can be `validator` or `full`.
 
 <dd>
 
-Index is a position and order in which node set has been generated respective to all other created node sets.
-It goes from 0-N where N is the number of node sets.
+Index is a position and order in which the node set has been generated respective to all other created node sets.
+It goes from 0-N where N is the total number of node sets.
 
 
 </dd>
@@ -554,7 +553,7 @@ RelativeIndex is a counter relative to current node set group. Related to GroupN
 
 <dd>
 
-GroupIndex is a index of the group where this node set belongs to. Related to GroupName.
+GroupIndex is an index of the group that this node set belongs to. Related to GroupName.
 
 </dd>
 
@@ -564,7 +563,7 @@ GroupIndex is a index of the group where this node set belongs to. Related to Gr
 
 <dd>
 
-Information about genrated Vega node.
+Information about generated Vega node.
 
 </dd>
 
@@ -574,7 +573,7 @@ Information about genrated Vega node.
 
 <dd>
 
-Information about genrated Tendermint node.
+Information about generated Tendermint node.
 
 </dd>
 
@@ -584,7 +583,7 @@ Information about genrated Tendermint node.
 
 <dd>
 
-Information about genrated Data node.
+Information about generated Data node.
 
 </dd>
 
@@ -594,7 +593,7 @@ Information about genrated Data node.
 
 <dd>
 
-Information about genrated Visor instance.
+Information about generated Visor instance.
 
 </dd>
 
@@ -604,7 +603,7 @@ Information about genrated Visor instance.
 
 <dd>
 
-Jobs that has been started before nodes has been generated.
+Jobs that have been started before the nodes were generated.
 
 </dd>
 
@@ -845,7 +844,7 @@ Path to binary used to generate and run the node.
 
 <dd>
 
-General information about the Visor.
+General information about Visor.
 
 </dd>
 
@@ -867,7 +866,7 @@ Path to binary used to generate and run the node.
 
 
 ## *types.NomadJob*
-Represent a raw Nomad job.
+Represents a raw Nomad job.
 
 
 ### Fields
@@ -901,7 +900,7 @@ Nomad job definition.
 
 
 ## *types.ProbesConfig*
-Allows define pre start probes on external services.
+Allows the user to define pre start probes on external services.
 
 
 ### Fields
@@ -913,7 +912,7 @@ Allows define pre start probes on external services.
 
 <dd>
 
-Allows to probe HTTP endpoint.
+Allows the user to probe HTTP endpoint.
 
 </dd>
 
@@ -923,7 +922,7 @@ Allows to probe HTTP endpoint.
 
 <dd>
 
-Allows to probe TCP socker.
+Allows the user to probe TCP socker.
 
 </dd>
 
@@ -933,7 +932,7 @@ Allows to probe TCP socker.
 
 <dd>
 
-Allows to probe Postgres database with a query.
+Allows the user to probe Postgres database with a query.
 
 </dd>
 
@@ -1109,7 +1108,7 @@ File path of the Vega wallet passphrase.
 
 
 ## *types.HTTPProbe*
-Allows to probe HTTP endpoint.
+Allows the user to probe HTTP endpoint.
 
 
 ### Fields
@@ -1145,7 +1144,7 @@ http {
 
 
 ## *types.TCPProbe*
-Allows to probe TCP socket.
+Allows the user to probe TCP socket.
 
 
 ### Fields
@@ -1181,7 +1180,7 @@ tcp {
 
 
 ## *types.PostgresProbe*
-Allows to probe Postgres database.
+Allows the user to probe Postgres database.
 
 
 ### Fields

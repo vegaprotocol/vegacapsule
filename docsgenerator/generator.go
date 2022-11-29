@@ -71,6 +71,10 @@ func (gen *TypeDocGenerator) Generate(typesNames ...string) ([]*TypeDoc, error) 
 			return nil, fmt.Errorf("type %s not found in the directory", name)
 		}
 
+		if t.Decl == nil {
+			continue
+		}
+
 		for _, s := range t.Decl.Specs {
 			typeSpec, ok := s.(*ast.TypeSpec)
 			if !ok {
@@ -229,7 +233,7 @@ func (gen TypeDocGenerator) formatFieldType(packageName, fieldType string) strin
 		return fmt.Sprintf("map[%s]%s", key, gen.formatFieldType(packageName, val))
 	}
 
-	// struct - only structs can start with uppercase letter
+	// custom type - only custom types can start with uppercase letter
 	if unicode.IsUpper(rune(fieldType[0])) && gen.documentStructsMode {
 		return formatLookupKey(packageName, fieldType)
 	}
