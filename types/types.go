@@ -14,10 +14,8 @@ type GeneratedService struct {
 
 type Wallet struct {
 	GeneratedService
-	Network            string
-	PublicKeyFilePath  string
-	PrivateKeyFilePath string
-	BinaryPath         string
+	Network    string
+	BinaryPath string
 }
 
 type Faucet struct {
