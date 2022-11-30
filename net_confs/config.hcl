@@ -94,7 +94,7 @@ EOT
   }
 
   node_set "full" {
-    count = 1
+    count = 2
     mode = "full"
     use_data_node = true
     

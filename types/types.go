@@ -98,6 +98,8 @@ type DataNode struct {
 	GeneratedService `cty:"service"`
 	// description: Path to binary used to generate and run the node.
 	BinaryPath string
+	// description: Unique IPFS swarm key for this network
+	UniqueSwarmKey string
 }
 
 type Visor struct {
