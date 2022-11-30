@@ -57,7 +57,7 @@ func (cg *ConfigGenerator) InitiateWithNetworkConfig(conf *config.WalletConfig, 
 		return nil, err
 	}
 
-	initOut, err := cg.initiateWallet(conf)
+	err := cg.initiateWallet(conf)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initiate wallet %s: %w", conf.Name, err)
 	}
@@ -77,10 +77,8 @@ func (cg *ConfigGenerator) InitiateWithNetworkConfig(conf *config.WalletConfig, 
 			HomeDir:        cg.homeDir,
 			ConfigFilePath: cg.configFilePath(),
 		},
-		Network:            importOut.Name,
-		PublicKeyFilePath:  initOut.RsaKeys.PublicKeyFilePath,
-		PrivateKeyFilePath: initOut.RsaKeys.PrivateKeyFilePath,
-		BinaryPath:         *cg.conf.VegaBinary,
+		Network:    importOut.Name,
+		BinaryPath: *cg.conf.VegaBinary,
 	}, nil
 }
 
