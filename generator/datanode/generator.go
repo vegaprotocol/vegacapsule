@@ -25,7 +25,8 @@ type ConfigGenerator struct {
 }
 
 func NewConfigGenerator(conf *config.Config, generatedNodeSets []types.NodeSet) (*ConfigGenerator, error) {
-	homeDir, err := filepath.Abs(path.Join(*conf.OutputDir, *conf.DataNodePrefix))
+	homeDir, err := filepath.Abs(path.Join(*conf.OutputDir, conf.DataNodePrefix))
+
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +100,7 @@ func (dng *ConfigGenerator) Initiate(index int, chainID string, optVegaBinary *s
 }
 
 func (dng ConfigGenerator) nodeDir(i int) string {
-	nodeDirName := fmt.Sprintf("%s%d", *dng.conf.NodeDirPrefix, i)
+	nodeDirName := fmt.Sprintf("%s%d", dng.conf.NodeDirPrefix, i)
 	return filepath.Join(dng.homeDir, nodeDirName)
 }
 

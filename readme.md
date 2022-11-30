@@ -207,16 +207,11 @@ Procedure executed by the above command:
 
 ## Configuration
 
-Capsule can bootstrap a network based on configuration. Please see `config.hcl` for example.
-
-[TODO expand on this]
+See [configuration docs](config.md).
 
 ### Templating
 
-Capsule is using Go's [text/template](https://pkg.go.dev/text/template) templating engine extended by useful functions from [Sprig](http://masterminds.github.io/sprig/) library.
-
-[TODO expand on this]
-
+See [templating docs](templates.md).
 
 ### Troubleshooting
 
