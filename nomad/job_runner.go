@@ -136,6 +136,10 @@ func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) (
 
 		eg.Go(func() error {
 			if err := r.runAndWait(ctx, j.Job, j.Probes); err != nil {
+				if _, err := r.stopJobsByIDs(ctx, []string{*j.Job.ID}); err != nil {
+					log.Printf("Failed to stop failed job %s, this job might need to be stopped manually. Reason %s", *j.Job.ID, err)
+				}
+
 				return err
 			}
 
@@ -369,6 +373,10 @@ func (r *JobRunner) ListExposedPorts(ctx context.Context) (map[string][]int64, e
 	portsPerJob := map[string][]int64{}
 
 	for _, j := range jobs {
+		if j.Status != Running {
+			continue
+		}
+
 		ports, err := r.ListExposedPortsPerJob(ctx, j.ID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to list ports for job %q: %w", j.ID, err)
