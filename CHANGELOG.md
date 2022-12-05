@@ -44,6 +44,7 @@
 - [329](https://github.com/vegaprotocol/vegacapsule/pull/329) Add template functions for generating `IPFS peer ids`.
 - [337](https://github.com/vegaprotocol/vegacapsule/issues/337) Allow > 9 and < 100 nodes to be created.
 - [348](https://github.com/vegaprotocol/vegacapsule/issues/348) Do not parse wallet initialisation output anymore
+- [352](https://github.com/vegaprotocol/vegacapsule/issues/352) Add unique swarm key to all data nodes.
 
 ### 🐛 Fixes
 - [167](https://github.com/vegaprotocol/vegacapsule/issues/167) Fix validators filter in tendermint generator
