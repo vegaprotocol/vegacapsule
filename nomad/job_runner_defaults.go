@@ -181,7 +181,7 @@ func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
 }
 
 func (r *JobRunner) defaultWalletJob(wallet *types.Wallet) *api.Job {
-	return &api.Job{
+	job := &api.Job{
 		ID:          &wallet.Name,
 		Datacenters: []string{"dc1"},
 		TaskGroups: []*api.TaskGroup{
@@ -219,6 +219,15 @@ func (r *JobRunner) defaultWalletJob(wallet *types.Wallet) *api.Job {
 			},
 		},
 	}
+	if len(wallet.TokenPassphrasePath) > 0 {
+		args := job.TaskGroups[0].Tasks[0].Config["args"].([]string)
+		args = append(args, "--load-tokens")
+		args = append(args, "--tokens-passphrase-file")
+		args = append(args, wallet.TokenPassphrasePath)
+		job.TaskGroups[0].Tasks[0].Config["args"] = args
+	}
+
+	return job
 }
 
 func (r *JobRunner) defaultFaucetJob(conf *config.FaucetConfig, fc *types.Faucet) *api.Job {
