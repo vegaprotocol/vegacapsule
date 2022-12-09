@@ -239,6 +239,7 @@ func (c *Config) validateWalletConfig() error {
 		if err != nil {
 			return fmt.Errorf("failed to read file %q: %w", tpf, err)
 		}
+		wc.TokenPassphraseFile = &tpf
 	}
 	return nil
 }
