@@ -42,7 +42,7 @@ type WalletConfig struct {
 
 	/*
 		description: |
-					Path to the file that contains the password used to protect the api token key wallet.
+					Path to the file that contains the password used to protect the API token to wallet.
 					If this value is not defined, api tokens will not be enabled.
 		example:
 			type: hcl
