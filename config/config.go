@@ -173,8 +173,12 @@ func (c *Config) Validate(configDir string) error {
 		return fmt.Errorf("failed to validate node configs: %w", err)
 	}
 
-	if err := c.loadAndValidatSetSmartContractsAddresses(); err != nil {
-		return fmt.Errorf("invalid configuration for smart contrtacts addresses: %w", err)
+	if err := c.loadAndValidateSetSmartContractsAddresses(); err != nil {
+		return fmt.Errorf("invalid configuration for smart contracts addresses: %w", err)
+	}
+
+	if err := c.validateWalletConfig(); err != nil {
+		return fmt.Errorf("invalid configuration for wallet: %w", err)
 	}
 
 	return nil
@@ -222,6 +226,22 @@ func (c *Config) loadAndValidateNodeSets() error {
 
 	return nil
 }
+func (c *Config) validateWalletConfig() error {
+	wc := c.Network.Wallet
+
+	if wc.TokenPassphraseFile != nil {
+		tpf, err := utils.AbsPathWithPrefix(c.configDir, *wc.TokenPassphraseFile)
+		if err != nil {
+			return fmt.Errorf("failed to get absolute file path %q: %w", *wc.TokenPassphraseFile, err)
+		}
+
+		_, err = os.ReadFile(tpf)
+		if err != nil {
+			return fmt.Errorf("failed to read file %q: %w", tpf, err)
+		}
+	}
+	return nil
+}
 
 func (c *Config) validateClefWalletConfig(nc NodeConfig) error {
 	if nc.ClefWallet == nil {
@@ -229,7 +249,7 @@ func (c *Config) validateClefWalletConfig(nc NodeConfig) error {
 	}
 
 	if len(nc.ClefWallet.AccountAddresses) < nc.Count {
-		return fmt.Errorf("provided ethereum_account_addresses must be greated or equal than node condig count")
+		return fmt.Errorf("provided ethereum_account_addresses must be greater or equal than node config count")
 	}
 
 	return nil
@@ -388,7 +408,7 @@ func (c *Config) loadAndValidateGenesis() error {
 	return fmt.Errorf("missing genesis file template: either genesis_template or genesis_template_file must be defined")
 }
 
-func (c *Config) loadAndValidatSetSmartContractsAddresses() error {
+func (c *Config) loadAndValidateSetSmartContractsAddresses() error {
 	if c.Network.SmartContractsAddresses == nil {
 		if c.Network.SmartContractsAddressesFile == nil {
 			return fmt.Errorf("missing smart contracts file: either smart_contracts_addresses or smart_contracts_addresses_file must be defined")

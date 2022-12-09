@@ -43,7 +43,10 @@ type WalletConfig struct {
 	/*
 		description: |
 					Path to the file that contains the password used to protect the API token to wallet.
+					API tokens are keys linked to a wallet that allow third party apps and bots to connect
+					and send transactions without the need for user interaction.
 					If this value is not defined, api tokens will not be enabled.
+					An absolute path must be used.
 		example:
 			type: hcl
 			value: token_passphrase_path = "file_path"
