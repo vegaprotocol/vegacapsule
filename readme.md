@@ -13,11 +13,13 @@ Vega Capsule allows you to create a local instance of the Vega network on your c
 In order to use Vega Capsule you will need to install Go and Docker:
 
 1. Install [Go 1.19 or later](https://go.dev/doc/install) locally on your machine. Check you have the correct version installed using the following command:
+
 ```bash
 go version
 ```
 
 2. Install [Docker](https://docs.docker.com/get-docker/) locally on your machine. Check you have the correct version installed using the following command:
+
 ```bash
 docker version
 ```
@@ -26,6 +28,7 @@ docker version
 
 1. Install vegacapsule
 - Clone the [Vega Capsule](https://github.com/vegaprotocol/vegacapsule) repository
+
 ```bash
 git clone git@github.com:vegaprotocol/vegacapsule.git
 git config --global url."git@github.com:vegaprotocol".insteadOf "https://github.com/vegaprotocol"
@@ -46,34 +49,40 @@ vegacapsule --help
 ```bash
 vegacapsule nomad
 ```
+
 > ⚠️ Information: 
 > You may need to set the `GOBIN` environment variable to start Nomad. If you encounter an error, see the <a href="#common-issues">Common Issues</a> for guidance.
 
 3. Bootstrap with auto-installed dependencies
 - Bootstrap with auto-install will automatically download the required Vega binaries during the bootstrapping process. 
 
-- Use **--install** to install the latest version of Vega
+- Use **--install** to install the [hard coded](https://github.com/vegaprotocol/vegacapsule/blob/main/cmd/install_dependencies.go) `latestReleaseTag` of Vega:
+
 ```bash
 vegacapsule network bootstrap --config-path=net_confs/config_frontends.hcl --install
 ```
 
-- Use **--install-release-tag** to install a given version of Vega
+- Use **--install-release-tag** to install a given version of Vega:
+
 ```bash
-vegacapsule network bootstrap --config-path=net_confs/config_frontends.hcl --install-release-tag v0.54.0
+vegacapsule network bootstrap --config-path=net_confs/config_frontends.hcl --install-release-tag v0.62.1
 ```
 
 > ⚠️ Information:
-> The example bootstrap commands use a base default network configuration with front end dApps configured. The [network configurations](./net_confs) directory contains a number of defaults for various use cases, such as Capsule with front end dApps or nullblockchain defined. Find out more about the <a href="#configuration">Configuration</a> fields.
+> The example bootstrap commands use a base default network configuration with front ends configured to start. If using the front end dApps you will have to switch the network to point to the local instance of the network with the URL `http://127.0.0.1:3028/query`.
+
+> ⚠️ Information:
+> The [network configurations](./net_confs) directory contains a number of defaults for various use cases, such as Capsule with front end dApps or null-blockchain defined. Find out more about the <a href="#configuration">Configuration</a> fields.
 
 4. Check Nomad console is running by opening the [Nomad UI](http://localhost:4646/) in a web browser.
 
 ## Configuration and templates
 
-Vega Capsule is highly configurable, allowing for networks to be created as desired.
+Vega Capsule is highly configurable, allowing for networks to be created as desired. This readme uses a base config to get started quickly with a network and dApps. To find out more see the detailed information on both configurations and templating.
 
 ### Configuration
 
-Vega Capsule can bootstrap a network based on pre-determined configuration. See the [configuration documentation](./config.md) to find out more about how to configure your network.
+Vega Capsule can bootstrap a network based on predetermined configuration. See the [configuration documentation](./config.md) to find out more about how to configure your network.
 
 The installed software comes with a number of defaults that can be used, these are in the [network configurations](./net_confs) directory.
 
@@ -85,12 +94,6 @@ The installed software comes with a number of defaults that can be used, these a
 
 ## Using Vega Capsule
 In order to start using Vega Capsule to create assets and markets, you'll need to set up the following: Ethereum smart contracts and a Vega Wallet.
-
-The bootstrapping examples in this readme will generate the following front end dApps:
-
-- [Block Explorer](https://localhost:4220)
-- [Trading Console](https://localhost:4200)
-- [Token dApp](https://localhost:4210)
 
 ### Commands for the Ethereum network
 
@@ -110,14 +113,18 @@ The command will execute the following procedures:
 1. Set the signature threshold to 667
 
 
-### Vega Wallet
+### Vega Wallet NOT COMPLETE
 
-TODO: add basic info on creating a wallet
+The information to interact with the vega capsule wallet including validator self-staking is still in progress. 
+
+Until this section is complete we would advise checking out the [CLI wallet documentation](https://docs.vega.xyz/mainnet/tools/vega-wallet/cli-wallet).
 
 ### Deposit/stake & mint Ethereum assets
 
-Please note following commands are only for Ethereum assets.
 All available assets can be listed using the Data Node REST API: `$DATA_NODE_URL/assets`.
+
+> ⚠️ Information:
+> The following commands are only for Ethereum assets. 
 
 #### Examples
 
@@ -125,11 +132,11 @@ Variables used in examples:
 
 `PUB_KEY` - the Vega Wallet public key to deposit or stake to.
 
-`AMOUNT` - the amount the be deposited, staked or minted.
+`AMOUNT` - the amount to be deposited, staked or minted.
 
 `ASSET_SYMBOL` - symbol of the asset to be deposited, staked or minted. It can be found via the Data Node endpoint above.
 
-`ETH_ADDR` - Ethereum adddress for assets to be minted to.
+`ETH_ADDR` - Ethereum address for assets to be minted to.
 
 ```bash
 # Deposit asset to specific Vega key
@@ -169,14 +176,14 @@ vegacapsule network destroy --home-path=/var/tmp/veganetwork/testnetwork
 ```
 
 > ⚠️ Information:
-> Capsule preserves some files when starting and stopping the network, for example any pre-generated keys, the genesis file, and any node configurations in the [network configuration file](https://github.com/vegaprotocol/vegacapsule/tree/main/net_confs). In order to start network with new values in these files, use the `vegacapsule network destroy` command.
+> Capsule preserves some files when starting and stopping the network, for example any pre-generated keys, the genesis file, and any node configurations in the [network configuration file](https://github.com/vegaprotocol/vegacapsule/tree/main/net_confs). In order to start a network with new values in these files, use the `vegacapsule network destroy` command.
 
 ## Troubleshooting
 
 ### Logs
 Vega Capsule captures the logs from the nodes running on the network. These can be used to investigate what is happening on the network. Should there be an issue with Vega Capsule, supply the logs from the time of the incident with the issue raised. 
 
-Logs from all jobs are stored by default to `$CAPSULE_HOME/logs`. There is a CLI availible to access and read them.
+Logs from all jobs are stored by default to `$CAPSULE_HOME/logs`. There is a CLI available to access and read them.
 
 - To read all logs per single job:
 
