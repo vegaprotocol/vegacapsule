@@ -45,6 +45,16 @@ GatewayEnabled = true
 [DeHistory]
   Enabled = true
   [DeHistory.Store]
-    IDSeed = "{{.GetDehistoryPeerIDSeed .NodeNumber}}"
-    BootstrapPeers = ["/ip4/127.0.0.1/tcp/4025/ipfs/{{.GetDehistoryPeerID 2}}"]
+    PeerID = "{{.GetDehistoryPeerID .NodeNumber}}"
+    PrivKey = "{{.GetDehistoryPrivKey .NodeNumber}}"
+
+    BootstrapPeers = [{{- range $i, $peer := .IPSFPeers -}}
+      {{- if ne $i 0 }},{{end -}}
+      "/ip4/127.0.0.1/tcp/{{add 400 $peer.Index}}5/ipfs/{{ $peer.ID }}"
+    {{- end -}}]
+
     UseIpfsDefaultPeers = false
+    SwarmPort = {{add 400 .NodeNumber}}5
+    StartWebUI = false
+    WebUIPort = {{add 500 .NodeNumber}}5
+    SwarmKeyOverride = "{{ .NodeSet.DataNode.UniqueSwarmKey }}"

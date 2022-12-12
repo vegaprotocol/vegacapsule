@@ -65,7 +65,7 @@ func New(conf *config.Config, genServices types.GeneratedServices, jobRunner job
 	if err != nil {
 		return nil, fmt.Errorf("failed to create new genesis generator: %w", err)
 	}
-	dataNodeGen, err := datanode.NewConfigGenerator(conf)
+	dataNodeGen, err := datanode.NewConfigGenerator(conf, genServices.NodeSets.ToSlice())
 	if err != nil {
 		return nil, fmt.Errorf("failed to create new data node generator: %w", err)
 	}

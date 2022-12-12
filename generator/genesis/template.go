@@ -8,14 +8,26 @@ import (
 )
 
 type SmartContract struct {
+	// description: Ethereum address.
 	Ethereum string `json:"Ethereum"`
-	Vega     string `json:"Vega"`
+	// description:  Vega contract ID.
+	Vega string `json:"Vega"`
 }
 
+/*
+description: |
+
+	Template context also includes functions:
+	- `.GetEthContractAddr "contract_name"` - returns contract address based on name.
+	- `.GetVegaContractID "contract_name"` - returns contract vega ID based on name.
+*/
 type TemplateContext struct {
+	// description: Ethereum smart contract addresses created by Vega. These can represent bridges or ERC20 tokens.
 	Addresses map[string]SmartContract
-	ChainID   string
+	// description: Ethereum network ID.
 	NetworkID string
+	// description: Ethereum chain ID.
+	ChainID string
 	// GenValidators []tmtypes.GenesisValidator // TODO add this to the template context
 }
 

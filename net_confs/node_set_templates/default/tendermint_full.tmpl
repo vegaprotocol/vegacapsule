@@ -1,7 +1,7 @@
 log_level = "info"
 
 proxy_app = "tcp://127.0.0.1:{{add 2660 .NodeNumber}}8"
-moniker = "{{.Prefix}}-{{.TendermintNodePrefix}}"
+moniker = "{{.TendermintNodePrefix}}-{{.NodeNumber}}"
 
 [rpc]
   laddr = "tcp://0.0.0.0:{{add 2660 .NodeNumber}}7"

@@ -113,7 +113,7 @@ The command will execute the following procedures:
 1. Set the signature threshold to 667
 
 
-### Vega Wallet NOT COMPLETE
+### Vega Wallet (SECTION NOT COMPLETE)
 
 The information to interact with the vega capsule wallet including validator self-staking is still in progress. 
 

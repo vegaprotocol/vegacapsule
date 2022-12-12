@@ -43,6 +43,8 @@
 - [322](https://github.com/vegaprotocol/vegacapsule/pull/322) Improve stop command & update vega core dependency
 - [329](https://github.com/vegaprotocol/vegacapsule/pull/329) Add template functions for generating `IPFS peer ids`.
 - [337](https://github.com/vegaprotocol/vegacapsule/issues/337) Allow > 9 and < 100 nodes to be created.
+- [348](https://github.com/vegaprotocol/vegacapsule/issues/348) Do not parse wallet initialisation output anymore
+- [352](https://github.com/vegaprotocol/vegacapsule/issues/352) Add unique swarm key to all data nodes.
 
 ### 🐛 Fixes
 - [167](https://github.com/vegaprotocol/vegacapsule/issues/167) Fix validators filter in tendermint generator
@@ -59,7 +61,8 @@
 - [300](https://github.com/vegaprotocol/vegacapsule/pull/300) - Use raw hcl body to template it second time
 - [315](https://github.com/vegaprotocol/vegacapsule/pull/315) - Do no start jobs that already runs
 - [331](https://github.com/vegaprotocol/vegacapsule/pull/331) - Persist stopped jobs & merge running jobs on start
-
+- [344](https://github.com/vegaprotocol/vegacapsule/pull/344) - Fix IPSF peers for Data Node template
+- [342](https://github.com/vegaprotocol/vegacapsule/pull/342) - Stop failed jobs
 
 
 ## v0.1.0
@@ -90,4 +93,4 @@
 - [117](https://github.com/vegaprotocol/vegacapsule/pull/117) - Fix nil dereference panics in config
 - [41](https://github.com/vegaprotocol/vegacapsule/issues/40) - Persist the network state after it's generated in bootstrap command
 - [86](https://github.com/vegaprotocol/vegacapsule/issues/86) - Allow overriding config options that default true with falue
-- [323](https://github.com/vegaprotocol/vegacapsule/pull/323) - 
+- [323](https://github.com/vegaprotocol/vegacapsule/pull/323) -
