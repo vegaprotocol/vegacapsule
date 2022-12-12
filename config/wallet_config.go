@@ -29,7 +29,7 @@ type WalletConfig struct {
 	Name string `hcl:"name,label"`
 	/*
 		description: |
-					By default, the wallet config inherits the Vega binary from the main network config, but this paramater allows a user to
+					By default, the wallet config inherits the Vega binary from the main network config, but this parameter allows a user to
 					define a different Vega binary to be used in wallet.
 					This can be used if a different wallet version is required.
 					A relative or absolute path can be used. If only the binary name is defined, it automatically looks for it in $PATH.
@@ -39,6 +39,19 @@ type WalletConfig struct {
 			value: vega_binary_path = "binary_path"
 	*/
 	VegaBinary *string `hcl:"vega_binary_path,optional"`
+
+	/*
+		description: |
+					Path to the file that contains the password used to protect the API token to wallet.
+					API tokens are keys linked to a wallet that allow third party apps and bots to connect
+					and send transactions without the need for user interaction.
+					If this value is not defined, api tokens will not be enabled.
+					A relative or absolute path can be used.
+		example:
+			type: hcl
+			value: token_passphrase_path = "file_path"
+	*/
+	TokenPassphraseFile *string `hcl:"token_passphrase_path,optional"`
 
 	/*
 		description: |

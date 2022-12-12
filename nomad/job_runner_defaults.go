@@ -181,6 +181,21 @@ func (r *JobRunner) defaultNodeSetJob(ns types.NodeSet) *api.Job {
 }
 
 func (r *JobRunner) defaultWalletJob(wallet *types.Wallet) *api.Job {
+	args := []string{
+		config.WalletSubCmd,
+		"service",
+		"run",
+		"--network", wallet.Network,
+		"--automatic-consent",
+		"--no-version-check",
+		"--output", "json",
+		"--home", wallet.HomeDir,
+	}
+
+	if len(wallet.TokenPassphrasePath) > 0 {
+		args = append(args, "--load-tokens", "--tokens-passphrase-file", wallet.TokenPassphrasePath)
+	}
+
 	return &api.Job{
 		ID:          &wallet.Name,
 		Datacenters: []string{"dc1"},
@@ -199,16 +214,7 @@ func (r *JobRunner) defaultWalletJob(wallet *types.Wallet) *api.Job {
 						Leader: true,
 						Config: map[string]interface{}{
 							"command": wallet.BinaryPath,
-							"args": []string{
-								config.WalletSubCmd,
-								"service",
-								"run",
-								"--network", wallet.Network,
-								"--automatic-consent",
-								"--no-version-check",
-								"--output", "json",
-								"--home", wallet.HomeDir,
-							},
+							"args":    args,
 						},
 						LogConfig:   defaultLogConfig,
 						Resources:   defaultResourcesConfig,
