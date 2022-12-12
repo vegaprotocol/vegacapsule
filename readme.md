@@ -65,14 +65,14 @@ vegacapsule network bootstrap --config-path=net_confs/config_frontends.hcl --ins
 - Use **--install-release-tag** to install a given version of Vega:
 
 ```bash
-vegacapsule network bootstrap --config-path=net_confs/config_frontends.hcl --install-release-tag v0.62.1
+vegacapsule network bootstrap --config-path=net_confs/config_frontends.hcl --install-release-tag vX.Y.Z
 ```
 
 > ⚠️ Information:
 > The example bootstrap commands use a base default network configuration with front ends configured to start. If using the front end dApps you will have to switch the network to point to the local instance of the network with the URL `http://127.0.0.1:3028/query`.
 
 > ⚠️ Information:
-> The [network configurations](./net_confs) directory contains a number of defaults for various use cases, such as Capsule with front end dApps or null-blockchain defined. Find out more about the <a href="#configuration">Configuration</a> fields.
+> The [network configurations](./net_confs) directory contains a number of defaults for various use cases, such as Capsule with front end dApps or [null-blockchain](https://github.com/vegaprotocol/specs/blob/master/non-protocol-specs/0008-NP-NULB-null_blockchain_vega.md) defined. Find out more about the <a href="#configuration">Configuration</a> fields.
 
 4. Check Nomad console is running by opening the [Nomad UI](http://localhost:4646/) in a web browser.
 
