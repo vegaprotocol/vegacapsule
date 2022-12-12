@@ -26,6 +26,15 @@ func (cg *ConfigGenerator) initiateWallet(conf *config.WalletConfig) error {
 		return err
 	}
 
+	// If the user has configured a token pass phrase file, we should initialise the token storage
+	if conf.TokenPassphraseFile != nil && len(*conf.TokenPassphraseFile) > 0 {
+		args = []string{config.WalletSubCmd, "api-token", "init", "--home", cg.homeDir, "--passphrase-file", *conf.TokenPassphraseFile}
+		log.Printf("Initiating api-token wallet %q with: %v", conf.Name, args)
+		if _, err := utils.ExecuteBinary(vegaBinary, args, nil); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
