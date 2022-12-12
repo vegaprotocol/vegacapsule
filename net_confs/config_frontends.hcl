@@ -4,7 +4,7 @@ network "testnet" {
   ethereum {
     chain_id   = "1440"
     network_id = "1441"
-    endpoint   = "http://127.0.0.1:8545/"
+    endpoint   = "ws://127.0.0.1:8545/"
   }
   
   faucet "faucet-1" {
@@ -27,7 +27,7 @@ Host = "0.0.0.0"
 
 [API]
   [API.GRPC]
-    Hosts = [{{range $i, $v := .Validators}}{{if ne $i 0}},{{end}}"127.0.0.1:30{{$i}}2"{{end}}]
+    Hosts = [{{range $i, $v := .Validators}}{{if ne $i 0}},{{end}}"127.0.0.1:{{add 300 $i}}2"{{end}}]
     Retries = 5
 EOT
   }
