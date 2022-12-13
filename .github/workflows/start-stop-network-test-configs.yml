@@ -1,7 +1,8 @@
 name: start-stop network test
 on:
   pull_request:
-
+env:
+  GH_TOKEN: ${{secrets.GITHUB_TOKEN}}
 permissions:
   contents: read
 jobs:
@@ -68,7 +69,7 @@ jobs:
 
           ./vegacapsule nodes protocol-upgrade \
             --propose \
-            --release-tag v0.58.0 \
+            --release-tag v0.64.0 \
             --template-path "net_confs/node_set_templates/default/visor_run.tmpl" \
             --height 5500 \
             --force

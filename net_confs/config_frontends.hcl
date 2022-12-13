@@ -1,16 +1,16 @@
 vega_binary_path = "vega"
 
 network "testnet" {
-	ethereum {
+  ethereum {
     chain_id   = "1440"
     network_id = "1441"
     endpoint   = "ws://127.0.0.1:8545/"
   }
   
   faucet "faucet-1" {
-	  wallet_pass = "f4uc3tw4ll3t-v3g4-p4ssphr4e3"
+    wallet_pass = "f4uc3tw4ll3t-v3g4-p4ssphr4e3"
 
-	  template = <<-EOT
+    template = <<-EOT
 [Node]
   Port = 3002
   IP = "127.0.0.1"
