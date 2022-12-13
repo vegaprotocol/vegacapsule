@@ -17,7 +17,6 @@ var netBootstrapCmd = &cobra.Command{
 	Use:   "bootstrap",
 	Short: "Bootstrap generates and starts new network",
 	RunE: func(cmd *cobra.Command, args []string) error {
-
 		conf, err := config.ParseConfigFile(configFilePath, homePath, types.DefaultGeneratedServices())
 		if err != nil {
 			return fmt.Errorf("failed to parse config file: %w", err)
@@ -47,7 +46,6 @@ var netBootstrapCmd = &cobra.Command{
 		}
 
 		netState.Config = conf
-
 		updatedNetState, err := netGenerate(*netState, forceGenerate)
 		if err != nil {
 			return fmt.Errorf("failed to generate network: %w", err)

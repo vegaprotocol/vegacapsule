@@ -47,7 +47,7 @@ func init() {
 }
 
 func nodesRemoveNode(state state.NetworkState, name string) (*state.NetworkState, error) {
-	gen, err := generator.New(state.Config, *state.GeneratedServices, nomad.NewVoidJobRunner())
+	gen, err := generator.New(state.Config, *state.GeneratedServices, nomad.NewVoidJobRunner(), state.VegaChainID)
 	if err != nil {
 		return nil, err
 	}

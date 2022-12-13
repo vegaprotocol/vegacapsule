@@ -46,6 +46,7 @@
 - [348](https://github.com/vegaprotocol/vegacapsule/issues/348) Do not parse wallet initialisation output anymore
 - [352](https://github.com/vegaprotocol/vegacapsule/issues/352) Add unique swarm key to all data nodes.
 - [356](https://github.com/vegaprotocol/vegacapsule/issues/356) Adding support for api tokens in the wallet.
+- [358](https://github.com/vegaprotocol/vegacapsule/issues/358) The networks `chainID` is now updated when using `vegacapsule nodes restore-checkpoint` ready for a new network
 
 ### 🐛 Fixes
 - [167](https://github.com/vegaprotocol/vegacapsule/issues/167) Fix validators filter in tendermint generator
