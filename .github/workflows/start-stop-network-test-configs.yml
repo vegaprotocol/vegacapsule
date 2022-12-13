@@ -1,7 +1,8 @@
 name: start-stop network test
 on:
   pull_request:
-
+env:
+  GH_TOKEN: ${{secrets.GITHUB_TOKEN}}
 permissions:
   contents: read
 jobs:
@@ -18,6 +19,7 @@ jobs:
           - config_file: config_external_postgres.hcl
           - config_file: config_visor_mixed.hcl
             propose_upgrade: true
+          - config_file: config_data_node_snapshot.hcl
 
           # TODO: Needs to be fixed. Issue: https://github.com/vegaprotocol/vegacapsule/issues/291
           # - config_visor_only.hcl
@@ -27,7 +29,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v3
         with:
-          go-version: '1.18'
+          go-version: '1.19'
       - uses: actions/checkout@v3
       - name: Build binary
         env:
@@ -67,7 +69,7 @@ jobs:
 
           ./vegacapsule nodes protocol-upgrade \
             --propose \
-            --release-tag v0.58.0 \
+            --release-tag v0.64.0 \
             --template-path "net_confs/node_set_templates/default/visor_run.tmpl" \
             --height 5500 \
             --force

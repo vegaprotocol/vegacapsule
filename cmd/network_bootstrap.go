@@ -46,7 +46,6 @@ var netBootstrapCmd = &cobra.Command{
 		}
 
 		netState.Config = conf
-
 		updatedNetState, err := netGenerate(*netState, forceGenerate)
 		if err != nil {
 			return fmt.Errorf("failed to generate network: %w", err)
@@ -85,6 +84,11 @@ func init() {
 		"config-path",
 		"",
 		"Path to the config file to generate network from",
+	)
+	netBootstrapCmd.PersistentFlags().BoolVar(&doNotStopAllJobsOnFailure,
+		"do-not-stop-on-failure",
+		false,
+		"Do not stop partially running network when failed to start",
 	)
 	netBootstrapCmd.MarkFlagRequired("config-path")
 }

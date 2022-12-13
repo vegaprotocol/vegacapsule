@@ -72,7 +72,11 @@ func (r *JobRunner) RunRawNomadJobs(ctx context.Context, rawJobs []string) ([]ty
 	return jobs, nil
 }
 
-func (r *JobRunner) runAndWait(ctx context.Context, job *api.Job, probes *types.ProbesConfig) error {
+func (r *JobRunner) runAndWait(
+	ctx context.Context,
+	job *api.Job,
+	probes *types.ProbesConfig,
+) error {
 	err := r.Client.RunAndWait(ctx, job, probes)
 	if err == nil {
 		return nil
@@ -94,6 +98,8 @@ type jobWithPreProbe struct {
 	Probes *types.ProbesConfig
 }
 
+// RunNodeSets returns list of started jobs.
+// When one of the jobs fails during startup it returns jobs that has alredy started before that.
 func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) ([]*api.Job, error) {
 	jobs := make([]jobWithPreProbe, 0, len(nodeSets))
 
@@ -121,26 +127,35 @@ func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) (
 		jobs = append(jobs, jobWithPreProbe{Job: job, Probes: ns.PreStartProbe})
 	}
 
+	var mut sync.Mutex
+	startedJobs := make([]*api.Job, 0, len(nodeSets))
+
 	eg := new(errgroup.Group)
 	for _, j := range jobs {
 		j := j
 
 		eg.Go(func() error {
-			return r.runAndWait(ctx, j.Job, j.Probes)
+			if err := r.runAndWait(ctx, j.Job, j.Probes); err != nil {
+				if _, err := r.stopJobsByIDs(ctx, []string{*j.Job.ID}); err != nil {
+					log.Printf("Failed to stop failed job %s, this job might need to be stopped manually. Reason %s", *j.Job.ID, err)
+				}
+
+				return err
+			}
+
+			mut.Lock()
+			startedJobs = append(startedJobs, j.Job)
+			mut.Unlock()
+
+			return nil
 		})
 	}
 
 	if err := eg.Wait(); err != nil {
-		return nil, fmt.Errorf("failed to wait for node sets: %w", err)
+		return startedJobs, fmt.Errorf("failed to wait for node sets: %w", err)
 	}
 
-	jobsRaw := make([]*api.Job, 0, len(nodeSets))
-
-	for _, j := range jobs {
-		jobsRaw = append(jobsRaw, j.Job)
-	}
-
-	return jobsRaw, nil
+	return startedJobs, nil
 }
 
 func (r *JobRunner) runDockerJobs(ctx context.Context, dockerConfigs []config.DockerConfig) ([]string, error) {
@@ -153,6 +168,11 @@ func (r *JobRunner) runDockerJobs(ctx context.Context, dockerConfigs []config.Do
 		// capture in the loop by copy
 		dc := dc
 		g.Go(func() error {
+			// Skip for already running jobs
+			if r.Client.JobRunning(ctx, dc.Name) {
+				return nil
+			}
+
 			job := r.defaultDockerJob(ctx, dc)
 
 			if err := r.runAndWait(ctx, job, nil); err != nil {
@@ -183,7 +203,7 @@ func (r *JobRunner) StartNetwork(
 	netJobs, err := r.startNetwork(ctx, conf, generatedSvcs)
 	if err != nil {
 		if stopAllJobsOnFailure {
-			if err := r.stopAllJobs(ctx); err != nil {
+			if _, err := r.stopAllJobs(ctx); err != nil {
 				log.Printf("Failed to stop all registered jobs - please clean up Nomad manually: %s", err)
 			}
 			return nil, err
@@ -221,7 +241,12 @@ func (r *JobRunner) startNetwork(
 	// create new error group to be able to call the `wait` function again
 	if generatedSvcs.Faucet != nil {
 		g.Go(func() error {
-			job := r.defaultFaucetJob(*conf.VegaBinary, conf.Network.Faucet, generatedSvcs.Faucet)
+			// Skip for already running faucet
+			if r.Client.JobRunning(ctx, generatedSvcs.Faucet.Name) {
+				return nil
+			}
+
+			job := r.defaultFaucetJob(conf.Network.Faucet, generatedSvcs.Faucet)
 
 			if err := r.runAndWait(ctx, job, nil); err != nil {
 				return fmt.Errorf("failed to run the faucet job %q: %w", *job.ID, err)
@@ -237,6 +262,11 @@ func (r *JobRunner) startNetwork(
 
 	if generatedSvcs.Wallet != nil {
 		g.Go(func() error {
+			// Skip for already running wallet
+			if r.Client.JobRunning(ctx, generatedSvcs.Wallet.Name) {
+				return nil
+			}
+
 			job := r.defaultWalletJob(generatedSvcs.Wallet)
 
 			if err := r.runAndWait(ctx, job, nil); err != nil {
@@ -253,15 +283,16 @@ func (r *JobRunner) startNetwork(
 
 	g.Go(func() error {
 		jobs, err := r.RunNodeSets(ctx, generatedSvcs.NodeSets.ToSlice())
-		if err != nil {
-			return fmt.Errorf("failed to run node sets: %w", err)
-		}
 
 		lock.Lock()
 		for _, job := range jobs {
 			result.NodesSetsJobIDs[*job.ID] = true
 		}
 		lock.Unlock()
+
+		if err != nil {
+			return fmt.Errorf("failed to run node sets: %w", err)
+		}
 
 		return nil
 	})
@@ -282,10 +313,10 @@ func (r *JobRunner) startNetwork(
 	return result, nil
 }
 
-func (r *JobRunner) stopAllJobs(ctx context.Context) error {
+func (r *JobRunner) stopAllJobs(ctx context.Context) ([]string, error) {
 	allJobs, _, err := r.Client.API.Jobs().List(nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	allJobIDs := []string{}
@@ -299,14 +330,14 @@ func (r *JobRunner) stopAllJobs(ctx context.Context) error {
 	return r.stopJobsByIDs(ctx, allJobIDs)
 }
 
-func (r *JobRunner) StopNetwork(ctx context.Context, jobs *types.NetworkJobs, nodesOnly bool) error {
+func (r *JobRunner) StopNetwork(ctx context.Context, jobs *types.NetworkJobs, nodesOnly bool) ([]string, error) {
 	// no jobs, no network started
 	if jobs == nil {
 		if !nodesOnly {
 			return r.stopAllJobs(ctx)
 		}
 
-		return nil
+		return nil, nil
 	}
 
 	allJobIDs := []string{}
@@ -318,7 +349,7 @@ func (r *JobRunner) StopNetwork(ctx context.Context, jobs *types.NetworkJobs, no
 	return r.stopJobsByIDs(ctx, allJobIDs)
 }
 
-func (r *JobRunner) StopJobs(ctx context.Context, jobIDs []string) error {
+func (r *JobRunner) StopJobs(ctx context.Context, jobIDs []string) ([]string, error) {
 	return r.stopJobsByIDs(ctx, jobIDs)
 }
 
@@ -342,6 +373,10 @@ func (r *JobRunner) ListExposedPorts(ctx context.Context) (map[string][]int64, e
 	portsPerJob := map[string][]int64{}
 
 	for _, j := range jobs {
+		if j.Status != Running {
+			continue
+		}
+
 		ports, err := r.ListExposedPortsPerJob(ctx, j.ID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to list ports for job %q: %w", j.ID, err)
@@ -353,7 +388,7 @@ func (r *JobRunner) ListExposedPorts(ctx context.Context) (map[string][]int64, e
 	return portsPerJob, nil
 }
 
-func (r *JobRunner) stopJobsByIDs(ctx context.Context, allJobIDs []string) error {
+func (r *JobRunner) stopJobsByIDs(ctx context.Context, allJobIDs []string) ([]string, error) {
 	// Apparently, we can have blank job IDs, so skipping them.
 	cleanedUpJobIDs := []string{}
 	for _, jobID := range allJobIDs {
@@ -365,7 +400,7 @@ func (r *JobRunner) stopJobsByIDs(ctx context.Context, allJobIDs []string) error
 
 	if len(cleanedUpJobIDs) == 0 {
 		log.Println("No job to be stopped.")
-		return nil
+		return nil, nil
 	}
 
 	log.Printf("Trying to stop jobs: %s\n", strings.Join(cleanedUpJobIDs, ", "))
@@ -384,7 +419,7 @@ func (r *JobRunner) stopJobsByIDs(ctx context.Context, allJobIDs []string) error
 	}
 
 	if err := g.Wait(); err != nil {
-		return fmt.Errorf("could not stop all jobs: %w", err)
+		return nil, fmt.Errorf("could not stop all jobs: %w", err)
 	}
 
 	log.Println("Jobs have been stopped.")
@@ -392,5 +427,5 @@ func (r *JobRunner) stopJobsByIDs(ctx context.Context, allJobIDs []string) error
 	// just to try - we are not interested in error
 	_ = r.Client.API.System().GarbageCollect()
 
-	return nil
+	return cleanedUpJobIDs, nil
 }

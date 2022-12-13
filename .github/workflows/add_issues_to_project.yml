@@ -1,44 +1,37 @@
 ---
 
-name: Add Issues To Project Board
+name: "Add Issues To Project Board"
 
 "on":
   issues:
     types: [opened]
+env:
+  GH_TOKEN: ${{ secrets.GH_NEW_CARD_TO_PROJECT }}
+  PROJECT_ID: ${{ secrets.CORE_PROJECT_ID }}
+  ISSUE_ID: ${{ github.event.issue.node_id }}
+  USER: ${{ github.actor }}
+  LABEL_ID: "LA_kwDOGuj2o87kW1sH"
 
 jobs:
   add_issue:
     runs-on: ubuntu-latest
     steps:
-      - name: Add issue core project board
-        if: contains(github.event.issue.labels.*.name, 'devops') != true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_NEW_CARD_TO_PROJECT }}
-          PROJECT_ID: ${{ secrets.CORE_PROJECT_ID }}
-          ISSUE_ID: ${{ github.event.issue.node_id }}
+      - name: "Add issue to project board"
         run: |
           gh api graphql -f query='
-            mutation($project:ID!, $issue:ID!) {
-              addProjectNextItem(input: {projectId: $project, contentId: $issue}) {
-                projectNextItem {
+            mutation($user:String!, $project:ID!, $issue:ID!) {
+              addProjectV2ItemById(input: {clientMutationId: $user, projectId: $project, contentId: $issue}) {
+                item {
                   id
                 }
               }
-            }' -f project=$PROJECT_ID -f issue=$ISSUE_ID --jq '.data.addProjectNextItem.projectNextItem.id'
+            }' -f project=$PROJECT_ID -f issue=$ISSUE_ID -f user=$USER
 
-      - name: Add issue to devops project board
-        if: contains(github.event.issue.labels.*.name, 'devops')
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_NEW_CARD_TO_PROJECT }}
-          PROJECT_ID: ${{ secrets.DEVOPS_PROJECT_ID }}
-          ISSUE_ID: ${{ github.event.issue.node_id }}
+      - name: "Add repo identify label"
         run: |
           gh api graphql -f query='
-            mutation($project:ID!, $issue:ID!) {
-              addProjectNextItem(input: {projectId: $project, contentId: $issue}) {
-                projectNextItem {
-                  id
-                }
+            mutation($user:String!, $issue:ID!, $label:[ID!]!) {
+              addLabelsToLabelable(input: {clientMutationId: $user, labelableId: $issue, labelIds: $label}) {
+                clientMutationId
               }
-            }' -f project=$PROJECT_ID -f issue=$ISSUE_ID --jq '.data.addProjectNextItem.projectNextItem.id'
-
+            }' -f label=$LABEL_ID -f issue=$ISSUE_ID -f user=$USER

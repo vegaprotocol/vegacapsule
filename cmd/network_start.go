@@ -72,7 +72,8 @@ func netStart(ctx context.Context, state state.NetworkState) (*state.NetworkStat
 	if err != nil {
 		return nil, fmt.Errorf("failed to start network: %s", err)
 	}
-	state.RunningJobs = res
+
+	state.RunningJobs.MergeNetworkJobs(*res)
 
 	log.Println("Network successfully started.")
 

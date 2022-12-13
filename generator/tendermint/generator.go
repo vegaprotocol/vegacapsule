@@ -59,7 +59,7 @@ func newGenValidator(nodeDir string, config *tmconfig.Config) (*tmtypes.GenesisV
 }
 
 func NewConfigGenerator(conf *config.Config, generatedNodeSets []types.NodeSet) (*ConfigGenerator, error) {
-	homeDir, err := filepath.Abs(path.Join(*conf.OutputDir, *conf.TendermintNodePrefix))
+	homeDir, err := filepath.Abs(path.Join(*conf.OutputDir, conf.TendermintNodePrefix))
 	if err != nil {
 		return nil, err
 	}
@@ -182,7 +182,7 @@ func (tg ConfigGenerator) GenesisValidators() []tmtypes.GenesisValidator {
 }
 
 func (tg ConfigGenerator) nodeDir(i int) string {
-	nodeDirName := fmt.Sprintf("%s%d", *tg.conf.NodeDirPrefix, i)
+	nodeDirName := fmt.Sprintf("%s%d", tg.conf.NodeDirPrefix, i)
 	return filepath.Join(tg.homeDir, nodeDirName)
 }
 

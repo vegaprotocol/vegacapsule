@@ -6,6 +6,7 @@ import (
 )
 
 type NodeConfigTemplateContext struct {
+	// description: Absolute index of the generated node.
 	NodeNumber int
 }
 

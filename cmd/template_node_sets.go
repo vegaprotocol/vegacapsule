@@ -3,7 +3,7 @@ package cmd
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path"
 	"text/template"
 
@@ -33,7 +33,7 @@ var templateNodeSetsCmd = &cobra.Command{
 	Use:   "node-sets",
 	Short: "Run config templating for Vega, Tendermit, DataNode, Visor node sets",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		template, err := ioutil.ReadFile(templatePath)
+		template, err := os.ReadFile(templatePath)
 		if err != nil {
 			return fmt.Errorf("failed to read template %q: %w", templatePath, err)
 		}
@@ -148,7 +148,7 @@ func templateNodeSets(tmplType templateKindType, templateRaw string, netState *s
 			return err
 		}
 
-		gen, err := datanode.NewConfigGenerator(netState.Config)
+		gen, err := datanode.NewConfigGenerator(netState.Config, netState.GeneratedServices.NodeSets.ToSlice())
 		if err != nil {
 			return err
 		}

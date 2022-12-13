@@ -13,12 +13,11 @@ import (
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/types"
 
+	"github.com/BurntSushi/toml"
 	"github.com/Masterminds/sprig"
-	"github.com/zannen/toml"
 )
 
 type ConfigTemplateContext struct {
-	Prefix               string
 	TendermintNodePrefix string
 	VegaNodePrefix       string
 	DataNodePrefix       string
@@ -42,7 +41,7 @@ type ConfigGenerator struct {
 }
 
 func NewConfigGenerator(conf *config.Config) (*ConfigGenerator, error) {
-	homeDir, err := filepath.Abs(path.Join(*conf.OutputDir, *conf.WalletPrefix))
+	homeDir, err := filepath.Abs(path.Join(*conf.OutputDir, conf.WalletPrefix))
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +57,7 @@ func (cg *ConfigGenerator) InitiateWithNetworkConfig(conf *config.WalletConfig, 
 		return nil, err
 	}
 
-	initOut, err := cg.initiateWallet(conf)
+	err := cg.initiateWallet(conf)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initiate wallet %s: %w", conf.Name, err)
 	}
@@ -78,20 +77,17 @@ func (cg *ConfigGenerator) InitiateWithNetworkConfig(conf *config.WalletConfig, 
 			HomeDir:        cg.homeDir,
 			ConfigFilePath: cg.configFilePath(),
 		},
-		Network:            importOut.Name,
-		PublicKeyFilePath:  initOut.RsaKeys.PublicKeyFilePath,
-		PrivateKeyFilePath: initOut.RsaKeys.PrivateKeyFilePath,
-		BinaryPath:         *cg.conf.VegaBinary,
+		Network:    importOut.Name,
+		BinaryPath: *cg.conf.VegaBinary,
 	}, nil
 }
 
 func (cg ConfigGenerator) generateNetworkConfig(validators, nonValidators []types.NodeSet, configTemplate *template.Template) error {
 	templateCtx := ConfigTemplateContext{
-		Prefix:               *cg.conf.Prefix,
-		TendermintNodePrefix: *cg.conf.TendermintNodePrefix,
-		VegaNodePrefix:       *cg.conf.VegaNodePrefix,
-		DataNodePrefix:       *cg.conf.DataNodePrefix,
-		WalletPrefix:         *cg.conf.VegaNodePrefix,
+		TendermintNodePrefix: cg.conf.TendermintNodePrefix,
+		VegaNodePrefix:       cg.conf.VegaNodePrefix,
+		DataNodePrefix:       cg.conf.DataNodePrefix,
+		WalletPrefix:         cg.conf.VegaNodePrefix,
 		Validators:           validators,
 		NonValidators:        nonValidators,
 	}
@@ -104,7 +100,7 @@ func (cg ConfigGenerator) generateNetworkConfig(validators, nonValidators []type
 
 	overrideConfig := vwconfig.Network{}
 
-	if _, err := toml.DecodeReader(buff, &overrideConfig); err != nil {
+	if _, err := toml.NewDecoder(buff).Decode(&overrideConfig); err != nil {
 		return fmt.Errorf("failed decode override config: %w", err)
 	}
 

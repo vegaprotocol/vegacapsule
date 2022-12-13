@@ -1,60 +1,66 @@
 GatewayEnabled = true
-
 [SQLStore]
   Enabled = true
   [SQLStore.ConnectionConfig]
+    Database = "vega{{.NodeNumber}}"
+    Host = "localhost"
+    Password = "vega"
     Port = 5232
     UseTransactions = true
-    Database = "vega{{.NodeNumber}}"
-  
+    Username = "vega"
 
 [API]
   Level = "Info"
-  Port = 30{{.NodeNumber}}7
-  CoreNodeGRPCPort = 30{{.NodeNumber}}2
+  Port = {{add 300 .NodeNumber}}7
+  CoreNodeGRPCPort = {{add 300 .NodeNumber}}2
 
 [Pprof]
   Level = "Info"
-  Enabled = false
-  Port = 6{{.NodeNumber}}60
+  Enabled = true
+  Port = {{add 60 .NodeNumber}}60
   ProfilesDir = "{{.NodeHomeDir}}"
 
 [Gateway]
   Level = "Info"
   [Gateway.Node]
-    Port = 30{{.NodeNumber}}7
+    Port = {{add 300 .NodeNumber}}7
   [Gateway.GraphQL]
-    Port = 30{{.NodeNumber}}8
+    Port = {{add 300 .NodeNumber}}8
   [Gateway.REST]
-    Port = 30{{.NodeNumber}}9
-	
+    Port = {{add 300 .NodeNumber}}9
+
 [Metrics]
   Level = "Info"
   Timeout = "5s"
-  Port = 21{{.NodeNumber}}2
+  Port = {{add 210 .NodeNumber}}2
   Enabled = false
 [Broker]
   Level = "Info"
   UseEventFile = false
+  PanicOnError = false
   [Broker.SocketConfig]
-    Port = 30{{.NodeNumber}}5
+    Port = {{add 300 .NodeNumber}}5
 
 [DeHistory]
   Level = "Info"
   Enabled = true
-  WipeOnStartup = false
-  SaveSnapshots = true
-  SaveInterval = "5s"
+  WipeOnStartup = true
+  AddSnapshotsToStore = true
+  AddSnapshotsInterval = "5s"
   [DeHistory.Store]
-    IdSeed = "b648808b-3479-439f-b7b7-7a350839f956"
-    SwarmKey = "laodofguffbarson"
-    UseIpfsDefaultPeers = true
-    BootstrapPeers = []
-    SwarmPort = 4001
+    PeerID = "{{.GetDehistoryPeerID .NodeNumber}}"
+    PrivKey = "{{.GetDehistoryPrivKey .NodeNumber}}"
+
+    BootstrapPeers = [{{- range $i, $peer := .IPSFPeers -}}
+      {{- if ne $i 0 }},{{end -}}
+      "/ip4/127.0.0.1/tcp/{{add 400 $peer.Index}}5/ipfs/{{ $peer.ID }}"
+    {{- end -}}]
+
+    UseIpfsDefaultPeers = false
+    SwarmPort = {{add 400 .NodeNumber}}5
     StartWebUI = false
-    WebUIPort = 5001
+    WebUIPort = {{add 500 .NodeNumber}}5
+    SwarmKeyOverride = "{{ .NodeSet.DataNode.UniqueSwarmKey }}"
   [DeHistory.Snapshot]
     PanicOnSnapshotCreationError = true
-    DatabaseSnapshotsCopyToPath = "/snapshotsCopyTo"
-    DatabaseSnapshotsCopyFromPath = "/snapshotsCopyFrom"
     WaitForCreationLockTimeout = "5s"

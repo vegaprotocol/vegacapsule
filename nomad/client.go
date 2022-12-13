@@ -142,18 +142,47 @@ func (n *Client) RunAndWait(ctx context.Context, job *api.Job, probe *types.Prob
 	return nil
 }
 
+func (n *Client) JobRunning(ctx context.Context, jobID string) bool {
+	j, _, err := n.API.Jobs().Info(jobID, nil)
+	if err == nil && j != nil && *j.Status == "running" {
+		return true
+	}
+
+	return false
+}
+
 // Stop stops a specific job
 func (n *Client) Stop(ctx context.Context, jobID string, purge bool) error {
 	jobs := n.API.Jobs()
 
 	writeOpts := new(api.WriteOptions).WithContext(ctx)
-	_, _, err := jobs.Deregister(jobID, purge, writeOpts)
+	_, _, err := jobs.Deregister(jobID, false, writeOpts)
 	if err != nil {
 		log.Printf("error stopping the job: %+v", err)
 		return err
 	}
 
-	return nil
+	for {
+		allocs, _, err := jobs.Allocations(jobID, true, nil)
+		if err != nil {
+			return nil //nolint:nilerr
+		}
+
+		if len(allocs) == 0 {
+			return nil
+		}
+
+		var isRunning bool
+		for _, alloc := range allocs {
+			if alloc.ClientStatus == "running" {
+				isRunning = true
+			}
+		}
+
+		if !isRunning {
+			return nil
+		}
+	}
 }
 
 // List returns all the jobs wrapped in the slice of the `api.JobListStub` structs

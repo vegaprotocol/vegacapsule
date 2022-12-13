@@ -10,7 +10,7 @@ name = "genesis"
       "--nodewallet-passphrase-file", "{{ .NodeSet.Vega.NodeWalletPassFilePath }}",
     ]
   [vega.rpc]
-    socketPath = "/tmp/vega-{{ .NodeSet.Index }}.sock"
+    socketPath = "{{ .NodeSet.Vega.GeneratedService.HomeDir }}/vega.sock"
     httpPath = "/rpc"
 
 {{ if .NodeSet.DataNode }}

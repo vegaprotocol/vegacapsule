@@ -3,7 +3,7 @@ package cmd
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path"
 
 	"code.vegaprotocol.io/vegacapsule/generator/genesis"
@@ -16,7 +16,7 @@ var templateGenesisCmd = &cobra.Command{
 	Use:   "genesis",
 	Short: "Template genesis file for network",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		template, err := ioutil.ReadFile(templatePath)
+		template, err := os.ReadFile(templatePath)
 		if err != nil {
 			return fmt.Errorf("failed to read template %q: %w", templatePath, err)
 		}
@@ -68,7 +68,7 @@ func templateGenesis(templateRaw string, netState *state.NetworkState) error {
 			return err
 		}
 
-		buff, err = gen.Generate(netState.GeneratedServices.GetValidators(), tendermintGen.GenesisValidators())
+		buff, err = gen.Generate(netState.GeneratedServices.GetValidators(), tendermintGen.GenesisValidators(), nil)
 	}
 	if err != nil {
 		return err

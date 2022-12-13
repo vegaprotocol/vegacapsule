@@ -3,7 +3,6 @@ package faucet
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -13,14 +12,15 @@ import (
 	"code.vegaprotocol.io/vega/core/faucet"
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/types"
+	"github.com/BurntSushi/toml"
 	"github.com/Masterminds/sprig"
 	"github.com/imdario/mergo"
-	"github.com/zannen/toml"
 )
 
 type ConfigTemplateContext struct {
-	Prefix    string
-	HomeDir   string
+	// description: Path to home directory of the Faucet.
+	HomeDir string
+	// description: Public key of the Faucet.
 	PublicKey string
 }
 
@@ -39,7 +39,7 @@ type ConfigGenerator struct {
 }
 
 func NewConfigGenerator(conf *config.Config) (*ConfigGenerator, error) {
-	homeDir, err := filepath.Abs(path.Join(*conf.OutputDir, *conf.FaucetPrefix))
+	homeDir, err := filepath.Abs(path.Join(*conf.OutputDir, conf.FaucetPrefix))
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +78,7 @@ func (cg *ConfigGenerator) Initiate(conf *config.FaucetConfig) (*types.Faucet, e
 	}
 
 	walletPassFilePath := path.Join(cg.homeDir, "faucet-wallet-pass.txt")
-	if err := ioutil.WriteFile(walletPassFilePath, []byte(conf.Pass), 0644); err != nil {
+	if err := os.WriteFile(walletPassFilePath, []byte(conf.Pass), 0644); err != nil {
 		return nil, fmt.Errorf("failed to write faucet wallet passphrase to file: %w", err)
 	}
 
@@ -96,12 +96,12 @@ func (cg *ConfigGenerator) Initiate(conf *config.FaucetConfig) (*types.Faucet, e
 		PublicKey:          initOut.PublicKey,
 		WalletFilePath:     initOut.FaucetWalletFilePath,
 		WalletPassFilePath: walletPassFilePath,
+		BinaryPath:         *cg.conf.VegaBinary,
 	}, nil
 }
 
 func (cg ConfigGenerator) OverwriteConfig(fc *types.Faucet, configTemplate *template.Template) error {
 	templateCtx := ConfigTemplateContext{
-		Prefix:    *cg.conf.Prefix,
 		HomeDir:   cg.homeDir,
 		PublicKey: fc.PublicKey,
 	}
@@ -114,7 +114,7 @@ func (cg ConfigGenerator) OverwriteConfig(fc *types.Faucet, configTemplate *temp
 
 	overrideConfig := faucet.Config{}
 
-	if _, err := toml.DecodeReader(buff, &overrideConfig); err != nil {
+	if _, err := toml.NewDecoder(buff).Decode(&overrideConfig); err != nil {
 		return fmt.Errorf("failed decode override config: %w", err)
 	}
 

@@ -8,17 +8,69 @@ import (
 	"text/template"
 
 	"code.vegaprotocol.io/shared/paths"
+	"code.vegaprotocol.io/vega/datanode/dehistory/store"
 	"code.vegaprotocol.io/vegacapsule/types"
 	"github.com/Masterminds/sprig"
 	"github.com/imdario/mergo"
-	"github.com/zannen/toml"
+
+	"github.com/BurntSushi/toml"
 )
 
+type IPSFPeer struct {
+	Index int
+	ID    string
+}
+
 type ConfigTemplateContext struct {
-	Prefix      string
 	NodeHomeDir string
 	NodeNumber  int
 	NodeSet     types.NodeSet
+
+	nodes []node
+}
+
+func (tc ConfigTemplateContext) getDehistoryPeerIDSeed(nodeNumber int) string {
+	return fmt.Sprintf("ipfs-seed-%d", nodeNumber)
+}
+
+func (tc ConfigTemplateContext) GetDehistoryPeerID(nodeNumber int) string {
+	seed := tc.getDehistoryPeerIDSeed(nodeNumber)
+	id, err := store.GenerateIdentityFromSeed([]byte(seed))
+	if err != nil {
+		panic("couldn't create ipfs peer identity")
+	}
+	return id.PeerID
+}
+
+func (tc ConfigTemplateContext) GetDehistoryPrivKey(nodeNumber int) string {
+	seed := tc.getDehistoryPeerIDSeed(nodeNumber)
+	id, err := store.GenerateIdentityFromSeed([]byte(seed))
+	if err != nil {
+		panic("couldn't create ipfs peer identity")
+	}
+	return id.PrivKey
+}
+
+func (tc ConfigTemplateContext) IPSFPeers() []IPSFPeer {
+	peersIDs := []IPSFPeer{}
+	for _, node := range tc.nodes {
+		if len(tc.nodes) != 1 && node.index == tc.NodeSet.Index {
+			continue
+		}
+
+		seed := tc.getDehistoryPeerIDSeed(node.index)
+		id, err := store.GenerateIdentityFromSeed([]byte(seed))
+		if err != nil {
+			panic("couldn't create ipfs peer identity")
+		}
+
+		peersIDs = append(peersIDs, IPSFPeer{
+			Index: node.index,
+			ID:    id.PeerID,
+		})
+	}
+
+	return peersIDs
 }
 
 func NewConfigTemplate(templateRaw string) (*template.Template, error) {
@@ -32,10 +84,10 @@ func NewConfigTemplate(templateRaw string) (*template.Template, error) {
 
 func (dng ConfigGenerator) TemplateConfig(ns types.NodeSet, configTemplate *template.Template) (*bytes.Buffer, error) {
 	templateCtx := ConfigTemplateContext{
-		Prefix:      *dng.conf.Prefix,
 		NodeNumber:  ns.Index,
 		NodeHomeDir: dng.homeDir,
 		NodeSet:     ns,
+		nodes:       dng.nodes,
 	}
 
 	buff := bytes.NewBuffer([]byte{})
@@ -100,7 +152,7 @@ func (dng ConfigGenerator) mergeAndSaveConfig(
 ) error {
 	overrideConfig := map[string]interface{}{}
 
-	if _, err := toml.DecodeReader(tmpldConf, &overrideConfig); err != nil {
+	if _, err := toml.NewDecoder(tmpldConf).Decode(&overrideConfig); err != nil {
 		return fmt.Errorf("failed decode override config: %w", err)
 	}
 

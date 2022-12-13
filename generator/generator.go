@@ -37,7 +37,7 @@ func (ns nodeSets) GetAllByGroupName(groupName string) []types.NodeSet {
 
 type jobRunner interface {
 	RunRawNomadJobs(ctx context.Context, rawJobs []string) ([]types.RawJobWithNomadJob, error)
-	StopNetwork(ctx context.Context, jobs *types.NetworkJobs, nodesOnly bool) error
+	StopNetwork(ctx context.Context, jobs *types.NetworkJobs, nodesOnly bool) ([]string, error)
 }
 
 type Generator struct {
@@ -50,9 +50,10 @@ type Generator struct {
 	faucetGen     *faucet.ConfigGenerator
 	visorGen      *visor.Generator
 	jobRunner     jobRunner
+	chainID       string
 }
 
-func New(conf *config.Config, genServices types.GeneratedServices, jobRunner jobRunner) (*Generator, error) {
+func New(conf *config.Config, genServices types.GeneratedServices, jobRunner jobRunner, chainID string) (*Generator, error) {
 	tendermintGen, err := tendermint.NewConfigGenerator(conf, genServices.NodeSets.ToSlice())
 	if err != nil {
 		return nil, fmt.Errorf("failed to create new tendermint config generator: %w", err)
@@ -65,7 +66,7 @@ func New(conf *config.Config, genServices types.GeneratedServices, jobRunner job
 	if err != nil {
 		return nil, fmt.Errorf("failed to create new genesis generator: %w", err)
 	}
-	dataNodeGen, err := datanode.NewConfigGenerator(conf)
+	dataNodeGen, err := datanode.NewConfigGenerator(conf, genServices.NodeSets.ToSlice())
 	if err != nil {
 		return nil, fmt.Errorf("failed to create new data node generator: %w", err)
 	}
@@ -92,6 +93,7 @@ func New(conf *config.Config, genServices types.GeneratedServices, jobRunner job
 		faucetGen:     faucetGen,
 		visorGen:      visorGen,
 		jobRunner:     jobRunner,
+		chainID:       chainID,
 	}, nil
 }
 
@@ -111,6 +113,10 @@ func (g *Generator) configureNodeSets(nss *nodeSets, fc *types.Faucet) error {
 	}
 
 	return nil
+}
+
+func (g *Generator) vegaChainID() string {
+	return g.chainID
 }
 
 func (g *Generator) Generate() (genSvc *types.GeneratedServices, err error) {
@@ -142,7 +148,7 @@ func (g *Generator) Generate() (genSvc *types.GeneratedServices, err error) {
 		return nil, err
 	}
 
-	if err := g.genesisGen.GenerateAndSave(ns.validators, ns.nonValidators, g.tendermintGen.GenesisValidators()); err != nil {
+	if err := g.genesisGen.GenerateAndSave(utils.ToPoint(g.vegaChainID()), ns.validators, ns.nonValidators, g.tendermintGen.GenesisValidators()); err != nil {
 		return nil, fmt.Errorf("failed to generate genesis: %w", err)
 	}
 

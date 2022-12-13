@@ -22,7 +22,7 @@ func updateGenesis(netState state.NetworkState) error {
 	}
 
 	log.Println("generating and saving genesis")
-	if err := gen.GenerateAndSave(netState.GeneratedServices.GetValidators(), netState.GeneratedServices.GetNonValidators(), tendermintGen.GenesisValidators()); err != nil {
+	if err := gen.GenerateAndSave(nil, netState.GeneratedServices.GetValidators(), netState.GeneratedServices.GetNonValidators(), tendermintGen.GenesisValidators()); err != nil {
 		return fmt.Errorf("failed generating and saving genesis: %w", err)
 	}
 	log.Println("done")

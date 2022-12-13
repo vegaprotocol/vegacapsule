@@ -4,7 +4,7 @@ network "testnet" {
 	ethereum {
     chain_id   = "1440"
     network_id = "1441"
-    endpoint   = "http://127.0.0.1:8545/"
+    endpoint   = "ws://127.0.0.1:8545/"
   }
   
   faucet "faucet-1" {
@@ -51,6 +51,7 @@ EOT
       }
       auth_soft_fail = true
     }
+    
     docker_service "postgres-1" {
       image = "vegaprotocol/timescaledb:2.8.0-pg14"
       cmd = "postgres"

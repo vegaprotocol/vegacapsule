@@ -11,13 +11,12 @@ import (
 	vgconfig "code.vegaprotocol.io/vega/core/config"
 	"code.vegaprotocol.io/vegacapsule/types"
 
+	"github.com/BurntSushi/toml"
 	"github.com/Masterminds/sprig"
 	"github.com/imdario/mergo"
-	"github.com/zannen/toml"
 )
 
 type ConfigTemplateContext struct {
-	Prefix               string
 	TendermintNodePrefix string
 	VegaNodePrefix       string
 	DataNodePrefix       string
@@ -40,10 +39,9 @@ func NewConfigTemplate(templateRaw string) (*template.Template, error) {
 
 func (vg ConfigGenerator) TemplateConfig(ns types.NodeSet, fc *types.Faucet, configTemplate *template.Template) (*bytes.Buffer, error) {
 	templateCtx := ConfigTemplateContext{
-		Prefix:               *vg.conf.Prefix,
-		TendermintNodePrefix: *vg.conf.TendermintNodePrefix,
-		VegaNodePrefix:       *vg.conf.VegaNodePrefix,
-		DataNodePrefix:       *vg.conf.DataNodePrefix,
+		TendermintNodePrefix: vg.conf.TendermintNodePrefix,
+		VegaNodePrefix:       vg.conf.VegaNodePrefix,
+		DataNodePrefix:       vg.conf.DataNodePrefix,
 		ETHEndpoint:          vg.conf.Network.Ethereum.Endpoint,
 		NodeMode:             ns.Mode,
 		NodeNumber:           ns.Index,
@@ -112,7 +110,7 @@ func (vg ConfigGenerator) mergeAndSaveConfig(
 ) error {
 	overrideConfig := vgconfig.Config{}
 
-	if _, err := toml.DecodeReader(tmpldConf, &overrideConfig); err != nil {
+	if _, err := toml.NewDecoder(tmpldConf).Decode(&overrideConfig); err != nil {
 		return fmt.Errorf("failed decode override config: %w", err)
 	}
 

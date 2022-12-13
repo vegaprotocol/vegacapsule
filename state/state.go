@@ -2,7 +2,6 @@ package state
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -17,6 +16,7 @@ type NetworkState struct {
 	Config            *config.Config
 	GeneratedServices *types.GeneratedServices
 	RunningJobs       *types.NetworkJobs
+	VegaChainID       string
 }
 
 func (ns *NetworkState) Empty() bool {
@@ -33,9 +33,8 @@ func (ns NetworkState) Persist() error {
 		return fmt.Errorf("failed to persist network state: %w", err)
 	}
 
-	if err := ioutil.WriteFile(stateFilePath(*ns.Config.OutputDir), networkBytes, 0644); err != nil {
+	if err := os.WriteFile(stateFilePath(*ns.Config.OutputDir), networkBytes, 0o644); err != nil {
 		return fmt.Errorf("failed to persist network state: %w", err)
-
 	}
 
 	return nil

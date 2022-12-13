@@ -3,8 +3,8 @@ package cmd
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"path"
 
 	"code.vegaprotocol.io/vegacapsule/generator/nomad"
@@ -18,7 +18,7 @@ var templateNomadCmd = &cobra.Command{
 	Use:   "nomad",
 	Short: "Template Nomad job configuration for specific node set",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		template, err := ioutil.ReadFile(templatePath)
+		template, err := os.ReadFile(templatePath)
 		if err != nil {
 			return fmt.Errorf("failed to read template %q: %w", templatePath, err)
 		}

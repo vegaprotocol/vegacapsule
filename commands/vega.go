@@ -39,6 +39,7 @@ func VegaProtocolUpgradeProposal(binary, homeDir, releaseTag, height, nodeWallet
 		"--home", homeDir,
 		"--vega-release-tag", releaseTag,
 		"--height", height,
+		"--output", "json",
 		"--passphrase-file", nodeWalletPhraseFile,
 	}
 

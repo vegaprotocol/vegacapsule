@@ -4,15 +4,15 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
+	"os"
 	"text/template"
 
 	"code.vegaprotocol.io/shared/paths"
 	vsconfig "code.vegaprotocol.io/vega/visor/config"
 	"code.vegaprotocol.io/vegacapsule/types"
+	"github.com/BurntSushi/toml"
 	"github.com/Masterminds/sprig"
 	"github.com/imdario/mergo"
-	"github.com/zannen/toml"
 )
 
 type ConfigTemplateContext struct {
@@ -56,7 +56,7 @@ func (vg *Generator) TemplateAndMergeConfig(ns types.NodeSet, configTemplate *te
 		return nil, err
 	}
 
-	fileBytes, err := ioutil.ReadFile(genRunConfigFilePath)
+	fileBytes, err := os.ReadFile(genRunConfigFilePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read save config file %q: %w", genRunConfigFilePath, err)
 	}
@@ -89,7 +89,7 @@ func (g Generator) OverwriteConfig(ns types.NodeSet, configTemplate *template.Te
 	}
 
 	configPath := configFilePath(ns.Visor.HomeDir)
-	return mergeAndSaveConfig(ns, buff, configPath, vsconfig.VegaConfig{}, vsconfig.VegaConfig{})
+	return mergeAndSaveConfig(ns, buff, configPath, vsconfig.VisorConfigFile{}, vsconfig.VisorConfigFile{})
 }
 
 // OverwriteRunConfig overwrites run config with template in a given path.
@@ -107,14 +107,13 @@ func (g Generator) OverwriteRunConfig(ns types.NodeSet, configTemplate *template
 	return mergeAndSaveConfig(ns, buff, configPath, vsconfig.RunConfig{}, vsconfig.RunConfig{})
 }
 
-func mergeAndSaveConfig[T vsconfig.RunConfig | vsconfig.VegaConfig](
+func mergeAndSaveConfig[T vsconfig.RunConfig | vsconfig.VisorConfigFile](
 	ns types.NodeSet,
 	tmpldConf *bytes.Buffer,
 	configPath string,
 	overrideConfig, originalConfig T,
 ) error {
-	if _, err := toml.DecodeReader(tmpldConf, &overrideConfig); err != nil {
-		fmt.Println(tmpldConf)
+	if _, err := toml.NewDecoder(tmpldConf).Decode(&overrideConfig); err != nil {
 		return fmt.Errorf("failed decode override config: %w", err)
 	}
 

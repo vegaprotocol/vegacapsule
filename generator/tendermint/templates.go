@@ -14,7 +14,6 @@ import (
 )
 
 type ConfigTemplateContext struct {
-	Prefix               string
 	TendermintNodePrefix string
 	VegaNodePrefix       string
 	NodeNumber           int
@@ -136,9 +135,8 @@ func (tc ConfigTemplateContext) NodeIDs() []string {
 // TemplateConfig templates the provided template
 func (tg *ConfigGenerator) TemplateConfig(ns types.NodeSet, configTemplate *template.Template) (*bytes.Buffer, error) {
 	templateCtx := ConfigTemplateContext{
-		Prefix:               *tg.conf.Prefix,
-		TendermintNodePrefix: *tg.conf.TendermintNodePrefix,
-		VegaNodePrefix:       *tg.conf.VegaNodePrefix,
+		TendermintNodePrefix: tg.conf.TendermintNodePrefix,
+		VegaNodePrefix:       tg.conf.VegaNodePrefix,
 		NodeNumber:           ns.Index,
 		NodesCount:           len(tg.nodes),
 		NodeSet:              ns,
