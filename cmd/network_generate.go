@@ -73,6 +73,8 @@ func netGenerate(state state.NetworkState, force bool) (*state.NetworkState, err
 
 	log.Println("generating network")
 
+	state.VegaChainID = state.Config.Network.Name + "-001"
+
 	nomadClient, err := nomad.NewClient(nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create nomad client: %w", err)
@@ -83,7 +85,7 @@ func netGenerate(state state.NetworkState, force bool) (*state.NetworkState, err
 		return nil, fmt.Errorf("failed to create job runner: %w", err)
 	}
 
-	gen, err := generator.New(state.Config, types.GeneratedServices{}, nomadRunner)
+	gen, err := generator.New(state.Config, types.GeneratedServices{}, nomadRunner, state.VegaChainID)
 	if err != nil {
 		return nil, err
 	}
@@ -103,6 +105,5 @@ func netGenerate(state state.NetworkState, force bool) (*state.NetworkState, err
 
 	state.RunningJobs = &types.NetworkJobs{}
 	state.RunningJobs.AddExtraJobIDs(generatedSvcs.PreGenerateJobsIDs())
-
 	return &state, nil
 }
