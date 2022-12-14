@@ -10,6 +10,8 @@ import (
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/types"
 	"code.vegaprotocol.io/vegacapsule/utils"
+
+	"github.com/google/uuid"
 )
 
 type node struct {
@@ -21,14 +23,19 @@ type ConfigGenerator struct {
 	conf    *config.Config
 	homeDir string
 
+	uniqueSwarmKey string
+
 	nodes []node
 }
 
 func NewConfigGenerator(conf *config.Config, generatedNodeSets []types.NodeSet) (*ConfigGenerator, error) {
-	homeDir, err := filepath.Abs(path.Join(*conf.OutputDir, *conf.DataNodePrefix))
+	homeDir, err := filepath.Abs(path.Join(*conf.OutputDir, conf.DataNodePrefix))
+
 	if err != nil {
 		return nil, err
 	}
+
+	var uniqueSwarmKey string
 
 	nodes := []node{}
 	for _, n := range generatedNodeSets {
@@ -39,12 +46,15 @@ func NewConfigGenerator(conf *config.Config, generatedNodeSets []types.NodeSet) 
 			name:  n.DataNode.Name,
 			index: n.Index,
 		})
+
+		uniqueSwarmKey = n.DataNode.UniqueSwarmKey
 	}
 
 	return &ConfigGenerator{
-		conf:    conf,
-		homeDir: homeDir,
-		nodes:   nodes,
+		conf:           conf,
+		homeDir:        homeDir,
+		nodes:          nodes,
+		uniqueSwarmKey: uniqueSwarmKey,
 	}, nil
 }
 
@@ -81,13 +91,23 @@ func (dng *ConfigGenerator) Initiate(index int, chainID string, optVegaBinary *s
 		return nil, fmt.Errorf("failed to copy initiated config from %q to %q: %w", confFilePath, origConFilePath, err)
 	}
 
+	if dng.uniqueSwarmKey == "" {
+		uuid, err := uuid.NewRandom()
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate unique swarm key: %w", err)
+		}
+
+		dng.uniqueSwarmKey = uuid.String()
+	}
+
 	initNode := &types.DataNode{
 		GeneratedService: types.GeneratedService{
 			Name:           fmt.Sprintf("data-node-%d", index),
 			HomeDir:        nodeDir,
 			ConfigFilePath: confFilePath,
 		},
-		BinaryPath: vegaBinary,
+		BinaryPath:     vegaBinary,
+		UniqueSwarmKey: dng.uniqueSwarmKey,
 	}
 
 	dng.nodes = append(dng.nodes, node{
@@ -99,7 +119,7 @@ func (dng *ConfigGenerator) Initiate(index int, chainID string, optVegaBinary *s
 }
 
 func (dng ConfigGenerator) nodeDir(i int) string {
-	nodeDirName := fmt.Sprintf("%s%d", *dng.conf.NodeDirPrefix, i)
+	nodeDirName := fmt.Sprintf("%s%d", dng.conf.NodeDirPrefix, i)
 	return filepath.Join(dng.homeDir, nodeDirName)
 }
 

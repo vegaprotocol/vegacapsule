@@ -19,7 +19,7 @@ func (g *Generator) initiateNodeSet(absoluteIndex, relativeIndex, groupIndex int
 
 	initTNode, err := g.tendermintGen.Initiate(absoluteIndex, n.Mode, n.Name)
 	if err != nil {
-		return nil, fmt.Errorf("failed to initiate Tendermit node id %d for node set %s: %w", absoluteIndex, n.Name, err)
+		return nil, fmt.Errorf("failed to initiate Tendermint node id %d for node set %s: %w", absoluteIndex, n.Name, err)
 	}
 
 	initVNode, err := g.vegaGen.Initiate(
@@ -95,7 +95,7 @@ func (g *Generator) initiateNodeSets() (*nodeSets, error) {
 		for relativeIndex := 0; relativeIndex < n.Count; relativeIndex++ {
 			nc, err := n.Clone()
 			if err != nil {
-				return nil, fmt.Errorf("failed to clode node config for %q: %w", n.Name, err)
+				return nil, fmt.Errorf("failed to clone node config for %q: %w", n.Name, err)
 			}
 			absIndexC := absIndex
 			groupIndexC := groupIndex
@@ -142,7 +142,7 @@ func (g *Generator) initiateNodeSets() (*nodeSets, error) {
 func (g *Generator) initAndConfigureFaucet(conf *config.FaucetConfig) (*types.Faucet, error) {
 	initFaucet, err := g.faucetGen.InitiateAndConfigure(conf)
 	if err != nil {
-		return nil, fmt.Errorf("failed to initate faucet: %w", err)
+		return nil, fmt.Errorf("failed to initiate faucet: %w", err)
 	}
 
 	return initFaucet, nil
@@ -156,7 +156,11 @@ func (g *Generator) initAndConfigureWallet(conf *config.WalletConfig, validators
 
 	initWallet, err := g.walletGen.InitiateWithNetworkConfig(g.conf.Network.Wallet, validatorsSet, nonValidatorSet, walletConfTemplate)
 	if err != nil {
-		return nil, fmt.Errorf("failed to initate wallet: %w", err)
+		return nil, fmt.Errorf("failed to initiate wallet: %w", err)
+	}
+
+	if conf.TokenPassphraseFile != nil {
+		initWallet.TokenPassphrasePath = *conf.TokenPassphraseFile
 	}
 
 	return initWallet, nil

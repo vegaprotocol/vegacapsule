@@ -48,13 +48,13 @@ GatewayEnabled = true
     PeerID = "{{.GetDehistoryPeerID .NodeNumber}}"
     PrivKey = "{{.GetDehistoryPrivKey .NodeNumber}}"
 
-    {{ $nodeNumber := .NodeNumber }}
-    BootstrapPeers = [{{- range $i, $peerID := .IPSFPeersIDs -}}
+    BootstrapPeers = [{{- range $i, $peer := .IPSFPeers -}}
       {{- if ne $i 0 }},{{end -}}
-      "/ip4/127.0.0.1/tcp/{{add 400 $nodeNumber}}5/ipfs/{{ $peerID }}"
+      "/ip4/127.0.0.1/tcp/{{add 400 $peer.Index}}5/ipfs/{{ $peer.ID }}"
     {{- end -}}]
 
     UseIpfsDefaultPeers = false
-    SwarmPort = 40{{.NodeNumber}}5
+    SwarmPort = {{add 400 .NodeNumber}}5
     StartWebUI = false
-    WebUIPort = 50{{.NodeNumber}}5
+    WebUIPort = {{add 500 .NodeNumber}}5
+    SwarmKeyOverride = "{{ .NodeSet.DataNode.UniqueSwarmKey }}"

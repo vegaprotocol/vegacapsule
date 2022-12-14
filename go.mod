@@ -367,10 +367,11 @@ require (
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
+	github.com/fatih/structtag v1.2.0
 	github.com/google/go-github/v43 v43.0.0
 	github.com/hashicorp/nomad v1.3.1
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect

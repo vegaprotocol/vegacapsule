@@ -12,14 +12,7 @@ type importNetworkOutput struct {
 	FilePath string `json:"filePath"`
 }
 
-type initateWalletOutput struct {
-	RsaKeys struct {
-		PublicKeyFilePath  string `json:"publicKeyFilePath"`
-		PrivateKeyFilePath string `json:"privateKeyFilePath"`
-	} `json:"rsaKeys"`
-}
-
-func (cg *ConfigGenerator) initiateWallet(conf *config.WalletConfig) (*initateWalletOutput, error) {
+func (cg *ConfigGenerator) initiateWallet(conf *config.WalletConfig) error {
 	args := []string{config.WalletSubCmd, "init", "--output", "json", "--home", cg.homeDir}
 
 	log.Printf("Initiating wallet %q with: %v", conf.Name, args)
@@ -29,12 +22,20 @@ func (cg *ConfigGenerator) initiateWallet(conf *config.WalletConfig) (*initateWa
 		vegaBinary = *conf.VegaBinary
 	}
 
-	out := &initateWalletOutput{}
-	if _, err := utils.ExecuteBinary(vegaBinary, args, out); err != nil {
-		return nil, err
+	if _, err := utils.ExecuteBinary(vegaBinary, args, nil); err != nil {
+		return err
 	}
 
-	return out, nil
+	// If the user has configured a token pass phrase file, we should initialise the token storage
+	if conf.TokenPassphraseFile != nil && len(*conf.TokenPassphraseFile) > 0 {
+		args = []string{config.WalletSubCmd, "api-token", "init", "--home", cg.homeDir, "--passphrase-file", *conf.TokenPassphraseFile}
+		log.Printf("Initiating api-token wallet %q with: %v", conf.Name, args)
+		if _, err := utils.ExecuteBinary(vegaBinary, args, nil); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (cg *ConfigGenerator) importNetworkConfig(conf *config.WalletConfig) (*importNetworkOutput, error) {

@@ -27,7 +27,7 @@ type Generator struct {
 }
 
 func NewGenerator(conf *config.Config) (*Generator, error) {
-	homeDir, err := filepath.Abs(path.Join(*conf.OutputDir, *conf.VisorPrefix))
+	homeDir, err := filepath.Abs(path.Join(*conf.OutputDir, conf.VisorPrefix))
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +122,7 @@ func (g Generator) PrepareUpgrade(
 }
 
 func (g Generator) visorDir(i int) string {
-	nodeDirName := fmt.Sprintf("%s%d", *g.conf.VisorPrefix, i)
+	nodeDirName := fmt.Sprintf("%s%d", g.conf.VisorPrefix, i)
 	return filepath.Join(g.homeDir, nodeDirName)
 }
 

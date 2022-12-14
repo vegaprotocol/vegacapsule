@@ -123,7 +123,7 @@ func nodesAddNode(state state.NetworkState, index int, baseOneNode string) (*typ
 		return nil, fmt.Errorf("failed to create job runner: %w", err)
 	}
 
-	gen, err := generator.New(state.Config, *state.GeneratedServices, nomadRunner)
+	gen, err := generator.New(state.Config, *state.GeneratedServices, nomadRunner, state.VegaChainID)
 	if err != nil {
 		return nil, err
 	}
