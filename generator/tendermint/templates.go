@@ -103,6 +103,25 @@ func (tc ConfigTemplateContext) NodeIDsByGroupName(groupNames ...string) []strin
 	return nodeIDs
 }
 
+func (tc ConfigTemplateContext) NodePeersByNodeIndexes(indexes ...int) []Peer {
+	peers := []Peer{}
+
+	for _, node := range tc.nodes {
+		for _, wantedIdx := range indexes {
+			if node.index == wantedIdx {
+				peers = append(peers, Peer{
+					Index: node.index,
+					ID:    node.id,
+				})
+
+				break
+			}
+		}
+	}
+
+	return peers
+}
+
 func (tc ConfigTemplateContext) NodeIDs() []string {
 	nodeIDs := make([]string, 0, len(tc.nodes))
 
