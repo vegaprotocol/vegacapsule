@@ -2,6 +2,7 @@ GatewayEnabled = true
 
 [SQLStore]
   Enabled = true
+  WipeOnStartup = false
   [SQLStore.ConnectionConfig]
     Database = "vega{{.NodeNumber}}"
     Host = "localhost"
