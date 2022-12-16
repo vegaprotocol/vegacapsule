@@ -1,4 +1,4 @@
-log_level = info"
+log_level = "info"
 
 proxy_app = "tcp://127.0.0.1:26{{ printf "%02d" (add .NodeNumber 60) }}8"
 moniker = "{{.TendermintNodePrefix}}-{{.NodeNumber}}"
