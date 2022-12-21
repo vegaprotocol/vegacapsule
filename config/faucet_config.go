@@ -22,7 +22,7 @@ type FaucetConfig struct {
 		example:
 			type: hcl
 			value: |
-					wallet "wallet-name" {
+					faucet "faucet-name" {
 						...
 					}
 	*/

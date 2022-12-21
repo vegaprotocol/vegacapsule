@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"code.vegaprotocol.io/vegacapsule/types"
 	"github.com/hashicorp/go-cty-funcs/crypto"
 	"github.com/hashicorp/go-cty-funcs/encoding"
 	"github.com/hashicorp/go-cty-funcs/uuid"
@@ -17,6 +16,8 @@ import (
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/function"
 	"github.com/zclconf/go-cty/cty/function/stdlib"
+
+	"code.vegaprotocol.io/vegacapsule/types"
 )
 
 var envFunc = function.New(&function.Spec{
@@ -46,6 +47,7 @@ func newEvalContext(genServices cty.Value, homePath string) *hcl.EvalContext {
 		Variables: map[string]cty.Value{
 			"generated":         genServices,
 			"network_home_path": cty.StringVal(homePath),
+			"binary_services":   cty.StringVal(filepath.Join(homePath, "binary_services")),
 		},
 		Functions: map[string]function.Function{
 			"abs":             stdlib.AbsoluteFunc,

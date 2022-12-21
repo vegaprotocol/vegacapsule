@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"sync"
 
+	"golang.org/x/sync/errgroup"
+
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/generator/nomad"
 	"code.vegaprotocol.io/vegacapsule/generator/wallet"
 	"code.vegaprotocol.io/vegacapsule/types"
-	"golang.org/x/sync/errgroup"
 )
 
 func (g *Generator) initiateNodeSet(absoluteIndex, relativeIndex, groupIndex int, nc config.NodeConfig) (*types.NodeSet, error) {
@@ -146,6 +147,15 @@ func (g *Generator) initAndConfigureFaucet(conf *config.FaucetConfig) (*types.Fa
 	}
 
 	return initFaucet, nil
+}
+
+func (g *Generator) initAndConfigureBinary(conf *config.BinaryConfig) (*types.Binary, error) {
+	initBinary, err := g.binaryGen.InitiateAndConfigure(conf)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initiate binary: %w", err)
+	}
+
+	return initBinary, nil
 }
 
 func (g *Generator) initAndConfigureWallet(conf *config.WalletConfig, validatorsSet, nonValidatorSet []types.NodeSet) (*types.Wallet, error) {

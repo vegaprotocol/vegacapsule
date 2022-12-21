@@ -181,6 +181,10 @@ func (c *Config) Validate(configDir string) error {
 		return fmt.Errorf("invalid configuration for wallet: %w", err)
 	}
 
+	if err := c.loadAndValidatePSConfigTemplates(); err != nil {
+		return fmt.Errorf("invalid configuration for PS config templates: %w", err)
+	}
+
 	return nil
 }
 
@@ -199,7 +203,7 @@ func (c *Config) loadAndValidateNodeSets() error {
 			continue
 		}
 
-		updatedCt, err := c.loadAndValidateConfigTemplates(nc.ConfigTemplates)
+		updatedCt, err := c.loadAndValidateNodeConfigTemplates(nc.ConfigTemplates)
 		if err != nil {
 			mErr.Add(fmt.Errorf("failed to validate node set config templates: %w", err))
 			continue
@@ -256,7 +260,7 @@ func (c *Config) validateClefWalletConfig(nc NodeConfig) error {
 	return nil
 }
 
-func (c Config) loadAndValidatePreGenerate(preGen PreGenerate) (*PreGenerate, error) {
+func (c *Config) loadAndValidatePreGenerate(preGen PreGenerate) (*PreGenerate, error) {
 	mErr := utils.NewMultiError()
 
 	for i, nc := range preGen.Nomad {
@@ -282,7 +286,24 @@ func (c Config) loadAndValidatePreGenerate(preGen PreGenerate) (*PreGenerate, er
 	return &preGen, nil
 }
 
-func (c Config) loadAndValidateConfigTemplates(ct ConfigTemplates) (*ConfigTemplates, error) {
+func (c *Config) loadAndValidatePSConfigTemplates() error {
+	mErr := utils.NewMultiError()
+	// TODO: also pre-start?
+	if c.Network.PostStart == nil {
+		return nil
+	}
+	if err := c.Network.PostStart.LoadConfigTemplates(c.configDir); err != nil {
+		mErr.Add(fmt.Errorf("failed to load post start config templates: %w", err))
+	}
+
+	if mErr.HasAny() {
+		return mErr
+	}
+
+	return nil
+}
+
+func (c *Config) loadAndValidateNodeConfigTemplates(ct ConfigTemplates) (*ConfigTemplates, error) {
 	mErr := utils.NewMultiError()
 
 	if ct.Vega == nil && ct.VegaFile != nil {
@@ -342,7 +363,7 @@ func (c Config) loadAndValidateConfigTemplates(ct ConfigTemplates) (*ConfigTempl
 	return &ct, nil
 }
 
-func (c Config) LoadConfigTemplateFile(path string) (string, error) {
+func (c *Config) LoadConfigTemplateFile(path string) (string, error) {
 	templateFile, err := utils.AbsPathWithPrefix(c.configDir, path)
 	if err != nil {
 		return "", fmt.Errorf("failed to get absolute file path %q: %w", path, err)
@@ -356,7 +377,7 @@ func (c Config) LoadConfigTemplateFile(path string) (string, error) {
 	return string(template), nil
 }
 
-func (c Config) loadAndValidateNomadJobTemplates(nc NodeConfig) (*NodeConfig, error) {
+func (c *Config) loadAndValidateNomadJobTemplates(nc NodeConfig) (*NodeConfig, error) {
 	if nc.NomadJobTemplate != nil {
 		return &nc, nil
 	}
@@ -445,7 +466,7 @@ func (c *Config) loadAndValidateSetSmartContractsAddresses() error {
 	return nil
 }
 
-func (c Config) SmartContractsInfo() (*types.SmartContractsInfo, error) {
+func (c *Config) SmartContractsInfo() (*types.SmartContractsInfo, error) {
 	smartcontracts := &types.SmartContractsInfo{}
 
 	if err := json.Unmarshal([]byte(*c.Network.SmartContractsAddresses), &smartcontracts); err != nil {
@@ -455,7 +476,7 @@ func (c Config) SmartContractsInfo() (*types.SmartContractsInfo, error) {
 	return smartcontracts, nil
 }
 
-func (c Config) GetSmartContractToken(name string) *types.SmartContractsToken {
+func (c *Config) GetSmartContractToken(name string) *types.SmartContractsToken {
 	token, ok := c.Network.TokenAddresses[name]
 	if !ok {
 		return nil
@@ -471,11 +492,11 @@ func (c *Config) Persist() error {
 	return os.WriteFile(filepath.Join(*c.OutputDir, "config.hcl"), c.HCLBodyRaw, 0644)
 }
 
-func (c Config) LogsDir() string {
+func (c *Config) LogsDir() string {
 	return path.Join(*c.OutputDir, "logs")
 }
 
-func (c Config) BinariesDir() string {
+func (c *Config) BinariesDir() string {
 	return path.Join(*c.OutputDir, "bins")
 }
 

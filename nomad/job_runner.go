@@ -8,10 +8,11 @@ import (
 	"strings"
 	"sync"
 
+	"golang.org/x/sync/errgroup"
+
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/logscollector"
 	"code.vegaprotocol.io/vegacapsule/types"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/hashicorp/nomad/api"
 	"github.com/hashicorp/nomad/jobspec2"
@@ -173,7 +174,7 @@ func (r *JobRunner) runDockerJobs(ctx context.Context, dockerConfigs []config.Do
 				return nil
 			}
 
-			job := r.defaultDockerJob(ctx, dc)
+			job := r.defaultDockerJob(dc)
 
 			if err := r.runAndWait(ctx, job, nil); err != nil {
 				return fmt.Errorf("failed to run pre start job %q: %w", *job.ID, err)
@@ -189,6 +190,43 @@ func (r *JobRunner) runDockerJobs(ctx context.Context, dockerConfigs []config.Do
 
 	if err := g.Wait(); err != nil {
 		return nil, fmt.Errorf("failed to wait for docker jobs: %w", err)
+	}
+
+	return jobIDs, nil
+}
+
+func (r *JobRunner) runBinaryJobs(ctx context.Context, binaryConfigs []config.BinaryConfig, binaries []*types.Binary) ([]string, error) {
+	g, ctx := errgroup.WithContext(ctx)
+	jobIDs := make([]string, 0, len(binaryConfigs))
+
+	var jobIDsLock sync.Mutex
+
+	for i, bc := range binaryConfigs {
+		// capture in the loop by copy
+		bc := bc
+		g.Go(func() error {
+			// Skip for already running jobs
+			if r.Client.JobRunning(ctx, bc.Name) {
+				return nil
+			}
+
+			job := r.defaultBinaryJob(bc, binaries[i])
+
+			if err := r.runAndWait(ctx, job, nil); err != nil {
+				log.Printf("failed to run pre start job %q: %s", *job.ID, err)
+				return nil // fmt.Errorf("failed to run pre start job %q: %w", *job.ID, err)
+			}
+
+			jobIDsLock.Lock()
+			jobIDs = append(jobIDs, *job.ID)
+			jobIDsLock.Unlock()
+
+			return nil
+		})
+	}
+
+	if err := g.Wait(); err != nil {
+		return nil, fmt.Errorf("failed to wait for binary jobs: %w", err)
 	}
 
 	return jobIDs, nil
@@ -302,12 +340,19 @@ func (r *JobRunner) startNetwork(
 	}
 
 	if conf.Network.PostStart != nil {
-		extraJobIDs, err := r.runDockerJobs(gCtx, conf.Network.PostStart.Docker)
+		extraBinaryJobIDs, err := r.runBinaryJobs(ctx, conf.Network.PostStart.Binary, generatedSvcs.Binary)
 		if err != nil {
 			return result, fmt.Errorf("failed to run post start jobs: %w", err)
 		}
 
-		result.AddExtraJobIDs(extraJobIDs)
+		result.AddExtraJobIDs(extraBinaryJobIDs)
+
+		extraDockerJobIDs, err := r.runDockerJobs(gCtx, conf.Network.PostStart.Docker)
+		if err != nil {
+			return result, fmt.Errorf("failed to run post start docker jobs: %w", err)
+		}
+
+		result.AddExtraJobIDs(extraDockerJobIDs)
 	}
 
 	return result, nil

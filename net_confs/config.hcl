@@ -75,6 +75,17 @@ EOT
       auth_soft_fail = true
     }
   }
+
+  post_start {
+    binary_service "liqbot" {
+      cmd = "liqbot"
+      binary_path = "liqbot"
+      # args = [
+      #    "--config", "${binary_services}/liqbot/config.toml"
+      # ]
+      config_template_file = "./node_set_templates/default/liqbot_full.tmpl"
+    }
+  }
   
   genesis_template_file = "./genesis.tmpl"
   smart_contracts_addresses_file = "./public_smart_contracts_addresses.json"

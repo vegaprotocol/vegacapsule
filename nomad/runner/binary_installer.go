@@ -18,7 +18,7 @@ import (
 
 const (
 	nomadBinName       = "nomad"
-	nomadBinaryVersion = "1.3.1"
+	nomadBinaryVersion = "1.4.0-beta.1"
 )
 
 var (

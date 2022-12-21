@@ -1,9 +1,9 @@
 package nomad
 
 import (
-	"context"
 	"fmt"
 	"path"
+	"strings"
 	"time"
 
 	"code.vegaprotocol.io/vegacapsule/config"
@@ -32,7 +32,7 @@ var (
 		Attempts:  utils.ToPoint(0),
 		Unlimited: utils.ToPoint(false),
 	}
-	defaultKillTimeout = utils.ToPoint(time.Duration(time.Second * 20))
+	defaultKillTimeout = utils.ToPoint(time.Second * 20)
 )
 
 func mergeResourcesWithDefault(customRes *config.Resources) *api.Resources {
@@ -264,7 +264,42 @@ func (r *JobRunner) defaultFaucetJob(conf *config.FaucetConfig, fc *types.Faucet
 	}
 }
 
-func (r *JobRunner) defaultDockerJob(ctx context.Context, conf config.DockerConfig) *api.Job {
+func (r *JobRunner) defaultBinaryJob(conf config.BinaryConfig, c *types.Binary) *api.Job {
+	if !strings.Contains(strings.Join(c.Args, ""), "--config") {
+		c.Args = append(c.Args, "--config", c.ConfigFilePath)
+	}
+	return &api.Job{
+		ID:          &c.Name,
+		Datacenters: []string{"dc1"},
+		TaskGroups: []*api.TaskGroup{
+			{
+				EphemeralDisk: &api.EphemeralDisk{
+					SizeMB: utils.ToPoint(550),
+				},
+				Name:             &conf.Name,
+				RestartPolicy:    defaultRestartPolicy,
+				ReschedulePolicy: defaultReschedulePolicy,
+				Tasks: []*api.Task{
+					{
+						Name:   conf.Name,
+						Driver: "raw_exec",
+						Leader: true,
+						Config: map[string]interface{}{
+							"command": c.BinaryPath,
+							"args":    c.Args,
+						},
+						LogConfig:   defaultLogConfig,
+						Resources:   defaultResourcesConfig,
+						KillTimeout: defaultKillTimeout,
+					},
+					r.defaultLogCollectorTask(c.Name),
+				},
+			},
+		},
+	}
+}
+
+func (r *JobRunner) defaultDockerJob(conf config.DockerConfig) *api.Job {
 	ports := []api.Port{}
 	portLabels := []string{}
 	if conf.StaticPort != nil {
