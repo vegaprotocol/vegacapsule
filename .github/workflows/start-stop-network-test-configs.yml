@@ -69,7 +69,7 @@ jobs:
 
           ./vegacapsule nodes protocol-upgrade \
             --propose \
-            --release-tag v0.64.0 \
+            --release-tag v0.65.1 \
             --template-path "net_confs/node_set_templates/default/visor_run.tmpl" \
             --height 5500 \
             --force
