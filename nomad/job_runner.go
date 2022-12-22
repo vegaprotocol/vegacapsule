@@ -117,7 +117,6 @@ func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) (
 			ArgVars: []string{},
 			AllowFS: true,
 		})
-
 		if err != nil {
 			return nil, err
 		}
@@ -188,7 +187,43 @@ func (r *JobRunner) runDockerJobs(ctx context.Context, dockerConfigs []config.Do
 	}
 
 	if err := g.Wait(); err != nil {
-		return nil, fmt.Errorf("failed to wait for docker jobs: %w", err)
+		return nil, err
+	}
+
+	return jobIDs, nil
+}
+
+func (r *JobRunner) runExecJobs(ctx context.Context, execConfigs []config.ExecConfig) ([]string, error) {
+	g, ctx := errgroup.WithContext(ctx)
+	jobIDs := make([]string, 0, len(execConfigs))
+
+	var jobIDsLock sync.Mutex
+
+	for _, ec := range execConfigs {
+		// capture in the loop by copy
+		ec := ec
+		g.Go(func() error {
+			// Skip for already running jobs
+			if r.Client.JobRunning(ctx, ec.Name) {
+				return nil
+			}
+
+			job := r.defaultExecJob(ctx, ec)
+
+			if err := r.runAndWait(ctx, job, nil); err != nil {
+				return fmt.Errorf("failed to run pre start job %q: %w", *job.ID, err)
+			}
+
+			jobIDsLock.Lock()
+			jobIDs = append(jobIDs, *job.ID)
+			jobIDsLock.Unlock()
+
+			return nil
+		})
+	}
+
+	if err := g.Wait(); err != nil {
+		return nil, err
 	}
 
 	return jobIDs, nil
@@ -230,11 +265,16 @@ func (r *JobRunner) startNetwork(
 	result.AddExtraJobIDs(generatedSvcs.PreGenerateJobsIDs())
 
 	if conf.Network.PreStart != nil {
-		extraJobIDs, err := r.runDockerJobs(ctx, conf.Network.PreStart.Docker)
+		extraJobIDs, err := r.runExecJobs(ctx, conf.Network.PreStart.Exec)
 		if err != nil {
-			return result, fmt.Errorf("failed to run pre start jobs: %w", err)
+			return result, fmt.Errorf("failed to run pre start exec jobs: %w", err)
 		}
+		result.AddExtraJobIDs(extraJobIDs)
 
+		extraJobIDs, err = r.runDockerJobs(ctx, conf.Network.PreStart.Docker)
+		if err != nil {
+			return result, fmt.Errorf("failed to run pre start docker jobs: %w", err)
+		}
 		result.AddExtraJobIDs(extraJobIDs)
 	}
 

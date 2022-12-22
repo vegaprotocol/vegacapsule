@@ -254,6 +254,7 @@ type PStartConfig struct {
 					}
 	*/
 	Docker []DockerConfig `hcl:"docker_service,block"`
+	Exec   []ExecConfig   `hcl:"exec_service,block"`
 }
 
 func (nc NetworkConfig) GetNodeConfig(name string) (*NodeConfig, error) {
