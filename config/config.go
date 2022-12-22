@@ -229,6 +229,11 @@ func (c *Config) loadAndValidateNodeSets() error {
 func (c *Config) validateWalletConfig() error {
 	wc := c.Network.Wallet
 
+	if wc == nil {
+		// There is no wallet setup for this network.
+		return nil
+	}
+
 	if wc.TokenPassphraseFile != nil {
 		tpf, err := utils.AbsPathWithPrefix(c.configDir, *wc.TokenPassphraseFile)
 		if err != nil {
