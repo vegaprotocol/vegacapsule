@@ -43,7 +43,7 @@ func (nj *NetworkJobs) MergeNetworkJobs(toMerge NetworkJobs) {
 	}
 }
 
-func (nj NetworkJobs) Exists(jobID string) bool {
+func (nj *NetworkJobs) Exists(jobID string) bool {
 	if _, ok := nj.NodesSetsJobIDs[jobID]; ok {
 		return true
 	}
@@ -88,7 +88,7 @@ func (nj *NetworkJobs) RemoveRunningJobsIDs(ids []string) {
 	}
 }
 
-func (nj NetworkJobs) ToSlice() []string {
+func (nj *NetworkJobs) ToSlice() []string {
 	out := append(nj.NodesSetsJobIDs.ToSlice(), nj.ExtraJobIDs.ToSlice()...)
 
 	if nj.FaucetJobID != "" {

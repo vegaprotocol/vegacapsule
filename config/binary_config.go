@@ -78,6 +78,8 @@ type BinaryConfig struct {
 	ConfigTemplate *string `hcl:"config_template,optional"`
 
 	ConfigTemplateFile *string `hcl:"config_template_file,optional"`
+
+	Sync bool `hcl:"sync,optional"`
 }
 
 func (b *BinaryConfig) GetConfigTemplate(configDir string) (*string, error) {
@@ -86,7 +88,7 @@ func (b *BinaryConfig) GetConfigTemplate(configDir string) (*string, error) {
 	}
 
 	if b.ConfigTemplateFile == nil {
-		return nil, fmt.Errorf("no config template provided")
+		return nil, nil
 	}
 
 	templateFile, err := utils.AbsPathWithPrefix(configDir, *b.ConfigTemplateFile)

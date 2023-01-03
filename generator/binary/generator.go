@@ -54,6 +54,10 @@ func (cg *ConfigGenerator) InitiateAndConfigure(conf *config.BinaryConfig) (*typ
 		return nil, fmt.Errorf("failed to init binary for %q: %w", conf.Name, err)
 	}
 
+	if conf.ConfigTemplate == nil {
+		return initBinary, nil
+	}
+
 	configTemplate, err := NewConfigTemplate(*conf.ConfigTemplate)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create new template config for %q: %w", conf.Name, err)

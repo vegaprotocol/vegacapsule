@@ -288,7 +288,6 @@ func (c *Config) loadAndValidatePreGenerate(preGen PreGenerate) (*PreGenerate, e
 
 func (c *Config) loadAndValidatePSConfigTemplates() error {
 	mErr := utils.NewMultiError()
-	// TODO: also pre-start?
 	if c.Network.PostStart == nil {
 		return nil
 	}

@@ -204,17 +204,17 @@ func (r *JobRunner) runBinaryJobs(ctx context.Context, binaryConfigs []config.Bi
 	for i, bc := range binaryConfigs {
 		// capture in the loop by copy
 		bc := bc
-		g.Go(func() error {
+
+		runJob := func() error {
 			// Skip for already running jobs
 			if r.Client.JobRunning(ctx, bc.Name) {
 				return nil
 			}
 
-			job := r.defaultBinaryJob(bc, binaries[i])
+			job := r.defaultBinaryJob(&bc, binaries[i])
 
 			if err := r.runAndWait(ctx, job, nil); err != nil {
-				log.Printf("failed to run pre start job %q: %s", *job.ID, err)
-				return nil // fmt.Errorf("failed to run pre start job %q: %w", *job.ID, err)
+				return fmt.Errorf("failed to run pre start job %q: %w", *job.ID, err)
 			}
 
 			jobIDsLock.Lock()
@@ -222,7 +222,15 @@ func (r *JobRunner) runBinaryJobs(ctx context.Context, binaryConfigs []config.Bi
 			jobIDsLock.Unlock()
 
 			return nil
-		})
+		}
+
+		if bc.Sync {
+			if err := runJob(); err != nil {
+				return nil, err
+			}
+		} else {
+			g.Go(runJob)
+		}
 	}
 
 	if err := g.Wait(); err != nil {
@@ -340,7 +348,7 @@ func (r *JobRunner) startNetwork(
 	}
 
 	if conf.Network.PostStart != nil {
-		extraBinaryJobIDs, err := r.runBinaryJobs(ctx, conf.Network.PostStart.Binary, generatedSvcs.Binary)
+		extraBinaryJobIDs, err := r.runBinaryJobs(gCtx, conf.Network.PostStart.Binary, generatedSvcs.Binary)
 		if err != nil {
 			return result, fmt.Errorf("failed to run post start jobs: %w", err)
 		}

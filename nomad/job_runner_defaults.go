@@ -3,7 +3,6 @@ package nomad
 import (
 	"fmt"
 	"path"
-	"strings"
 	"time"
 
 	"code.vegaprotocol.io/vegacapsule/config"
@@ -264,10 +263,7 @@ func (r *JobRunner) defaultFaucetJob(conf *config.FaucetConfig, fc *types.Faucet
 	}
 }
 
-func (r *JobRunner) defaultBinaryJob(conf config.BinaryConfig, c *types.Binary) *api.Job {
-	if !strings.Contains(strings.Join(c.Args, ""), "--config") {
-		c.Args = append(c.Args, "--config", c.ConfigFilePath)
-	}
+func (r *JobRunner) defaultBinaryJob(conf *config.BinaryConfig, c *types.Binary) *api.Job {
 	return &api.Job{
 		ID:          &c.Name,
 		Datacenters: []string{"dc1"},
