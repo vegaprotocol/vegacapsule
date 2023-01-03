@@ -1,6 +1,7 @@
 package nomad
 
 import (
+	"context"
 	"fmt"
 	"path"
 	"time"
@@ -348,7 +349,7 @@ func (r *JobRunner) defaultDockerJob(conf config.DockerConfig) *api.Job {
 	}
 }
 
-func (r *JobRunner) defaultExecJob(ctx context.Context, conf config.ExecConfig) *api.Job {
+func (r *JobRunner) defaultExecJob(_ context.Context, conf config.ExecConfig) *api.Job {
 	return &api.Job{
 		ID:          &conf.Name,
 		Datacenters: []string{"dc1"},
