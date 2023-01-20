@@ -4,13 +4,13 @@ go 1.19
 
 require (
 	code.vegaprotocol.io/shared v0.0.0-20221010085458-55c50711135f
-	code.vegaprotocol.io/vega v0.65.2-0.20230104182338-789e07699dd2
+	code.vegaprotocol.io/vega v0.67.2
 	github.com/BurntSushi/toml v1.2.1
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/ethereum/go-ethereum v1.10.21
 	github.com/fatih/structtag v1.2.0
-	github.com/fsnotify/fsnotify v1.5.4
+	github.com/fsnotify/fsnotify v1.6.0
 	github.com/google/go-github/v43 v43.0.0
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/go-cty-funcs v0.0.0-20200930094925-2721b1e36840
@@ -238,7 +238,6 @@ require (
 	github.com/libp2p/go-netroute v0.2.0 // indirect
 	github.com/libp2p/go-openssl v0.0.7 // indirect
 	github.com/libp2p/go-reuseport v0.2.0 // indirect
-	github.com/libp2p/go-socket-activation v0.1.0 // indirect
 	github.com/libp2p/go-yamux/v3 v3.1.2 // indirect
 	github.com/libp2p/zeroconf/v2 v2.1.1 // indirect
 	github.com/lucas-clemente/quic-go v0.28.0 // indirect
