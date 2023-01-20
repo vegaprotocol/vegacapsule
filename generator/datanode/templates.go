@@ -8,7 +8,7 @@ import (
 	"text/template"
 
 	"code.vegaprotocol.io/shared/paths"
-	"code.vegaprotocol.io/vega/datanode/dehistory/store"
+	"code.vegaprotocol.io/vega/datanode/networkhistory/store"
 	"code.vegaprotocol.io/vegacapsule/types"
 	"github.com/Masterminds/sprig"
 	"github.com/imdario/mergo"
