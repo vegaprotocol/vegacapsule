@@ -48,6 +48,7 @@
 - [356](https://github.com/vegaprotocol/vegacapsule/issues/356) Adding support for api tokens in the wallet.
 - [358](https://github.com/vegaprotocol/vegacapsule/issues/358) The networks `chainID` is now updated when using `vegacapsule nodes restore-checkpoint` ready for a new network
 - [365](https://github.com/vegaprotocol/vegacapsule/issues/365) Add ability to run arbitrary processes in the `prestart`
+- [367](https://github.com/vegaprotocol/vegacapsule/pull/367) Use proper JSON foramt to report new nodes details in the `vegacapsule nodes add` command, allow to save those details in the file
 
 ### 🐛 Fixes
 - [167](https://github.com/vegaprotocol/vegacapsule/issues/167) Fix validators filter in tendermint generator
