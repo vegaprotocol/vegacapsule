@@ -32,7 +32,7 @@ GatewayEnabled = true
     Port = {{add 300 .NodeNumber}}8
   [Gateway.REST]
     Port = {{add 300 .NodeNumber}}9
-	
+
 [Metrics]
   Level = "Info"
   Timeout = "5s"
@@ -44,5 +44,5 @@ GatewayEnabled = true
   [Broker.SocketConfig]
     Port = {{add 300 .NodeNumber}}5
 
-[DeHistory]
+[NetworkHistory]
   Enabled = false

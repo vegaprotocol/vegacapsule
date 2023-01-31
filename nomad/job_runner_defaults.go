@@ -347,3 +347,35 @@ func (r *JobRunner) defaultDockerJob(conf config.DockerConfig) *api.Job {
 		},
 	}
 }
+
+func (r *JobRunner) defaultExecJob(ctx context.Context, conf config.ExecConfig) *api.Job {
+	return &api.Job{
+		ID:          &conf.Name,
+		Datacenters: []string{"dc1"},
+		TaskGroups: []*api.TaskGroup{
+			{
+				EphemeralDisk: &api.EphemeralDisk{
+					SizeMB: utils.ToPoint(550),
+				},
+				Name:             &conf.Name,
+				RestartPolicy:    defaultRestartPolicy,
+				ReschedulePolicy: defaultReschedulePolicy,
+				Tasks: []*api.Task{
+					{
+						Name:   conf.Name,
+						Driver: "raw_exec",
+						Leader: true,
+						Config: map[string]interface{}{
+							"command": conf.Command,
+							"args":    conf.Args,
+						},
+						Env:         conf.Env,
+						LogConfig:   defaultLogConfig,
+						KillTimeout: defaultKillTimeout,
+					},
+					r.defaultLogCollectorTask(conf.Name),
+				},
+			},
+		},
+	}
+}

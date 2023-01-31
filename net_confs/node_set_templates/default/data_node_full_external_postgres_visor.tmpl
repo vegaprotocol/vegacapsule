@@ -10,7 +10,7 @@ GatewayEnabled = true
     Port = 5232
     UseTransactions = true
     Username = "vega"
-  
+
 
 [API]
   Level = "Info"
@@ -31,7 +31,7 @@ GatewayEnabled = true
     Port = {{add 300 .NodeNumber}}8
   [Gateway.REST]
     Port = {{add 300 .NodeNumber}}9
-	
+
 [Metrics]
   Level = "Info"
   Timeout = "5s"
@@ -43,11 +43,11 @@ GatewayEnabled = true
   [Broker.SocketConfig]
     Port = {{add 300 .NodeNumber}}5
 
-[DeHistory]
+[NetworkHistory]
   Enabled = true
-  [DeHistory.Store]
-    PeerID = "{{.GetDehistoryPeerID .NodeNumber}}"
-    PrivKey = "{{.GetDehistoryPrivKey .NodeNumber}}"
+  [NetworkHistory.Store]
+    PeerID = "{{.GetNetworkHistoryPeerID .NodeNumber}}"
+    PrivKey = "{{.GetNetworkHistoryPrivKey .NodeNumber}}"
 
     BootstrapPeers = [{{- range $i, $peer := .IPSFPeers -}}
       {{- if ne $i 0 }},{{end -}}

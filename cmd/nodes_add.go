@@ -3,6 +3,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"sync"
 
 	"code.vegaprotocol.io/vegacapsule/generator"
@@ -14,9 +15,10 @@ import (
 )
 
 var (
-	baseOneNode string
-	startNode   bool
-	count       int
+	baseOneNode    string
+	startNode      bool
+	resultsOutPath string
+	count          int
 )
 
 var nodesAddCmd = &cobra.Command{
@@ -79,13 +81,16 @@ var nodesAddCmd = &cobra.Command{
 			return fmt.Errorf("failed to persist network: %w", err)
 		}
 
-		for _, ns := range newNodeSets {
-			newNodeJson, err := json.MarshalIndent(ns, "", "\t")
-			if err != nil {
-				return fmt.Errorf("failed to marshal validators info: %w", err)
-			}
+		outputStringJSON, err := json.MarshalIndent(newNodeSets, "", "\t")
+		if err != nil {
+			return fmt.Errorf("failed to marshal validators info: %w", err)
+		}
 
-			fmt.Println(string(newNodeJson))
+		fmt.Println(string(outputStringJSON))
+		if resultsOutPath != "" {
+			if err := os.WriteFile(resultsOutPath, outputStringJSON, 0666); err != nil {
+				return fmt.Errorf("failed to save results about new nodes into the file: %w", err)
+			}
 		}
 
 		return nil
@@ -109,6 +114,12 @@ func init() {
 		"count",
 		1,
 		"Defines how many node sets should be added",
+	)
+
+	nodesAddCmd.PersistentFlags().StringVar(&resultsOutPath,
+		"out-path",
+		"",
+		"If not empty, details about added nodes are saved in the given file",
 	)
 }
 

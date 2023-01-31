@@ -255,6 +255,7 @@ type PStartConfig struct {
 	*/
 
 	Docker []DockerConfig `hcl:"docker_service,block"`
+	Exec   []ExecConfig   `hcl:"exec_service,block"`
 
 	Binary []BinaryConfig `hcl:"binary_service,block"`
 }

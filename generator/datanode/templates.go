@@ -8,7 +8,7 @@ import (
 	"text/template"
 
 	"code.vegaprotocol.io/shared/paths"
-	"code.vegaprotocol.io/vega/datanode/dehistory/store"
+	"code.vegaprotocol.io/vega/datanode/networkhistory/store"
 	"code.vegaprotocol.io/vegacapsule/types"
 	"github.com/Masterminds/sprig"
 	"github.com/imdario/mergo"
@@ -29,12 +29,12 @@ type ConfigTemplateContext struct {
 	nodes []node
 }
 
-func (tc ConfigTemplateContext) getDehistoryPeerIDSeed(nodeNumber int) string {
+func (tc ConfigTemplateContext) getNetworkHistoryPeerIDSeed(nodeNumber int) string {
 	return fmt.Sprintf("ipfs-seed-%d", nodeNumber)
 }
 
-func (tc ConfigTemplateContext) GetDehistoryPeerID(nodeNumber int) string {
-	seed := tc.getDehistoryPeerIDSeed(nodeNumber)
+func (tc ConfigTemplateContext) GetNetworkHistoryPeerID(nodeNumber int) string {
+	seed := tc.getNetworkHistoryPeerIDSeed(nodeNumber)
 	id, err := store.GenerateIdentityFromSeed([]byte(seed))
 	if err != nil {
 		panic("couldn't create ipfs peer identity")
@@ -42,8 +42,8 @@ func (tc ConfigTemplateContext) GetDehistoryPeerID(nodeNumber int) string {
 	return id.PeerID
 }
 
-func (tc ConfigTemplateContext) GetDehistoryPrivKey(nodeNumber int) string {
-	seed := tc.getDehistoryPeerIDSeed(nodeNumber)
+func (tc ConfigTemplateContext) GetNetworkHistoryPrivKey(nodeNumber int) string {
+	seed := tc.getNetworkHistoryPeerIDSeed(nodeNumber)
 	id, err := store.GenerateIdentityFromSeed([]byte(seed))
 	if err != nil {
 		panic("couldn't create ipfs peer identity")
@@ -58,7 +58,7 @@ func (tc ConfigTemplateContext) IPSFPeers() []IPSFPeer {
 			continue
 		}
 
-		seed := tc.getDehistoryPeerIDSeed(node.index)
+		seed := tc.getNetworkHistoryPeerIDSeed(node.index)
 		id, err := store.GenerateIdentityFromSeed([]byte(seed))
 		if err != nil {
 			panic("couldn't create ipfs peer identity")
