@@ -226,6 +226,7 @@ func (c *Config) loadAndValidateNodeSets() error {
 
 	return nil
 }
+
 func (c *Config) validateWalletConfig() error {
 	wc := c.Network.Wallet
 
@@ -239,6 +240,11 @@ func (c *Config) validateWalletConfig() error {
 		if err != nil {
 			return fmt.Errorf("failed to get absolute file path %q: %w", *wc.TokenPassphraseFile, err)
 		}
+
+		// if the path in the config is relative to the $network_home_path var i.e
+		// ${network_home_path}/../something then ReadFile will fail because $network_home_path doesn't
+		// exist yet, so we clean the filepath first
+		tpf = filepath.Clean(tpf)
 
 		_, err = os.ReadFile(tpf)
 		if err != nil {
@@ -473,7 +479,7 @@ func (c *Config) Persist() error {
 	f := hclwrite.NewEmptyFile()
 	gohcl.EncodeIntoBody(*c, f.Body())
 
-	return os.WriteFile(filepath.Join(*c.OutputDir, "config.hcl"), c.HCLBodyRaw, 0644)
+	return os.WriteFile(filepath.Join(*c.OutputDir, "config.hcl"), c.HCLBodyRaw, 0o644)
 }
 
 func (c Config) LogsDir() string {
