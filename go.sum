@@ -43,8 +43,8 @@ code.vegaprotocol.io/quant v0.2.5 h1:8h+TTHdz1LCO4oGXt8mbowXszd8CQP1MHlJOkthUp1E
 code.vegaprotocol.io/quant v0.2.5/go.mod h1:HEzOoPKj8OIP49r9AZYeo5281M5ygeGWxopwvt8k6Es=
 code.vegaprotocol.io/shared v0.0.0-20221010085458-55c50711135f h1:ivaWSXN7XKESShqYw/QFuT6b2mvThWPQLO7lW5sadHs=
 code.vegaprotocol.io/shared v0.0.0-20221010085458-55c50711135f/go.mod h1:XzX67GsyOHzvytMr0QOHX4CCTdCZDYKUUi88rx40Nt0=
-code.vegaprotocol.io/vega v0.67.2 h1:e+uQ1O4B5qvH8Le0zj2X4i14IUADCU5sR416vqzaVe0=
-code.vegaprotocol.io/vega v0.67.2/go.mod h1:sHeXPV1YIEq/8N4822KuP4bR0e0/HDZDaobzZVGtBcU=
+code.vegaprotocol.io/vega v0.67.3-0.20230203160521-7566de0471ae h1:0q2SJvEalHPd6eenUD5zWsItwqTDno19vrSvYsY+lRk=
+code.vegaprotocol.io/vega v0.67.3-0.20230203160521-7566de0471ae/go.mod h1:LBNOt1ItR5Ci5+2HEGQEqJfptBRhBFI4CMfoQrmOqSI=
 contrib.go.opencensus.io/exporter/prometheus v0.4.0 h1:0QfIkj9z/iVZgK31D9H9ohjjIDApI2GOPScCKwxedbs=
 contrib.go.opencensus.io/exporter/prometheus v0.4.0/go.mod h1:o7cosnyfuPVK0tB8q0QmaQNhGnptITnPQB+z1+qeFB0=
 dmitri.shuralyov.com/app/changes v0.0.0-20180602232624-0a106ad413e3/go.mod h1:Yl+fi1br7+Rr3LqpNJf1/uxUdtRUV+Tnj0o93V2B9MU=
