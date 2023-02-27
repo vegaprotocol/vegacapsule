@@ -66,10 +66,10 @@ jobs:
         run: |
           export GOBIN=$(go env GOPATH)/bin
           export PATH=$GOBIN:$PATH
-
+          # version can be non-existing one, just submit proposal
           ./vegacapsule nodes protocol-upgrade \
             --propose \
-            --release-tag v0.65.1 \
+            --release-tag v99.99.9 \
             --template-path "net_confs/node_set_templates/default/visor_run.tmpl" \
             --height 5500 \
             --force
