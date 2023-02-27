@@ -27,6 +27,12 @@ type Faucet struct {
 	BinaryPath         string
 }
 
+type Binary struct {
+	GeneratedService
+	BinaryPath string
+	Args       []string
+}
+
 // description: Information about node wallets.
 type NodeWalletInfo struct {
 	/*
@@ -117,7 +123,7 @@ type RawJobWithNomadJob struct {
 
 // description: Represents a raw Nomad job.
 type NomadJob struct {
-	// description: Custom selected ID - name of the job.
+	// description: Binary selected ID - name of the job.
 	ID string
 	// description: Nomad job definition.
 	NomadJobRaw string

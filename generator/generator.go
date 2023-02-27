@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"code.vegaprotocol.io/vegacapsule/config"
+	"code.vegaprotocol.io/vegacapsule/generator/binary"
 	"code.vegaprotocol.io/vegacapsule/generator/datanode"
 	"code.vegaprotocol.io/vegacapsule/generator/faucet"
 	"code.vegaprotocol.io/vegacapsule/generator/genesis"
@@ -48,6 +49,7 @@ type Generator struct {
 	genesisGen    *genesis.Generator
 	walletGen     *wallet.ConfigGenerator
 	faucetGen     *faucet.ConfigGenerator
+	binaryGen     *binary.ConfigGenerator
 	visorGen      *visor.Generator
 	jobRunner     jobRunner
 	chainID       string
@@ -82,6 +84,10 @@ func New(conf *config.Config, genServices types.GeneratedServices, jobRunner job
 	if err != nil {
 		return nil, fmt.Errorf("failed to create new visor generator: %w", err)
 	}
+	binaryGen, err := binary.NewConfigGenerator(conf)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create new binary generator: %w", err)
+	}
 
 	return &Generator{
 		conf:          conf,
@@ -92,6 +98,7 @@ func New(conf *config.Config, genServices types.GeneratedServices, jobRunner job
 		walletGen:     walletGen,
 		faucetGen:     faucetGen,
 		visorGen:      visorGen,
+		binaryGen:     binaryGen,
 		jobRunner:     jobRunner,
 		chainID:       chainID,
 	}, nil
@@ -162,7 +169,19 @@ func (g *Generator) Generate() (genSvc *types.GeneratedServices, err error) {
 		wl = initWallet
 	}
 
-	return types.NewGeneratedServices(wl, fc, append(ns.validators, ns.nonValidators...)), nil
+	var bs []*types.Binary
+	if g.conf.Network.PostStart != nil {
+		for _, b := range g.conf.Network.PostStart.Binary {
+			initBinary, err := g.initAndConfigureBinary(&b)
+			if err != nil {
+				return nil, err
+			}
+
+			bs = append(bs, initBinary)
+		}
+	}
+
+	return types.NewGeneratedServices(wl, fc, bs, append(ns.validators, ns.nonValidators...)), nil
 }
 
 func (g *Generator) AddNodeSet(absoluteIndex, relativeIndex, groupIndex int, nc config.NodeConfig, ns types.NodeSet, fc *types.Faucet) (*types.NodeSet, error) {

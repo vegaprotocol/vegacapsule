@@ -1,0 +1,139 @@
+Locations = ["localhost:3027"]
+VegaAssetID = "b4f2726571fbe8e33b442dc92ed2d7f0d810e21835b7371a7915a365f07ccd9b"
+callTimeoutMills = 10000
+
+[Pricing]
+  [Pricing.Address]
+    Host = "prices.ops.vega.xyz"
+    Path = "/prices"
+    Scheme = "https"
+
+[Server]
+  Env = "prod"
+  Listen = ":7800"
+  Logencoding = "console"
+  Loglevel = "debug"
+
+[Token]
+  Erc20BridgeAddress = "0x9708FF7510D4A7B9541e1699d15b53Ecb1AFDc54"
+  EthereumAPIAddress = "ws://localhost:8545"
+  StakingBridgeAddress = "0x9135f5afd6F055e731bca2348429482eE614CFfA"
+  SyncTimeoutSec = 100
+
+[Wallet]
+  NodeURL = "localhost:3027"
+  StorePath = "/tmp/wallet/liqbot"
+  Name = "liqbot"
+  Passphrase = "liqbot-secret"
+
+[Whale]
+  FaucetRateLimit = "2s"
+  FaucetURL = "http://localhost:1790"
+  TopUpScale = 10
+  [Whale.OwnerPrivateKeys]
+    993ed98f4f770d91a796faab1738551193ba45c62341d20597df70fea6704ede = "a37f4c2a678aefb5037bf415a826df1540b330b7e471aa54184877ba901b9ef0"
+    b4f2726571fbe8e33b442dc92ed2d7f0d810e21835b7371a7915a365f07ccd9b = "a37f4c2a678aefb5037bf415a826df1540b330b7e471aa54184877ba901b9ef0"
+  [Whale.Slack]
+    Enabled = false
+  [Whale.Wallet]
+    Name = "whale"
+    NodeURL = "localhost:3027"
+    Passphrase = "pastazazube"
+    StorePath = "/tmp/wallet/whale"
+
+[[Bots]]
+  InstrumentBase = "BTC"
+  InstrumentQuote = "USD"
+  Name = "w01"
+  QuoteAssetID = "993ed98f4f770d91a796faab1738551193ba45c62341d20597df70fea6704ede"
+  SettlementAssetID = "993ed98f4f770d91a796faab1738551193ba45c62341d20597df70fea6704ede"
+  Strategy = "normal"
+  [Bots.StrategyDetails]
+    AuctionVolume = 100
+    CommitmentAmount = "50000000000000"
+    Fee = "0.01"
+    MarketPriceSteeringRatePerSecond = 0.25
+    MaxLong = 100
+    MaxShort = 100
+    MinPriceSteerFraction = 0.00005
+    OrdersFraction = 0.25
+    PosManagementFraction = 0.25
+    PosManagementSleepMilliseconds = 5050
+    PriceSteerOrderScale = 10.5
+    StakeAmount = 1000000000000000000
+    SeedOrderCount = 100
+    SeedOrderSize = 400
+    TopUpScale = 10
+    TargetLNVol = 0.25
+    [Bots.StrategyDetails.LongeningShape]
+      [[Bots.StrategyDetails.LongeningShape.Buys]]
+        Offset = "10000"
+        Proportion = 40
+        Reference = "Bid"
+      [[Bots.StrategyDetails.LongeningShape.Buys]]
+        Offset = "20000"
+        Proportion = 30
+        Reference = "Bid"
+      [[Bots.StrategyDetails.LongeningShape.Buys]]
+        Offset = "40000"
+        Proportion = 20
+        Reference = "Bid"
+      [[Bots.StrategyDetails.LongeningShape.Buys]]
+        Offset = "80000"
+        Proportion = 10
+        Reference = "Bid"
+      [[Bots.StrategyDetails.LongeningShape.Sells]]
+        Offset = "160000"
+        Proportion = 10
+        Reference = "Ask"
+      [[Bots.StrategyDetails.LongeningShape.Sells]]
+        Offset = "80000"
+        Proportion = 20
+        Reference = "Ask"
+      [[Bots.StrategyDetails.LongeningShape.Sells]]
+        Offset = "40000"
+        Proportion = 30
+        Reference = "Ask"
+      [[Bots.StrategyDetails.LongeningShape.Sells]]
+        Offset = "20000"
+        Proportion = 40
+        Reference = "Ask"
+    [Bots.StrategyDetails.ShorteningShape]
+      [[Bots.StrategyDetails.ShorteningShape.Buys]]
+        Offset = "20000"
+        Proportion = 40
+        Reference = "Bid"
+      [[Bots.StrategyDetails.ShorteningShape.Buys]]
+        Offset = "40000"
+        Proportion = 30
+        Reference = "Bid"
+      [[Bots.StrategyDetails.ShorteningShape.Buys]]
+        Offset = "80000"
+        Proportion = 20
+        Reference = "Bid"
+      [[Bots.StrategyDetails.ShorteningShape.Buys]]
+        Offset = "160000"
+        Proportion = 10
+        Reference = "Bid"
+      [[Bots.StrategyDetails.ShorteningShape.Sells]]
+        Offset = "80000"
+        Proportion = 10
+        Reference = "Ask"
+      [[Bots.StrategyDetails.ShorteningShape.Sells]]
+        Offset = "40000"
+        Proportion = 20
+        Reference = "Ask"
+      [[Bots.StrategyDetails.ShorteningShape.Sells]]
+        Offset = "20000"
+        Proportion = 30
+        Reference = "Ask"
+      [[Bots.StrategyDetails.ShorteningShape.Sells]]
+        Offset = "10000"
+        Proportion = 40
+        Reference = "Ask"
+      [Bots.StrategyDetails.LimitOrderDistributionParams]
+        GttLengthSeconds = 60
+        Method = "discreteThreeLevel"
+        NumIdenticalBots = 1
+        NumTicksFromMid = 5
+      TgtTimeHorizonHours = 1

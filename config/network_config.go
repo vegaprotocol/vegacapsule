@@ -253,8 +253,11 @@ type PStartConfig struct {
 						...
 					}
 	*/
+
 	Docker []DockerConfig `hcl:"docker_service,block"`
 	Exec   []ExecConfig   `hcl:"exec_service,block"`
+
+	Binary []BinaryConfig `hcl:"binary_service,block"`
 }
 
 func (nc NetworkConfig) GetNodeConfig(name string) (*NodeConfig, error) {
@@ -265,4 +268,18 @@ func (nc NetworkConfig) GetNodeConfig(name string) (*NodeConfig, error) {
 	}
 
 	return nil, fmt.Errorf("node config with name %q not found", name)
+}
+
+func (ps *PStartConfig) LoadConfigTemplates(configDir string) error {
+	// skip docker services 🤷
+	for i, conf := range ps.Binary {
+		confTemplate, err := conf.GetConfigTemplate(configDir)
+		if err != nil {
+			return err
+		}
+		conf.ConfigTemplate = confTemplate
+		ps.Binary[i] = conf
+	}
+
+	return nil
 }

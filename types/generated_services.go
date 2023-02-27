@@ -13,6 +13,7 @@ var generatedServicesCtyType cty.Type
 type GeneratedServices struct {
 	Wallet          *Wallet
 	Faucet          *Faucet
+	Binary          []*Binary
 	NodeSets        NodeSetMap `cty:"node_sets"`
 	PreGenerateJobs []NomadJob
 }
@@ -33,7 +34,7 @@ func DefaultGeneratedServices() GeneratedServices {
 	}
 }
 
-func NewGeneratedServices(w *Wallet, f *Faucet, ns []NodeSet) *GeneratedServices {
+func NewGeneratedServices(w *Wallet, f *Faucet, b []*Binary, ns []NodeSet) *GeneratedServices {
 	nsm := NodeSetMap{}
 	preGenJobs := []NomadJob{}
 
@@ -45,6 +46,7 @@ func NewGeneratedServices(w *Wallet, f *Faucet, ns []NodeSet) *GeneratedServices
 	return &GeneratedServices{
 		Wallet:          w,
 		Faucet:          f,
+		Binary:          b,
 		NodeSets:        nsm,
 		PreGenerateJobs: preGenJobs,
 	}
@@ -74,6 +76,12 @@ func (gs GeneratedServices) GetByName(name string) []GeneratedService {
 			out = append(out, ns.DataNode.GeneratedService)
 		}
 		return out
+	}
+
+	for _, bin := range gs.Binary {
+		if bin.Name == name {
+			return []GeneratedService{bin.GeneratedService}
+		}
 	}
 
 	return nil

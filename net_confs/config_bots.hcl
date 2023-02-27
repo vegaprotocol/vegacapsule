@@ -76,6 +76,28 @@ EOT
     }
   }
 
+  post_start {
+    binary_service "liqbot" {
+      cmd = "liqbot"
+      binary_path = "liqbot"
+      args = [
+         "--config", "${binary_services}/liqbot/config.toml"
+      ]
+      config_template_file = "./node_set_templates/default/liqbot_full.tmpl"
+      sync = true
+    }
+
+    binary_service "traderbot" {
+      cmd = "traderbot"
+      binary_path = "traderbot"
+      args = [
+         "--config", "${binary_services}/traderbot/config.toml"
+      ]
+      config_template_file = "./node_set_templates/default/traderbot_full.tmpl"
+      sync = true
+    }
+  }
+  
   genesis_template_file = "./genesis.tmpl"
   smart_contracts_addresses_file = "./public_smart_contracts_addresses.json"
 

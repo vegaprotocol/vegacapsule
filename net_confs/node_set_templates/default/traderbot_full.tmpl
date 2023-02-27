@@ -1,0 +1,97 @@
+[Server]
+    Apm = true
+    Gracefulshutdown = 3_000
+    Listen = ":80"
+    Logencoding = "console"
+    Loglevel = "debug"
+    Env = "prod"
+
+[Wallet]
+    NodeURL = "localhost:3027"
+    StorePath = "/tmp/wallet/traderbot"
+    Name = "traderbot"
+    Passphrase = "traderbot-secret"
+    RecoveryPhrase = "quality vicious jazz item normal fun budget river sport cargo young foster valid alley slogan excess express weekend true vicious winner jump group weekend"
+
+[Faucet]
+    Ratelimit = "2s"
+
+  [Faucet.server]
+  Scheme = "http"
+  Host = "localhost:1790"
+  Path = "/"
+
+  [[Faucet.assets]]
+    Id = "fBTC"
+    Name = "fBTC"
+    TopUp = 1_000_000_000
+
+  [[Faucet.assets]]
+    Id = "fDAI"
+    Name = "fDAI"
+    TopUp = 1_000_000_000_000
+
+  [[Faucet.assets]]
+    Id = "fEURO"
+    Name = "fEURO"
+    TopUp = 10_000_000_000
+
+  [[Faucet.assets]]
+    Id = "fUSDC"
+    Name = "fUSDC"
+    TopUp = 100_000_000_000
+
+[Token]
+    EthereumAPIAddress = "ws://localhost:8545"
+    Erc20BridgeAddress = "0x9708FF7510D4A7B9541e1699d15b53Ecb1AFDc54"
+    StakingBridgeAddress = "0x9135f5afd6F055e731bca2348429482eE614CFfA"
+    SyncTimeoutSec = 100
+
+[Whale]
+    FaucetURL = "http://localhost:1790"
+    FaucetRateLimit = "2s"
+    TopUpScale = 100
+
+  [Whale.wallet]
+    Name = "whale2"
+    Passphrase = "pastazazube"
+    StorePath = "/tmp/wallet/whale"
+    NodeURL = "localhost:3027"
+
+  [Whale.ownerPrivateKeys]
+  "993ed98f4f770d91a796faab1738551193ba45c62341d20597df70fea6704ede" = "a37f4c2a678aefb5037bf415a826df1540b330b7e471aa54184877ba901b9ef0"
+  "B4f2726571fbe8e33b442dc92ed2d7f0d810e21835b7371a7915a365f07ccd9b" = "a37f4c2a678aefb5037bf415a826df1540b330b7e471aa54184877ba901b9ef0"
+
+  [Whale.slack]
+    Enabled = false
+
+[[Pricing]]
+    Base = "BTC"
+    Quote = "USD"
+    Wander = true
+
+[[Pricing]]
+    Base = "UNI"
+    Quote = "DAI"
+    Wander = true
+
+[[Nodes]]
+    Name = "API-GRPC"
+
+[Nodes.address]
+    Scheme = "grpc"
+    Host = "localhost:3027"
+
+[[Traders]]
+    Name = "t-000001"
+    Scale = 10
+    Rate = 2
+    TopUpScale = 200
+    Active = true
+    Type = "Normal"
+      [Traders.parameters]
+      marketBase = "BTC"
+      marketQuote = "USD"
+      marketSettlementVegaAssetID = "993ed98f4f770d91a796faab1738551193ba45c62341d20597df70fea6704ede"
+      sizemean = "24"
+      sizestddev = "5"
