@@ -42,4 +42,5 @@ func init() {
 	rootCmd.AddCommand(templateCmd)
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(logsCmd)
+	rootCmd.AddCommand(jobsCmd)
 }

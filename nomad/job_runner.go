@@ -167,19 +167,13 @@ func (r *JobRunner) runDockerJobs(ctx context.Context, dockerConfigs []config.Do
 		// capture in the loop by copy
 		dc := dc
 		g.Go(func() error {
-			// Skip for already running jobs
-			if r.Client.JobRunning(ctx, dc.Name) {
-				return nil
-			}
-
-			job := r.defaultDockerJob(ctx, dc)
-
-			if err := r.runAndWait(ctx, job, nil); err != nil {
-				return fmt.Errorf("failed to run pre start job %q: %w", *job.ID, err)
+			jobID, err := r.RunDockerJob(ctx, dc)
+			if err != nil {
+				return err
 			}
 
 			jobIDsLock.Lock()
-			jobIDs = append(jobIDs, *job.ID)
+			jobIDs = append(jobIDs, jobID)
 			jobIDsLock.Unlock()
 
 			return nil
@@ -193,6 +187,36 @@ func (r *JobRunner) runDockerJobs(ctx context.Context, dockerConfigs []config.Do
 	return jobIDs, nil
 }
 
+func (r *JobRunner) RunDockerJob(ctx context.Context, dc config.DockerConfig) (string, error) {
+	// Skip for already running jobs
+	if r.Client.JobRunning(ctx, dc.Name) {
+		return dc.Name, nil
+	}
+
+	job := r.defaultDockerJob(ctx, dc)
+
+	if err := r.runAndWait(ctx, job, nil); err != nil {
+		return "", fmt.Errorf("failed to run pre start job %q: %w", *job.ID, err)
+	}
+	return *job.ID, nil
+
+}
+
+func (r *JobRunner) RunExecJob(ctx context.Context, ec config.ExecConfig) (string, error) {
+	// Skip for already running jobs
+	if r.Client.JobRunning(ctx, ec.Name) {
+		return ec.Name, nil
+	}
+
+	job := r.defaultExecJob(ctx, ec)
+
+	if err := r.runAndWait(ctx, job, nil); err != nil {
+		return "", fmt.Errorf("failed to run pre start job %q: %w", *job.ID, err)
+	}
+
+	return *job.ID, nil
+}
+
 func (r *JobRunner) runExecJobs(ctx context.Context, execConfigs []config.ExecConfig) ([]string, error) {
 	g, ctx := errgroup.WithContext(ctx)
 	jobIDs := make([]string, 0, len(execConfigs))
@@ -203,19 +227,13 @@ func (r *JobRunner) runExecJobs(ctx context.Context, execConfigs []config.ExecCo
 		// capture in the loop by copy
 		ec := ec
 		g.Go(func() error {
-			// Skip for already running jobs
-			if r.Client.JobRunning(ctx, ec.Name) {
-				return nil
-			}
-
-			job := r.defaultExecJob(ctx, ec)
-
-			if err := r.runAndWait(ctx, job, nil); err != nil {
-				return fmt.Errorf("failed to run pre start job %q: %w", *job.ID, err)
+			jobID, err := r.RunExecJob(ctx, ec)
+			if err != nil {
+				return err
 			}
 
 			jobIDsLock.Lock()
-			jobIDs = append(jobIDs, *job.ID)
+			jobIDs = append(jobIDs, jobID)
 			jobIDsLock.Unlock()
 
 			return nil
@@ -247,6 +265,44 @@ func (r *JobRunner) StartNetwork(
 	}
 
 	return netJobs, nil
+}
+
+func (r *JobRunner) StartFaucet(
+	ctx context.Context,
+	faucetConfig *config.FaucetConfig,
+	genFaucet *types.Faucet,
+) (string, error) {
+	// Skip for already running faucet
+	if r.Client.JobRunning(ctx, genFaucet.Name) {
+		return genFaucet.Name, nil
+	}
+
+	job := r.defaultFaucetJob(faucetConfig, genFaucet)
+
+	if err := r.runAndWait(ctx, job, nil); err != nil {
+		return "", fmt.Errorf("failed to run the faucet job %q: %w", *job.ID, err)
+	}
+
+	return *job.ID, nil
+}
+
+func (r *JobRunner) StartWallet(
+	ctx context.Context,
+	walletConfig *config.WalletConfig,
+	genWallet *types.Wallet,
+) (string, error) {
+	// Skip for already running wallet
+	if r.Client.JobRunning(ctx, genWallet.Name) {
+		return genWallet.Name, nil
+	}
+
+	job := r.defaultWalletJob(genWallet)
+
+	if err := r.runAndWait(ctx, job, nil); err != nil {
+		return "", fmt.Errorf("failed to run the wallet job %q: %w", *job.ID, err)
+	}
+
+	return *job.ID, nil
 }
 
 func (r *JobRunner) startNetwork(
@@ -281,40 +337,27 @@ func (r *JobRunner) startNetwork(
 	// create new error group to be able to call the `wait` function again
 	if generatedSvcs.Faucet != nil {
 		g.Go(func() error {
-			// Skip for already running faucet
-			if r.Client.JobRunning(ctx, generatedSvcs.Faucet.Name) {
-				return nil
-			}
-
-			job := r.defaultFaucetJob(conf.Network.Faucet, generatedSvcs.Faucet)
-
-			if err := r.runAndWait(ctx, job, nil); err != nil {
-				return fmt.Errorf("failed to run the faucet job %q: %w", *job.ID, err)
+			jobID, err := r.StartFaucet(ctx, conf.Network.Faucet, generatedSvcs.Faucet)
+			if err != nil {
+				return err
 			}
 
 			lock.Lock()
-			result.FaucetJobID = *job.ID
+			result.FaucetJobID = jobID
 			lock.Unlock()
-
 			return nil
 		})
 	}
 
 	if generatedSvcs.Wallet != nil {
 		g.Go(func() error {
-			// Skip for already running wallet
-			if r.Client.JobRunning(ctx, generatedSvcs.Wallet.Name) {
-				return nil
-			}
-
-			job := r.defaultWalletJob(generatedSvcs.Wallet)
-
-			if err := r.runAndWait(ctx, job, nil); err != nil {
-				return fmt.Errorf("failed to run the wallet job %q: %w", *job.ID, err)
+			jobID, err := r.StartWallet(ctx, conf.Network.Wallet, generatedSvcs.Wallet)
+			if err != nil {
+				return err
 			}
 
 			lock.Lock()
-			result.WalletJobID = *job.ID
+			result.WalletJobID = jobID
 			lock.Unlock()
 
 			return nil
