@@ -62,7 +62,7 @@ func init() {
 		"",
 		"Name of the job to stop",
 	)
-	jobsStartCmd.MarkPersistentFlagRequired("name")
+	jobsStartCmd.MarkPersistentFlagRequired("name") // nolint
 }
 
 func startJob(ctx context.Context, state state.NetworkState, conf *config.Config, name string) (*state.NetworkState, error) {
