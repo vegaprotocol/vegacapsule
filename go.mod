@@ -19,7 +19,7 @@ require (
 	github.com/hashicorp/nomad/api v0.0.0-20220803132838-0aef3fc411f5
 	github.com/imdario/mergo v0.3.13
 	github.com/lib/pq v1.10.6
-	github.com/nxadm/tail v1.4.8
+	github.com/nxadm/tail v1.4.9-0.20211216163028-4472660a31a6
 	github.com/shirou/gopsutil/v3 v3.22.8
 	github.com/spf13/cobra v1.6.0
 	github.com/spf13/viper v1.13.0
@@ -360,10 +360,10 @@ require (
 	golang.org/x/mod v0.8.0 // indirect
 	golang.org/x/net v0.7.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5 // indirect
-	golang.org/x/sys v0.5.0 // indirect
+	golang.org/x/sys v0.6.0 // indirect
 	golang.org/x/term v0.5.0 // indirect
 	golang.org/x/text v0.7.0 // indirect
-	golang.org/x/tools v0.6.0 // indirect
+	golang.org/x/tools v0.4.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220609144429-65e65417b02f // indirect
 	gonum.org/v1/gonum v0.12.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
