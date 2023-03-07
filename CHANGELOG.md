@@ -1,6 +1,19 @@
 # Changelog
 
-## Unreleased (v0.2.0)
+## Unreleased (v0.5.2)
+
+### 🚨 Breaking changes
+- [](https://github.com/vegaprotocol/vegacapsule/issues/xxxx) -
+
+### 🗑️ Deprecation
+- [](https://github.com/vegaprotocol/vegacapsule/issues/xxxx) -
+
+### 🛠 Improvements
+- [384](https://github.com/vegaprotocol/vegacapsule/issues/384) Add command for stoping/starting a specific job
+
+### 🐛 Fixes
+
+## v0.5.1
 
 ### 🚨 Breaking changes
 - [](https://github.com/vegaprotocol/vegacapsule/issues/xxxx) -
