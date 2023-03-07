@@ -71,7 +71,7 @@ func (lc Collector) collectLogs(ctx context.Context, logFilePath string) error {
 	log.Printf("Setting up file listener for %q", logFilePath)
 	defer log.Printf("Shutting down file listener for %q", logFilePath)
 
-	t, err := tail.TailFile(logFilePath, tail.Config{Follow: true})
+	t, err := tail.TailFile(logFilePath, tail.Config{Follow: true, CompleteLines: true})
 	if err != nil {
 		return fmt.Errorf("failed to setup file listener %q: %q", logFilePath, err)
 	}
