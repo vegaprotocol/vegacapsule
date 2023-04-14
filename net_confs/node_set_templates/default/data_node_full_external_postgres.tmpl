@@ -24,12 +24,9 @@ GatewayEnabled = true
 
 [Gateway]
   Level = "Info"
+  Port = {{add 300 .NodeNumber}}8
   [Gateway.Node]
     Port = {{add 300 .NodeNumber}}7
-  [Gateway.GraphQL]
-    Port = {{add 300 .NodeNumber}}8
-  [Gateway.REST]
-    Port = {{add 300 .NodeNumber}}9
 
 [Metrics]
   Level = "Info"
