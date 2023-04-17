@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	code.vegaprotocol.io/shared v0.0.0-20221010085458-55c50711135f
-	code.vegaprotocol.io/vega v0.70.1-0.20230324161345-5ff9f76bf424
+	code.vegaprotocol.io/vega v0.70.1-0.20230417151945-95bdf788b1e0
 	github.com/BurntSushi/toml v1.2.1
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/blang/semver v3.5.1+incompatible
