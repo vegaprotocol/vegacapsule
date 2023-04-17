@@ -45,6 +45,8 @@ code.vegaprotocol.io/shared v0.0.0-20221010085458-55c50711135f h1:ivaWSXN7XKESSh
 code.vegaprotocol.io/shared v0.0.0-20221010085458-55c50711135f/go.mod h1:XzX67GsyOHzvytMr0QOHX4CCTdCZDYKUUi88rx40Nt0=
 code.vegaprotocol.io/vega v0.70.1-0.20230324161345-5ff9f76bf424 h1:fQjWgijyLFWPlMeGGfkYZBnYS3ayKfX1oeZG0Zx0+GM=
 code.vegaprotocol.io/vega v0.70.1-0.20230324161345-5ff9f76bf424/go.mod h1:guOChMSQENqWQt0DVkmMU/SlOYssVHfuvNaWlMeuRCk=
+code.vegaprotocol.io/vega v0.70.1-0.20230417151945-95bdf788b1e0 h1:j+NT9oc4X6/wjoGHg2tIarZ6GUkQ0ugaG9w0Kvn+zQo=
+code.vegaprotocol.io/vega v0.70.1-0.20230417151945-95bdf788b1e0/go.mod h1:kDhb5vUngXOwW8C/X9wO7kLAVD9NFTXH/6S7XZrEX8A=
 contrib.go.opencensus.io/exporter/prometheus v0.4.0 h1:0QfIkj9z/iVZgK31D9H9ohjjIDApI2GOPScCKwxedbs=
 contrib.go.opencensus.io/exporter/prometheus v0.4.0/go.mod h1:o7cosnyfuPVK0tB8q0QmaQNhGnptITnPQB+z1+qeFB0=
 dmitri.shuralyov.com/app/changes v0.0.0-20180602232624-0a106ad413e3/go.mod h1:Yl+fi1br7+Rr3LqpNJf1/uxUdtRUV+Tnj0o93V2B9MU=
