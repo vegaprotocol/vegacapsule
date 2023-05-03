@@ -1,6 +1,16 @@
 GatewayEnabled = true
 [SqlStore]
-  Port = 5{{.NodeNumber}}32
+  FanOutBufferSize = 1000
+  Level = "Info"
+  UseEmbedded = false
+  WipeOnStartup = true
+  [SQLStore.ConnectionConfig]
+    Database = "vega"
+    Host = "localhost"
+    Password = "vega"
+    Port = 5232
+    UseTransactions = true
+    Username = "vega"
 
 [API]
   Level = "Info"
