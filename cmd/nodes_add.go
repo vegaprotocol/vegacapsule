@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	baseOneNode    string
+	baseOnNode     string
 	startNode      bool
 	resultsOutPath string
 	count          int
@@ -45,7 +45,7 @@ var nodesAddCmd = &cobra.Command{
 		for i := 0; i < count; i++ {
 			i := i + 1
 			eg.Go(func() error {
-				newNodeSet, err := nodesAddNode(*networkState, i, baseOneNode)
+				newNodeSet, err := nodesAddNode(*networkState, i, baseOnNode)
 				if err != nil {
 					return fmt.Errorf("failed to add new node: %w", err)
 				}
@@ -103,7 +103,7 @@ func init() {
 		true,
 		"Allows to configure whether or not the new node set should automatically start",
 	)
-	nodesAddCmd.PersistentFlags().StringVar(&baseOneNode,
+	nodesAddCmd.PersistentFlags().StringVar(&baseOnNode,
 		"base-on",
 		"",
 		"Name of the node set that the new node set should be based on",
@@ -123,7 +123,7 @@ func init() {
 	)
 }
 
-func nodesAddNode(state state.NetworkState, index int, baseOneNode string) (*types.NodeSet, error) {
+func nodesAddNode(state state.NetworkState, index int, baseOnNode string) (*types.NodeSet, error) {
 	nomadClient, err := nomad.NewClient(nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create nomad client: %w", err)
@@ -144,7 +144,7 @@ func nodesAddNode(state state.NetworkState, index int, baseOneNode string) (*typ
 		return nil, err
 	}
 
-	nodeSet, err := state.GeneratedServices.GetNodeSet(baseOneNode)
+	nodeSet, err := state.GeneratedServices.GetNodeSet(baseOnNode)
 	if err != nil {
 		return nil, err
 	}
