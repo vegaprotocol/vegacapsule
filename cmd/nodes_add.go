@@ -129,7 +129,12 @@ func nodesAddNode(state state.NetworkState, index int, baseOneNode string) (*typ
 		return nil, fmt.Errorf("failed to create nomad client: %w", err)
 	}
 
-	nomadRunner, err := nomad.NewJobRunner(nomadClient, *state.Config.VegaCapsuleBinary, state.Config.LogsDir())
+	capsuleBinary := ""
+	if state.Config.VegaCapsuleBinary != nil {
+		capsuleBinary = *state.Config.VegaCapsuleBinary
+	}
+
+	nomadRunner, err := nomad.NewJobRunner(nomadClient, capsuleBinary, state.Config.LogsDir())
 	if err != nil {
 		return nil, fmt.Errorf("failed to create job runner: %w", err)
 	}
