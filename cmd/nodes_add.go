@@ -154,32 +154,58 @@ func nodesAddNode(state state.NetworkState, index int, baseOnNode, baseOnGroup s
 		return nil, err
 	}
 
-	var nodeSet *types.NodeSet
+	var (
+		nodeSet    *types.NodeSet
+		groupName  string
+		groupIndex int = -1
+	)
 	if baseOnNode != "" {
 		nodeSet, err = state.GeneratedServices.GetNodeSet(baseOnNode)
-	} else {
-		indexes, err := computeNodeIndexes(state, baseOnGroup)
 		if err != nil {
-			return nil, fmt.Errorf("failed to compute indexes for new node set: %w", err)
+			return nil, fmt.Errorf("failed to get node set by name: %w", err)
 		}
-		nodeSet, err = gen.InitiateSingleNodeSet(baseOnGroup, indexes.abs, indexes.group, indexes.relative)
+
+		groupName = nodeSet.GroupName
+		groupIndex = nodeSet.GroupIndex
+	} else {
+		for groupIdx, group := range state.Config.Network.Nodes {
+			if group.Name != baseOnGroup {
+				continue
+			}
+
+			groupIndex = groupIdx
+		}
+
+		if groupIndex < 0 {
+			return nil, fmt.Errorf("the %s nodes group not found", baseOnGroup)
+		}
+
+		nodes := state.GeneratedServices.GetNodeSetsByGroupName(baseOnGroup)
+		if len(nodes) < 1 {
+			// Nodes within given group does not exists, fallback to first one node
+			nodes = state.GeneratedServices.NodeSets.ToSlice()
+		}
+
+		nodeSet = &(nodes[0])
+
+		groupName = baseOnGroup
 	}
 
 	if err != nil {
 		return nil, err
 	}
 
-	nodeConfig, err := state.Config.Network.GetNodeConfig(nodeSet.GroupName)
+	nodeConfig, err := state.Config.Network.GetNodeConfig(groupName)
 	if err != nil {
 		return nil, err
 	}
 
-	groupNodeSets := state.GeneratedServices.GetNodeSetsByGroupName(nodeSet.GroupName)
+	groupNodeSets := state.GeneratedServices.GetNodeSetsByGroupName(groupName)
 
 	newNodeSet, err := gen.AddNodeSet(
 		len(state.GeneratedServices.NodeSets)-1+index,
 		len(groupNodeSets),
-		nodeSet.GroupIndex,
+		groupIndex,
 		*nodeConfig,
 		*nodeSet,
 		state.GeneratedServices.Faucet,

@@ -194,17 +194,16 @@ func (g *Generator) AddNodeSet(absoluteIndex, relativeIndex, groupIndex int, nc 
 
 	co, err := newConfigOverride(g, *cnc)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create new config override: %w", err)
 	}
 
 	if err := co.Overwrite(*cnc, *initNodeSet, fc); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to overwrite config: %w", err)
 	}
 
 	if err := utils.CopyFile(ns.Tendermint.GenesisFilePath, initNodeSet.Tendermint.GenesisFilePath); err != nil {
 		return nil, fmt.Errorf("failed to copy genesis file: %w", err)
 	}
-
 	log.Printf("Added new node set with id %q", initNodeSet.Name)
 
 	return initNodeSet, nil
