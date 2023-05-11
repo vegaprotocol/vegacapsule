@@ -134,6 +134,10 @@ func nodesAddNode(state state.NetworkState, index int, baseOnNode, baseOnGroup s
 		return nil, fmt.Errorf("provide either value for --base-on or --base-on-group, not both values")
 	}
 
+	if baseOnNode == "" && baseOnGroup == "" {
+		return nil, fmt.Errorf("value for --base-on-node or --base-on-group must be provided")
+	}
+
 	nomadClient, err := nomad.NewClient(nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create nomad client: %w", err)
@@ -182,12 +186,11 @@ func nodesAddNode(state state.NetworkState, index int, baseOnNode, baseOnGroup s
 
 		nodes := state.GeneratedServices.GetNodeSetsByGroupName(baseOnGroup)
 		if len(nodes) < 1 {
-			// Nodes within given group does not exists, fallback to first one node
+			// Nodes within given group does not exists, fallback to the first available node
 			nodes = state.GeneratedServices.NodeSets.ToSlice()
 		}
 
 		nodeSet = &(nodes[0])
-
 		groupName = baseOnGroup
 	}
 
@@ -215,35 +218,4 @@ func nodesAddNode(state state.NetworkState, index int, baseOnNode, baseOnGroup s
 	}
 
 	return newNodeSet, nil
-}
-
-type nsIndex struct {
-	abs      int
-	group    int
-	relative int
-}
-
-// computeNodeIndexes computes indexes to initiate new node set.
-func computeNodeIndexes(state state.NetworkState, groupName string) (*nsIndex, error) {
-	for groupIdx, group := range state.Config.Network.Nodes {
-		if group.Name != groupName {
-			continue
-		}
-
-		result := &nsIndex{
-			group:    groupIdx,
-			abs:      len(state.GeneratedServices.NodeSets),
-			relative: 0,
-		}
-
-		for _, ns := range state.GeneratedServices.NodeSets {
-			if ns.GroupName == groupName {
-				result.relative++
-			}
-		}
-
-		return result, nil
-	}
-
-	return nil, fmt.Errorf("the group for %s not found", groupName)
 }

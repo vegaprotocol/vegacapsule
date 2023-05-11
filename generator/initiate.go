@@ -139,39 +139,6 @@ func (g *Generator) initiateNodeSets() (*nodeSets, error) {
 	}, nil
 }
 
-func (g *Generator) InitiateSingleNodeSet(nodeGroupName string, absIndex, groupIndex, relativeIndex int) (*types.NodeSet, error) {
-	var (
-		nc  *config.NodeConfig
-		err error
-	)
-
-	for _, n := range g.conf.Network.Nodes {
-		if n.Name != nodeGroupName {
-			continue
-		}
-
-		nc, err = n.Clone()
-		if err != nil {
-			return nil, fmt.Errorf("failed to clone the %s node config: %w", nodeGroupName, err)
-		}
-		continue
-	}
-
-	preGenJobs, err := g.startPreGenerateJobs(*nc, absIndex)
-	if err != nil {
-		return nil, fmt.Errorf("failed to start pregenerated jobs: %w", err)
-	}
-
-	nodeSet, err := g.initiateNodeSet(absIndex, relativeIndex, groupIndex, *nc)
-	if err != nil {
-		return nil, fmt.Errorf("failed to initiate node set: %w", err)
-	}
-
-	nodeSet.PreGenerateJobs = preGenJobs
-
-	return nodeSet, nil
-}
-
 func (g *Generator) initAndConfigureFaucet(conf *config.FaucetConfig) (*types.Faucet, error) {
 	initFaucet, err := g.faucetGen.InitiateAndConfigure(conf)
 	if err != nil {
