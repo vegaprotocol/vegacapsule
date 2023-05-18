@@ -104,6 +104,7 @@
 - [124](https://github.com/vegaprotocol/vegacapsule/issues/124) Allow updating network configurations with templating after network is generated
 - [139](https://github.com/vegaprotocol/vegacapsule/issues/139) Allow non validator nodes to be iterated during wallet configuration
 - [136](https://github.com/vegaprotocol/vegacapsule/issues/136) New templates for a sentry node with data node setup
+- [391](https://github.com/vegaprotocol/vegacapsule/pull/391) Add support for adding new nodes from a node set instad of another running node
 
 ### 🐛 Fixes
 
