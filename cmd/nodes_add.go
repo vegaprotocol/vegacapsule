@@ -114,8 +114,6 @@ func init() {
 		"",
 		"Name of the group that the new node set should be based on",
 	)
-	nodesAddCmd.MarkFlagRequired("base-on")
-
 	nodesAddCmd.PersistentFlags().IntVar(&count,
 		"count",
 		1,
@@ -173,11 +171,10 @@ func nodesAddNode(state state.NetworkState, index int, baseOnNode, baseOnGroup s
 		groupIndex = nodeSet.GroupIndex
 	} else {
 		for groupIdx, group := range state.Config.Network.Nodes {
-			if group.Name != baseOnGroup {
-				continue
+			if group.Name == baseOnGroup {
+				groupIndex = groupIdx
+				break
 			}
-
-			groupIndex = groupIdx
 		}
 
 		if groupIndex < 0 {
