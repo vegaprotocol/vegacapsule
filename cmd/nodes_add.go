@@ -15,7 +15,8 @@ import (
 )
 
 var (
-	baseOneNode    string
+	baseOnNode     string
+	baseOnGroup    string
 	startNode      bool
 	resultsOutPath string
 	count          int
@@ -45,7 +46,7 @@ var nodesAddCmd = &cobra.Command{
 		for i := 0; i < count; i++ {
 			i := i + 1
 			eg.Go(func() error {
-				newNodeSet, err := nodesAddNode(*networkState, i, baseOneNode)
+				newNodeSet, err := nodesAddNode(*networkState, i, baseOnNode, baseOnGroup)
 				if err != nil {
 					return fmt.Errorf("failed to add new node: %w", err)
 				}
@@ -103,13 +104,16 @@ func init() {
 		true,
 		"Allows to configure whether or not the new node set should automatically start",
 	)
-	nodesAddCmd.PersistentFlags().StringVar(&baseOneNode,
+	nodesAddCmd.PersistentFlags().StringVar(&baseOnNode,
 		"base-on",
 		"",
 		"Name of the node set that the new node set should be based on",
 	)
-	nodesAddCmd.MarkFlagRequired("base-on")
-
+	nodesAddCmd.PersistentFlags().StringVar(&baseOnGroup,
+		"base-on-group",
+		"",
+		"Name of the group that the new node set should be based on",
+	)
 	nodesAddCmd.PersistentFlags().IntVar(&count,
 		"count",
 		1,
@@ -123,13 +127,26 @@ func init() {
 	)
 }
 
-func nodesAddNode(state state.NetworkState, index int, baseOneNode string) (*types.NodeSet, error) {
+func nodesAddNode(state state.NetworkState, index int, baseOnNode, baseOnGroup string) (*types.NodeSet, error) {
+	if baseOnNode != "" && baseOnGroup != "" {
+		return nil, fmt.Errorf("provide either value for --base-on or --base-on-group, not both values")
+	}
+
+	if baseOnNode == "" && baseOnGroup == "" {
+		return nil, fmt.Errorf("value for --base-on-node or --base-on-group must be provided")
+	}
+
 	nomadClient, err := nomad.NewClient(nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create nomad client: %w", err)
 	}
 
-	nomadRunner, err := nomad.NewJobRunner(nomadClient, *state.Config.VegaCapsuleBinary, state.Config.LogsDir())
+	capsuleBinary := ""
+	if state.Config.VegaCapsuleBinary != nil {
+		capsuleBinary = *state.Config.VegaCapsuleBinary
+	}
+
+	nomadRunner, err := nomad.NewJobRunner(nomadClient, capsuleBinary, state.Config.LogsDir())
 	if err != nil {
 		return nil, fmt.Errorf("failed to create job runner: %w", err)
 	}
@@ -139,22 +156,56 @@ func nodesAddNode(state state.NetworkState, index int, baseOneNode string) (*typ
 		return nil, err
 	}
 
-	nodeSet, err := state.GeneratedServices.GetNodeSet(baseOneNode)
+	var (
+		nodeSet    *types.NodeSet
+		groupName  string
+		groupIndex int = -1
+	)
+	if baseOnNode != "" {
+		nodeSet, err = state.GeneratedServices.GetNodeSet(baseOnNode)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get node set by name: %w", err)
+		}
+
+		groupName = nodeSet.GroupName
+		groupIndex = nodeSet.GroupIndex
+	} else {
+		for groupIdx, group := range state.Config.Network.Nodes {
+			if group.Name == baseOnGroup {
+				groupIndex = groupIdx
+				break
+			}
+		}
+
+		if groupIndex < 0 {
+			return nil, fmt.Errorf("the %s nodes group not found", baseOnGroup)
+		}
+
+		nodes := state.GeneratedServices.GetNodeSetsByGroupName(baseOnGroup)
+		if len(nodes) < 1 {
+			// Nodes within given group does not exists, fallback to the first available node
+			nodes = state.GeneratedServices.NodeSets.ToSlice()
+		}
+
+		nodeSet = &(nodes[0])
+		groupName = baseOnGroup
+	}
+
 	if err != nil {
 		return nil, err
 	}
 
-	nodeConfig, err := state.Config.Network.GetNodeConfig(nodeSet.GroupName)
+	nodeConfig, err := state.Config.Network.GetNodeConfig(groupName)
 	if err != nil {
 		return nil, err
 	}
 
-	groupNodeSets := state.GeneratedServices.GetNodeSetsByGroupName(nodeSet.GroupName)
+	groupNodeSets := state.GeneratedServices.GetNodeSetsByGroupName(groupName)
 
 	newNodeSet, err := gen.AddNodeSet(
 		len(state.GeneratedServices.NodeSets)-1+index,
 		len(groupNodeSets),
-		nodeSet.GroupIndex,
+		groupIndex,
 		*nodeConfig,
 		*nodeSet,
 		state.GeneratedServices.Faucet,
