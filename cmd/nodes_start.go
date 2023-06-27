@@ -63,6 +63,11 @@ func init() {
 		"",
 		"Path of Vega binary to be used to start the node",
 	)
+	nodesStartCmd.PersistentFlags().BoolVar(&doNotStopAllJobsOnFailure,
+		"do-not-stop-on-failure",
+		false,
+		"Do not stop partially running network when failed to start",
+	)
 	nodesStartCmd.MarkFlagRequired("name")
 }
 
@@ -96,7 +101,7 @@ func nodesStartNode(ctx context.Context, nodeSet *types.NodeSet, conf *config.Co
 		}
 	}
 
-	res, err := nomadRunner.RunNodeSets(ctx, []types.NodeSet{*nodeSet})
+	res, err := nomadRunner.RunNodeSets(ctx, []types.NodeSet{*nodeSet}, !doNotStopAllJobsOnFailure)
 	if err != nil {
 		return "", fmt.Errorf("failed to start nomad node set %q : %w", nodeSet.Name, err)
 	}

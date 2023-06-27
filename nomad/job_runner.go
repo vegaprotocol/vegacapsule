@@ -100,7 +100,7 @@ type jobWithPreProbe struct {
 
 // RunNodeSets returns list of started jobs.
 // When one of the jobs fails during startup it returns jobs that has alredy started before that.
-func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) ([]*api.Job, error) {
+func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet, stopOnFailure bool) ([]*api.Job, error) {
 	jobs := make([]jobWithPreProbe, 0, len(nodeSets))
 
 	for _, ns := range nodeSets {
@@ -135,8 +135,12 @@ func (r *JobRunner) RunNodeSets(ctx context.Context, nodeSets []types.NodeSet) (
 
 		eg.Go(func() error {
 			if err := r.runAndWait(ctx, j.Job, j.Probes); err != nil {
-				if _, err := r.stopJobsByIDs(ctx, []string{*j.Job.ID}); err != nil {
-					log.Printf("Failed to stop failed job %s, this job might need to be stopped manually. Reason %s", *j.Job.ID, err)
+				if stopOnFailure {
+					if _, err := r.stopJobsByIDs(ctx, []string{*j.Job.ID}); err != nil {
+						log.Printf("Failed to stop failed job %s, this job might need to be stopped manually. Reason %s", *j.Job.ID, err)
+					}
+				} else {
+					log.Println("The --do-not-stop-on-failure flag present. Nodeset won't be stopped")
 				}
 
 				return err
@@ -253,7 +257,7 @@ func (r *JobRunner) StartNetwork(
 	generatedSvcs *types.GeneratedServices,
 	stopAllJobsOnFailure bool,
 ) (*types.NetworkJobs, error) {
-	netJobs, err := r.startNetwork(ctx, conf, generatedSvcs)
+	netJobs, err := r.startNetwork(ctx, conf, generatedSvcs, stopAllJobsOnFailure)
 	if err != nil {
 		if stopAllJobsOnFailure {
 			if _, err := r.stopAllJobs(ctx); err != nil {
@@ -309,6 +313,7 @@ func (r *JobRunner) startNetwork(
 	gCtx context.Context,
 	conf *config.Config,
 	generatedSvcs *types.GeneratedServices,
+	stopOnFailure bool,
 ) (*types.NetworkJobs, error) {
 	g, ctx := errgroup.WithContext(gCtx)
 
@@ -365,7 +370,7 @@ func (r *JobRunner) startNetwork(
 	}
 
 	g.Go(func() error {
-		jobs, err := r.RunNodeSets(ctx, generatedSvcs.NodeSets.ToSlice())
+		jobs, err := r.RunNodeSets(ctx, generatedSvcs.NodeSets.ToSlice(), stopOnFailure)
 
 		lock.Lock()
 		for _, job := range jobs {
