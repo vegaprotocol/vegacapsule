@@ -12,6 +12,7 @@
 - [384](https://github.com/vegaprotocol/vegacapsule/issues/384) Add command for stoping/starting a specific job
 
 ### 🐛 Fixes
+- [394](https://github.com/vegaprotocol/vegacapsule/pull/394) Respect the `--do-not-stop-on-failure` flag
 
 ## v0.5.1
 
