@@ -66,7 +66,7 @@ EOT
     node_wallet_pass = "n0d3w4ll3t-p4ssphr4e3"
     vega_wallet_pass = "w4ll3t-p4ssphr4e3"
     ethereum_wallet_pass = "ch41nw4ll3t-3th3r3um-p4ssphr4e3"
-	use_data_node = false
+	  use_data_node = true
 
     config_templates {
 		vega_file = "./node_set_templates/nullchain/vega_validator.toml"
