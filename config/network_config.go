@@ -93,6 +93,16 @@ type NetworkConfig struct {
 
 	/*
 		description: |
+			Same as `genesis_template` but it allows the user to download a template file from the URL
+		examples:
+		    - type: hcl
+			  value: |
+						genesis_template_url = "https://example.com/genesis.json.tmpl"
+	*/
+	GenesisTemplateURL *string `hcl:"genesis_template_url"`
+
+	/*
+		description: |
 			Allows the user to define the applicable Ethereum network configuration.
 			This is necessary because the Vega network needs to be connected to [Ethereum bridges](https://docs.vega.xyz/mainnet/api/bridge)
 			or it cannot function.
