@@ -33,37 +33,18 @@ EOT
   }
 
   pre_start {
-	docker_service "ganache-1" {
-      image = "vegaprotocol/ganache:latest"
-      cmd = "ganache-cli"
-      args = [
-        "--blockTime", "1",
-        "--chainId", "1440",
-        "--networkId", "1441",
-        "-h", "0.0.0.0",
-        "-p", "8545",
-        "-m", "ozone access unlock valid olympic save include omit supply green clown session",
-        "--db", "/app/ganache-db",
-      ]
-      static_port {
-        value = 8545
-        to = 8545
-      }
-      auth_soft_fail = true
-    }
-	
-	docker_service "postgres-1" {
+	  docker_service "postgres-1" {
       image = "vegaprotocol/timescaledb:2.8.0-pg14"
       cmd = "postgres"
       args = []
       env = {
         POSTGRES_USER="vega"
         POSTGRES_PASSWORD="vega"
-        POSTGRES_DBS="vega"
+        POSTGRES_DBS="vega,vega0,vega1,vega2,vega3,vega4,vega5,vega6,vega7,vega8,vega9,vega10,vega11,vega12,vega13,vega14,vega15,vega16,vega17,vega18,vega19,vega20,vega21,vega22,vega23,vega24,vega25"
       }
       
       static_port {
-        value = 5332
+        value = 5432
         to = 5432
       }
       resources {
@@ -71,11 +52,13 @@ EOT
         memory = 900
       }
       
+      volume_mounts = ["${network_home_path}:${network_home_path}"]
+
       auth_soft_fail = true
     }
   }
 
-  genesis_template_file = "./node_set_templates/nullchain/genesis.json.tmpl"
+  genesis_template_file = "./node_set_templates/nullchain/genesis_no_erc20.json.tmpl"
 
   node_set "validators" {
     count = 1
@@ -83,12 +66,11 @@ EOT
     node_wallet_pass = "n0d3w4ll3t-p4ssphr4e3"
     vega_wallet_pass = "w4ll3t-p4ssphr4e3"
     ethereum_wallet_pass = "ch41nw4ll3t-3th3r3um-p4ssphr4e3"
-	use_data_node = true
+	  use_data_node = true
 
     config_templates {
 		vega_file = "./node_set_templates/nullchain/vega_validator.toml"
 		tendermint_file = "./node_set_templates/nullchain/tendermint_validator.toml"
-     	data_node_file = "./node_set_templates/nullchain/data_node.tmpl"
     }
   }
 
