@@ -33,7 +33,7 @@ jobs:
           ref: ${{ inputs.tag }}
       
       - name: Run tests
-        if: ${{ env.GOARCH == 'amd64' }}
+        if: ${{ env.GOARCH == 'amd64' && env.GOOS == 'linux' }}
         run: go test -v ./...
 
       - name: Build binary
