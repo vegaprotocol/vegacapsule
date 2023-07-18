@@ -229,3 +229,15 @@ Error: failed to start network: failed to start network: failed to start vega ne
 ```
 
 To solve it, ensure that you are on the `main` branch. This can be checked with the command `git branch`.
+
+
+#### Updating documentation
+
+```
+cd .../vegacapsule
+git pull
+
+go run ./cmd/docs -type-names 'config.Config' -tag-name hcl -dir-path ./config -description-path ./cmd/docs/hcl_description.md > config.md
+
+go run ./cmd/docs -type-names "config.NodeConfigTemplateContext,datanode.ConfigTemplateContext,faucet.ConfigTemplateContext,genesis.TemplateContext,tendermint.ConfigTemplateContext,vega.ConfigTemplateContext,visor.ConfigTemplateContext,wallet.ConfigTemplateContext" -dir-path . -description-path ./cmd/docs/template_ctx_description.md > templates.md
+```

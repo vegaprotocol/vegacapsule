@@ -200,6 +200,37 @@ genesis_template_file = "/your_path/genesis.tmpl"
 </dd>
 
 <dt>
+	<code>genesis_template_url</code>  <strong>string</strong>  - optional
+</dt>
+
+<dd>
+
+Same as `genesis_template` but it allows the user to download a template file from the URL
+
+
+
+<br />
+
+#### <code>genesis_template_url</code> example
+
+
+
+
+
+
+
+```hcl
+genesis_template_url = "https://example.com/genesis.json.tmpl"
+
+```
+
+
+
+
+
+</dd>
+
+<dt>
 	<code>ethereum</code>  <strong><a href="#ethereumconfig">EthereumConfig</a></strong>  - required, block 
 </dt>
 
@@ -894,7 +925,7 @@ Name of the wallet. It will be used as an identifier when wallet runs.
 
 <dd>
 
-By default, the wallet config inherits the Vega binary from the main network config, but this paramater allows a user to
+By default, the wallet config inherits the Vega binary from the main network config, but this parameter allows a user to
 define a different Vega binary to be used in wallet.
 This can be used if a different wallet version is required.
 A relative or absolute path can be used. If only the binary name is defined, it automatically looks for it in $PATH.
@@ -902,6 +933,21 @@ A relative or absolute path can be used. If only the binary name is defined, it 
 
 
 <blockquote>Using a Vega wallet version that is not compatible with the network version will not work - therefore this should be used in advanced cases only.</blockquote>
+</dd>
+
+<dt>
+	<code>token_passphrase_path</code>  <strong>string</strong>  - optional
+</dt>
+
+<dd>
+
+Path to the file that contains the password used to protect the API token to wallet.
+API tokens are keys linked to a wallet that allow third party apps and bots to connect
+and send transactions without the need for user interaction.
+If this value is not defined, api tokens will not be enabled.
+A relative or absolute path can be used.
+
+
 </dd>
 
 <dt>
@@ -1065,6 +1111,16 @@ Allows the user to configure services that will run before or after the network 
 <dd>
 
 Allows the user to define multiple services to be run inside [Docker](https://www.docker.com/).
+
+
+</dd>
+
+<dt>
+	<code>exec_service</code>  <strong>[]<a href="#execconfig">ExecConfig</a></strong>  - required, block 
+</dt>
+
+<dd>
+
 
 
 </dd>
@@ -1557,6 +1613,59 @@ docker_service "ganache-1" {
 }
 
 ```
+
+
+</dl>
+
+---
+
+
+## *ExecConfig*
+
+
+### Fields
+
+<dl>
+<dt>
+	<code>name</code>  <strong>string</strong>  - required, label 
+</dt>
+
+<dd>
+
+Name of the service that is going to be used as an identifier when service runs.
+
+</dd>
+
+<dt>
+	<code>cmd</code>  <strong>string</strong>  - optional
+</dt>
+
+<dd>
+
+Command that will run
+
+</dd>
+
+<dt>
+	<code>args</code>  <strong>[]string</strong>  - required
+</dt>
+
+<dd>
+
+List of arguments that will be added to cmd.
+
+</dd>
+
+<dt>
+	<code>env</code>  <strong>map[string]string</strong>  - optional
+</dt>
+
+<dd>
+
+Allows the user to set environment variables launched process.
+
+</dd>
+
 
 
 </dl>

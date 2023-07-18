@@ -436,59 +436,6 @@ Ethereum chain ID.
 ---
 
 
-## *nomad.PreGenerateTemplateCtx*
-
-
-### Fields
-
-<dl>
-<dt>
-	<code>Name</code>  <strong>string</strong>  - required
-</dt>
-
-<dd>
-
-
-
-</dd>
-
-<dt>
-	<code>Index</code>  <strong>int</strong>  - required
-</dt>
-
-<dd>
-
-
-
-</dd>
-
-<dt>
-	<code>LogsDir</code>  <strong>string</strong>  - required
-</dt>
-
-<dd>
-
-
-
-</dd>
-
-<dt>
-	<code>CapsuleBinary</code>  <strong>string</strong>  - required
-</dt>
-
-<dd>
-
-
-
-</dd>
-
-
-
-</dl>
-
----
-
-
 ## *types.NodeSet*
 
 
@@ -822,6 +769,16 @@ General information about the node.
 <dd>
 
 Path to binary used to generate and run the node.
+
+</dd>
+
+<dt>
+	<code>UniqueSwarmKey</code>  <strong>string</strong>  - required
+</dt>
+
+<dd>
+
+Unique IPFS swarm key for this network
 
 </dd>
 

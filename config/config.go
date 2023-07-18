@@ -3,16 +3,18 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"path"
 	"path/filepath"
 
+	"github.com/hashicorp/hcl/v2/gohcl"
+	"github.com/hashicorp/hcl/v2/hclwrite"
+
 	"code.vegaprotocol.io/vegacapsule/installer"
 	"code.vegaprotocol.io/vegacapsule/types"
 	"code.vegaprotocol.io/vegacapsule/utils"
-
-	"github.com/hashicorp/hcl/v2/gohcl"
-	"github.com/hashicorp/hcl/v2/hclwrite"
 )
 
 const (
@@ -123,7 +125,11 @@ func (c *Config) setAbsolutePaths() error {
 		if nc.VegaBinary != nil {
 			vegaBinPath, err := utils.BinaryAbsPath(*nc.VegaBinary)
 			if err != nil {
-				return fmt.Errorf("failed to set absolute path for data node binary %q: %w", *nc.VegaBinary, err)
+				return fmt.Errorf(
+					"failed to set absolute path for data node binary %q: %w",
+					*nc.VegaBinary,
+					err,
+				)
 			}
 			c.Network.Nodes[idx].VegaBinary = utils.ToPoint(vegaBinPath)
 		}
@@ -131,7 +137,11 @@ func (c *Config) setAbsolutePaths() error {
 		if nc.VisorBinary != "" {
 			visorBinPath, err := utils.BinaryAbsPath(nc.VisorBinary)
 			if err != nil {
-				return fmt.Errorf("failed to set absolute path for visor binary %q: %w", nc.VisorBinary, err)
+				return fmt.Errorf(
+					"failed to set absolute path for visor binary %q: %w",
+					nc.VisorBinary,
+					err,
+				)
 			}
 			c.Network.Nodes[idx].VisorBinary = visorBinPath
 		}
@@ -238,7 +248,11 @@ func (c *Config) validateWalletConfig() error {
 	if wc.TokenPassphraseFile != nil {
 		tpf, err := utils.AbsPathWithPrefix(c.configDir, *wc.TokenPassphraseFile)
 		if err != nil {
-			return fmt.Errorf("failed to get absolute file path %q: %w", *wc.TokenPassphraseFile, err)
+			return fmt.Errorf(
+				"failed to get absolute file path %q: %w",
+				*wc.TokenPassphraseFile,
+				err,
+			)
 		}
 
 		// if the path in the config is relative to the $network_home_path var i.e
@@ -261,7 +275,9 @@ func (c *Config) validateClefWalletConfig(nc NodeConfig) error {
 	}
 
 	if len(nc.ClefWallet.AccountAddresses) < nc.Count {
-		return fmt.Errorf("provided ethereum_account_addresses must be greater or equal than node config count")
+		return fmt.Errorf(
+			"provided ethereum_account_addresses must be greater or equal than node config count",
+		)
 	}
 
 	return nil
@@ -274,7 +290,13 @@ func (c Config) loadAndValidatePreGenerate(preGen PreGenerate) (*PreGenerate, er
 		if nc.JobTemplate == nil && nc.JobTemplateFile != nil {
 			tmpl, err := c.LoadConfigTemplateFile(*nc.JobTemplateFile)
 			if err != nil {
-				mErr.Add(fmt.Errorf("failed to load pre generate nomad template file for %s: %w", nc.Name, err))
+				mErr.Add(
+					fmt.Errorf(
+						"failed to load pre generate nomad template file for %s: %w",
+						nc.Name,
+						err,
+					),
+				)
 
 				continue
 			}
@@ -378,7 +400,11 @@ func (c Config) loadAndValidateNomadJobTemplates(nc NodeConfig) (*NodeConfig, er
 
 	templateFile, err := utils.AbsPathWithPrefix(c.configDir, *nc.NomadJobTemplateFile)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get absolute file path %q: %w", *nc.NomadJobTemplateFile, err)
+		return nil, fmt.Errorf(
+			"failed to get absolute file path %q: %w",
+			*nc.NomadJobTemplateFile,
+			err,
+		)
 	}
 
 	template, err := os.ReadFile(templateFile)
@@ -417,16 +443,41 @@ func (c *Config) loadAndValidateGenesis() error {
 		return nil
 	}
 
-	return fmt.Errorf("missing genesis file template: either genesis_template or genesis_template_file must be defined")
+	if c.Network.GenesisTemplateURL != nil {
+		resp, err := http.Get(*c.Network.GenesisTemplateURL)
+		if err != nil {
+			return fmt.Errorf("failed to download genesis template from %s: %w", *c.Network.GenesisTemplateURL, err)
+		}
+		defer resp.Body.Close()
+		genTemplate, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("failed to read body of genesis template: %w", err)
+		}
+		genTemplateStr := string(genTemplate)
+
+		c.Network.GenesisTemplate = &genTemplateStr
+		c.Network.GenesisTemplateURL = nil
+
+		return nil
+	}
+
+	return fmt.Errorf(
+		"missing genesis file template: either genesis_template or genesis_template_file must be defined",
+	)
 }
 
 func (c *Config) loadAndValidateSetSmartContractsAddresses() error {
 	if c.Network.SmartContractsAddresses == nil {
 		if c.Network.SmartContractsAddressesFile == nil {
-			return fmt.Errorf("missing smart contracts file: either smart_contracts_addresses or smart_contracts_addresses_file must be defined")
+			return fmt.Errorf(
+				"missing smart contracts file: either smart_contracts_addresses or smart_contracts_addresses_file must be defined",
+			)
 		}
 
-		smartContractsFile, err := utils.AbsPathWithPrefix(c.configDir, *c.Network.SmartContractsAddressesFile)
+		smartContractsFile, err := utils.AbsPathWithPrefix(
+			c.configDir,
+			*c.Network.SmartContractsAddressesFile,
+		)
 		if err != nil {
 			return fmt.Errorf("failed to get absolute file path %q: %w", smartContractsFile, err)
 		}
@@ -450,7 +501,10 @@ func (c *Config) loadAndValidateSetSmartContractsAddresses() error {
 	c.Network.TokenAddresses = map[string]types.SmartContractsToken{}
 
 	if err := json.Unmarshal([]byte(*c.Network.SmartContractsAddresses), &c.Network.TokenAddresses); err != nil {
-		return fmt.Errorf("failed to get smart contracts tokens info: config.network.smart_contracts_addresses format is wrong: %w", err)
+		return fmt.Errorf(
+			"failed to get smart contracts tokens info: config.network.smart_contracts_addresses format is wrong: %w",
+			err,
+		)
 	}
 
 	return nil
@@ -460,7 +514,10 @@ func (c Config) SmartContractsInfo() (*types.SmartContractsInfo, error) {
 	smartcontracts := &types.SmartContractsInfo{}
 
 	if err := json.Unmarshal([]byte(*c.Network.SmartContractsAddresses), &smartcontracts); err != nil {
-		return nil, fmt.Errorf("failed to get smart contracts info: config.network.smart_contracts_addresses format is wrong: %w", err)
+		return nil, fmt.Errorf(
+			"failed to get smart contracts info: config.network.smart_contracts_addresses format is wrong: %w",
+			err,
+		)
 	}
 
 	return smartcontracts, nil
