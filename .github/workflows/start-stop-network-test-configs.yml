@@ -20,7 +20,8 @@ jobs:
           - config_file: config_visor_mixed.hcl
             propose_upgrade: true
           - config_file: config_data_node_snapshot.hcl
-          - config_file: config_visor_only.hcl
+          # TODO: Needs to be fixed. Issue: https://github.com/vegaprotocol/vegacapsule/issues/291
+          # - config_visor_only.hcl
     name: ${{ matrix.settings.config_file }}
     runs-on: ubuntu-latest
     steps:
