@@ -79,7 +79,7 @@ func (n *Client) waitForDeployment(ctx context.Context, jobID string) error {
 			}
 
 			for _, dep := range deployments {
-				log.Printf("Update for job: %q, jobStatus: %s, deploymentStatus: %q, another: %s", dep.JobID, *job.Status, dep.Status, dep.StatusDescription)
+				log.Printf("Update for job: %q, jobStatus: %s, deploymentStatus: %q, description: %s", dep.JobID, *job.Status, dep.Status, dep.StatusDescription)
 
 				switch dep.Status {
 				case DeploymentStatusCanceled:
@@ -107,7 +107,7 @@ func (n *Client) Run(ctx context.Context, job *api.Job) (bool, error) {
 
 	info, err := n.Info(ctx, *job.ID)
 	if err != nil {
-		//NOTE: Handle 404 status code
+		// NOTE: Handle 404 status code
 		log.Printf("Error getting job info: %+v", err)
 	} else if *info.Status == Running {
 		return true, nil
