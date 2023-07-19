@@ -54,7 +54,7 @@ jobs:
 
           ./vegacapsule install-bins --install-path $GOBIN
           ./vegacapsule network bootstrap --config-path ./net_confs/${{ matrix.settings.config_file }} ;
-          sleep 5;
+          sleep 15;
       - name: List nodes
         run: |
           export GOBIN=$(go env GOPATH)/bin
