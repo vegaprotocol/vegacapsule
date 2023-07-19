@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	cLIVersion     = "v0.72.0+dev"
+	cLIVersion     = "v0.72.2+dev"
 	cLIVersionHash = ""
 	withDeps       bool
 )
