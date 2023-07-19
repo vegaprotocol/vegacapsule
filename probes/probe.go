@@ -35,7 +35,7 @@ func probe(ctx context.Context, id, probeType string, call func() error) error {
 }
 
 func Probe(ctx context.Context, id string, probes types.ProbesConfig) error {
-	ctx, cancel := context.WithTimeout(context.Background(), totalProbeTimeout)
+	ctx, cancel := context.WithTimeout(ctx, totalProbeTimeout)
 	defer cancel()
 
 	eg, ctx := errgroup.WithContext(ctx)
