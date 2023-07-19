@@ -25,13 +25,10 @@ GatewayEnabled = true
 
 [Gateway]
   Level = "Info"
+  Port = 30{{.NodeNumber}}8
   [Gateway.Node]
     Port = 30{{.NodeNumber}}7
-  [Gateway.GraphQL]
-    Port = 30{{.NodeNumber}}8
-  [Gateway.REST]
-    Port = 30{{.NodeNumber}}9
-	
+
 [Metrics]
   Level = "Info"
   Timeout = "5s"

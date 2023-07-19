@@ -20,22 +20,20 @@ jobs:
           - config_file: config_visor_mixed.hcl
             propose_upgrade: true
           - config_file: config_data_node_snapshot.hcl
-
           # TODO: Needs to be fixed. Issue: https://github.com/vegaprotocol/vegacapsule/issues/291
           # - config_visor_only.hcl
     name: ${{ matrix.settings.config_file }}
     runs-on: ubuntu-latest
     steps:
       - name: Setup Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
-          go-version: '1.19'
+          go-version: '1.20'
       - uses: actions/checkout@v3
       - name: Build binary
         env:
-          GO111MODULE: on 
-        run:
-          go build -o vegacapsule .
+          GO111MODULE: on
+        run: go build -o vegacapsule .
       - name: Start nomad
         run: |
           export GOBIN=$(go env GOPATH)/bin
