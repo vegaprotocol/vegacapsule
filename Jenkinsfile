@@ -9,6 +9,7 @@ pipeline {
         skipDefaultCheckout true
         timestamps()
         timeout(time: 45, unit: 'MINUTES')
+        disableConcurrentBuilds(abortPrevious: true)
     }
     parameters {
         string( name: 'VEGA_BRANCH', defaultValue: '',
