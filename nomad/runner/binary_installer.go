@@ -108,6 +108,10 @@ func installNomadBinary(localBinPath, binInstallPath string) (err error) {
 
 	binInstallPathAbs := path.Join(binInstallPath, nomadBinName)
 
+	if err := os.MkdirAll(binInstallPath, os.ModePerm); err != nil {
+		return fmt.Errorf("failed to ensure %s directory exists: %w", binInstallPath, err)
+	}
+
 	if err := utils.CpAndChmodxFile(localBinPath, binInstallPathAbs); err != nil {
 		return fmt.Errorf("failed to install Nomad to %q: %w", binInstallPath, err)
 	}

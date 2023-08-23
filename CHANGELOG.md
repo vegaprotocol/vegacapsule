@@ -14,6 +14,7 @@
 
 ### 🐛 Fixes
 - [394](https://github.com/vegaprotocol/vegacapsule/pull/394) Respect the `--do-not-stop-on-failure` flag
+- [407](https://github.com/vegaprotocol/vegacapsule/pull/407) Create nomad install directory if missing
 
 ## v0.5.1
 
