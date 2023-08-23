@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	totalProbeTimeout  = time.Second * 20
+	totalProbeTimeout  = time.Second * 40
 	singleProbeTimeout = time.Second * 2
 )
 
