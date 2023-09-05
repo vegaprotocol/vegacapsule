@@ -1,14 +1,15 @@
 package cmd
 
 import (
-	"context"
-	"fmt"
-
 	"code.vegaprotocol.io/vegacapsule/generator"
 	"code.vegaprotocol.io/vegacapsule/nomad"
 	"code.vegaprotocol.io/vegacapsule/state"
+	"context"
+	"fmt"
 	"github.com/spf13/cobra"
 )
+
+var datanodeBackupDir string
 
 var nodesRemoveCmd = &cobra.Command{
 	Use:   "remove",
@@ -44,6 +45,7 @@ func init() {
 		"Name of the node tha should be removed",
 	)
 	nodesRemoveCmd.MarkFlagRequired("name")
+	nodesRemoveCmd.PersistentFlags().StringVar(&datanodeBackupDir, "datanode-backup-dir", "", "Directory where data node home directories should be backed up before removal")
 }
 
 func nodesRemoveNode(state state.NetworkState, name string) (*state.NetworkState, error) {
@@ -55,6 +57,12 @@ func nodesRemoveNode(state state.NetworkState, name string) (*state.NetworkState
 	nodeSet, err := state.GeneratedServices.GetNodeSet(name)
 	if err != nil {
 		return nil, err
+	}
+
+	if len(datanodeBackupDir) > 0 {
+		if err := gen.BackupDataNode(*nodeSet, datanodeBackupDir); err != nil {
+			return nil, fmt.Errorf("failed to backup data node: %w", err)
+		}
 	}
 
 	if err := gen.RemoveNodeSet(*nodeSet); err != nil {

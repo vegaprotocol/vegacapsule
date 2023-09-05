@@ -1,11 +1,6 @@
 package generator
 
 import (
-	"context"
-	"fmt"
-	"log"
-	"os"
-
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/generator/datanode"
 	"code.vegaprotocol.io/vegacapsule/generator/faucet"
@@ -16,6 +11,12 @@ import (
 	"code.vegaprotocol.io/vegacapsule/generator/wallet"
 	"code.vegaprotocol.io/vegacapsule/types"
 	"code.vegaprotocol.io/vegacapsule/utils"
+	"context"
+	"fmt"
+	"github.com/otiai10/copy"
+	"log"
+	"os"
+	"path/filepath"
 )
 
 type nodeSets struct {
@@ -207,6 +208,16 @@ func (g *Generator) AddNodeSet(absoluteIndex, relativeIndex, groupIndex int, nc 
 	log.Printf("Added new node set with id %q", initNodeSet.Name)
 
 	return initNodeSet, nil
+}
+
+func (g *Generator) BackupDataNode(ns types.NodeSet, backupDir string) error {
+	absBackupDir := filepath.Join(*g.conf.OutputDir, backupDir)
+
+	if err := copy.Copy(ns.DataNode.HomeDir, absBackupDir); err != nil {
+		return fmt.Errorf("failed to copy data node directory %q to backup directory %q: %w", ns.DataNode.HomeDir, absBackupDir, err)
+	}
+
+	return nil
 }
 
 func (g *Generator) RemoveNodeSet(ns types.NodeSet) error {
