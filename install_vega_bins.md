@@ -2,7 +2,7 @@
 
 ## Install automatically
 
-There is a feature avalible in Capsule that allows fetching supported binaries automatically.
+There is a feature available in Capsule that allows fetching supported binaries automatically.
 
 1. Validate that Capsule is installed
 ```bash
@@ -31,13 +31,13 @@ vegacapsule install-bins --install-path YOUR_CUSTOM_PATH --install-release-tag S
 YOUR_CUSTOM_PATH/vega version
 ```
 
-### Globaly install binaries
+### Globally install binaries
 1.
 ```bash
 vegacapsule install-bins
 ```
 
-3. Validate that binaries are accessible trough $PATH. And versions matching the one from previous cmd output. If not, please run step 2 again with --install-path flag.
+3. Validate that binaries are accessible through $PATH. And versions matching the one from previous cmd output. If not, please run step 2 again with --install-path flag.
 ```bash
 vega version
 vega wallet version
@@ -46,9 +46,9 @@ vega datanode version
 
 ## Install manually - build from source (more flexible)
 
-Building from source is a more flexible (recomended for local development) because it gives an option of choosing arbitrary version of the binaries.
+Building from source is more flexible (recommended for local development) because it gives an option of choosing arbitrary version of the binaries.
 
-**Caveat** - not all binaries versions works with current version of Capsule. For more convenient fast installation please refer to [automatic install](#install-automatically)
+**Caveat** - not all binaries versions work with current version of Capsule. For more convenient fast installation please refer to [automatic install](#install-automatically)
 
 Prequsities - this step will require Go 1.19+ installed. [Get Go](https://go.dev/doc/install).
 ```bash
