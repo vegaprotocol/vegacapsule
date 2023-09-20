@@ -57,11 +57,11 @@ func NewEthereumMultisigClient(ctx context.Context, params EthereumMultisigClien
 	client, err := ethclient.DialContext(ctx, params.EthereumAddress)
 
 	if err != nil {
-		return nil, fmt.Errorf("failed creating ehtereum client: %w", err)
+		return nil, fmt.Errorf("failed creating ethereum client: %w", err)
 	}
 
 	if params.SmartcontractsInfo.MultisigControl.EthereumAddress == "" {
-		return nil, fmt.Errorf("failed to create ethereum client: the multisig smart contract address is not set, please uptate it in the network configuration")
+		return nil, fmt.Errorf("failed to create ethereum client: the multisig smart contract address is not set, please update it in the network configuration")
 	}
 
 	multisigControl, err := multisig.NewMultisigControl(common.HexToAddress(params.SmartcontractsInfo.MultisigControl.EthereumAddress), client)
