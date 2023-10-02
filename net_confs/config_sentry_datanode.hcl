@@ -20,15 +20,10 @@ EOT
   wallet "wallet-1" {
     template = <<-EOT
 Name = "DV"
-Level = "info"
-TokenExpiry = "168h0m0s"
-Port = 1789
-Host = "0.0.0.0"
 
 [API]
   [API.GRPC]
     Hosts = [{{range $i, $v := .NonValidators}}{{if eq $v.GroupName "sentry-0" "sentry-1" "sentry-2"}}{{if ne $i 0}},{{end}}"127.0.0.1:30{{$v.Index}}2"{{end}}{{end}}]
-    Retries = 5
 EOT
   }
 

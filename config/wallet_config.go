@@ -55,7 +55,7 @@ type WalletConfig struct {
 
 	/*
 		description: |
-			[Go template](templates.md) of a Vega Wallet config.
+			[Go template](templates.md) of a Vega Wallet network configuration.
 
 			The [wallet.ConfigTemplateContext](templates.md#walletconfigtemplatecontext) can be used in the template.
 			Example can be found in [default network config](net_confs/config.hcl).
