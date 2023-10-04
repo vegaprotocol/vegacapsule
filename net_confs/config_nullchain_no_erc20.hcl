@@ -33,28 +33,26 @@ EOT
   }
 
   pre_start {
-	  docker_service "postgres-1" {
-      image = "vegaprotocol/timescaledb:2.8.0-pg14"
-      cmd = "postgres"
-      args = []
-      env = {
-        POSTGRES_USER="vega"
-        POSTGRES_PASSWORD="vega"
-        POSTGRES_DBS="vega,vega0,vega1,vega2,vega3,vega4,vega5,vega6,vega7,vega8,vega9,vega10,vega11,vega12,vega13,vega14,vega15,vega16,vega17,vega18,vega19,vega20,vega21,vega22,vega23,vega24,vega25"
-      }
-      
-      static_port {
-        value = 5432
-        to = 5432
-      }
-      resources {
-        cpu = 600
-        memory = 900
-      }
-      
-      volume_mounts = ["${network_home_path}:${network_home_path}"]
-
-      auth_soft_fail = true
+    docker_service "postgres-1" {
+        image = "vegaprotocol/timescaledb:2.8.0-pg14"
+        cmd = "postgres"
+        args = []
+        env = {
+          POSTGRES_USER="vega"
+          POSTGRES_PASSWORD="vega"
+          POSTGRES_DBS="vega"
+        }
+        
+        static_port {
+          value = 5332
+          to = 5432
+        }
+        resources {
+          cpu = 600
+          memory = 900
+        }
+        
+        auth_soft_fail = true
     }
   }
 
@@ -69,8 +67,9 @@ EOT
 	  use_data_node = true
 
     config_templates {
-		vega_file = "./node_set_templates/nullchain/vega_validator.toml"
-		tendermint_file = "./node_set_templates/nullchain/tendermint_validator.toml"
+      vega_file = "./node_set_templates/nullchain/vega_validator_no_erc20.toml"
+      tendermint_file = "./node_set_templates/nullchain/tendermint_validator.toml"
+     	data_node_file = "./node_set_templates/nullchain/data_node_external_postgresql.tmpl"
     }
   }
 

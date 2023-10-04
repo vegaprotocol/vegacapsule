@@ -1,0 +1,45 @@
+GatewayEnabled = true
+
+[SqlStore]
+  Level = "Info"
+  Enabled = false
+  WipeOnStartup = true
+  UseEmbedded = false
+  [SQLStore.ConnectionConfig]
+    Database = "vega"
+    Host = "localhost"
+    Password = "vega"
+    Port = 5332
+    UseTransactions = true
+    Username = "vega"
+
+[API]
+  Level = "Info"
+  Port = {{add 300 .NodeNumber}}7
+  CoreNodeGRPCPort = {{add 300 .NodeNumber}}2
+
+[Pprof]
+  Level = "Info"
+  Enabled = true
+  Port = {{add 60 .NodeNumber}}60
+  ProfilesDir = "{{.NodeHomeDir}}"
+
+[Gateway]
+  Level = "Info"
+  Port = {{add 300 .NodeNumber}}8
+  [Gateway.Node]
+    Port = {{add 300 .NodeNumber}}7
+
+[Metrics]
+  Level = "Info"
+  Timeout = "5s"
+  Port = {{add 210 .NodeNumber}}2
+  Enabled = false
+[Broker]
+  Level = "Info"
+  UseEventFile = false
+  [Broker.SocketConfig]
+    Port = {{add 300 .NodeNumber}}5
+
+[NetworkHistory]
+  Enabled = false
