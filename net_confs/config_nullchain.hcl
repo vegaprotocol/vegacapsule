@@ -88,7 +88,7 @@ EOT
     config_templates {
 		vega_file = "./node_set_templates/nullchain/vega_validator.toml"
 		tendermint_file = "./node_set_templates/nullchain/tendermint_validator.toml"
-     	data_node_file = "./node_set_templates/nullchain/data_node.tmpl"
+     	data_node_file = "./node_set_templates/nullchain/data_node_external_postgresql.tmpl"
     }
   }
 
