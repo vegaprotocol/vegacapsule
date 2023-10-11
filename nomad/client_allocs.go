@@ -12,6 +12,7 @@ import (
 
 const (
 	downloadingImageMessage      = "downloading image"
+	imagePullProgressMessage     = "image pull progress"
 	downloadingArtifactsMessage  = "downloading artifacts"
 	taskReceivedMessage          = "received by client"
 	buildingTaskDirectoryMessage = "building task directory"
@@ -69,7 +70,7 @@ func (ai allocationInfo) lastEventMessageContains(text string) bool {
 }
 
 func (ai allocationInfo) downloadingImage() bool {
-	return ai.lastEventMessageContains(downloadingImageMessage)
+	return ai.lastEventMessageContains(downloadingImageMessage) || ai.lastEventMessageContains(imagePullProgressMessage)
 }
 
 func (ai allocationInfo) downloadingArtifacts() bool {
