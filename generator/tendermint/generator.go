@@ -12,10 +12,10 @@ import (
 	"code.vegaprotocol.io/vegacapsule/types"
 	"code.vegaprotocol.io/vegacapsule/utils"
 
-	tmconfig "github.com/tendermint/tendermint/config"
-	tmp2p "github.com/tendermint/tendermint/p2p"
-	"github.com/tendermint/tendermint/privval"
-	tmtypes "github.com/tendermint/tendermint/types"
+	tmconfig "github.com/cometbft/cometbft/config"
+	tmp2p "github.com/cometbft/cometbft/p2p"
+	"github.com/cometbft/cometbft/privval"
+	tmtypes "github.com/cometbft/cometbft/types"
 )
 
 const (

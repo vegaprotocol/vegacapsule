@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"code.vegaprotocol.io/vegacapsule/docsgenerator"
-	"github.com/tendermint/tendermint/libs/os"
+	"github.com/cometbft/cometbft/libs/os"
 )
 
 var (
