@@ -9,8 +9,8 @@ import (
 
 	"code.vegaprotocol.io/vegacapsule/types"
 	"github.com/Masterminds/sprig"
+	tmconfig "github.com/cometbft/cometbft/config"
 	"github.com/spf13/viper"
-	tmconfig "github.com/tendermint/tendermint/config"
 )
 
 type ConfigTemplateContext struct {

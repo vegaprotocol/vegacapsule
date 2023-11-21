@@ -17,9 +17,9 @@ import (
 	"code.vegaprotocol.io/vegacapsule/utils"
 
 	"github.com/Masterminds/sprig"
+	tmjson "github.com/cometbft/cometbft/libs/json"
+	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/imdario/mergo"
-	tmjson "github.com/tendermint/tendermint/libs/json"
-	tmtypes "github.com/tendermint/tendermint/types"
 )
 
 type updateGenesisOutput struct {
