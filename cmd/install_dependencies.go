@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	latestReleaseTag = "v0.73.5"
+	latestReleaseTag = "v0.74.0-preview.10"
 )
 
 var (
