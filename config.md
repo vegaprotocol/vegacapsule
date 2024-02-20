@@ -366,6 +366,9 @@ pre_start {
   docker_service "ganache-1" {
     ...
   }
+  docker_service "ganache-2" {
+    ...
+  }
   docker_service "postgres-1" {
     ...
   }
@@ -411,6 +414,9 @@ network "testnet" {
   ethereum {
     ...
   }
+  secondary_ethereum {
+    ...
+  }
 
   pre_start {
     ...
@@ -436,7 +442,7 @@ network "testnet" {
 
 ## *EthereumConfig*
 
-Allows the user to define the specific Ethereum network to be used.
+Allows the user to define the specific primary Ethereum network to be used.
 It can either be one of the [public networks](https://ethereum.org/en/developers/docs/networks/#public-networks) or
 a local instance of Ganache.
 
@@ -479,7 +485,61 @@ a local instance of Ganache.
 ethereum {
   chain_id   = "1440"
   network_id = "1441"
-  endpoint   = "http://127.0.0.1:8545/"
+  endpoint   = "ws://127.0.0.1:8545/"
+}
+
+```
+
+</dl>
+
+---
+
+## *SecondaryEthereumConfig*
+
+Allows the user to define the specific secondary Ethereum network to be used.
+It can either be one of the [public networks](https://ethereum.org/en/developers/docs/networks/#public-networks) or
+a local instance of Ganache.
+
+### Fields
+
+<dl>
+<dt>
+	<code>chain_id</code>  <strong>string</strong>  - required
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+<dt>
+	<code>network_id</code>  <strong>string</strong>  - required
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+<dt>
+	<code>endpoint</code>  <strong>string</strong>  - required
+</dt>
+
+<dd>
+
+
+
+</dd>
+
+### Complete example
+
+```hcl
+secondary_ethereum {
+  chain_id   = "1450"
+  network_id = "1451"
+  endpoint   = "ws://127.0.0.1:8546/"
 }
 
 ```
@@ -1339,7 +1399,24 @@ docker_service "ganache-1" {
   }
   auth_soft_fail = true
 }
-
+docker_service "ganache-2" {
+  image = "vegaprotocol/ganache:latest"
+  cmd   = "ganache-cli"
+  args  = [
+    "--blockTime", "1",
+    "--chainId", "1450",
+    "--networkId", "1451",
+    "-h", "0.0.0.0",
+    "-p", "8546",
+    "-m", "ozone access unlock valid olympic save include omit supply green clown session",
+    "--db", "/app/ganache-db",
+  ]
+  static_port {
+    value = 8546
+    to    = 8546
+  }
+  auth_soft_fail = true
+}
 ```
 
 </dl>

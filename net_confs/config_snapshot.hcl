@@ -6,6 +6,11 @@ network "testnet" {
     network_id = "1441"
     endpoint   = "ws://127.0.0.1:8545/"
   }
+  secondary_ethereum {
+    chain_id   = "1450"
+    network_id = "1451"
+    endpoint   = "ws://127.0.0.1:8546/"
+  }
 
   pre_start {
     docker_service "ganache-1" {
@@ -26,9 +31,28 @@ network "testnet" {
       }
       auth_soft_fail = true
     }
+    docker_service "ganache-2" {
+      image = "vegaprotocol/ganache:latest"
+      cmd   = "ganache-cli"
+      args  = [
+        "--blockTime", "1",
+        "--chainId", "1450",
+        "--networkId", "1451",
+        "-h", "0.0.0.0",
+        "-p", "8546",
+        "-m", "ozone access unlock valid olympic save include omit supply green clown session",
+        "--db", "/app/ganache-db",
+      ]
+      static_port {
+        value = 8546
+        to    = 8546
+      }
+      auth_soft_fail = true
+    }
   }
 
-  smart_contracts_addresses_file = "./public_smart_contracts_addresses.json"
+  smart_contracts_addresses_file           = "./public_smart_contracts_addresses.json"
+  secondary_smart_contracts_addresses_file = "./secondary_public_smart_contracts_addresses.json"
 
   genesis_template = <<EOH
 {
@@ -142,7 +166,7 @@ network "testnet" {
 			}
 		  }
 		},
-		"{{.GetVegaContractID "tBTC"}}": {
+		"{{.PrimaryBridge.GetVegaContractID "tBTC"}}": {
 			"min_lp_stake": "1",
 			"decimals": 5,
 			"name": "BTC (local)",
@@ -150,11 +174,12 @@ network "testnet" {
 			"total_supply": "0",
 			"source": {
 				"erc20": {
-					"contract_address": "{{.GetEthContractAddr "tBTC"}}"
+					"contract_address": "{{.PrimaryBridge.GetEthContractAddr "tBTC"}}",
+                  "chain_id": "{{.PrimaryBridge.ChainID}}"
 				}
 			}
 		},
-		"{{.GetVegaContractID "tDAI"}}": {
+		"{{.PrimaryBridge.GetVegaContractID "tDAI"}}": {
 			"min_lp_stake": "1",
 			"decimals": 5,
 			"name": "DAI (local)",
@@ -162,11 +187,12 @@ network "testnet" {
 			"total_supply": "0",
 			"source": {
 				"erc20": {
-					"contract_address": "{{.GetEthContractAddr "tDAI"}}"
+					"contract_address": "{{.PrimaryBridge.GetEthContractAddr "tDAI"}}",
+                  "chain_id": "{{.PrimaryBridge.ChainID}}"
 				}
 			}
 		},
-		"{{.GetVegaContractID "tEURO"}}": {
+		"{{.PrimaryBridge.GetVegaContractID "tEURO"}}": {
 			"min_lp_stake": "1",
 			"decimals": 5,
 			"name": "EURO (local)",
@@ -174,11 +200,12 @@ network "testnet" {
 			"total_supply": "0",
 			"source": {
 				"erc20": {
-					"contract_address": "{{.GetEthContractAddr "tEURO"}}"
+					"contract_address": "{{.PrimaryBridge.GetEthContractAddr "tEURO"}}",
+                  "chain_id": "{{.PrimaryBridge.ChainID}}"
 				}
 			}
 		},
-		"{{.GetVegaContractID "tUSDC"}}": {
+		"{{.PrimaryBridge.GetVegaContractID "tUSDC"}}": {
 			"min_lp_stake": "1",
 			"decimals": 5,
 			"name": "USDC (local)",
@@ -186,11 +213,12 @@ network "testnet" {
 			"total_supply": "0",
 			"source": {
 				"erc20": {
-				"contract_address": "{{.GetEthContractAddr "tUSDC"}}"
+				"contract_address": "{{.PrimaryBridge.GetEthContractAddr "tUSDC"}}",
+                  "chain_id": "{{.PrimaryBridge.ChainID}}"
 				}
 			}
 		},
-		"{{.GetVegaContractID "VEGA"}}": {
+		"{{.PrimaryBridge.GetVegaContractID "VEGA"}}": {
 			"min_lp_stake": "1",
 			"decimals": 18,
 			"name": "Vega",
@@ -198,7 +226,8 @@ network "testnet" {
 			"total_supply": "64999723000000000000000000",
 			"source": {
 				"erc20": {
-				"contract_address": "{{.GetEthContractAddr "VEGA"}}"
+				"contract_address": "{{.PrimaryBridge.GetEthContractAddr "VEGA"}}",
+                  "chain_id": "{{.PrimaryBridge.ChainID}}"
 				}
 			}
 		}
@@ -207,7 +236,8 @@ network "testnet" {
 		"ReplayAttackThreshold": 30
 	  },
 	  "network_parameters": {
-      	"blockchains.ethereumConfig": "{\"network_id\": \"{{ .NetworkID }}\", \"chain_id\": \"{{ .ChainID }}\", \"collateral_bridge_contract\": { \"address\": \"{{.GetEthContractAddr "erc20_bridge_1"}}\" }, \"confirmations\": 3, \"staking_bridge_contract\": { \"address\": \"{{.GetEthContractAddr "staking_bridge"}}\", \"deployment_block_height\": 0}, \"token_vesting_contract\": { \"address\": \"{{.GetEthContractAddr "erc20_vesting"}}\", \"deployment_block_height\": 0 }, \"multisig_control_contract\": { \"address\": \"{{.GetEthContractAddr "MultisigControl"}}\", \"deployment_block_height\": 0 }}",
+      	"blockchains.ethereumConfig": "{\"network_id\": \"{{ .PrimaryBridge.NetworkID }}\", \"chain_id\": \"{{ .PrimaryBridge.ChainID }}\", \"collateral_bridge_contract\": { \"address\": \"{{.PrimaryBridge.GetEthContractAddr "erc20_bridge_1"}}\" }, \"confirmations\": 3, \"staking_bridge_contract\": { \"address\": \"{{.PrimaryBridge.GetEthContractAddr "staking_bridge"}}\", \"deployment_block_height\": 0}, \"token_vesting_contract\": { \"address\": \"{{.PrimaryBridge.GetEthContractAddr "erc20_vesting"}}\", \"deployment_block_height\": 0 }, \"multisig_control_contract\": { \"address\": \"{{.PrimaryBridge.GetEthContractAddr "MultisigControl"}}\", \"deployment_block_height\": 0 }}",
+		"blockchains.secondaryEthereumConfig": "{\"network_id\": \"{{ .SecondaryBridge.NetworkID }}\", \"chain_id\": \"{{ .SecondaryBridge.ChainID }}\", \"collateral_bridge_contract\": { \"address\": \"{{.SecondaryBridge.GetEthContractAddr "erc20_bridge_1"}}\" }, \"confirmations\": 3,  \"multisig_control_contract\": { \"address\": \"{{.SecondaryBridge.GetEthContractAddr "MultisigControl"}}\", \"deployment_block_height\": 0 }}",
 		"blockchains.ethereumRpcAndEvmCompatDataSourcesConfig": "{\"configs\": []}",
 		"governance.proposal.asset.minClose": "2s",
 		"governance.proposal.asset.minEnact": "2s",
@@ -227,7 +257,7 @@ network "testnet" {
 		"market.liquidity.stakeToCcyVolume": "0.3",
 		"market.liquidity.targetstake.triggering.ratio": "0.7",
 		"network.checkpoint.timeElapsedBetweenCheckpoints": "10s",
-		"reward.asset": "{{.GetVegaContractID "VEGA"}}",
+		"reward.asset": "{{.PrimaryBridge.GetVegaContractID "VEGA"}}",
 		"reward.staking.delegation.competitionLevel": "3.1",
 		"reward.staking.delegation.delegatorShare": "0.883",
 		"reward.staking.delegation.maxPayoutPerParticipant": "700000000000000000000",
@@ -294,8 +324,13 @@ network "testnet" {
 	Level = "Info"
 	RetryRate = "1s"
 
+[SecondaryEvtForward]
+	Level = "Info"
+	RetryRate = "1s"
+
 [Ethereum]
   RPCEndpoint = "{{.ETHEndpoint}}"
+  SecondaryRPCEndpoint = "{{.SecondaryETHEndpoint}}"
 
 [Processor]
 	[Processor.Ratelimit]

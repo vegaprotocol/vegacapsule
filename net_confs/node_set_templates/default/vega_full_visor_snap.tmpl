@@ -18,8 +18,13 @@
 	Level = "Info"
 	RetryRate = "1s"
 
+[SecondaryEvtForward]
+	Level = "Info"
+	RetryRate = "1s"
+
 [Ethereum]
   RPCEndpoint = "{{.ETHEndpoint}}"
+  SecondaryRPCEndpoint = "{{.SecondaryETHEndpoint}}"
 
 [Processor]
 	[Processor.Ratelimit]

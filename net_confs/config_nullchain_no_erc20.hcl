@@ -6,6 +6,11 @@ network "testnet" {
     network_id = "1441"
     endpoint   = "ws://127.0.0.1:8545/"
   }
+  secondary_ethereum {
+    chain_id   = "1450"
+    network_id = "1451"
+    endpoint   = "ws://127.0.0.1:8546/"
+  }
 
   faucet "faucet-1" {
     wallet_pass = "f4uc3tw4ll3t-v3g4-p4ssphr4e3"
@@ -68,5 +73,6 @@ EOT
     }
   }
 
-  smart_contracts_addresses_file = "./public_smart_contracts_addresses.json"
+  smart_contracts_addresses_file           = "./public_smart_contracts_addresses.json"
+  secondary_smart_contracts_addresses_file = "./secondary_public_smart_contracts_addresses.json"
 }

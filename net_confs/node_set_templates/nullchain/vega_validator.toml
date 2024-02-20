@@ -25,10 +25,18 @@ Level = "Info"
 RetryRate = "1s"
 {{ if .FaucetPublicKey } }
 BlockchainQueueAllowlist = ["{{ .FaucetPublicKey }}"]
-{{ end } }
+{{ end }}
+
+[SecondaryEvtForward]
+Level = "Info"
+RetryRate = "1s"
+{{ if .FaucetPublicKey } }
+BlockchainQueueAllowlist = ["{{ .FaucetPublicKey }}"]
+{{ end }}
 
 [Ethereum]
 RPCEndpoint = "{{.ETHEndpoint}}"
+SecondaryRPCEndpoint = "{{.SecondaryETHEndpoint}}"
 
 [Processor]
 [Processor.Ratelimit]
