@@ -21,6 +21,7 @@ type ConfigTemplateContext struct {
 	VegaNodePrefix       string
 	DataNodePrefix       string
 	ETHEndpoint          string
+	SecondaryETHEndpoint string
 	NodeMode             string
 	FaucetPublicKey      string
 	NodeNumber           int
@@ -43,6 +44,7 @@ func (vg ConfigGenerator) TemplateConfig(ns types.NodeSet, fc *types.Faucet, con
 		VegaNodePrefix:       vg.conf.VegaNodePrefix,
 		DataNodePrefix:       vg.conf.DataNodePrefix,
 		ETHEndpoint:          vg.conf.Network.Ethereum.Endpoint,
+		SecondaryETHEndpoint: vg.conf.Network.SecondaryEthereum.Endpoint,
 		NodeMode:             ns.Mode,
 		NodeNumber:           ns.Index,
 		NodeSet:              ns,
@@ -80,7 +82,7 @@ func (vg *ConfigGenerator) TemplateAndMergeConfig(ns types.NodeSet, fc *types.Fa
 		return nil, err
 	}
 
-	if err := vg.mergeAndSaveConfig(ns, buff, originalConfigFilePath(ns.Vega.HomeDir), f.Name()); err != nil {
+	if err := vg.mergeAndSaveConfig(buff, originalConfigFilePath(ns.Vega.HomeDir), f.Name()); err != nil {
 		return nil, err
 	}
 
@@ -99,15 +101,10 @@ func (vg ConfigGenerator) OverwriteConfig(ns types.NodeSet, fc *types.Faucet, co
 	}
 
 	configFilePath := ConfigFilePath(ns.Vega.HomeDir)
-	return vg.mergeAndSaveConfig(ns, buff, configFilePath, configFilePath)
+	return vg.mergeAndSaveConfig(buff, configFilePath, configFilePath)
 }
 
-func (vg ConfigGenerator) mergeAndSaveConfig(
-	ns types.NodeSet,
-	tmpldConf *bytes.Buffer,
-	configPath string,
-	saveConfigPath string,
-) error {
+func (vg ConfigGenerator) mergeAndSaveConfig(tmpldConf *bytes.Buffer, configPath string, saveConfigPath string) error {
 	overrideConfig := vgconfig.Config{}
 
 	if _, err := toml.NewDecoder(tmpldConf).Decode(&overrideConfig); err != nil {
@@ -119,7 +116,7 @@ func (vg ConfigGenerator) mergeAndSaveConfig(
 		return fmt.Errorf("failed to read configuration file at %s: %w", configPath, err)
 	}
 
-	if err := mergo.MergeWithOverwrite(&vegaConfig, overrideConfig); err != nil {
+	if err := mergo.Merge(&vegaConfig, overrideConfig, mergo.WithOverride); err != nil {
 		return fmt.Errorf("failed to merge configs: %w", err)
 	}
 

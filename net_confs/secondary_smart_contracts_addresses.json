@@ -1,0 +1,15 @@
+{
+  "addr0": {
+    "priv": "adef89153e4bd6b43876045efdd6818cec359340683edaec5e8588e635e8428b",
+    "pub": "0xb89A165EA8b619c14312dB316BaAa80D2a98B493"
+  },
+  "MultisigControl": {
+    "Ethereum": "0xa956B5c58B4Ac8Dd1D44Ade3e8972A16e9C917E4"
+  },
+  "ERC20_Asset_Pool": {
+    "Ethereum": "0x3EA59801698c6820328597F26d29fC3EaAa17AcA"
+  },
+  "erc20_bridge_1": {
+    "Ethereum": "0x0858D9BD11A4F6Bae8b979402550CA6c6ddB8332"
+  }
+}

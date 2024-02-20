@@ -183,8 +183,12 @@ func (c *Config) Validate(configDir string) error {
 		return fmt.Errorf("failed to validate node configs: %w", err)
 	}
 
-	if err := c.loadAndValidateSetSmartContractsAddresses(); err != nil {
-		return fmt.Errorf("invalid configuration for smart contracts addresses: %w", err)
+	if err := c.loadAndValidatePrimarySmartContractsAddresses(); err != nil {
+		return fmt.Errorf("invalid configuration for primary smart contracts addresses: %w", err)
+	}
+
+	if err := c.loadAndValidateSecondarySmartContractsAddresses(); err != nil {
+		return fmt.Errorf("invalid configuration for secondary smart contracts addresses: %w", err)
 	}
 
 	if err := c.validateWalletConfig(); err != nil {
@@ -466,11 +470,11 @@ func (c *Config) loadAndValidateGenesis() error {
 	)
 }
 
-func (c *Config) loadAndValidateSetSmartContractsAddresses() error {
+func (c *Config) loadAndValidatePrimarySmartContractsAddresses() error {
 	if c.Network.SmartContractsAddresses == nil {
 		if c.Network.SmartContractsAddressesFile == nil {
 			return fmt.Errorf(
-				"missing smart contracts file: either smart_contracts_addresses or smart_contracts_addresses_file must be defined",
+				"either smart_contracts_addresses or smart_contracts_addresses_file must be defined",
 			)
 		}
 
@@ -493,9 +497,9 @@ func (c *Config) loadAndValidateSetSmartContractsAddresses() error {
 		c.Network.SmartContractsAddressesFile = nil
 	}
 
-	_, err := c.SmartContractsInfo()
+	_, err := c.PrimarySmartContractsInfo()
 	if err != nil {
-		return fmt.Errorf("failed to check smart contract addreses: %w", err)
+		return fmt.Errorf("failed to get primary smart contract addreses: %w", err)
 	}
 
 	c.Network.TokenAddresses = map[string]types.SmartContractsToken{}
@@ -510,17 +514,65 @@ func (c *Config) loadAndValidateSetSmartContractsAddresses() error {
 	return nil
 }
 
-func (c Config) SmartContractsInfo() (*types.SmartContractsInfo, error) {
-	smartcontracts := &types.SmartContractsInfo{}
+func (c *Config) loadAndValidateSecondarySmartContractsAddresses() error {
+	if c.Network.SecondarySmartContractsAddresses == nil {
+		if c.Network.SecondarySmartContractsAddressesFile == nil {
+			return fmt.Errorf(
+				"either secondary_smart_contracts_addresses or secondary_smart_contracts_addresses_file must be defined",
+			)
+		}
 
-	if err := json.Unmarshal([]byte(*c.Network.SmartContractsAddresses), &smartcontracts); err != nil {
+		smartContractsFile, err := utils.AbsPathWithPrefix(
+			c.configDir,
+			*c.Network.SecondarySmartContractsAddressesFile,
+		)
+		if err != nil {
+			return fmt.Errorf("failed to get absolute file path %q: %w", smartContractsFile, err)
+		}
+
+		smartContracts, err := os.ReadFile(smartContractsFile)
+		if err != nil {
+			return fmt.Errorf("failed to read file %q: %w", smartContractsFile, err)
+		}
+
+		smartContractsStr := string(smartContracts)
+
+		c.Network.SecondarySmartContractsAddresses = &smartContractsStr
+		c.Network.SecondarySmartContractsAddressesFile = nil
+	}
+
+	_, err := c.SecondarySmartContractsInfo()
+	if err != nil {
+		return fmt.Errorf("failed to get secondary smart contracts info: : %w", err)
+	}
+
+	return nil
+}
+
+func (c Config) PrimarySmartContractsInfo() (*types.SmartContractsInfo, error) {
+	smartContracts := &types.SmartContractsInfo{}
+
+	if err := json.Unmarshal([]byte(*c.Network.SmartContractsAddresses), &smartContracts); err != nil {
 		return nil, fmt.Errorf(
-			"failed to get smart contracts info: config.network.smart_contracts_addresses format is wrong: %w",
+			"config.network.secondary_smart_contracts_addresses format is wrong: %w",
 			err,
 		)
 	}
 
-	return smartcontracts, nil
+	return smartContracts, nil
+}
+
+func (c Config) SecondarySmartContractsInfo() (*types.SmartContractsInfo, error) {
+	smartContracts := &types.SmartContractsInfo{}
+
+	if err := json.Unmarshal([]byte(*c.Network.SecondarySmartContractsAddresses), &smartContracts); err != nil {
+		return nil, fmt.Errorf(
+			"config.network.secondary_smart_contracts_addresses format is wrong: %w",
+			err,
+		)
+	}
+
+	return smartContracts, nil
 }
 
 func (c Config) GetSmartContractToken(name string) *types.SmartContractsToken {

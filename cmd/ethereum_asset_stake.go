@@ -46,7 +46,7 @@ var ethereumAssetStakeCmd = &cobra.Command{
 
 		conf := netState.Config
 
-		smartContracts, err := conf.SmartContractsInfo()
+		smartContracts, err := conf.PrimarySmartContractsInfo()
 		if err != nil {
 			return fmt.Errorf("failed getting smart contract informations: %w", err)
 		}

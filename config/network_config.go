@@ -22,6 +22,9 @@ example:
 			ethereum {
 				...
 			}
+			secondary_ethereum {
+				...
+			}
 
 			pre_start {
 				...
@@ -29,6 +32,7 @@ example:
 
 			genesis_template_file = "..."
 			smart_contracts_addresses_file = "..."
+			secondary_smart_contracts_addresses_file = "..."
 
 			node_set "validator-nodes" {
 				...
@@ -103,7 +107,7 @@ type NetworkConfig struct {
 
 	/*
 		description: |
-			Allows the user to define the applicable Ethereum network configuration.
+			Allows the user to define the applicable primary Ethereum network configuration.
 			This is necessary because the Vega network needs to be connected to [Ethereum bridges](https://docs.vega.xyz/mainnet/api/bridge)
 			or it cannot function.
 		examples:
@@ -117,9 +121,23 @@ type NetworkConfig struct {
 
 	/*
 		description: |
-			Smart contract addresses are addresses of [Ethereum bridge](https://docs.vega.xyz/mainnet/api/bridge) contracts in JSON format.
+			Allows the user to define the applicable secondary Ethereum network configuration.
+			This is necessary because the Vega network needs to be connected to [Ethereum bridges](https://docs.vega.xyz/mainnet/api/bridge)
+			or it cannot function.
+		examples:
+			- type: hcl
+			  value: |
+						secondary_ethereum {
+							...
+						}
+	*/
+	SecondaryEthereum EthereumConfig `hcl:"secondary_ethereum,block"`
 
-			These addresses need to correspond to the chosen network in [Ethereum network](#EthereumConfig) and
+	/*
+		description: |
+			Smart contract addresses are addresses of primary [Ethereum bridge](https://docs.vega.xyz/mainnet/api/bridge) contracts in JSON format.
+
+			These addresses need to correspond to the chosen network in the primary [Ethereum network](#EthereumConfig) and
 			can be used in various types of templates in Capsule.
 			[Example of smart contract address from mainnet](https://github.com/vegaprotocol/networks/blob/master/mainnet1/smart-contracts.json).
 		note: |
@@ -146,9 +164,44 @@ type NetworkConfig struct {
 		examples:
 			- type: hcl
 			  value: |
-						smart_contracts_addresses_file = "/your_path/smart-contratcs.json"
+						smart_contracts_addresses_file = "/your_path/smart-contracts.json"
 	*/
 	SmartContractsAddressesFile *string `hcl:"smart_contracts_addresses_file,optional"`
+
+	/*
+		description: |
+			Smart contract addresses are addresses of secondary [Ethereum bridge](https://docs.vega.xyz/mainnet/api/bridge) contracts in JSON format.
+
+			These addresses need to correspond to the chosen network in the secondary [Ethereum network](#EthereumConfig) and
+			can be used in various types of templates in Capsule.
+			[Example of smart contract address from mainnet](https://github.com/vegaprotocol/networks/blob/master/mainnet1/smart-contracts.json).
+		note: |
+				It is recommended that you use the `secondary_smart_contracts_addresses_file` param instead.
+				If both `secondary_smart_contracts_addresses` and `secondary_smart_contracts_addresses_file` are defined, then `genesis_template`
+				overrides `secondary_smart_contracts_addresses_file`.
+		optional_if: secondary_smart_contracts_addresses_file
+		examples:
+			- type: hcl
+			  value: |
+						secondary_smart_contracts_addresses = <<EOH
+							{
+								    "erc20_bridge": "0x...",
+									"asset_pool": "0x...",
+									"multisig": "0x..."
+							}
+						EOH
+	*/
+	SecondarySmartContractsAddresses *string `hcl:"secondary_smart_contracts_addresses,optional"`
+
+	/*
+		description: |
+			Same as `secondary_smart_contracts_addresses` but it allows you to link the smart contracts as an external file.
+		examples:
+			- type: hcl
+			  value: |
+						secondary_smart_contracts_addresses_file = "/your_path/secondary_smart-contracts.json"
+	*/
+	SecondarySmartContractsAddressesFile *string `hcl:"secondary_smart_contracts_addresses_file,optional"`
 
 	/*
 		description: |

@@ -38,7 +38,7 @@ func NewGenerator(conf *config.Config, templateRaw string) (*Generator, error) {
 		return nil, fmt.Errorf("failed to parse genesis override: %w", err)
 	}
 
-	templateContext, err := NewTemplateContext(conf.Network.Ethereum.ChainID, conf.Network.Ethereum.NetworkID, []byte(*conf.Network.SmartContractsAddresses))
+	templateContext, err := NewTemplateContext(conf.Network)
 	if err != nil {
 		return nil, err
 	}

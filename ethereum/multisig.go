@@ -47,7 +47,7 @@ func WaitForNetwork(ctx context.Context, chainID int, ethAddress string) error {
 type EthereumMultisigClientParameters struct {
 	ChainID            int
 	EthereumAddress    string
-	SmartcontractsInfo types.SmartContractsInfo
+	SmartContractsInfo types.SmartContractsInfo
 
 	VegaBinary string
 	VegaHome   string
@@ -59,11 +59,11 @@ func NewEthereumMultisigClient(ctx context.Context, params EthereumMultisigClien
 		return nil, fmt.Errorf("failed creating ethereum client: %w", err)
 	}
 
-	if params.SmartcontractsInfo.MultisigControl.EthereumAddress == "" {
+	if params.SmartContractsInfo.MultisigControl.EthereumAddress == "" {
 		return nil, fmt.Errorf("failed to create ethereum client: the multisig smart contract address is not set, please update it in the network configuration")
 	}
 
-	multisigControl, err := multisig.NewMultisigControl(common.HexToAddress(params.SmartcontractsInfo.MultisigControl.EthereumAddress), client)
+	multisigControl, err := multisig.NewMultisigControl(common.HexToAddress(params.SmartContractsInfo.MultisigControl.EthereumAddress), client)
 	if err != nil {
 		return nil, fmt.Errorf("failed creating multisig control: %w", err)
 	}
@@ -79,11 +79,11 @@ func NewEthereumMultisigClient(ctx context.Context, params EthereumMultisigClien
 
 func (ec EthereumMultisigClient) InitMultisig(ctx context.Context, smartcontracts types.SmartContractsInfo, validators SignersList) error {
 	if smartcontracts.EthereumOwner.Private == "" || smartcontracts.EthereumOwner.Public == "" {
-		return fmt.Errorf("failed to init multisig smart contract: missing private or public key of the smart contract owner in the network configuration")
+		return fmt.Errorf("missing private or public key of the smart contract owner in the network configuration")
 	}
 
 	if len(validators) == 0 {
-		return fmt.Errorf("failed to init multisig smart contract: can not run multisig contract with no validators")
+		return fmt.Errorf("cannot run multisig contract with no validators")
 	}
 
 	contractOwner := Signer{

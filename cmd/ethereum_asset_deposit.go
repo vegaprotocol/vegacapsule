@@ -7,6 +7,7 @@ import (
 
 	vgethereum "code.vegaprotocol.io/vegacapsule/libs/ethereum"
 	"code.vegaprotocol.io/vegacapsule/state"
+	"code.vegaprotocol.io/vegacapsule/types"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
@@ -25,12 +26,14 @@ var ethereumAssetDepositFlags = struct {
 	vegaPubKey  string
 	assetSymbol string
 	amount      int64
+	bridge      string
 }{}
 
 func init() {
 	ethereumAssetDepositCmd.Flags().StringVar(&ethereumAssetDepositFlags.assetSymbol, "asset-symbol", "", "symbol of the asset to be deposited")
 	ethereumAssetDepositCmd.Flags().StringVar(&ethereumAssetDepositFlags.vegaPubKey, "pub-key", "", "Vega public key to where the asset will be deposited")
 	ethereumAssetDepositCmd.Flags().Int64Var(&ethereumAssetDepositFlags.amount, "amount", 0, "amount to be deposited")
+	ethereumAssetDepositCmd.Flags().StringVar(&ethereumAssetDepositFlags.bridge, "bridge", "primary", "bridge linked to the deposit")
 	ethereumAssetDepositCmd.MarkFlagRequired("asset-symbol")
 	ethereumAssetDepositCmd.MarkFlagRequired("pub-key")
 	ethereumAssetDepositCmd.MarkFlagRequired("amount")
@@ -55,14 +58,28 @@ var ethereumAssetDepositCmd = &cobra.Command{
 
 		conf := netState.Config
 
-		smartContracts, err := conf.SmartContractsInfo()
-		if err != nil {
-			return fmt.Errorf("failed getting smart contract informations: %w", err)
-		}
-
 		asset := conf.GetSmartContractToken(ethereumAssetDepositFlags.assetSymbol)
 		if asset == nil {
 			return fmt.Errorf("failed to get non existing asset: %q", ethereumAssetDepositFlags.assetSymbol)
+		}
+
+		var (
+			networkAddress string
+			smartContracts *types.SmartContractsInfo
+		)
+		switch ethereumAssetDepositFlags.bridge {
+		case "primary":
+			networkAddress = conf.Network.Ethereum.Endpoint
+			smartContracts, err = conf.PrimarySmartContractsInfo()
+			if err != nil {
+				return fmt.Errorf("failed getting primary smart contract informations: %w", err)
+			}
+		case "secondary":
+			networkAddress = conf.Network.SecondaryEthereum.Endpoint
+			smartContracts, err = conf.SecondarySmartContractsInfo()
+			if err != nil {
+				return fmt.Errorf("failed getting secondary smart contract informations: %w", err)
+			}
 		}
 
 		depositArgs := ethereumAssetDepositOrStakeArgs{
@@ -71,7 +88,7 @@ var ethereumAssetDepositCmd = &cobra.Command{
 			ownerPrivateKey: smartContracts.EthereumOwner.Private,
 			bridgeAddress:   smartContracts.ERC20Bridge.EthereumAddress,
 			assetAddress:    asset.EthereumAddress,
-			networkAddress:  conf.Network.Ethereum.Endpoint,
+			networkAddress:  networkAddress,
 		}
 
 		return ethereumAssetDeposit(cmd.Context(), depositArgs)

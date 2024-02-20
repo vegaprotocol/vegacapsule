@@ -104,31 +104,67 @@ var ethereumMultisigSetupCmd = &cobra.Command{
 			return networkNotRunningErr("ethereum multisig init")
 		}
 
-		smartcontracts, err := netState.Config.SmartContractsInfo()
+		ctx := context.Background()
+
+		validatorsKeyPairs := getSigners(netState.GeneratedServices.ListValidators())
+
+		// Primary bridge
+
+		primarySmartContracts, err := netState.Config.PrimarySmartContractsInfo()
 		if err != nil {
-			return fmt.Errorf("failed getting smart contract informations: %w", err)
+			return fmt.Errorf("failed getting primary smart contract informations: %w", err)
 		}
 
-		chainID, err := strconv.Atoi(netState.Config.Network.Ethereum.ChainID)
+		primaryChainID, err := strconv.Atoi(netState.Config.Network.Ethereum.ChainID)
 		if err != nil {
 			return err
 		}
 
-		ctx := context.Background()
-		client, err := ethereum.NewEthereumMultisigClient(ctx, ethereum.EthereumMultisigClientParameters{
+		primaryClient, err := ethereum.NewEthereumMultisigClient(ctx, ethereum.EthereumMultisigClientParameters{
 			VegaBinary: *netState.Config.VegaBinary,
 			VegaHome:   utils.VegaNodeHomePath(homePath, 0),
 
-			ChainID:            chainID,
+			ChainID:            primaryChainID,
 			EthereumAddress:    netState.Config.Network.Ethereum.Endpoint,
-			SmartcontractsInfo: *smartcontracts,
+			SmartContractsInfo: *primarySmartContracts,
 		})
 		if err != nil {
-			return fmt.Errorf("failed to create ethereum client: %w", err)
+			return fmt.Errorf("failed to create primary ethereum client: %w", err)
 		}
 
-		validatorsKeyPairs := getSigners(netState.GeneratedServices.ListValidators())
-		return client.InitMultisig(ctx, *smartcontracts, validatorsKeyPairs)
+		if err := primaryClient.InitMultisig(ctx, *primarySmartContracts, validatorsKeyPairs); err != nil {
+			return fmt.Errorf("failed to init primary multisig smart contract: %w", err)
+		}
+
+		// Secondary bridge
+
+		secondarySmartContracts, err := netState.Config.SecondarySmartContractsInfo()
+		if err != nil {
+			return fmt.Errorf("failed getting primary smart contract informations: %w", err)
+		}
+
+		secondaryChainID, err := strconv.Atoi(netState.Config.Network.SecondaryEthereum.ChainID)
+		if err != nil {
+			return err
+		}
+
+		secondaryClient, err := ethereum.NewEthereumMultisigClient(ctx, ethereum.EthereumMultisigClientParameters{
+			VegaBinary: *netState.Config.VegaBinary,
+			VegaHome:   utils.VegaNodeHomePath(homePath, 0),
+
+			ChainID:            secondaryChainID,
+			EthereumAddress:    netState.Config.Network.SecondaryEthereum.Endpoint,
+			SmartContractsInfo: *secondarySmartContracts,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to create secondary ethereum client: %w", err)
+		}
+
+		if err := secondaryClient.InitMultisig(ctx, *secondarySmartContracts, validatorsKeyPairs); err != nil {
+			return fmt.Errorf("failed to init secondary multisig smart contract: %w", err)
+		}
+
+		return nil
 	},
 }
 
