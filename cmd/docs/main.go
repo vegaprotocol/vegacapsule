@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"code.vegaprotocol.io/vegacapsule/docsgenerator"
+
 	"github.com/cometbft/cometbft/libs/os"
 )
 

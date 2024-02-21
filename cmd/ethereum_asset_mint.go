@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"math/big"
 
-	vgethereum "code.vegaprotocol.io/shared/libs/ethereum"
+	vgethereum "code.vegaprotocol.io/vegacapsule/libs/ethereum"
 	"code.vegaprotocol.io/vegacapsule/state"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
 )
@@ -19,13 +20,11 @@ type ethereumAssetMintArgs struct {
 	networkAddress  string
 }
 
-var (
-	ethereumAssetMintFlags = struct {
-		toAddress   string
-		assetSymbol string
-		amount      int64
-	}{}
-)
+var ethereumAssetMintFlags = struct {
+	toAddress   string
+	assetSymbol string
+	amount      int64
+}{}
 
 func init() {
 	ethereumAssetMintCmd.Flags().StringVar(&ethereumAssetMintFlags.assetSymbol, "asset-symbol", "", "symbol of the asset to be minted")

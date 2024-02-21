@@ -48,7 +48,7 @@ func (vg ConfigGenerator) Initiate(
 
 	nodeWalletPassFilePath := path.Join(nodeDir, "node-vega-wallet-pass.txt")
 
-	if err := os.WriteFile(nodeWalletPassFilePath, []byte(nodeWalletPass), 0644); err != nil {
+	if err := os.WriteFile(nodeWalletPassFilePath, []byte(nodeWalletPass), 0o644); err != nil {
 		return nil, fmt.Errorf("failed to write node wallet passphrase to file: %w", err)
 	}
 
@@ -114,11 +114,11 @@ func (vg ConfigGenerator) initiateValidatorWallets(
 	walletPassFilePath := path.Join(nodeDir, "vega-wallet-pass.txt")
 	ethereumPassFilePath := path.Join(nodeDir, "ethereum-vega-wallet-pass.txt")
 
-	if err := os.WriteFile(walletPassFilePath, []byte(vegaWalletPass), 0644); err != nil {
+	if err := os.WriteFile(walletPassFilePath, []byte(vegaWalletPass), 0o644); err != nil {
 		return nil, fmt.Errorf("failed to write wallet passphrase to file: %w", err)
 	}
 
-	if err := os.WriteFile(ethereumPassFilePath, []byte(ethereumWalletPass), 0644); err != nil {
+	if err := os.WriteFile(ethereumPassFilePath, []byte(ethereumWalletPass), 0o644); err != nil {
 		return nil, fmt.Errorf("failed to write ethereum wallet passphrase to file: %w", err)
 	}
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"code.vegaprotocol.io/vegacapsule/types"
+
 	"github.com/hashicorp/nomad/api"
 )
 

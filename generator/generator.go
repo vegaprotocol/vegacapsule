@@ -1,6 +1,12 @@
 package generator
 
 import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+	"path/filepath"
+
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/generator/datanode"
 	"code.vegaprotocol.io/vegacapsule/generator/faucet"
@@ -11,12 +17,8 @@ import (
 	"code.vegaprotocol.io/vegacapsule/generator/wallet"
 	"code.vegaprotocol.io/vegacapsule/types"
 	"code.vegaprotocol.io/vegacapsule/utils"
-	"context"
-	"fmt"
+
 	"github.com/otiai10/copy"
-	"log"
-	"os"
-	"path/filepath"
 )
 
 type nodeSets struct {

@@ -7,6 +7,7 @@ import (
 
 	"code.vegaprotocol.io/vegacapsule/nomad"
 	"code.vegaprotocol.io/vegacapsule/state"
+
 	"github.com/spf13/cobra"
 )
 

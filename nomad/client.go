@@ -8,6 +8,7 @@ import (
 
 	"code.vegaprotocol.io/vegacapsule/probes"
 	"code.vegaprotocol.io/vegacapsule/types"
+
 	"github.com/hashicorp/nomad/api"
 )
 

@@ -7,12 +7,11 @@ import (
 
 	"code.vegaprotocol.io/vegacapsule/nomad"
 	"code.vegaprotocol.io/vegacapsule/state"
+
 	"github.com/spf13/cobra"
 )
 
-var (
-	stopNodesOnly bool
-)
+var stopNodesOnly bool
 
 var netStopCmd = &cobra.Command{
 	Use:   "stop",

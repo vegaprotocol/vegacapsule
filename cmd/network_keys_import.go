@@ -9,6 +9,7 @@ import (
 
 	"code.vegaprotocol.io/vegacapsule/importer"
 	"code.vegaprotocol.io/vegacapsule/state"
+
 	"github.com/spf13/cobra"
 )
 
@@ -48,9 +49,7 @@ Example content of the file with data to import:
 	...
   ]`
 
-var (
-	keysFilePath string
-)
+var keysFilePath string
 
 var netKeysImportCmd = &cobra.Command{
 	Use:          "import",

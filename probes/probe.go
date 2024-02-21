@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"code.vegaprotocol.io/vegacapsule/types"
+
 	"golang.org/x/sync/errgroup"
 )
 

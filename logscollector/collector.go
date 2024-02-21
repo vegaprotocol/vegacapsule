@@ -116,7 +116,6 @@ func (lc Collector) collectLogs(ctx context.Context, logFilePath string) error {
 		case <-stopChan:
 			return nil
 		}
-
 	}
 }
 

@@ -10,6 +10,7 @@ import (
 	"code.vegaprotocol.io/vegacapsule/state"
 	"code.vegaprotocol.io/vegacapsule/types"
 	"code.vegaprotocol.io/vegacapsule/utils"
+
 	"github.com/spf13/cobra"
 )
 

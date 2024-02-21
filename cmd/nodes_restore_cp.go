@@ -8,10 +8,11 @@ import (
 	"strconv"
 	"strings"
 
-	vspaths "code.vegaprotocol.io/shared/paths"
+	vspaths "code.vegaprotocol.io/vega/paths"
 	"code.vegaprotocol.io/vegacapsule/commands"
 	"code.vegaprotocol.io/vegacapsule/state"
 	"code.vegaprotocol.io/vegacapsule/types"
+
 	"github.com/BurntSushi/toml"
 	"github.com/spf13/cobra"
 )

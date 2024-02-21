@@ -21,9 +21,7 @@ const (
 	nomadBinaryVersion = "1.3.14"
 )
 
-var (
-	nomadBinaryName = fmt.Sprintf("%s_%s", nomadBinName, nomadBinaryVersion)
-)
+var nomadBinaryName = fmt.Sprintf("%s_%s", nomadBinName, nomadBinaryVersion)
 
 func nomadBinaryPath() (string, error) {
 	homeDir, err := capsuleHome()
@@ -89,7 +87,7 @@ func installNomadBinary(localBinPath, binInstallPath string) (err error) {
 	}
 	defer binFile.Close()
 
-	err = os.Chmod(localBinPath, 0755)
+	err = os.Chmod(localBinPath, 0o755)
 	if err != nil {
 		return fmt.Errorf("failed to change permission for file %q: %w", localBinPath, err)
 	}

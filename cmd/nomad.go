@@ -5,6 +5,7 @@ import (
 	"os"
 
 	nmrunner "code.vegaprotocol.io/vegacapsule/nomad/runner"
+
 	"github.com/spf13/cobra"
 )
 

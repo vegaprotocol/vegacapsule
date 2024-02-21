@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"math/big"
 
-	vgethereum "code.vegaprotocol.io/shared/libs/ethereum"
+	vgethereum "code.vegaprotocol.io/vegacapsule/libs/ethereum"
 	"code.vegaprotocol.io/vegacapsule/state"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
 )
@@ -20,13 +21,11 @@ type ethereumAssetDepositOrStakeArgs struct {
 	networkAddress  string
 }
 
-var (
-	ethereumAssetDepositFlags = struct {
-		vegaPubKey  string
-		assetSymbol string
-		amount      int64
-	}{}
-)
+var ethereumAssetDepositFlags = struct {
+	vegaPubKey  string
+	assetSymbol string
+	amount      int64
+}{}
 
 func init() {
 	ethereumAssetDepositCmd.Flags().StringVar(&ethereumAssetDepositFlags.assetSymbol, "asset-symbol", "", "symbol of the asset to be deposited")

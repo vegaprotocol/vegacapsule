@@ -1,0 +1,40 @@
+[run]
+allow-parallel-runners = true
+print-linter-name = true
+timeout = '15m0s'
+
+[output]
+print-issued-lines = true
+format = "colored-line-number"
+
+[issues]
+max-issues-per-linter = 0
+max-same-issues = 0
+exclude = [
+    "Error return value of .(.*MarkFlagRequired). is not checked"
+]
+
+[linters]
+disable-all = true
+enable = [
+    "errcheck",
+    "gosimple",
+    "govet",
+    "ineffassign",
+    "staticcheck",
+    "typecheck",
+    "unused",
+    "nilerr",
+    "misspell",
+    "gci"
+]
+
+[linters-settings.gci]
+custom-order = true
+sections = [
+    "standard", # Standard section: captures all standard packages.
+    "prefix(code.vegaprotocol.io/vega)", # Custom section: groups all imports with the specified Prefix.
+    "default", # Default section: contains all imports that could not be matched to another section type.
+    "blank", # Blank section: contains all blank imports. This section is not present unless explicitly enabled.
+    "dot",
+]

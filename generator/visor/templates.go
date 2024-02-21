@@ -7,9 +7,10 @@ import (
 	"os"
 	"text/template"
 
-	"code.vegaprotocol.io/shared/paths"
+	"code.vegaprotocol.io/vega/paths"
 	vsconfig "code.vegaprotocol.io/vega/visor/config"
 	"code.vegaprotocol.io/vegacapsule/types"
+
 	"github.com/BurntSushi/toml"
 	"github.com/Masterminds/sprig"
 	"github.com/imdario/mergo"

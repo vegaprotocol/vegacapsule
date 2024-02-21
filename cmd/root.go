@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"code.vegaprotocol.io/vegacapsule/config"
+
 	"github.com/spf13/cobra"
 )
 

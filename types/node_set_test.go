@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"code.vegaprotocol.io/vegacapsule/types"
+
 	"github.com/stretchr/testify/assert"
 )
 

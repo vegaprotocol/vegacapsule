@@ -8,6 +8,7 @@ import (
 	"code.vegaprotocol.io/vegacapsule/installer"
 	"code.vegaprotocol.io/vegacapsule/state"
 	"code.vegaprotocol.io/vegacapsule/types"
+
 	"github.com/spf13/cobra"
 )
 

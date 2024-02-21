@@ -10,6 +10,7 @@ import (
 	"code.vegaprotocol.io/vegacapsule/nomad"
 	"code.vegaprotocol.io/vegacapsule/state"
 	"code.vegaprotocol.io/vegacapsule/types"
+
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
 )
@@ -89,7 +90,7 @@ var nodesAddCmd = &cobra.Command{
 
 		fmt.Println(string(outputStringJSON))
 		if resultsOutPath != "" {
-			if err := os.WriteFile(resultsOutPath, outputStringJSON, 0666); err != nil {
+			if err := os.WriteFile(resultsOutPath, outputStringJSON, 0o666); err != nil {
 				return fmt.Errorf("failed to save results about new nodes into the file: %w", err)
 			}
 		}

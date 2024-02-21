@@ -30,7 +30,6 @@ type ConfigGenerator struct {
 
 func NewConfigGenerator(conf *config.Config, generatedNodeSets []types.NodeSet) (*ConfigGenerator, error) {
 	homeDir, err := filepath.Abs(path.Join(*conf.OutputDir, conf.DataNodePrefix))
-
 	if err != nil {
 		return nil, err
 	}

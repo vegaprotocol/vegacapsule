@@ -8,6 +8,7 @@ import (
 	"code.vegaprotocol.io/vegacapsule/generator/nomad"
 	"code.vegaprotocol.io/vegacapsule/generator/wallet"
 	"code.vegaprotocol.io/vegacapsule/types"
+
 	"golang.org/x/sync/errgroup"
 )
 
