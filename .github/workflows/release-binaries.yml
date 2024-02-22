@@ -14,8 +14,8 @@ jobs:
       contents: write
     strategy:
       matrix:
-        arch: [amd64, arm64]
-        os: [linux, darwin]
+        arch: [ amd64, arm64 ]
+        os: [ linux, darwin ]
     env:
       GOOS: ${{ matrix.os }}
       GOARCH: ${{ matrix.arch }}
@@ -31,7 +31,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           ref: ${{ inputs.tag }}
-      
+
       - name: Run tests
         if: ${{ env.GOARCH == 'amd64' && env.GOOS == 'linux' }}
         run: go test -v ./...

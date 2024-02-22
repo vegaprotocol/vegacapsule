@@ -27,6 +27,7 @@ docker version
 ## Quick start
 
 1. Install vegacapsule
+
 - Clone the [Vega Capsule](https://github.com/vegaprotocol/vegacapsule) repository
 
 ```bash
@@ -34,27 +35,33 @@ git clone git@github.com:vegaprotocol/vegacapsule.git
 git config --global url."git@github.com:vegaprotocol".insteadOf "https://github.com/vegaprotocol"
 cd vegacapsule
 ```
+
 - Build Capsule from source
+
 ```bash
 go install
 ```
+
 - Validate Capsule installation
+
 ```bash
 vegacapsule --help
 ```
 
 2. Start Nomad
+
 - Nomad lets you manage services running locally, including executables and Docker images. It comes built in with the Vega Capsule binaries.
 
 ```bash
 vegacapsule nomad
 ```
 
-> ⚠️ Information: 
+> ⚠️ Information:
 > You may need to set the `GOBIN` environment variable to start Nomad. If you encounter an error, see the <a href="#common-issues">Common Issues</a> for guidance.
 
 3. Bootstrap with auto-installed dependencies
-- Bootstrap with auto-install will automatically download the required Vega binaries during the bootstrapping process. 
+
+- Bootstrap with auto-install will automatically download the required Vega binaries during the bootstrapping process.
 
 - Use **--install** to install the [hard coded](https://github.com/vegaprotocol/vegacapsule/blob/main/cmd/install_dependencies.go) `latestReleaseTag` of Vega:
 
@@ -93,11 +100,12 @@ Capsule is using Go's [text/template](https://pkg.go.dev/text/template) templati
 The installed software comes with a number of defaults that can be used, these are in the [node set templates](./node_set_templates) directory.
 
 ## Using Vega Capsule
+
 In order to start using Vega Capsule to create assets and markets, you'll need to set up the following: Ethereum smart contracts and a Vega Wallet.
 
 ### Commands for the Ethereum network
 
-In order for the protocol to authorise function executions, such as deposits and withdrawals, the validators need to be set as signers and the thresholds must be set on the [multisig smart contract](https://github.com/vegaprotocol/MultisigControl#readme). 
+In order for the protocol to authorise function executions, such as deposits and withdrawals, the validators need to be set as signers and the thresholds must be set on the [multisig smart contract](https://github.com/vegaprotocol/MultisigControl#readme).
 
 1. Set up the multisig smart contract
 
@@ -112,10 +120,9 @@ The command will execute the following procedures:
 1. Remove the contract owner from the signers list
 1. Set the signature threshold to 667
 
-
 ### Vega Wallet (SECTION NOT COMPLETE)
 
-The information to interact with the vega capsule wallet including validator self-staking is still in progress. 
+The information to interact with the vega capsule wallet including validator self-staking is still in progress.
 
 Until this section is complete we would advise checking out the [CLI wallet documentation](https://docs.vega.xyz/mainnet/tools/vega-wallet/cli-wallet).
 
@@ -124,7 +131,7 @@ Until this section is complete we would advise checking out the [CLI wallet docu
 All available assets can be listed using the Data Node REST API: `$DATA_NODE_URL/assets`.
 
 > ⚠️ Information:
-> The following commands are only for Ethereum assets. 
+> The following commands are only for Ethereum assets.
 
 #### Examples
 
@@ -154,6 +161,7 @@ Confirm an asset has been deposited by querying the Data Node REST API: `$DATA_N
 Confirm an asset has been staked by querying the Data Node REST API: `$DATA_NODE_URL/parties/$PUB_KEY/stake`
 
 ## Command help
+
 You can see all available commands by calling the `vegacapsule --help` command.
 
 ### Command examples
@@ -181,7 +189,8 @@ vegacapsule network destroy --home-path=/var/tmp/veganetwork/testnetwork
 ## Troubleshooting
 
 ### Logs
-Vega Capsule captures the logs from the nodes running on the network. These can be used to investigate what is happening on the network. Should there be an issue with Vega Capsule, supply the logs from the time of the incident with the issue raised. 
+
+Vega Capsule captures the logs from the nodes running on the network. These can be used to investigate what is happening on the network. Should there be an issue with Vega Capsule, supply the logs from the time of the incident with the issue raised.
 
 Logs from all jobs are stored by default to `$CAPSULE_HOME/logs`. There is a CLI available to access and read them.
 
@@ -204,6 +213,7 @@ vegacapsule logs --help
 ```
 
 ### Common issues
+
 This details commonly seen issues users may face when setting up a Vega Capsule network
 
 #### Missing the `GOBIN` environment variable
@@ -229,7 +239,6 @@ Error: failed to start network: failed to start network: failed to start vega ne
 ```
 
 To solve it, ensure that you are on the `main` branch. This can be checked with the command `git branch`.
-
 
 #### Updating documentation
 

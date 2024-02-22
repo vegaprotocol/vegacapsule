@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/fatih/structtag"
-	yaml "gopkg.in/yaml.v3"
+	"gopkg.in/yaml.v3"
 )
 
 func tabToSpace(input string) string {

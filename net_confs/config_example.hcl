@@ -260,17 +260,17 @@ network "testnet" {
 
 
   node_set "validators" {
-    count = 3
-    mode = "validator"
-    node_wallet_pass = "n0d3w4ll3t-p4ssphr4e3"
-    vega_wallet_pass = "w4ll3t-p4ssphr4e3"
+    count                = 3
+    mode                 = "validator"
+    node_wallet_pass     = "n0d3w4ll3t-p4ssphr4e3"
+    vega_wallet_pass     = "w4ll3t-p4ssphr4e3"
     ethereum_wallet_pass = "ch41nw4ll3t-3th3r3um-p4ssphr4e3"
 
     config_templates {
 
-// ============================
-// ===== VegaNode Config ======
-// ============================
+      // ============================
+      // ===== VegaNode Config ======
+      // ============================
 
       vega = <<-EOT
 [Admin]
@@ -302,11 +302,11 @@ network "testnet" {
 		PerNBlocks = 1
 EOT
 
-// ============================
-// ==== Tendermint Config =====
-// ============================
+      // ============================
+      // ==== Tendermint Config =====
+      // ============================
 
-	  tendermint = <<-EOT
+      tendermint = <<-EOT
 log_level = "info"
 
 proxy_app = "tcp://127.0.0.1:266{{.NodeNumber}}8"
@@ -342,15 +342,15 @@ EOT
   }
 
   node_set "full" {
-    count = 1
-    mode = "full"
-	use_data_node = true
+    count         = 1
+    mode          = "full"
+    use_data_node = true
 
     config_templates {
 
-// ============================
-// ===== VegaNode Config ======
-// ============================
+      // ============================
+      // ===== VegaNode Config ======
+      // ============================
 
       vega = <<-EOT
 [Admin]
@@ -387,9 +387,9 @@ EOT
     Enabled = true
 EOT
 
-// ============================
-// ===== DataNode Config ======
-// ============================
+      // ============================
+      // ===== DataNode Config ======
+      // ============================
 
       data_node = <<-EOT
 
@@ -427,11 +427,11 @@ GatewayEnabled = true
 
 EOT
 
-// ============================
-// ==== Tendermint Config =====
-// ============================
+      // ============================
+      // ==== Tendermint Config =====
+      // ============================
 
-	  tendermint = <<-EOT
+      tendermint = <<-EOT
 log_level = "info"
 
 proxy_app = "tcp://127.0.0.1:266{{.NodeNumber}}8"

@@ -3,28 +3,35 @@
 ## Unreleased (v0.5.2)
 
 ### 🚨 Breaking changes
+
 - [](https://github.com/vegaprotocol/vegacapsule/issues/xxxx) -
 
 ### 🗑️ Deprecation
+
 - [](https://github.com/vegaprotocol/vegacapsule/issues/xxxx) -
 
 ### 🛠 Improvements
+
 - [384](https://github.com/vegaprotocol/vegacapsule/issues/384) Add command for stoping/starting a specific job
 - [384](https://github.com/vegaprotocol/vegacapsule/issues/397) Add genesis_template_url parameter
 
 ### 🐛 Fixes
+
 - [394](https://github.com/vegaprotocol/vegacapsule/pull/394) Respect the `--do-not-stop-on-failure` flag
 - [407](https://github.com/vegaprotocol/vegacapsule/pull/407) Create nomad install directory if missing
 
 ## v0.5.1
 
 ### 🚨 Breaking changes
+
 - [](https://github.com/vegaprotocol/vegacapsule/issues/xxxx) -
 
 ### 🗑️ Deprecation
+
 - [](https://github.com/vegaprotocol/vegacapsule/issues/xxxx) -
 
 ### 🛠 Improvements
+
 - [164](https://github.com/vegaprotocol/vegacapsule/issues/164) Update contributor information
 - [145](https://github.com/vegaprotocol/vegacapsule/issues/145) Update Nomad version and allow Nomad to be installed to PATH
 - [134](https://github.com/vegaprotocol/vegacapsule/issues/134) Add support for Clef and allow templating of some node set config fields
@@ -67,6 +74,7 @@
 - [367](https://github.com/vegaprotocol/vegacapsule/pull/367) Use proper JSON foramt to report new nodes details in the `vegacapsule nodes add` command, allow to save those details in the file
 
 ### 🐛 Fixes
+
 - [167](https://github.com/vegaprotocol/vegacapsule/issues/167) Fix validators filter in tendermint generator
 - [188](https://github.com/vegaprotocol/vegacapsule/issues/188) Support new changes for Ethereum RPC endpoint in Vega configuration
 - [209](https://github.com/vegaprotocol/vegacapsule/pull/209) Save tendermint template after merge to given file
@@ -84,16 +92,18 @@
 - [344](https://github.com/vegaprotocol/vegacapsule/pull/344) - Fix IPSF peers for Data Node template
 - [342](https://github.com/vegaprotocol/vegacapsule/pull/342) - Stop failed jobs
 
-
 ## v0.1.0
 
 ### 🚨 Breaking changes
+
 - [](https://github.com/vegaprotocol/vegacapsule/issues/xxxx) -
 
 ### 🗑️ Deprecation
+
 - [](https://github.com/vegaprotocol/vegacapsule/issues/xxxx) -
 
 ### 🛠 Improvements
+
 - [43](https://github.com/vegaprotocol/vegacapsule/issues/39) Add support to download nomad on Apple M1 computers
 - [89](https://github.com/vegaprotocol/vegacapsule/issues/89) Add ability to set environment variables for docker jobs
 - [88](https://github.com/vegaprotocol/vegacapsule/issues/88) Add ability to map ports for docker jobs

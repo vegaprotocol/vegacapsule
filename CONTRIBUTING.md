@@ -8,9 +8,9 @@ Please read the [Code of Conduct](./CODE_OF_CONDUCT.md); it is expected all proj
 
 ### Open development
 
-The project development follows the Vega Protocol [engineering roadmap](https://github.com/vegaprotocol/roadmap). All engineering work happens directly in GitHub. Bugs committed to be resolved are triaged, assigned to a developer and are in the current, or next, iteration. This can be seen on the [team project board](https://github.com/orgs/vegaprotocol/projects/106/views/4). 
+The project development follows the Vega Protocol [engineering roadmap](https://github.com/vegaprotocol/roadmap). All engineering work happens directly in GitHub. Bugs committed to be resolved are triaged, assigned to a developer and are in the current, or next, iteration. This can be seen on the [team project board](https://github.com/orgs/vegaprotocol/projects/106/views/4).
 
-Other bugs are fair game, however, if you are not familiar with the project get up-to-speed with the: 
+Other bugs are fair game, however, if you are not familiar with the project get up-to-speed with the:
 
 - [White papers](https://vega.xyz/papers/)
 - [Protocol specifications](https://github.com/vegaprotocol/specs)
@@ -40,7 +40,7 @@ This flow allows the project team to know that an update is ready to be integrat
 
 #### Adding tests
 
-The aim for overall test coverage to go *up*. 
+The aim for overall test coverage to go *up*.
 
 All software development work should be tested locally and at a bare minimum unit tests and basic end-to-end tests written, more information can be found in the team [definition of done](./DEFINITION_OF_DONE.md).
 

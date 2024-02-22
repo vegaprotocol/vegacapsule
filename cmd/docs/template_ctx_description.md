@@ -10,6 +10,7 @@ and then used in the template. These template contexts are documented below.
 There are some basic templates provided by Capsule and used by some of the provided configurations in the *net_confs* folder in the Vega Capsule GitHub repo.
 
 ## Template tool
+
 Capsule includes a tool to test these templates before they get used in [network config](config.md). Plese check `vegacapsule template --help` for more information.
 
 You can test the *template tool* by using some of the provided default templates after the network has been generated.

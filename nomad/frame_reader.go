@@ -75,7 +75,7 @@ func (f *FrameReader) Read(p []byte) (n int, err error) {
 
 			// Prepend every log line
 			buff := bytes.NewBuffer([]byte{})
-			scanner := bufio.NewScanner(bytes.NewReader(frame.Data)) //nolint
+			scanner := bufio.NewScanner(bytes.NewReader(frame.Data)) // nolint
 			for scanner.Scan() {
 				buff.Write([]byte(f.frame.Name))
 				buff.Write([]byte(": "))
@@ -86,7 +86,7 @@ func (f *FrameReader) Read(p []byte) (n int, err error) {
 			f.frameBytes = buff.Bytes()
 
 			// Store the total offset into the file
-			f.byteOffset = int(f.frame.Offset) //nolint
+			f.byteOffset = int(f.frame.Offset) // nolint
 		case <-unblock:
 			return 0, nil
 		case err := <-f.errCh:
