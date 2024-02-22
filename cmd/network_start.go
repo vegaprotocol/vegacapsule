@@ -8,12 +8,11 @@ import (
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/nomad"
 	"code.vegaprotocol.io/vegacapsule/state"
+
 	"github.com/spf13/cobra"
 )
 
-var (
-	doNotStopAllJobsOnFailure bool
-)
+var doNotStopAllJobsOnFailure bool
 
 var netStartCmd = &cobra.Command{
 	Use:   "start",

@@ -6,6 +6,7 @@ import (
 	"text/template"
 
 	"code.vegaprotocol.io/vegacapsule/types"
+
 	"github.com/Masterminds/sprig"
 )
 

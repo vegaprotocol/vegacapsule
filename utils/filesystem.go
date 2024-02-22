@@ -69,7 +69,7 @@ func DirEmpty(path string, ignore ...string) (bool, error) {
 
 // Create file creates file and it's path if not exists.
 func CreateFile(p string) (*os.File, error) {
-	if err := os.MkdirAll(filepath.Dir(p), 0770); err != nil {
+	if err := os.MkdirAll(filepath.Dir(p), 0o770); err != nil {
 		return nil, err
 	}
 	return os.Create(p)
@@ -81,7 +81,7 @@ func CopyFile(srcFile, dstFile string) error {
 		return fmt.Errorf("failed to read file %q: %w", srcFile, err)
 	}
 
-	if err := os.WriteFile(dstFile, input, 0644); err != nil {
+	if err := os.WriteFile(dstFile, input, 0o644); err != nil {
 		return fmt.Errorf("failed to write to file %q: %w", dstFile, err)
 	}
 
@@ -135,7 +135,7 @@ func CpAndChmodxFile(source, destination string) error {
 		return fmt.Errorf("failed to copy file %q to %q: %w", source, destination, err)
 	}
 
-	if err := os.Chmod(destination, 0700); err != nil {
+	if err := os.Chmod(destination, 0o700); err != nil {
 		return fmt.Errorf("failed to chmod 0700 file %q: %w", destination, err)
 	}
 

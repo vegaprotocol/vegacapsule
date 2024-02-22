@@ -10,6 +10,7 @@ import (
 	"syscall"
 
 	"code.vegaprotocol.io/vegacapsule/logscollector"
+
 	"github.com/spf13/cobra"
 )
 

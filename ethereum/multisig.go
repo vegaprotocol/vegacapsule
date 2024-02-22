@@ -55,7 +55,6 @@ type EthereumMultisigClientParameters struct {
 
 func NewEthereumMultisigClient(ctx context.Context, params EthereumMultisigClientParameters) (*EthereumMultisigClient, error) {
 	client, err := ethclient.DialContext(ctx, params.EthereumAddress)
-
 	if err != nil {
 		return nil, fmt.Errorf("failed creating ethereum client: %w", err)
 	}

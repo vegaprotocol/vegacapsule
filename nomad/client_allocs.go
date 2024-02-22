@@ -55,7 +55,6 @@ func (ai allocationInfo) finishedWithoutError() bool {
 	return strings.ToLower(e.Type) == Terminated &&
 		e.ExitCode == 0 &&
 		!e.FailsTask
-
 }
 
 // lastEventMessageContains lowercase the message and check if message contains given text.

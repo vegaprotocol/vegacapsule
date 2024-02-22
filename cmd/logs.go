@@ -5,6 +5,7 @@ import (
 
 	"code.vegaprotocol.io/vegacapsule/logscollector"
 	"code.vegaprotocol.io/vegacapsule/state"
+
 	"github.com/spf13/cobra"
 )
 

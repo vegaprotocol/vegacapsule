@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"log"
 
-	"code.vegaprotocol.io/vegacapsule/types"
-	"code.vegaprotocol.io/vegacapsule/utils"
-	"github.com/spf13/cobra"
-
 	datanodegen "code.vegaprotocol.io/vegacapsule/generator/datanode"
 	genesisgen "code.vegaprotocol.io/vegacapsule/generator/genesis"
 	tmgen "code.vegaprotocol.io/vegacapsule/generator/tendermint"
 	vegagen "code.vegaprotocol.io/vegacapsule/generator/vega"
+	"code.vegaprotocol.io/vegacapsule/types"
+	"code.vegaprotocol.io/vegacapsule/utils"
+
+	"github.com/spf13/cobra"
 )
 
 type templateKindType string

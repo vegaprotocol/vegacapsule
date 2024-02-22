@@ -13,6 +13,7 @@ import (
 
 	"code.vegaprotocol.io/vegacapsule/types"
 	"code.vegaprotocol.io/vegacapsule/utils"
+
 	"github.com/nxadm/tail"
 	"golang.org/x/sync/errgroup"
 )

@@ -16,7 +16,7 @@ func importEthereumKey(nodeSet types.NodeSet, ethereumPrivateKey string) (*ether
 	if err != nil {
 		return nil, fmt.Errorf("failed to import private ethereum key into node keystore: %w", err)
 	}
-	
+
 	log.Println("... adding ethereum wallet to the nodewallet")
 	ethImportArgs := []string{
 		"nodewallet", "import", "--force",

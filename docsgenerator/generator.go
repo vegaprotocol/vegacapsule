@@ -10,9 +10,7 @@ import (
 
 const optionalTag = "optional"
 
-var (
-	mapRegex = regexp.MustCompile(`map\[(.*)\](.*)`)
-)
+var mapRegex = regexp.MustCompile(`map\[(.*)\](.*)`)
 
 type TypeDocGenerator struct {
 	fileTypes map[string]docTypeWithFileContent

@@ -5,19 +5,18 @@ import (
 	"fmt"
 	"math/big"
 
-	vgethereum "code.vegaprotocol.io/shared/libs/ethereum"
+	vgethereum "code.vegaprotocol.io/vegacapsule/libs/ethereum"
 	"code.vegaprotocol.io/vegacapsule/state"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
 )
 
-var (
-	ethereumAssetStakeFlags = struct {
-		vegaPubKey  string
-		assetSymbol string
-		amount      int64
-	}{}
-)
+var ethereumAssetStakeFlags = struct {
+	vegaPubKey  string
+	assetSymbol string
+	amount      int64
+}{}
 
 func init() {
 	ethereumAssetStakeCmd.Flags().StringVar(&ethereumAssetStakeFlags.assetSymbol, "asset-symbol", "", "symbol of the asset to be staked")

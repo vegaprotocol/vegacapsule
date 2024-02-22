@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	nodeDirPerm = 0755
+	nodeDirPerm = 0o755
 )
 
 type Peer struct {

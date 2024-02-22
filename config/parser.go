@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"code.vegaprotocol.io/vegacapsule/types"
+
 	"github.com/hashicorp/go-cty-funcs/crypto"
 	"github.com/hashicorp/go-cty-funcs/encoding"
 	"github.com/hashicorp/go-cty-funcs/uuid"
@@ -41,7 +42,6 @@ var envFunc = function.New(&function.Spec{
 })
 
 func newEvalContext(genServices cty.Value, homePath string) *hcl.EvalContext {
-
 	return &hcl.EvalContext{
 		Variables: map[string]cty.Value{
 			"generated":         genServices,

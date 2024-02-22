@@ -5,7 +5,6 @@ import (
 	"time"
 
 	vgtypes "github.com/ethereum/go-ethereum/core/types"
-
 	"github.com/spf13/cobra"
 )
 

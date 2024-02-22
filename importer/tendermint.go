@@ -11,6 +11,7 @@ import (
 	tmgen "code.vegaprotocol.io/vegacapsule/generator/tendermint"
 	"code.vegaprotocol.io/vegacapsule/types"
 	"code.vegaprotocol.io/vegacapsule/utils"
+
 	"github.com/tomwright/dasel"
 	"github.com/tomwright/dasel/storage"
 )

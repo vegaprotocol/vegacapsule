@@ -11,10 +11,10 @@ import (
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/logscollector"
 	"code.vegaprotocol.io/vegacapsule/types"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/hashicorp/nomad/api"
 	"github.com/hashicorp/nomad/jobspec2"
+	"golang.org/x/sync/errgroup"
 )
 
 type JobRunner struct {
@@ -203,7 +203,6 @@ func (r *JobRunner) RunDockerJob(ctx context.Context, dc config.DockerConfig) (s
 		return "", fmt.Errorf("failed to run pre start job %q: %w", *job.ID, err)
 	}
 	return *job.ID, nil
-
 }
 
 func (r *JobRunner) RunExecJob(ctx context.Context, ec config.ExecConfig) (string, error) {

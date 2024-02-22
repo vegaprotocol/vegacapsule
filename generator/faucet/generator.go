@@ -8,10 +8,11 @@ import (
 	"path/filepath"
 	"text/template"
 
-	"code.vegaprotocol.io/shared/paths"
 	"code.vegaprotocol.io/vega/core/faucet"
+	"code.vegaprotocol.io/vega/paths"
 	"code.vegaprotocol.io/vegacapsule/config"
 	"code.vegaprotocol.io/vegacapsule/types"
+
 	"github.com/BurntSushi/toml"
 	"github.com/Masterminds/sprig"
 	"github.com/imdario/mergo"
@@ -78,7 +79,7 @@ func (cg *ConfigGenerator) Initiate(conf *config.FaucetConfig) (*types.Faucet, e
 	}
 
 	walletPassFilePath := path.Join(cg.homeDir, "faucet-wallet-pass.txt")
-	if err := os.WriteFile(walletPassFilePath, []byte(conf.Pass), 0644); err != nil {
+	if err := os.WriteFile(walletPassFilePath, []byte(conf.Pass), 0o644); err != nil {
 		return nil, fmt.Errorf("failed to write faucet wallet passphrase to file: %w", err)
 	}
 

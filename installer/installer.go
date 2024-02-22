@@ -12,6 +12,7 @@ import (
 	"sync"
 
 	"code.vegaprotocol.io/vegacapsule/utils"
+
 	"github.com/blang/semver"
 	"github.com/google/go-github/v43/github"
 	"golang.org/x/sync/errgroup"
@@ -149,7 +150,7 @@ func (i Installer) downloadAsset(ctx context.Context, asset asset, releaseTag st
 	}
 
 	// Make sure the file has executable perms
-	if err := os.Chmod(binPath, 0700); err != nil {
+	if err := os.Chmod(binPath, 0o700); err != nil {
 		return "", fmt.Errorf("failed to chmod 0700 file %q: %w", binPath, err)
 	}
 

@@ -7,13 +7,13 @@ import (
 	"os"
 	"text/template"
 
-	"code.vegaprotocol.io/shared/paths"
 	"code.vegaprotocol.io/vega/datanode/networkhistory/store"
+	"code.vegaprotocol.io/vega/paths"
 	"code.vegaprotocol.io/vegacapsule/types"
-	"github.com/Masterminds/sprig"
-	"github.com/imdario/mergo"
 
 	"github.com/BurntSushi/toml"
+	"github.com/Masterminds/sprig"
+	"github.com/imdario/mergo"
 )
 
 type IPSFPeer struct {

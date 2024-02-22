@@ -1,11 +1,13 @@
 package cmd
 
 import (
+	"context"
+	"fmt"
+
 	"code.vegaprotocol.io/vegacapsule/generator"
 	"code.vegaprotocol.io/vegacapsule/nomad"
 	"code.vegaprotocol.io/vegacapsule/state"
-	"context"
-	"fmt"
+
 	"github.com/spf13/cobra"
 )
 
