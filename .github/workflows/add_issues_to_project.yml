@@ -4,7 +4,7 @@ name: "Add Issues To Project Board"
 
 "on":
   issues:
-    types: [opened]
+    types: [ opened ]
 env:
   GH_TOKEN: ${{ secrets.GH_NEW_CARD_TO_PROJECT }}
   PROJECT_ID: ${{ secrets.CORE_PROJECT_ID }}

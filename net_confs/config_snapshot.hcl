@@ -10,8 +10,8 @@ network "testnet" {
   pre_start {
     docker_service "ganache-1" {
       image = "vegaprotocol/ganache:latest"
-      cmd = "ganache-cli"
-      args = [
+      cmd   = "ganache-cli"
+      args  = [
         "--blockTime", "1",
         "--chainId", "1440",
         "--networkId", "1441",
@@ -20,9 +20,9 @@ network "testnet" {
         "-m", "ozone access unlock valid olympic save include omit supply green clown session",
         "--db", "/app/ganache-db",
       ]
-	  static_port {
+      static_port {
         value = 8545
-        to = 8545
+        to    = 8545
       }
       auth_soft_fail = true
     }
@@ -261,17 +261,17 @@ network "testnet" {
   EOH
 
   node_set "validators" {
-    count = 4
-    mode = "validator"
-    node_wallet_pass = "n0d3w4ll3t-p4ssphr4e3"
-    vega_wallet_pass = "w4ll3t-p4ssphr4e3"
+    count                = 4
+    mode                 = "validator"
+    node_wallet_pass     = "n0d3w4ll3t-p4ssphr4e3"
+    vega_wallet_pass     = "w4ll3t-p4ssphr4e3"
     ethereum_wallet_pass = "ch41nw4ll3t-3th3r3um-p4ssphr4e3"
 
     config_templates {
 
-// ============================
-// ===== VegaNode Config ======
-// ============================
+      // ============================
+      // ===== VegaNode Config ======
+      // ============================
 
       vega = <<-EOT
 [Admin]
@@ -310,11 +310,11 @@ network "testnet" {
 	DBPath = ""
 EOT
 
-// ============================
-// ==== Tendermint Config =====
-// ============================
+      // ============================
+      // ==== Tendermint Config =====
+      // ============================
 
-	  tendermint = <<-EOT
+      tendermint = <<-EOT
 log_level = "info"
 
 proxy_app = "tcp://127.0.0.1:266{{.NodeNumber}}8"

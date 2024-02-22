@@ -1,4 +1,3 @@
-
 # Contributor Covenant Code of Conduct
 
 ## Our Pledge
@@ -31,10 +30,10 @@ Examples of unacceptable behaviour by participants include:
   address, without explicit permission
 * Other conduct which could reasonably be considered inappropriate in a
   professional setting
-  
+
 ## Vega Community Guidelines
 
-Examples of unacceptable behaviour by participants that breach both project and 
+Examples of unacceptable behaviour by participants that breach both project and
 regulatory guidelines around cryptographic tokens:
 
 * Token sales or price discussion
@@ -73,7 +72,7 @@ is deemed necessary and appropriate to the circumstances. The project team will 
 Further details of specific enforcement policies may be posted separately.
 
 Incidences of anyone breaching the community guidelines around cryptographic tokens
-will be reviewed, investigated and could result in material being removed from 
+will be reviewed, investigated and could result in material being removed from
 the discussions.
 
 Project maintainers who do not follow or enforce the Code of Conduct in good

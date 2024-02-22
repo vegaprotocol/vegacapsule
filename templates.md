@@ -1,6 +1,3 @@
-
-
-
 # Capsule templating docs
 
 Capsule allows templating for genesis file and [node-set](#nodeconfig) configurations like Vega, Tendermint, and Nomad. This is useful for generating configurations specific to a network, or for using one configuration for all node sets.
@@ -13,6 +10,7 @@ and then used in the template. These template contexts are documented below.
 There are some basic templates provided by Capsule and used by some of the provided configurations in the *net_confs* folder in the Vega Capsule GitHub repo.
 
 ## Template tool
+
 Capsule includes a tool to test these templates before they get used in [network config](config.md). Plese check `vegacapsule template --help` for more information.
 
 You can test the *template tool* by using some of the provided default templates after the network has been generated.
@@ -25,10 +23,7 @@ vegacapsule template node-sets --type vega --path net_confs/node_set_templates/d
 
 ## Template contexts
 
-
-
 ## *config.NodeConfigTemplateContext*
-
 
 ### Fields
 
@@ -49,9 +44,7 @@ Absolute index of the generated node.
 
 ---
 
-
 ## *datanode.ConfigTemplateContext*
-
 
 ### Fields
 
@@ -92,9 +85,7 @@ Absolute index of the generated node.
 
 ---
 
-
 ## *faucet.ConfigTemplateContext*
-
 
 ### Fields
 
@@ -125,14 +116,12 @@ Public key of the Faucet.
 
 ---
 
-
 ## *genesis.TemplateContext*
 
 Template context also includes functions:
+
 - `.GetEthContractAddr "contract_name"` - returns contract address based on name.
 - `.GetVegaContractID "contract_name"` - returns contract vega ID based on name.
-
-
 
 ### Fields
 
@@ -173,9 +162,7 @@ Ethereum chain ID.
 
 ---
 
-
 ## *tendermint.ConfigTemplateContext*
-
 
 ### Fields
 
@@ -236,9 +223,7 @@ Ethereum chain ID.
 
 ---
 
-
 ## *vega.ConfigTemplateContext*
-
 
 ### Fields
 
@@ -339,9 +324,7 @@ Ethereum chain ID.
 
 ---
 
-
 ## *visor.ConfigTemplateContext*
-
 
 ### Fields
 
@@ -362,9 +345,7 @@ Ethereum chain ID.
 
 ---
 
-
 ## *wallet.ConfigTemplateContext*
-
 
 ### Fields
 
@@ -435,9 +416,7 @@ Ethereum chain ID.
 
 ---
 
-
 ## *types.NodeSet*
-
 
 ### Fields
 
@@ -580,9 +559,7 @@ Stores custom Nomad job definition of this node set.
 
 ---
 
-
 ## *genesis.SmartContract*
-
 
 ### Fields
 
@@ -613,10 +590,9 @@ Vega contract ID.
 
 ---
 
-
 ## *types.VegaNode*
-Represents generated Vega node.
 
+Represents generated Vega node.
 
 ### Fields
 
@@ -681,10 +657,9 @@ Path to binary used to generate and run the node.
 
 ---
 
-
 ## *types.TendermintNode*
-Represents generated Tendermint node.
 
+Represents generated Tendermint node.
 
 ### Fields
 
@@ -745,9 +720,7 @@ Generated public key of the Tendermint validator.
 
 ---
 
-
 ## *types.DataNode*
-
 
 ### Fields
 
@@ -788,9 +761,7 @@ Unique IPFS swarm key for this network
 
 ---
 
-
 ## *types.Visor*
-
 
 ### Fields
 
@@ -821,10 +792,9 @@ Path to binary used to generate and run the node.
 
 ---
 
-
 ## *types.NomadJob*
-Represents a raw Nomad job.
 
+Represents a raw Nomad job.
 
 ### Fields
 
@@ -855,10 +825,9 @@ Nomad job definition.
 
 ---
 
-
 ## *types.ProbesConfig*
-Allows the user to define pre start probes on external services.
 
+Allows the user to define pre start probes on external services.
 
 ### Fields
 
@@ -893,11 +862,7 @@ Allows the user to probe Postgres database with a query.
 
 </dd>
 
-
-
 ### Complete example
-
-
 
 ```hcl
 pre_start_probe {
@@ -906,15 +871,13 @@ pre_start_probe {
 
 ```
 
-
 </dl>
 
 ---
 
-
 ## *types.GeneratedService*
-Represents any generated Capsule service.
 
+Represents any generated Capsule service.
 
 ### Fields
 
@@ -955,10 +918,9 @@ Path to service configuration.
 
 ---
 
-
 ## *types.NodeWalletInfo*
-Information about node wallets.
 
+Information about node wallets.
 
 ### Fields
 
@@ -1063,10 +1025,9 @@ File path of the Vega wallet passphrase.
 
 ---
 
-
 ## *types.HTTPProbe*
-Allows the user to probe HTTP endpoint.
 
+Allows the user to probe HTTP endpoint.
 
 ### Fields
 
@@ -1081,11 +1042,7 @@ URL of the HTTP endpoint.
 
 </dd>
 
-
-
 ### Complete example
-
-
 
 ```hcl
 http {
@@ -1094,15 +1051,13 @@ http {
 
 ```
 
-
 </dl>
 
 ---
 
-
 ## *types.TCPProbe*
-Allows the user to probe TCP socket.
 
+Allows the user to probe TCP socket.
 
 ### Fields
 
@@ -1117,11 +1072,7 @@ Address of the TCP socket.
 
 </dd>
 
-
-
 ### Complete example
-
-
 
 ```hcl
 tcp {
@@ -1130,15 +1081,13 @@ tcp {
 
 ```
 
-
 </dl>
 
 ---
 
-
 ## *types.PostgresProbe*
-Allows the user to probe Postgres database.
 
+Allows the user to probe Postgres database.
 
 ### Fields
 
@@ -1163,11 +1112,7 @@ Test query.
 
 </dd>
 
-
-
 ### Complete example
-
-
 
 ```hcl
 postgres {
@@ -1176,7 +1121,6 @@ postgres {
 }
 
 ```
-
 
 </dl>
 

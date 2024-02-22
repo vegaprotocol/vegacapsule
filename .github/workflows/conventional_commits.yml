@@ -5,8 +5,8 @@ name: Conventional Commits
 
 "on":
   pull_request:
-    branches: [develop, main]
-    types: [synchronize, opened]
+    branches: [ develop, main ]
+    types: [ synchronize, opened ]
 
 jobs:
   verify-conventional-commits:

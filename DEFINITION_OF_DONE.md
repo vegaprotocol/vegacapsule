@@ -15,6 +15,7 @@ The difference between a Definition of Done and Acceptance Criteria...
 ## Vega Core Team Definition of Done
 
 **Before merging**
+
 - Create relevant for [system-test](https://github.com/vegaprotocol/system-tests/issues) tickets with feature labels (should be done when starting the work)
 - Code refactored to meet SOLID and other code design principles
 - Code is compilation error, warning, and hint free
@@ -28,16 +29,19 @@ The difference between a Definition of Done and Acceptance Criteria...
 > ℹ️ In most cases the person that raised the PR should be the one to squash branch history to string of passing, sensible commits, and merge the PR.
 
 **After merging**
+
 - Move development ticket to `Done` if there is **NO** requirement for new system-tests
 - Resolve any issues with broken system-tests
 - Create [documentation](https://github.com/vegaprotocol/documentation/issues) tickets with feature labels if functionality has changed, or is a new feature
 
 **Before Testnet**
+
 - Acceptance (feature) tests passing (end to end / black-box testing)
 - Full set of functional regression tests passing
 - Incentives (where applicable) have been planned with the community team
 
 **Before Mainnet**
+
 - Incentives (where applicable) have been run successfully in testnet
 
 > ℹ️ In most cases the person that raised the PR should be the one to squash branch history to string of passing, sensible commits, and merge the PR.

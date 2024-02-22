@@ -1,39 +1,39 @@
 [Admin]
-  [Admin.Server]
-    SocketPath = "/tmp/vega-{{.NodeNumber}}.sock"
-    Enabled = true
+[Admin.Server]
+SocketPath = "/tmp/vega-{{.NodeNumber}}.sock"
+Enabled = true
 
 [API]
-	Port = {{add 300 .NodeNumber}}2
-	[API.REST]
-			Port = {{add 300 .NodeNumber}}3
+Port = {{ add 300 .NodeNumber } }2
+[API.REST]
+Port = {{ add 300 .NodeNumber } }3
 
 [Blockchain]
-    ChainProvider = "nullchain"
-    [Blockchain.Tendermint]
-        RPCAddr = "tcp://127.0.0.1:266{{.NodeNumber}}7"
-    [Blockchain.Null]
-        Level = "Debug"
-        BlockDuration = "1s"
-        TransactionsPerBlock = 1
-        IP = "0.0.0.0"
-        Port = 31{{.NodeNumber}}1
-        GenesisFile = "{{.NodeSet.Tendermint.GenesisFilePath}}"
+ChainProvider = "nullchain"
+[Blockchain.Tendermint]
+RPCAddr = "tcp://127.0.0.1:266{{.NodeNumber}}7"
+[Blockchain.Null]
+Level = "Debug"
+BlockDuration = "1s"
+TransactionsPerBlock = 1
+IP = "0.0.0.0"
+Port = 31{{ .NodeNumber } }1
+GenesisFile = "{{.NodeSet.Tendermint.GenesisFilePath}}"
 
 [EvtForward]
-	Level = "Info"
-	RetryRate = "1s"
-	{{if .FaucetPublicKey}}
-	BlockchainQueueAllowlist = ["{{ .FaucetPublicKey }}"]
-	{{end}}
+Level = "Info"
+RetryRate = "1s"
+{{ if .FaucetPublicKey } }
+BlockchainQueueAllowlist = ["{{ .FaucetPublicKey }}"]
+{{ end } }
 
 [Ethereum]
-  RPCEndpoint = ""
+RPCEndpoint = ""
 
 [Processor]
-	[Processor.Ratelimit]
-		Requests = 10000
-		PerNBlocks = 1
+[Processor.Ratelimit]
+Requests = 10000
+PerNBlocks = 1
 
 [Snapshot]
-  Level = "Debug"
+Level = "Debug"

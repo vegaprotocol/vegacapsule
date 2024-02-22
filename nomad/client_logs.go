@@ -77,7 +77,7 @@ func mergeFrameSets(fss []framesSet) (<-chan *StreamFrame, <-chan error, chan st
 		}(c)
 	}
 
-	//nolint: gosimple
+	// nolint: gosimple
 	go func(fss []framesSet) {
 		select {
 		case c := <-cancel:

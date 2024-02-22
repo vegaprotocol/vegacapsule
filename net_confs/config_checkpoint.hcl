@@ -1,16 +1,16 @@
 vega_binary_path = "vega"
 
 network "testnet" {
-	ethereum {
+  ethereum {
     chain_id   = "1440"
     network_id = "1441"
     endpoint   = "ws://127.0.0.1:8545/"
   }
 
   faucet "faucet-1" {
-	  wallet_pass = "f4uc3tw4ll3t-v3g4-p4ssphr4e3"
+    wallet_pass = "f4uc3tw4ll3t-v3g4-p4ssphr4e3"
 
-	  template = <<-EOT
+    template = <<-EOT
 [Node]
   Port = 3002
   IP = "127.0.0.1"
@@ -35,8 +35,8 @@ EOT
   pre_start {
     docker_service "ganache-1" {
       image = "vegaprotocol/ganache:latest"
-      cmd = "ganache-cli"
-      args = [
+      cmd   = "ganache-cli"
+      args  = [
         "--blockTime", "1",
         "--chainId", "1440",
         "--networkId", "1441",
@@ -45,16 +45,16 @@ EOT
         "-m", "ozone access unlock valid olympic save include omit supply green clown session",
         "--db", "/app/ganache-db",
       ]
-	  static_port {
+      static_port {
         value = 8545
-        to = 8545
+        to    = 8545
       }
       auth_soft_fail = true
     }
   }
 
   smart_contracts_addresses_file = "./public_smart_contracts_addresses.json"
-  genesis_template = <<EOH
+  genesis_template               = <<EOH
 {
 	"app_state": {
     "checkpoint": {
@@ -288,17 +288,17 @@ EOT
   EOH
 
   node_set "validators" {
-    count = 2
-    mode = "validator"
-    node_wallet_pass = "n0d3w4ll3t-p4ssphr4e3"
-    vega_wallet_pass = "w4ll3t-p4ssphr4e3"
+    count                = 2
+    mode                 = "validator"
+    node_wallet_pass     = "n0d3w4ll3t-p4ssphr4e3"
+    vega_wallet_pass     = "w4ll3t-p4ssphr4e3"
     ethereum_wallet_pass = "ch41nw4ll3t-3th3r3um-p4ssphr4e3"
 
     config_templates {
 
-// ============================
-// ===== VegaNode Config ======
-// ============================
+      // ============================
+      // ===== VegaNode Config ======
+      // ============================
 
       vega = <<-EOT
 [Admin]
@@ -333,11 +333,11 @@ EOT
 		PerNBlocks = 1
 EOT
 
-// ============================
-// ==== Tendermint Config =====
-// ============================
+      // ============================
+      // ==== Tendermint Config =====
+      // ============================
 
-	  tendermint = <<-EOT
+      tendermint = <<-EOT
 log_level = "info"
 
 proxy_app = "tcp://127.0.0.1:266{{.NodeNumber}}8"
@@ -371,15 +371,15 @@ EOT
   }
 
   node_set "full" {
-    count = 1
-    mode = "full"
-	use_data_node = true
+    count         = 1
+    mode          = "full"
+    use_data_node = true
 
     config_templates {
 
-// ============================
-// ===== VegaNode Config ======
-// ============================
+      // ============================
+      // ===== VegaNode Config ======
+      // ============================
 
       vega = <<-EOT
 [Admin]
@@ -416,9 +416,9 @@ EOT
     Enabled = true
 EOT
 
-// ============================
-// ===== DataNode Config ======
-// ============================
+      // ============================
+      // ===== DataNode Config ======
+      // ============================
 
       data_node = <<-EOT
 
@@ -456,11 +456,11 @@ GatewayEnabled = true
 
 EOT
 
-// ============================
-// ==== Tendermint Config =====
-// ============================
+      // ============================
+      // ==== Tendermint Config =====
+      // ============================
 
-	  tendermint = <<-EOT
+      tendermint = <<-EOT
 log_level = "info"
 
 proxy_app = "tcp://127.0.0.1:266{{.NodeNumber}}8"

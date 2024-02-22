@@ -1,25 +1,18 @@
-
-
-
 # Capsule configuration docs
 
 Capsule is a tool that allows you to run a custom network simulation locally on single a machine. It is an incredibly useful tool for anybody who wants to try experimenting on or with a Vega network without using a real network.
 
-The configuration for Capsule is used to generate and bootstrap commands, and can be customised to fit your personal need. Under the hood, Capsule uses this configuration to generate a new network and store all its files in a single directory. You can then use [Nomad](https://www.nomadproject.io/) to deploy all generated services from the generation step. Nomad is built into the Capsule binaries. 
+The configuration for Capsule is used to generate and bootstrap commands, and can be customised to fit your personal need. Under the hood, Capsule uses this configuration to generate a new network and store all its files in a single directory. You can then use [Nomad](https://www.nomadproject.io/) to deploy all generated services from the generation step. Nomad is built into the Capsule binaries.
 
 The configuration uses the [HCL](https://github.com/hashicorp/hcl) language syntax, which is also used, for example, by [Terraform](https://www.terraform.io/).
 
 This document explains all possible configuration options in Capsule.
-
-
 
 ## Root - *Config*
 
 All parameters from this types are used directly in the config file.
 Most of the parameters here are optional and can be left alone.
 Please see the example below.
-
-
 
 ### Fields
 
@@ -42,8 +35,6 @@ Configuration of Vega network and its dependencies.
 
 Directory path (relative or absolute) where Capsule stores generated folders, files, logs and configurations for network.
 
-
-
 Default value: <code>~/.vegacapsule/testnet</code>
 </dd>
 
@@ -54,7 +45,6 @@ Default value: <code>~/.vegacapsule/testnet</code>
 <dd>
 
 Path (relative or absolute) to vega binary that will be used to generate and run the network.
-
 
 Default value: <code>vega</code>
 </dd>
@@ -69,18 +59,12 @@ Path (relative or absolute) of a Capsule binary. The Capsule binary is used to a
 and save them to local disk in Capsule home directory.
 See `vegacapsule nomad logscollector` for more info.
 
-
-
 Default value: <code>Currently running Capsule instance binary</code>
 
 <blockquote>This optional parameter is used internally. There should never be any need to set it to anything other than default.</blockquote>
 </dd>
 
-
-
 ### Complete example
-
-
 
 ```hcl
 vega_binary_path = "/path/to/vega"
@@ -91,11 +75,9 @@ network "your_network_name" {
 
 ```
 
-
 </dl>
 
 ---
-
 
 ## *NetworkConfig*
 
@@ -103,8 +85,6 @@ Network configuration allows a user to customise the Capsule Vega network into d
 It also allows the configuration and deployment of different Vega nodes' setups (validator, full - full means a non validating node)
 and their dependencies (like Ethereum or Postgres).
 It can run custom Docker images before and after the network nodes have started and much more.
-
-
 
 ### Fields
 
@@ -144,12 +124,6 @@ overrides `genesis_template_file`.
 
 #### <code>genesis_template</code> example
 
-
-
-
-
-
-
 ```hcl
 genesis_template = <<EOH
  {
@@ -161,10 +135,6 @@ genesis_template = <<EOH
 EOH
 
 ```
-
-
-
-
 
 </dd>
 
@@ -182,20 +152,10 @@ Same as `genesis_template` but it allows the user to link the genesis file templ
 
 #### <code>genesis_template_file</code> example
 
-
-
-
-
-
-
 ```hcl
 genesis_template_file = "/your_path/genesis.tmpl"
 
 ```
-
-
-
-
 
 </dd>
 
@@ -213,20 +173,10 @@ Same as `genesis_template` but it allows the user to download a template file fr
 
 #### <code>genesis_template_url</code> example
 
-
-
-
-
-
-
 ```hcl
 genesis_template_url = "https://example.com/genesis.json.tmpl"
 
 ```
-
-
-
-
 
 </dd>
 
@@ -246,22 +196,12 @@ or it cannot function.
 
 #### <code>ethereum</code> example
 
-
-
-
-
-
-
 ```hcl
 ethereum {
   ...
 }
 
 ```
-
-
-
-
 
 </dd>
 
@@ -288,12 +228,6 @@ overrides `smart_contracts_addresses_file`.
 
 #### <code>smart_contracts_addresses</code> example
 
-
-
-
-
-
-
 ```hcl
 smart_contracts_addresses = <<EOH
  {
@@ -304,10 +238,6 @@ smart_contracts_addresses = <<EOH
 EOH
 
 ```
-
-
-
-
 
 </dd>
 
@@ -325,20 +255,10 @@ Same as `smart_contracts_addresses` but it allows you to link the smart contract
 
 #### <code>smart_contracts_addresses_file</code> example
 
-
-
-
-
-
-
 ```hcl
 smart_contracts_addresses_file = "/your_path/smart-contratcs.json"
 
 ```
-
-
-
-
 
 </dd>
 
@@ -358,11 +278,7 @@ The node set is the essential building block of the Vega network.
 
 #### <code>node_set</code> example
 
-
-
 **Validators node set**
-
-
 
 ```hcl
 node_set "validator-nodes" {
@@ -371,11 +287,7 @@ node_set "validator-nodes" {
 
 ```
 
-
-
 **Full nodes node set**
-
-
 
 ```hcl
 node_set "full-nodes" {
@@ -383,10 +295,6 @@ node_set "full-nodes" {
 }
 
 ```
-
-
-
-
 
 </dd>
 
@@ -405,22 +313,12 @@ Wallet will not be deployed if this block is not defined.
 
 #### <code>wallet</code> example
 
-
-
-
-
-
-
 ```hcl
 wallet "wallet-name" {
   ...
 }
 
 ```
-
-
-
-
 
 </dd>
 
@@ -439,22 +337,12 @@ Faucet will not be deployed if this block is not defined.
 
 #### <code>faucet</code> example
 
-
-
-
-
-
-
 ```hcl
 faucet "faucet-name" {
   ...
 }
 
 ```
-
-
-
-
 
 </dd>
 
@@ -473,12 +361,6 @@ It can be used for node sets' dependencies, like databases, mock Ethereum chain,
 
 #### <code>pre_start</code> example
 
-
-
-
-
-
-
 ```hcl
 pre_start {
   docker_service "ganache-1" {
@@ -490,10 +372,6 @@ pre_start {
 }
 
 ```
-
-
-
-
 
 </dd>
 
@@ -512,12 +390,6 @@ It can be used for services that depend on a network that is already running, li
 
 #### <code>post_start</code> example
 
-
-
-
-
-
-
 ```hcl
 post_start {
   docker_service "bloc-explorer-1" {
@@ -530,17 +402,9 @@ post_start {
 
 ```
 
-
-
-
-
 </dd>
 
-
-
 ### Complete example
-
-
 
 ```hcl
 network "testnet" {
@@ -566,19 +430,15 @@ network "testnet" {
 
 ```
 
-
 </dl>
 
 ---
-
 
 ## *EthereumConfig*
 
 Allows the user to define the specific Ethereum network to be used.
 It can either be one of the [public networks](https://ethereum.org/en/developers/docs/networks/#public-networks) or
 a local instance of Ganache.
-
-
 
 ### Fields
 
@@ -613,11 +473,7 @@ a local instance of Ganache.
 
 </dd>
 
-
-
 ### Complete example
-
-
 
 ```hcl
 ethereum {
@@ -628,19 +484,15 @@ ethereum {
 
 ```
 
-
 </dl>
 
 ---
-
 
 ## *NodeConfig*
 
 Represents, and allows the user to configure, a set of Vega (with Tendermint) and Data Node nodes.
 One node set definition can be used by applied to multiple node sets (see `count` field) and it uses
 templating to distinguish between different nodes and names/ports and other collisions.
-
-
 
 ### Fields
 
@@ -664,8 +516,6 @@ Nomad instances that are part of these nodes are prefixed with this name.
 <dd>
 
 Determines what mode the node set should run in.
-
-
 
 Valid values:
 
@@ -854,28 +704,14 @@ Same as `nomad_job_template` but it allows the user to link the Nomad job templa
 
 #### <code>nomad_job_template_file</code> example
 
-
-
-
-
-
-
 ```hcl
 nomad_job_template_file = "/your_path/vega_config.tmpl"
 
 ```
 
-
-
-
-
 </dd>
 
-
-
 ### Complete example
-
-
 
 ```hcl
 node_set "validators" {
@@ -894,17 +730,13 @@ node_set "validators" {
 
 ```
 
-
 </dl>
 
 ---
 
-
 ## *WalletConfig*
 
 Represents a configuration of a Vega Wallet service.
-
-
 
 ### Fields
 
@@ -967,12 +799,6 @@ Example can be found in [default network config](net_confs/config.hcl).
 
 #### <code>template</code> example
 
-
-
-
-
-
-
 ```hcl
 template = <<EOH
  ...
@@ -980,17 +806,9 @@ EOH
 
 ```
 
-
-
-
-
 </dd>
 
-
-
 ### Complete example
-
-
 
 ```hcl
 wallet "wallet-1" {
@@ -1002,17 +820,13 @@ wallet "wallet-1" {
 
 ```
 
-
 </dl>
 
 ---
 
-
 ## *FaucetConfig*
 
 Represents a configuration of a Vega Faucet service.
-
-
 
 ### Fields
 
@@ -1054,12 +868,6 @@ Example can be found in [default network config](net_confs/config.hcl).
 
 #### <code>template</code> example
 
-
-
-
-
-
-
 ```hcl
 template = <<EOH
  ...
@@ -1067,39 +875,28 @@ EOH
 
 ```
 
-
-
-
-
 </dd>
-
-
 
 ### Complete example
 
-
-
 ```hcl
-faucet "faucet-1" { {
-  wallet_pass = "wallet_pass"
-  template    = <<-EOT
+faucet "faucet-1" {
+{
+wallet_pass = "wallet_pass"
+template = <<-EOT
   ...
  EOT
-  }
+}
 
 ```
-
 
 </dl>
 
 ---
 
-
 ## *PStartConfig*
 
 Allows the user to configure services that will run before or after the network starts.
-
-
 
 ### Fields
 
@@ -1125,11 +922,7 @@ Allows the user to define multiple services to be run inside [Docker](https://ww
 
 </dd>
 
-
-
 ### Complete example
-
-
 
 ```hcl
 post_start {
@@ -1140,18 +933,14 @@ post_start {
 
 ```
 
-
 </dl>
 
 ---
-
 
 ## *ConfigTemplates*
 
 Allow to add configuration template for certain services deployed by Capsule.
 Learn more about how configuration templating work here
-
-
 
 ### Fields
 
@@ -1177,22 +966,12 @@ overrides `vega_file`.
 
 #### <code>vega</code> example
 
-
-
-
-
-
-
 ```hcl
 vega = <<EOH
  ...
 EOH
 
 ```
-
-
-
-
 
 </dd>
 
@@ -1210,20 +989,10 @@ Same as `vega` but it allows the user to link the Vega config template as an ext
 
 #### <code>vega_file</code> example
 
-
-
-
-
-
-
 ```hcl
 vega_file = "/your_path/vega_config.tmpl"
 
 ```
-
-
-
-
 
 </dd>
 
@@ -1248,22 +1017,12 @@ overrides `tendermint_file`.
 
 #### <code>tendermint</code> example
 
-
-
-
-
-
-
 ```hcl
 tendermint = <<EOH
  ...
 EOH
 
 ```
-
-
-
-
 
 </dd>
 
@@ -1281,20 +1040,10 @@ Same as `tendermint` but it allows the user to link the Tendermint config templa
 
 #### <code>tendermint_file</code> example
 
-
-
-
-
-
-
 ```hcl
 tendermint_file = "/your_path/tendermint_config.tmpl"
 
 ```
-
-
-
-
 
 </dd>
 
@@ -1394,10 +1143,9 @@ Same as `visor_conf` but it allows the user to link the Visor genesis run config
 
 ---
 
-
 ## *PreGenerate*
-Allows to define service that will run before generation step.
 
+Allows to define service that will run before generation step.
 
 ### Fields
 
@@ -1412,11 +1160,7 @@ Allows to define raw [Nomad jobs](https://developer.hashicorp.com/nomad/docs/job
 
 </dd>
 
-
-
 ### Complete example
-
-
 
 ```hcl
 pre_generate {
@@ -1427,17 +1171,13 @@ pre_generate {
 
 ```
 
-
 </dl>
 
 ---
 
-
 ## *ClefConfig*
 
 Allows to configure connetion to [Clef](https://geth.ethereum.org/docs/clef/introduction) Ethereum wallet.
-
-
 
 ### Fields
 
@@ -1468,11 +1208,7 @@ Address of running Clef instance
 
 </dd>
 
-
-
 ### Complete example
-
-
 
 ```hcl
 clef_wallet {
@@ -1482,17 +1218,13 @@ clef_wallet {
 
 ```
 
-
 </dl>
 
 ---
 
-
 ## *DockerConfig*
 
 Allows the user to configure Docker container services that will run before or after the Vega network starts.
-
-
 
 ### Fields
 
@@ -1589,17 +1321,13 @@ Allows the user to define the minimum required hardware resources for the contai
 
 </dd>
 
-
-
 ### Complete example
-
-
 
 ```hcl
 docker_service "ganache-1" {
   image = "vegaprotocol/ganache:latest"
   cmd   = "ganache-cli"
-  args = [
+  args  = [
     "--blockTime", "1",
     "--chainId", "1440",
     "--networkId", "1441",
@@ -1614,14 +1342,11 @@ docker_service "ganache-1" {
 
 ```
 
-
 </dl>
 
 ---
 
-
 ## *ExecConfig*
-
 
 ### Fields
 
@@ -1672,12 +1397,9 @@ Allows the user to set environment variables launched process.
 
 ---
 
-
 ## *NomadConfig*
 
 Allows the user to configure a [Nomad job](https://developer.hashicorp.com/nomad/docs/job-specification) definition to be run on Capsule.
-
-
 
 ### Fields
 
@@ -1714,22 +1436,12 @@ overrides `job_template_file`.
 
 #### <code>job_template</code> example
 
-
-
-
-
-
-
 ```hcl
 job_template = <<EOH
  ...
 EOH
 
 ```
-
-
-
-
 
 </dd>
 
@@ -1747,28 +1459,14 @@ Same as `job_template` but it allows the user to link the Nomad job template as 
 
 #### <code>job_template_file</code> example
 
-
-
-
-
-
-
 ```hcl
 job_template_file = "/your_path/nomad-job.tmpl"
 
 ```
 
-
-
-
-
 </dd>
 
-
-
 ### Complete example
-
-
 
 ```hcl
 nomad_job "clef" {
@@ -1777,15 +1475,13 @@ nomad_job "clef" {
 
 ```
 
-
 </dl>
 
 ---
 
-
 ## *StaticPort*
-Represents static port mapping from host to container.
 
+Represents static port mapping from host to container.
 
 ### Fields
 
@@ -1810,11 +1506,7 @@ Represents port value inside of the container.
 
 </dd>
 
-
-
 ### Complete example
-
-
 
 ```hcl
 static_port {
@@ -1824,15 +1516,13 @@ static_port {
 
 ```
 
-
 </dl>
 
 ---
 
-
 ## *Resources*
-Allows the user to define hardware resource requirements
 
+Allows the user to define hardware resource requirements
 
 ### Fields
 
@@ -1887,11 +1577,7 @@ Minimum required disk space in Mb
 
 </dd>
 
-
-
 ### Complete example
-
-
 
 ```hcl
 resources {
@@ -1901,7 +1587,6 @@ resources {
 }
 
 ```
-
 
 </dl>
 
