@@ -64,8 +64,8 @@ EOT
         "--db", "/app/ganache-db",
       ]
       static_port {
-        value = 8545
-        to    = 8545
+        value = 8546
+        to    = 8546
       }
       auth_soft_fail = true
     }
