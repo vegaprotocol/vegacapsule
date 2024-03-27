@@ -142,7 +142,7 @@ func ParseHCLFile(filePath string) (*hcl.File, error) {
 	parser := hclparse.NewParser()
 	f, parseDiags := parser.ParseHCLFile(filePath)
 	if parseDiags.HasErrors() {
-		return nil, fmt.Errorf("failed to parse HCL config file: %w", parseDiags)
+		return nil, fmt.Errorf("failed to parse HCL config file: %s", parseDiags.Error())
 	}
 
 	return f, nil
@@ -176,7 +176,7 @@ func ParseConfigFile(filePath, outputDir string, genServices types.GeneratedServ
 
 	decodeDiags := gohcl.DecodeBody(f.Body, newEvalContext(*genServicesCtyVal, *config.OutputDir), config)
 	if decodeDiags.HasErrors() {
-		return nil, fmt.Errorf("failed to decode config: %w", decodeDiags)
+		return nil, fmt.Errorf("failed to decode config: %s", decodeDiags.Error())
 	}
 
 	dir, _ := filepath.Split(filePath)

@@ -46,8 +46,15 @@
 	[EvtForward.Ethereum]
 		Level = "Info"
 
+[SecondaryEvtForward]
+	Level = "Info"
+	RetryRate = "1s"
+	[SecondaryEvtForward.Ethereum]
+		Level = "Info"
+
 [Ethereum]
   RPCEndpoint = "{{.ETHEndpoint}}"
+  SecondaryRPCEndpoint = "{{.SecondaryETHEndpoint}}"
 
 [NodeWallet]
 		Level = "Info"

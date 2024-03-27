@@ -14,12 +14,13 @@ var stateCmd = &cobra.Command{
 }
 
 func init() {
-	stateCmd.AddCommand(stateGetSmartcontractsAddressesCmd)
+	stateCmd.AddCommand(stateGetSmartContractsAddressesCmd)
+	stateCmd.AddCommand(stateGetSecondarySmartContractsAddressesCmd)
 }
 
-var stateGetSmartcontractsAddressesCmd = &cobra.Command{
+var stateGetSmartContractsAddressesCmd = &cobra.Command{
 	Use:   "get-smartcontracts-addresses",
-	Short: "Print smartcontracts addresses and keys passed to vegacapsule as a config parameter",
+	Short: "Print primary smartcontracts addresses and keys passed to vegacapsule as a config parameter",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		netState, err := state.LoadNetworkState(homePath)
 		if err != nil {
@@ -31,6 +32,25 @@ var stateGetSmartcontractsAddressesCmd = &cobra.Command{
 		}
 
 		fmt.Println(*netState.Config.Network.SmartContractsAddresses)
+
+		return nil
+	},
+}
+
+var stateGetSecondarySmartContractsAddressesCmd = &cobra.Command{
+	Use:   "get-secondary-smartcontracts-addresses",
+	Short: "Print secondary smartcontracts addresses and keys passed to vegacapsule as a config parameter",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		netState, err := state.LoadNetworkState(homePath)
+		if err != nil {
+			return err
+		}
+
+		if netState.Empty() {
+			return networkNotBootstrappedErr("state get-secondary-smartcontracts-addresses")
+		}
+
+		fmt.Println(*netState.Config.Network.SecondarySmartContractsAddresses)
 
 		return nil
 	},
