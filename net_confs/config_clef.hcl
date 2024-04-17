@@ -35,38 +35,37 @@ EOT
   pre_start {
     docker_service "ganache-1" {
       image = "vegaprotocol/ganache:latest"
-      cmd   = "ganache-cli"
       args  = [
-        "--blockTime", "1",
-        "--chainId", "1440",
-        "--networkId", "1441",
+        "--miner.blockTime", "1",
+        "--chain.chainId", "1440",
+        "--chain.networkId", "1441",
         "-h", "0.0.0.0",
         "-p", "8545",
-        "-m", "ozone access unlock valid olympic save include omit supply green clown session",
-        "--db", "/app/ganache-db",
-      ]
+        "--wallet.mnemonic", "ozone access unlock valid olympic save include omit supply green clown session",
+        "--database.dbPath", "/app/ganache-db",
+        "--wallet.accountKeysPath", "keys.json",
+      ] 
       static_port {
         value = 8545
         to    = 8545
       }
       auth_soft_fail = true
     }
-
     docker_service "ganache-2" {
       image = "vegaprotocol/ganache:latest"
-      cmd   = "ganache-cli"
       args  = [
-        "--blockTime", "1",
-        "--chainId", "1450",
-        "--networkId", "1451",
+        "--miner.blockTime", "1",
+        "--chain.chainId", "1450",
+        "--chain.networkId", "1451",
         "-h", "0.0.0.0",
-        "-p", "8546",
-        "-m", "ozone access unlock valid olympic save include omit supply green clown session",
-        "--db", "/app/ganache-db",
+        "-p", "8545",
+        "--wallet.mnemonic", "ozone access unlock valid olympic save include omit supply green clown session",
+        "--database.dbPath", "/app/ganache-db",
+        "--wallet.accountKeysPath", "keys.json",
       ]
       static_port {
         value = 8546
-        to    = 8546
+        to    = 8545
       }
       auth_soft_fail = true
     }
