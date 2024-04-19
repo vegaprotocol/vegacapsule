@@ -14,38 +14,38 @@ network "testnet" {
 
   pre_start {
     docker_service "ganache-1" {
-      image = "vegaprotocol/ganache:latest"
-      cmd   = "ganache-cli"
+      image = "vegaprotocol/ganache:v1.4.0"
       args  = [
-        "--blockTime", "1",
-        "--chainId", "1440",
-        "--networkId", "1441",
+        "--miner.blockTime", "1",
+        "--chain.chainId", "1440",
+        "--chain.networkId", "1441",
         "-h", "0.0.0.0",
         "-p", "8545",
-        "-m", "ozone access unlock valid olympic save include omit supply green clown session",
-        "--db", "/app/ganache-db",
+        "--wallet.mnemonic", "ozone access unlock valid olympic save include omit supply green clown session",
+        "--database.dbPath", "/app/ganache-db",
+        "--wallet.accountKeysPath", "keys.json",
       ]
       static_port {
         value = 8545
-        to    = 8545
+		to    = 8545
       }
       auth_soft_fail = true
     }
     docker_service "ganache-2" {
-      image = "vegaprotocol/ganache:latest"
-      cmd   = "ganache-cli"
+      image = "vegaprotocol/ganache:v1.4.0"
       args  = [
-        "--blockTime", "1",
-        "--chainId", "1450",
-        "--networkId", "1451",
+        "--miner.blockTime", "1",
+        "--chain.chainId", "1450",
+        "--chain.networkId", "1451",
         "-h", "0.0.0.0",
         "-p", "8546",
-        "-m", "ozone access unlock valid olympic save include omit supply green clown session",
-        "--db", "/app/ganache-db",
+        "--wallet.mnemonic", "ozone access unlock valid olympic save include omit supply green clown session",
+        "--database.dbPath", "/app/ganache-db",
+        "--wallet.accountKeysPath", "keys.json",
       ]
       static_port {
-        value = 8546
-        to    = 8546
+    	value = 8546
+		to    = 8546
       }
       auth_soft_fail = true
     }
@@ -237,7 +237,7 @@ network "testnet" {
 	  },
 	  "network_parameters": {
       	"blockchains.ethereumConfig": "{\"network_id\": \"{{ .PrimaryBridge.NetworkID }}\", \"chain_id\": \"{{ .PrimaryBridge.ChainID }}\", \"collateral_bridge_contract\": { \"address\": \"{{.PrimaryBridge.GetEthContractAddr "erc20_bridge_1"}}\" }, \"confirmations\": 3, \"staking_bridge_contract\": { \"address\": \"{{.PrimaryBridge.GetEthContractAddr "staking_bridge"}}\", \"deployment_block_height\": 0}, \"token_vesting_contract\": { \"address\": \"{{.PrimaryBridge.GetEthContractAddr "erc20_vesting"}}\", \"deployment_block_height\": 0 }, \"multisig_control_contract\": { \"address\": \"{{.PrimaryBridge.GetEthContractAddr "MultisigControl"}}\", \"deployment_block_height\": 0 }}",
-		"blockchains.evmChainConfig": "{\"network_id\": \"{{ .SecondaryBridge.NetworkID }}\", \"chain_id\": \"{{ .SecondaryBridge.ChainID }}\", \"collateral_bridge_contract\": { \"address\": \"{{.SecondaryBridge.GetEthContractAddr "erc20_bridge_1"}}\" }, \"confirmations\": 3,  \"multisig_control_contract\": { \"address\": \"{{.SecondaryBridge.GetEthContractAddr "MultisigControl"}}\", \"deployment_block_height\": 0 }}",
+		"blockchains.evmBridgeConfigs": "{\"configs\": [{\"network_id\": \"{{ .SecondaryBridge.NetworkID }}\", \"chain_id\": \"{{ .SecondaryBridge.ChainID }}\", \"collateral_bridge_contract\": { \"address\": \"{{.SecondaryBridge.GetEthContractAddr "erc20_bridge_1"}}\" }, \"confirmations\": 2, \"multisig_control_contract\": { \"address\": \"{{.SecondaryBridge.GetEthContractAddr "MultisigControl"}}\", \"deployment_block_height\": 0 }, \"block_time\": \"10ms\"}]}",
 		"blockchains.ethereumRpcAndEvmCompatDataSourcesConfig": "{\"configs\": []}",
 		"governance.proposal.asset.minClose": "2s",
 		"governance.proposal.asset.minEnact": "2s",
@@ -330,7 +330,9 @@ network "testnet" {
 
 [Ethereum]
   RPCEndpoint = "{{.ETHEndpoint}}"
-  SecondaryRPCEndpoint = "{{.SecondaryETHEndpoint}}"
+  [[Ethereum.EVMBridgeConfigs]]
+    RPCEndpoint = "{{.SecondaryETHEndpoint}}"
+    ChainID = "{{.SecondaryBridgeChainID}}"
 
 [Processor]
 	[Processor.Ratelimit]

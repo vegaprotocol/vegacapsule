@@ -54,7 +54,9 @@
 
 [Ethereum]
   RPCEndpoint = "{{.ETHEndpoint}}"
-  SecondaryRPCEndpoint = "{{.SecondaryETHEndpoint}}"
+  [[Ethereum.EVMBridgeConfigs]]
+    RPCEndpoint = "{{.SecondaryETHEndpoint}}"
+    ChainID = "{{.SecondaryBridgeChainID}}"
 
 [NodeWallet]
 		Level = "Info"
