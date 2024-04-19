@@ -106,17 +106,18 @@ EOT
 	{{if .FaucetPublicKey}}
 	BlockchainQueueAllowlist = ["{{ .FaucetPublicKey }}"]
 	{{end}}
+    [[EvtForward.EVMBridges]]
+      Level = "Info"
+      PollEventRetryDuration = "500ms"
+      ChainID = "{{.SecondaryBridgeChainID}}"
 
-[SecondaryEvtForward]
-	Level = "Info"
-	RetryRate = "1s"
-	{{if .FaucetPublicKey}}
-	BlockchainQueueAllowlist = ["{{ .FaucetPublicKey }}"]
-	{{end}}
+
 
 [Ethereum]
   RPCEndpoint = "{{.ETHEndpoint}}"
-  SecondaryRPCEndpoint = "{{.SecondaryETHEndpoint}}"
+  [[Ethereum.EVMBridgeConfigs]]
+    RPCEndpoint = "{{.SecondaryETHEndpoint}}"
+    ChainID = "{{.SecondaryBridgeChainID}}"
 
 [Processor]
 	[Processor.Ratelimit]
@@ -198,7 +199,9 @@ EOT
 
 [Ethereum]
   RPCEndpoint = "{{.ETHEndpoint}}"
-  SecondaryRPCEndpoint = "{{.SecondaryETHEndpoint}}"
+  [[Ethereum.EVMBridgeConfigs]]
+    RPCEndpoint = "{{.SecondaryETHEndpoint}}"
+    ChainID = "{{.SecondaryBridgeChainID}}"
 
 [Processor]
 	[Processor.Ratelimit]

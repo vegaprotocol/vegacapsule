@@ -37,6 +37,7 @@ BlockchainQueueAllowlist = ["{{ .FaucetPublicKey }}"]
 [Ethereum]
 RPCEndpoint = "{{.ETHEndpoint}}"
 SecondaryRPCEndpoint = "{{.SecondaryETHEndpoint}}"
+    ChainID = "{{.SecondaryBridgeChainID}}"
 
 [Processor]
 [Processor.Ratelimit]

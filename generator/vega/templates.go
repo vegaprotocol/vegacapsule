@@ -17,16 +17,18 @@ import (
 )
 
 type ConfigTemplateContext struct {
-	TendermintNodePrefix string
-	VegaNodePrefix       string
-	DataNodePrefix       string
-	ETHEndpoint          string
-	SecondaryETHEndpoint string
-	NodeMode             string
-	FaucetPublicKey      string
-	NodeNumber           int
-	NodeSet              types.NodeSet
-	NodeHomeDir          string
+	TendermintNodePrefix   string
+	VegaNodePrefix         string
+	DataNodePrefix         string
+	ETHEndpoint            string
+	SecondaryETHEndpoint   string
+	PrimaryBridgeChainID   string
+	SecondaryBridgeChainID string
+	NodeMode               string
+	FaucetPublicKey        string
+	NodeNumber             int
+	NodeSet                types.NodeSet
+	NodeHomeDir            string
 }
 
 func NewConfigTemplate(templateRaw string) (*template.Template, error) {
@@ -40,15 +42,17 @@ func NewConfigTemplate(templateRaw string) (*template.Template, error) {
 
 func (vg ConfigGenerator) TemplateConfig(ns types.NodeSet, fc *types.Faucet, configTemplate *template.Template) (*bytes.Buffer, error) {
 	templateCtx := ConfigTemplateContext{
-		TendermintNodePrefix: vg.conf.TendermintNodePrefix,
-		VegaNodePrefix:       vg.conf.VegaNodePrefix,
-		DataNodePrefix:       vg.conf.DataNodePrefix,
-		ETHEndpoint:          vg.conf.Network.Ethereum.Endpoint,
-		SecondaryETHEndpoint: vg.conf.Network.SecondaryEthereum.Endpoint,
-		NodeMode:             ns.Mode,
-		NodeNumber:           ns.Index,
-		NodeSet:              ns,
-		NodeHomeDir:          vg.nodeDir(ns.Index),
+		TendermintNodePrefix:   vg.conf.TendermintNodePrefix,
+		VegaNodePrefix:         vg.conf.VegaNodePrefix,
+		DataNodePrefix:         vg.conf.DataNodePrefix,
+		ETHEndpoint:            vg.conf.Network.Ethereum.Endpoint,
+		SecondaryETHEndpoint:   vg.conf.Network.SecondaryEthereum.Endpoint,
+		PrimaryBridgeChainID:   vg.conf.Network.Ethereum.ChainID,
+		SecondaryBridgeChainID: vg.conf.Network.SecondaryEthereum.ChainID,
+		NodeMode:               ns.Mode,
+		NodeNumber:             ns.Index,
+		NodeSet:                ns,
+		NodeHomeDir:            vg.nodeDir(ns.Index),
 	}
 
 	if fc != nil {

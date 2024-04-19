@@ -217,7 +217,7 @@ network "testnet" {
 	  },
 	  "network_parameters": {
       	"blockchains.ethereumConfig": "{\"network_id\": \"{{ .PrimaryBridge.NetworkID }}\", \"chain_id\": \"{{ .PrimaryBridge.ChainID }}\", \"collateral_bridge_contract\": { \"address\": \"{{.PrimaryBridge.GetEthContractAddr "erc20_bridge_1"}}\" }, \"confirmations\": 3, \"staking_bridge_contract\": { \"address\": \"{{.PrimaryBridge.GetEthContractAddr "staking_bridge"}}\", \"deployment_block_height\": 0}, \"token_vesting_contract\": { \"address\": \"{{.PrimaryBridge.GetEthContractAddr "erc20_vesting"}}\", \"deployment_block_height\": 0 }, \"multisig_control_contract\": { \"address\": \"{{.PrimaryBridge.GetEthContractAddr "MultisigControl"}}\", \"deployment_block_height\": 0 }}",
-		"blockchains.evmChainConfig": "{\"network_id\": \"{{ .SecondaryBridge.NetworkID }}\", \"chain_id\": \"{{ .SecondaryBridge.ChainID }}\", \"collateral_bridge_contract\": { \"address\": \"{{.SecondaryBridge.GetEthContractAddr "erc20_bridge_1"}}\" }, \"confirmations\": 3,  \"multisig_control_contract\": { \"address\": \"{{.SecondaryBridge.GetEthContractAddr "MultisigControl"}}\", \"deployment_block_height\": 0 }}",
+		"blockchains.evmBridgeConfigs": "{\"configs\": [{\"network_id\": \"{{ .SecondaryBridge.NetworkID }}\", \"chain_id\": \"{{ .SecondaryBridge.ChainID }}\", \"collateral_bridge_contract\": { \"address\": \"{{.SecondaryBridge.GetEthContractAddr "erc20_bridge_1"}}\" }, \"confirmations\": 2, \"multisig_control_contract\": { \"address\": \"{{.SecondaryBridge.GetEthContractAddr "MultisigControl"}}\", \"deployment_block_height\": 0 }, \"block_time\": \"10ms\"}]}",
 		"blockchains.ethereumRpcAndEvmCompatDataSourcesConfig": "{\"configs\": []}",
 		"governance.proposal.asset.minClose": "2s",
 		"governance.proposal.asset.minEnact": "2s",
@@ -310,7 +310,9 @@ network "testnet" {
 
 [Ethereum]
   RPCEndpoint = "{{.ETHEndpoint}}"
-  SecondaryRPCEndpoint = "{{.SecondaryETHEndpoint}}"
+  [[Ethereum.EVMBridgeConfigs]]
+    RPCEndpoint = "{{.SecondaryETHEndpoint}}"
+    ChainID = "{{.SecondaryBridgeChainID}}"
 
 [Processor]
 	[Processor.Ratelimit]
@@ -395,7 +397,9 @@ EOT
 
 [Ethereum]
   RPCEndpoint = "{{.ETHEndpoint}}"
-  SecondaryRPCEndpoint = "{{.SecondaryETHEndpoint}}"
+  [[Ethereum.EVMBridgeConfigs]]
+    RPCEndpoint = "{{.SecondaryETHEndpoint}}"
+    ChainID = "{{.SecondaryBridgeChainID}}"
 
 [Processor]
 	[Processor.Ratelimit]
