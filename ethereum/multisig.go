@@ -16,8 +16,9 @@ import (
 )
 
 type EthereumMultisigClient struct {
-	client  *ethclient.Client
-	chainID int64
+	client    *ethclient.Client
+	chainID   int64
+	isPrimary bool
 
 	multisig *multisig.MultisigControl
 
@@ -48,6 +49,7 @@ type EthereumMultisigClientParameters struct {
 	ChainID            int
 	EthereumAddress    string
 	SmartContractsInfo types.SmartContractsInfo
+	IsPrimary          bool
 
 	VegaBinary string
 	VegaHome   string
@@ -74,6 +76,7 @@ func NewEthereumMultisigClient(ctx context.Context, params EthereumMultisigClien
 		chainID:    int64(params.ChainID),
 		vegaBinary: params.VegaBinary,
 		vegaHome:   params.VegaHome,
+		isPrimary:  params.IsPrimary,
 	}, nil
 }
 
@@ -161,12 +164,18 @@ func (ec EthereumMultisigClient) multisigSetThreshold(ctx context.Context, sessi
 		return fmt.Errorf("failed to get nonce: %w", err)
 	}
 
+	var chainID *int64
+	if !ec.isPrimary {
+		chainID = &ec.chainID
+	}
+
 	signature, err := setThresholdSignature(
 		ec.vegaBinary,
 		newThreshold,
 		nonce.Uint64(),
 		session.CallOpts.From.Hex(),
 		signers,
+		chainID,
 	)
 	if err != nil {
 		return fmt.Errorf("failed computing signature: %w", err)
@@ -212,12 +221,18 @@ func (ec EthereumMultisigClient) multisigAddSigners(ctx context.Context, session
 		if err != nil {
 			return fmt.Errorf("failed to get nonce: %w", err)
 		}
+
+		var chainID *int64
+		if !ec.isPrimary {
+			chainID = &ec.chainID
+		}
 		signature, err := addSignerSignature(
 			ec.vegaBinary,
 			validator.KeyPair.Address,
 			nonce.Uint64(),
 			session.CallOpts.From.Hex(),
-			signers)
+			signers,
+			chainID)
 		if err != nil {
 			return fmt.Errorf("failed generate the add_signer signature for %s signer: %w", validator.KeyPair.Address, err)
 		}
@@ -257,12 +272,18 @@ func (ec EthereumMultisigClient) multisigRemoveSigner(ctx context.Context, sessi
 	if err != nil {
 		return fmt.Errorf("failed to get nonce: %w", err)
 	}
+
+	var chainID *int64
+	if !ec.isPrimary {
+		chainID = &ec.chainID
+	}
 	signature, err := removeSignerSignature(
 		ec.vegaBinary,
 		oldSigner,
 		nonce.Uint64(),
 		session.CallOpts.From.Hex(),
-		signers)
+		signers,
+		chainID)
 	if err != nil {
 		return fmt.Errorf("failed generate signature: %w", err)
 	}
