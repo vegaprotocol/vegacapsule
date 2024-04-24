@@ -96,7 +96,7 @@ func removeSignerSignature(vegaBinary string, oldSigner string, nonce uint64, su
 		}
 
 		if chainID != nil {
-			args = append(args, "--chain_id", fmt.Sprintf("%d", *chainID))
+			args = append(args, "--chain-id", fmt.Sprintf("%d", *chainID))
 		}
 
 		args = append(args, getEthereumWalletArgs(signer)...)
