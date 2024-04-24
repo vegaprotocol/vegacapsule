@@ -127,6 +127,7 @@ var ethereumMultisigSetupCmd = &cobra.Command{
 			ChainID:            primaryChainID,
 			EthereumAddress:    netState.Config.Network.Ethereum.Endpoint,
 			SmartContractsInfo: *primarySmartContracts,
+			IsPrimary:          true,
 		})
 		if err != nil {
 			return fmt.Errorf("failed to create primary ethereum client: %w", err)
@@ -155,6 +156,7 @@ var ethereumMultisigSetupCmd = &cobra.Command{
 			ChainID:            secondaryChainID,
 			EthereumAddress:    netState.Config.Network.SecondaryEthereum.Endpoint,
 			SmartContractsInfo: *secondarySmartContracts,
+			IsPrimary:          false,
 		})
 		if err != nil {
 			return fmt.Errorf("failed to create secondary ethereum client: %w", err)

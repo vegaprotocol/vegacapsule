@@ -19,7 +19,7 @@ func getEthereumWalletArgs(signer Signer) []string {
 	}
 }
 
-func setThresholdSignature(vegaBinary string, newThreshold int, nonce uint64, submitter string, signers SignersList) (string, error) {
+func setThresholdSignature(vegaBinary string, newThreshold int, nonce uint64, submitter string, signers SignersList, chainID *int64) (string, error) {
 	result := "0x"
 
 	for _, signer := range signers {
@@ -31,6 +31,10 @@ func setThresholdSignature(vegaBinary string, newThreshold int, nonce uint64, su
 			"--nonce", fmt.Sprintf("%d", nonce),
 		}
 
+		if chainID != nil {
+			args = append(args, "--chain-id", fmt.Sprintf("%d", *chainID))
+		}
+
 		args = append(args, getEthereumWalletArgs(signer)...)
 
 		signature, err := callVegaBridgeERC20(vegaBinary, args)
@@ -47,7 +51,7 @@ func setThresholdSignature(vegaBinary string, newThreshold int, nonce uint64, su
 	return result, nil
 }
 
-func addSignerSignature(vegaBinary string, newSigner string, nonce uint64, submitter string, signers SignersList) (string, error) {
+func addSignerSignature(vegaBinary string, newSigner string, nonce uint64, submitter string, signers SignersList, chainID *int64) (string, error) {
 	result := "0x"
 
 	for _, signer := range signers {
@@ -59,6 +63,10 @@ func addSignerSignature(vegaBinary string, newSigner string, nonce uint64, submi
 			"--nonce", fmt.Sprintf("%d", nonce),
 		}
 
+		if chainID != nil {
+			args = append(args, "--chain-id", fmt.Sprintf("%d", *chainID))
+		}
+
 		args = append(args, getEthereumWalletArgs(signer)...)
 
 		signature, err := callVegaBridgeERC20(vegaBinary, args)
@@ -75,7 +83,7 @@ func addSignerSignature(vegaBinary string, newSigner string, nonce uint64, submi
 	return result, nil
 }
 
-func removeSignerSignature(vegaBinary string, oldSigner string, nonce uint64, submitter string, signers SignersList) (string, error) {
+func removeSignerSignature(vegaBinary string, oldSigner string, nonce uint64, submitter string, signers SignersList, chainID *int64) (string, error) {
 	result := "0x"
 
 	for _, signer := range signers {
@@ -85,6 +93,10 @@ func removeSignerSignature(vegaBinary string, oldSigner string, nonce uint64, su
 			"--old-signer", oldSigner,
 			"--submitter", submitter,
 			"--nonce", fmt.Sprintf("%d", nonce),
+		}
+
+		if chainID != nil {
+			args = append(args, "--chain-id", fmt.Sprintf("%d", *chainID))
 		}
 
 		args = append(args, getEthereumWalletArgs(signer)...)
