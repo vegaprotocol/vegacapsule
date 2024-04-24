@@ -32,7 +32,7 @@ func setThresholdSignature(vegaBinary string, newThreshold int, nonce uint64, su
 		}
 
 		if chainID != nil {
-			args = append(args, "--chain_id", fmt.Sprintf("%d", *chainID))
+			args = append(args, "--chain-id", fmt.Sprintf("%d", *chainID))
 		}
 
 		args = append(args, getEthereumWalletArgs(signer)...)
@@ -64,7 +64,7 @@ func addSignerSignature(vegaBinary string, newSigner string, nonce uint64, submi
 		}
 
 		if chainID != nil {
-			args = append(args, "--chain_id", fmt.Sprintf("%d", *chainID))
+			args = append(args, "--chain-id", fmt.Sprintf("%d", *chainID))
 		}
 
 		args = append(args, getEthereumWalletArgs(signer)...)
