@@ -29,8 +29,10 @@
     [[EvtForward.EVMBridges]]
       Level = "Info"
       PollEventRetryDuration = "500ms"
-      ChainID = "{{.SecondaryBridgeChainID}}"
-
+      ChainID = "{{.SecondaryBridgeC
+	  SkipClientVerification = true
+    [EvtForward.Ethereum]
+        SkipClientVerification = true
 
 
 [Ethereum]

@@ -4,26 +4,29 @@
     Enabled = true
 
 [API]
-	Port = {{add 300 .NodeNumber}}2
-	[API.REST]
-			Port = {{add 300 .NodeNumber}}3
+    Port = {{add 300 .NodeNumber}}2
+    [API.REST]
+            Port = {{add 300 .NodeNumber}}3
 
 [Blockchain]
-	[Blockchain.Tendermint]
-		RPCAddr = "tcp://127.0.0.1:266{{.NodeNumber}}7"
-	[Blockchain.Null]
-		Port = {{add 310 .NodeNumber}}1
+    [Blockchain.Tendermint]
+        RPCAddr = "tcp://127.0.0.1:266{{.NodeNumber}}7"
+    [Blockchain.Null]
+        Port = {{add 310 .NodeNumber}}1
 
 [EvtForward]
-	Level = "Info"
-	RetryRate = "1s"
-	{{if .FaucetPublicKey}}
-	BlockchainQueueAllowlist = ["{{ .FaucetPublicKey }}"]
-	{{end}}
+    Level = "Info"
+    RetryRate = "1s"
+    {{if .FaucetPublicKey}}
+    BlockchainQueueAllowlist = ["{{ .FaucetPublicKey }}"]
+    {{end}}
     [[EvtForward.EVMBridges]]
+    SkipClientVerification = true
       Level = "Info"
       PollEventRetryDuration = "500ms"
       ChainID = "{{.SecondaryBridgeChainID}}"
+    [EvtForward.Ethereum]
+        SkipClientVerification = true
 
 
 
@@ -34,6 +37,6 @@
     ChainID = "{{.SecondaryBridgeChainID}}"
 
 [Processor]
-	[Processor.Ratelimit]
-		Requests = 10000
-		PerNBlocks = 1
+    [Processor.Ratelimit]
+        Requests = 10000
+        PerNBlocks = 1

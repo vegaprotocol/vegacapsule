@@ -142,8 +142,8 @@ EOT
     ethereum_wallet_pass = "ch41nw4ll3t-3th3r3um-p4ssphr4e3"
 
     config_templates {
-      vega_file           = "./node_set_templates/default/vega_full.tmpl"
-      tendermint_file     = "./node_set_templates/default/tendermint_full.tmpl"
+      vega_file           = "./node_set_templates/default/vega_full_validators.tmpl"
+      tendermint_file     = "./node_set_templates/default/tendermint_validators.tmpl"
       visor_run_conf_file = "./node_set_templates/default/visor_run.tmpl"
       visor_conf_file     = "./node_set_templates/default/visor_config.tmpl"
       data_node_file      = "./node_set_templates/default/data_node_full_external_postgres.tmpl"

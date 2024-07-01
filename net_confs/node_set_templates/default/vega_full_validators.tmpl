@@ -1,0 +1,145 @@
+[Admin]
+    [Admin.Server]
+      SocketPath = "{{.NodeHomeDir}}/vega.sock"
+      Enabled = true
+
+[API]
+	Level = "Info"
+	Port = 3{{ printf "%02d" .NodeNumber }}2
+	[API.REST]
+			Port = 3{{ printf "%02d" .NodeNumber }}3
+
+[Blockchain]
+	Level = "Info"
+	[Blockchain.Tendermint]
+		Level = "Info"
+		RPCAddr = "tcp://127.0.0.1:26{{ printf "%02d" (add .NodeNumber 60) }}7"
+	[Blockchain.Null]
+		Level = "Info"
+		Port = 3{{ printf "%02d" (add .NodeNumber 10) }}1
+
+[Collateral]
+		Level = "Info"
+
+[CoreAPI]
+	LogLevel = "Info"
+
+[Execution]
+	Level = "Info"
+	[Execution.Matching]
+		Level = "Info"
+	[Execution.Risk]
+		Level = "Info"
+	[Execution.Position]
+		Level = "Info"
+		LogPositionUpdate = true
+	[Execution.Settlement]
+		Level = "Info"
+	[Execution.Fee]
+		Level = "Info"
+	[Execution.Liquidity]
+		Level = "Info"
+
+
+[EvtForward]
+    Level = "Info"
+    RetryRate = "1s"
+    {{if .FaucetPublicKey}}
+    BlockchainQueueAllowlist = ["{{ .FaucetPublicKey }}"]
+    {{end}}
+    [[EvtForward.EVMBridges]]
+    SkipClientVerification = true
+      Level = "Info"
+      PollEventRetryDuration = "500ms"
+      ChainID = "{{.SecondaryBridgeChainID}}"
+    [EvtForward.Ethereum]
+        SkipClientVerification = true
+
+[Ethereum]
+  RPCEndpoint = "{{.ETHEndpoint}}"
+  [[Ethereum.EVMBridgeConfigs]]
+    RPCEndpoint = "{{.SecondaryETHEndpoint}}"
+    ChainID = "{{.SecondaryBridgeChainID}}"
+
+[NodeWallet]
+		Level = "Info"
+	[NodeWallet.ETH]
+		Level = "Info"
+
+[Processor]
+	Level = "Info"
+	[Processor.Ratelimit]
+		Requests = 10000
+		PerNBlocks = 1
+
+[Oracles]
+	Level = "Info"
+
+[Time]
+	Level = "Info"
+
+[Epoch]
+	Level = "Info"
+
+[Monitoring]
+	Level = "Info"
+
+[Metrics]
+	Level = "Info"
+
+[Governance]
+	Level = "Info"
+[Assets]
+	Level = "Info"
+
+[Notary]
+	Level = "Info"
+
+[Genesis]
+	Level = "Info"
+
+[Validators]
+	Level = "Info"
+
+[Banking]
+	Level = "Info"
+
+[Stats]
+	Level = "Info"
+
+[NetworkParameters]
+	Level = "Info"
+
+[Limits]
+	Level = "Info"
+
+[Checkpoint]
+	Level = "Info"
+
+[Staking]
+	Level = "Info"
+
+[Broker]
+	Level = "Info"
+	[Broker.Socket]
+		Port = 3{{ printf "%02d" .NodeNumber }}5
+		Enabled = true
+
+
+[Rewards]
+	Level = "Info"
+
+[Delegation]
+	Level = "Info"
+
+[Spam]
+	Level = "Info"
+
+[Snapshot]
+	Level = "Info"
+
+[StateVar]
+	Level = "Info"
+
+[Pprof]
+	Level = "Info"
