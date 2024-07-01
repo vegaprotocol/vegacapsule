@@ -17,6 +17,12 @@
 [EvtForward]
 	Level = "Info"
 	RetryRate = "1s"
+	
+    [[EvtForward.EVMBridges]]
+      Level = "Info"
+	  SkipClientVerification = true
+    [EvtForward.Ethereum]
+        SkipClientVerification = true
 
 [SecondaryEvtForward]
 	Level = "Info"
