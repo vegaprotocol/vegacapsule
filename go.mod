@@ -5,11 +5,11 @@ go 1.21
 toolchain go1.21.5
 
 require (
-	code.vegaprotocol.io/vega v0.76.8
+	code.vegaprotocol.io/vega v0.77.2
 	github.com/BurntSushi/toml v1.3.2
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/blang/semver v3.5.1+incompatible
-	github.com/cometbft/cometbft v0.38.6
+	github.com/cometbft/cometbft v0.38.10
 	github.com/ethereum/go-ethereum v1.11.6
 	github.com/fatih/structtag v1.2.0
 	github.com/fsnotify/fsnotify v1.7.0
@@ -319,7 +319,7 @@ require (
 	golang.org/x/crypto v0.21.0 // indirect
 	golang.org/x/exp v0.0.0-20231206192017-f3f8817b8deb // indirect
 	golang.org/x/mod v0.16.0 // indirect
-	golang.org/x/net v0.22.0 // indirect
+	golang.org/x/net v0.23.0 // indirect
 	golang.org/x/oauth2 v0.15.0 // indirect
 	golang.org/x/sys v0.18.0 // indirect
 	golang.org/x/term v0.18.0 // indirect
