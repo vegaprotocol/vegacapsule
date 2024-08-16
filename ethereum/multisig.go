@@ -164,11 +164,7 @@ func (ec EthereumMultisigClient) multisigSetThreshold(ctx context.Context, sessi
 		return fmt.Errorf("failed to get nonce: %w", err)
 	}
 
-	var chainID *int64
-	if !ec.isPrimary {
-		chainID = &ec.chainID
-	}
-
+	chainID := &ec.chainID
 	signature, err := setThresholdSignature(
 		ec.vegaBinary,
 		newThreshold,
@@ -222,10 +218,7 @@ func (ec EthereumMultisigClient) multisigAddSigners(ctx context.Context, session
 			return fmt.Errorf("failed to get nonce: %w", err)
 		}
 
-		var chainID *int64
-		if !ec.isPrimary {
-			chainID = &ec.chainID
-		}
+		chainID := &ec.chainID
 		signature, err := addSignerSignature(
 			ec.vegaBinary,
 			validator.KeyPair.Address,
@@ -273,10 +266,7 @@ func (ec EthereumMultisigClient) multisigRemoveSigner(ctx context.Context, sessi
 		return fmt.Errorf("failed to get nonce: %w", err)
 	}
 
-	var chainID *int64
-	if !ec.isPrimary {
-		chainID = &ec.chainID
-	}
+	chainID := &ec.chainID
 	signature, err := removeSignerSignature(
 		ec.vegaBinary,
 		oldSigner,
