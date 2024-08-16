@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"text/template"
 
+	"code.vegaprotocol.io/vega/core/assets"
 	"code.vegaprotocol.io/vega/core/genesis"
 	vgtm "code.vegaprotocol.io/vega/core/tendermint"
 	"code.vegaprotocol.io/vegacapsule/config"
@@ -149,6 +150,9 @@ func (g *Generator) generate(nodeSets []types.NodeSet, genValidators []tmtypes.G
 			genState.Validators[v.TmPubKey] = v
 		}
 	}
+
+	// We do not want to have any additional asset in the state. People can add it if needed
+	genState.Assets = assets.GenesisState{}
 
 	// Nothing to do, we can stop here
 	if genDoc == nil {
