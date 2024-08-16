@@ -5,7 +5,7 @@ go 1.21
 toolchain go1.21.5
 
 require (
-	code.vegaprotocol.io/vega v0.77.6
+	code.vegaprotocol.io/vega v0.77.9-0.20240815143448-939926c92304
 	github.com/BurntSushi/toml v1.3.2
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/blang/semver v3.5.1+incompatible
